@@ -334,7 +334,10 @@ namespace RimChat.UI
             float height = GetTextHeight(actorsLine, rect.width, GameFont.Small);
             Rect drawRect = new Rect(rect.x, rect.y, rect.width, height);
             GUI.color = new Color(0.77f, 0.84f, 0.91f);
+            bool previousRichText = Text.CurFontStyle.richText;
+            Text.CurFontStyle.richText = true;
             Widgets.Label(drawRect, actorsLine);
+            Text.CurFontStyle.richText = previousRichText;
             GUI.color = Color.white;
             return drawRect.yMax + 4f;
         }

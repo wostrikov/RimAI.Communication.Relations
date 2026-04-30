@@ -197,9 +197,6 @@ namespace RimChat.UI
             GUI.DrawTextureWithTexCoords(rect, ScanlineOverlay, new Rect(0, 0, uScale, vScale));
 
             GUI.color = prevColor;
-
-            // Vignette (darker edges)
-            DrawVignette(rect);
         }
 
         /// <summary>
@@ -222,25 +219,6 @@ namespace RimChat.UI
 
             tex.Apply();
             return tex;
-        }
-
-        /// <summary>
-        /// Draw a vignette effect (darker at edges) using gradient strips.
-        /// </summary>
-        private static void DrawVignette(Rect rect)
-        {
-            Color prevColor = GUI.color;
-            float edgeAlpha = 0.15f;
-            float edgeWidth = rect.width * 0.08f;
-            float edgeHeight = rect.height * 0.08f;
-
-            GUI.color = new Color(0, 0, 0, edgeAlpha);
-            GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width, edgeHeight), BaseContent.WhiteTex);
-            GUI.DrawTexture(new Rect(rect.x, rect.yMax - edgeHeight, rect.width, edgeHeight), BaseContent.WhiteTex);
-            GUI.DrawTexture(new Rect(rect.x, rect.y, edgeWidth, rect.height), BaseContent.WhiteTex);
-            GUI.DrawTexture(new Rect(rect.xMax - edgeWidth, rect.y, edgeWidth, rect.height), BaseContent.WhiteTex);
-
-            GUI.color = prevColor;
         }
     }
 }

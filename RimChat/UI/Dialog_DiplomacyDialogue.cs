@@ -67,7 +67,7 @@ namespace RimChat.UI
         private Rect lastWindowContentRect = Rect.zero;
         private const int MAX_INPUT_LENGTH = 500;
         private const float FACTION_LIST_WIDTH = 160f;
-        private const float INPUT_AREA_HEIGHT = 80f;
+        private const float INPUT_AREA_HEIGHT = 90f;
         private const float STRATEGY_BAR_HEIGHT = 36f;
         private const float TIME_GAP_THRESHOLD_MINUTES = 15f;
         private const float BUBBLE_CORNER_RADIUS = 12f;
@@ -1210,6 +1210,7 @@ namespace RimChat.UI
 
             Text.Font = GameFont.Tiny;
             Color previousColor = GUI.color;
+            float itemsStartY = rect.y + topPadding + rowHeight + verticalSpacing;
             for (int i = 0; i < quests.Count; i++)
             {
                 Quest quest = quests[i];
@@ -1217,7 +1218,7 @@ namespace RimChat.UI
                 int row = i / columns;
                 Rect itemRect = new Rect(
                     contentX + column * (itemWidth + horizontalSpacing),
-                    rect.y + topPadding + row * (rowHeight + verticalSpacing),
+                    itemsStartY + row * (rowHeight + verticalSpacing),
                     itemWidth,
                     rowHeight);
 
@@ -1238,7 +1239,7 @@ namespace RimChat.UI
 
             Text.Font = GameFont.Small;
             GUI.color = previousColor;
-            return rowCount * rowHeight + Mathf.Max(0, rowCount - 1) * verticalSpacing + bottomSpacing + topPadding;
+            return rowHeight + verticalSpacing + rowCount * rowHeight + Mathf.Max(0, rowCount - 1) * verticalSpacing + bottomSpacing + topPadding;
         }
 
         private void DrawChatArea(Rect rect)

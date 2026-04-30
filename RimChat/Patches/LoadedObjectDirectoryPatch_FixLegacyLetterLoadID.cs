@@ -8,8 +8,7 @@ namespace RimChat.Patches
     /// <summary>
     /// Dependencies: Verse.LoadedObjectDirectory, RimChat ChoiceLetter subclasses.
     /// Responsibility: Fix legacy ChoiceLetter objects that have loadID=0 by assigning
-    /// unique IDs BEFORE LoadedObjectDirectory.RegisterLoaded registers them,
-    /// preventing "An item with the same key has already been added. Key: Letter_0" crashes.
+    /// unique IDs and manually registering them, preventing "Letter_0" duplicate key crashes.
     /// </summary>
     [HarmonyPatch(typeof(LoadedObjectDirectory), "RegisterLoaded")]
     public static class LoadedObjectDirectoryPatch_FixLegacyLetterLoadID
@@ -18,7 +17,7 @@ namespace RimChat.Patches
             AccessTools.Field(typeof(Letter), "loadID");
 
         [HarmonyPrefix]
-        static void FixLegacyLetterLoadID(ILoadReferenceable __0)
+        static bool FixLegacyLetterLoadID(ILoadReferenceable __0, LoadedObjectDirectory __instance)
         {
             if (__0 is ChoiceLetter_NpcInitiatedDialogue npcLetter)
             {
@@ -29,8 +28,11 @@ namespace RimChat.Patches
                 {
                     int assigned = ChoiceLetter_NpcInitiatedDialogue.AssignNextUniqueLoadID();
                     LetterLoadIDField?.SetValue(npcLetter, assigned);
+                    string correctKey = npcLetter.GetUniqueLoadID();
+                    RegisterDirectly(__instance, correctKey, __0);
                     Log.Warning(
-                        $"[RimChat] Pre-register fix: ChoiceLetter_NpcInitiatedDialogue loadID={current}, assigned={assigned}");
+                        $"[RimChat] Pre-register fix: NpcInitiatedDialogue loadID={current} -> {assigned}, key={correctKey}");
+                    return false; // skip original RegisterLoaded
                 }
             }
             else if (__0 is ChoiceLetter_PawnRpgInitiatedDialogue rpgLetter)
@@ -42,9 +44,22 @@ namespace RimChat.Patches
                 {
                     int assigned = ChoiceLetter_PawnRpgInitiatedDialogue.AssignNextUniqueLoadID();
                     LetterLoadIDField?.SetValue(rpgLetter, assigned);
+                    string correctKey = rpgLetter.GetUniqueLoadID();
+                    RegisterDirectly(__instance, correctKey, __0);
                     Log.Warning(
-                        $"[RimChat] Pre-register fix: ChoiceLetter_PawnRpgInitiatedDialogue loadID={current}, assigned={assigned}");
+                        $"[RimChat] Pre-register fix: PawnRpgInitiatedDialogue loadID={current} -> {assigned}, key={correctKey}");
+                    return false;
                 }
+            }
+            return true; // proceed with original RegisterLoaded
+        }
+
+        private static void RegisterDirectly(LoadedObjectDirectory dir, string key, ILoadReferenceable obj)
+        {
+            var allObjectsField = AccessTools.Field(typeof(LoadedObjectDirectory), "allObjectsByUsername");
+            if (allObjectsField?.GetValue(dir) is System.Collections.IDictionary dict)
+            {
+                dict[key] = obj;
             }
         }
     }

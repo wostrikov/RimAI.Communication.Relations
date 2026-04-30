@@ -648,7 +648,7 @@
     <RimChat_HiddenFactionSelectorEmpty>当前没有可选的隐藏派系。</RimChat_HiddenFactionSelectorEmpty>
     <RimChat_DialogueSettlementCount>据点 {0}</RimChat_DialogueSettlementCount>
     <RimChat_SendButton>发送</RimChat_SendButton>
-    <RimChat_SendInfoEntry>快速行动</RimChat_SendInfoEntry>
+    <RimChat_SendInfoEntry>行动菜单</RimChat_SendInfoEntry>
     <RimChat_SendInfoMenuTaunt>挑衅</RimChat_SendInfoMenuTaunt>
     <RimChat_SendInfoMenuRequestCaravan>请求商队</RimChat_SendInfoMenuRequestCaravan>
     <RimChat_SendInfoMenuRequestVisitor>请求访客</RimChat_SendInfoMenuRequestVisitor>
