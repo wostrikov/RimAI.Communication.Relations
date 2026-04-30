@@ -155,6 +155,7 @@ namespace RimChat.Patches
  ///</summary>
         public static bool Prefix_ForceGiverFaction(QuestNode __instance)
         {
+            if (!LockSlateVariables) return true;
             try
             {
                 var slate = QuestGen.slate;
@@ -208,6 +209,7 @@ namespace RimChat.Patches
  ///</summary>
         public static bool Prefix_PreventOverwrite(QuestNode __instance)
         {
+            if (!LockSlateVariables) return true;
             try
             {
                 var slate = QuestGen.slate;
@@ -264,6 +266,7 @@ namespace RimChat.Patches
  ///</summary>
         public static bool Prefix_GetNearbySettlement(QuestNode_GetNearbySettlement __instance)
         {
+            if (!LockSlateVariables) return true;
             var slate = QuestGen.slate;
             string storeAs = __instance.storeAs.GetValue(slate);
 
@@ -291,6 +294,7 @@ namespace RimChat.Patches
  ///</summary>
         public static bool Prefix_GetFactionOf(QuestNode_GetFactionOf __instance)
         {
+            if (!LockSlateVariables) return true;
             var slate = QuestGen.slate;
             string storeAs = __instance.storeAs.GetValue(slate);
 
@@ -312,6 +316,7 @@ namespace RimChat.Patches
  ///</summary>
         public static bool Prefix_HasRoyalTitleInCurrentFaction(QuestNode __instance)
         {
+            if (!LockSlateVariables) return true;
             try
             {
                 var slate = QuestGen.slate;
@@ -445,6 +450,7 @@ namespace RimChat.Patches
  ///</summary>
         public static void Postfix_GetRequiredPawnCount(ref int __result)
         {
+            if (!LockSlateVariables) return;
             var slate = QuestGen.slate;
             if (slate != null && slate.Exists("requiredPawnCount"))
             {

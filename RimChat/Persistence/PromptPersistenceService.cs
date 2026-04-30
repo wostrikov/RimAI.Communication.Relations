@@ -4666,7 +4666,7 @@ namespace RimChat.Persistence
             sb.AppendLine($"- 每个空投仓运费：{rule.ShippingCostPerPod} 银币。运费从玩家出价中扣除，不在报价中单独列出。");
             sb.AppendLine("- 你是提供需求物资的一方。需求物资价格越高，你获益越大；玩家出价越高，玩家越亏。");
             sb.AppendLine("- 需求物资与支付物资都按市场价计算（ThingDef.BaseMarketValue，最低按 0.01）。");
-            sb.AppendLine("- 需求物资倍率规则：tradeTags 包含 ExoticMisc 时 x3.0，其余物资 x1.8；金银仍按市场价固定计算。");
+            sb.AppendLine("- 需求物资倍率规则：tradeTags 包含 ExoticMisc 时 x3.0，其余物资 x1.6；金银仍按市场价固定计算。");
             sb.AppendLine("- 支付物资倍率规则：除金银外统一按市场价 x0.6 计算；金银仍按市场价固定计算。");
             sb.AppendLine("- 特殊商品倍率覆盖：若交易卡标记为 special_item_discount，该商品按 x0.4 倍率计价（折扣优惠）；若标记为 special_item_scarce，按 x2.0 倍率计价（稀缺加价）。特殊倍率优先于通用倍率。");
             AppendFactionSpecialItemInventory(sb, faction);
@@ -4780,10 +4780,10 @@ namespace RimChat.Persistence
                 return;
             }
 
-            sb.AppendLine("当前派系可用任务（只能使用以下精确 defName）：");
+            sb.AppendLine("当前派系可用任务（只能使用以下精确 defName，括号内为任务内容描述）：");
             foreach (var item in allowed)
             {
-                sb.AppendLine($"  - {item.QuestDefName}");
+                sb.AppendLine($"  - {item.QuestDefName} {GetQuestTemplateDescription(item.QuestDefName)}");
             }
 
             if (blocked.Any())
@@ -4815,6 +4815,28 @@ namespace RimChat.Persistence
             sb.AppendLine("若当前是轨道商通信，禁止使用 create_quest 生成要求玩家携带指定物资进入地面定居点的订单任务；遇到这类请求时，必须说明轨道商没有该履约链路，并引导玩家改用 request_item_airdrop。");
             sb.AppendLine("若当前派系是商会派系（OutlanderCivil / OutlanderRough），禁止使用 create_quest 生成 TradeRequest；涉及物资交换时，必须直接改用 request_item_airdrop。");
             sb.AppendLine();
+        }
+
+        private static string GetQuestTemplateDescription(string questDefName)
+        {
+            if (string.IsNullOrEmpty(questDefName)) return string.Empty;
+            switch (questDefName)
+            {
+                case "TradeRequest":
+                    return "（贸易订单：派系向玩家请求物资交换，给予银币或物品报酬）";
+                case "OpportunitySite_PeaceTalks":
+                    return "（和平谈判：敌对派系邀请玩家代表出席和谈，可能化解敌对关系）";
+                case "PawnLend":
+                    return "（借调请求：派系请求借用玩家殖民者一段时间，派穿梭机接送，完成后给予报酬和好感）";
+                case "ThreatReward_Raid_MiscReward":
+                    return "（威胁悬赏：帝国派系悬赏消灭敌对势力，完成后给予皇家声望或物品奖励）";
+                case "Hospitality_Refugee":
+                    return "（难民接待：帝国派系派遣难民到玩家基地暂住一段时间，接待完成后给予奖励）";
+                case "OpportunitySite_ItemStash":
+                    return "（物品藏匿点：发现一个藏有物资的敌对据点，前往清理并获取战利品）";
+                default:
+                    return string.Empty;
+            }
         }
 
         private static readonly string[] PresenceBehaviorSectionTitles =
@@ -5914,6 +5936,12 @@ namespace RimChat.Persistence
             sb.AppendLine(PromptTextConstants.StrictJsonFormatTemplateWithAction);
             sb.AppendLine("```");
             sb.AppendLine();
+            sb.AppendLine("WRONG (will be discarded):");
+            sb.AppendLine("```");
+            sb.AppendLine("好的，这就安排！\\n```json\\n{\"visible_dialogue\":\"...\"}\\n```");
+            sb.AppendLine("```");
+            sb.AppendLine("NEVER wrap in code blocks or add text before/after the JSON.");
+            sb.AppendLine();
         }
 
         private static void AppendOutputSpecificationAuthorityRules(StringBuilder sb)
@@ -5931,10 +5959,11 @@ namespace RimChat.Persistence
                 "- 除非同条回复包含匹配 actions 动作，否则禁止把 gameplay 效果叙述为“已执行”。",
                 "- request_caravan/request_visitor/request_aid/request_raid/request_item_airdrop/request_info/pay_prisoner_ransom/create_quest/trigger_incident 属于延迟或系统调度动作；表述应是意图或安排，不是已到达/已完成结果。",
                 "- 物资交换/发送常识：能且只能通过 request_item_airdrop 实现即时物资交换；request_caravan 属于延时交易。",
-                "- 空投交易硬约束：单次 request_item_airdrop 只能一种换一种（一个 need 对应一组 payment_items）；空投可以围绕该物资做定价与选品。",
+                "- 空投交易硬约束：单次 request_item_airdrop 只能一种物品换一种物品（一个 need 对应一组 payment_items）。禁止在 need 中写多种物品（如“1000原木和50钢铁”），禁止在 payment_items 中混入需求物资。need 只能包含一种物品及其数量。",
+                "- need 字段必须忠实反映玩家需求：若玩家消息中包含明确数量（如“1000原木”“50个钢铁”），need 必须携带该数量（格式：数字+物品名），禁止忽略玩家指定的数量。",
                 "- payment_items 格式：数组，每项必须同时含 item（string）和 count（正整数）。示例：[{\"item\":\"Silver\",\"count\":220}]。缺失 item 或 count 将导致动作执行失败。",
                 "- 若玩家准确命中你掌握的交易事实（库存、价格区间、需求），可在不违背成本底线时考虑让步并打折。",
-                "- 商队常识：你无法控制商队最终携带的物资种类与数量，也无法让商队实现即时交付。",
+                "- 商队硬约束：request_caravan 派出的商队所携带的物资由派系交易清单决定，你无法指定、修改或承诺商队携带的具体物资。玩家也无法通过商队请求指定物资交易。当玩家要求特定物资时，必须引导其改用 request_item_airdrop（空投可指定物资）。",
                 "- 轨道商硬约束：轨道商不具备地面定居点履约能力，禁止承诺“带着指定物资进入我们的据点/定居点完成订单”。若玩家提出这类需求，只能解释限制并引导改走 request_item_airdrop。",
                 "- 通信语境硬约束：当前是通信终端在线聊天，不是线下会面；禁止写“我已到场/当面处理/带人离开”。",
                 "- 赎金语义约束：仅在缺少有效 target_pawn_load_id 时使用 request_info(info_type=prisoner)；目标已明确时可直接 pay_prisoner_ransom。",

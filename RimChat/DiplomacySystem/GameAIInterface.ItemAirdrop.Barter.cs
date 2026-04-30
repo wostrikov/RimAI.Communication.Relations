@@ -1054,7 +1054,7 @@ namespace RimChat.DiplomacySystem
         public int ShippingCostSilver { get; set; }
         public int PaymentOverpaySilver { get; set; }
         public string SelectionReason { get; set; }
-        public string NeedPriceSemantic { get; set; } = "market_value_x1.8";
+        public string NeedPriceSemantic { get; set; } = "market_value_x1.6";
         public string PaymentPriceSemantic { get; set; } = "market_value_x0.6";
         public int MapUniqueId { get; set; }
         public SpecialItemType? SpecialItemType { get; set; }

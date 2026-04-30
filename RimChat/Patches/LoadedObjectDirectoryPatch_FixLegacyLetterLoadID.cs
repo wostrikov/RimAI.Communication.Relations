@@ -28,11 +28,11 @@ namespace RimChat.Patches
                 {
                     int assigned = ChoiceLetter_NpcInitiatedDialogue.AssignNextUniqueLoadID();
                     LetterLoadIDField?.SetValue(npcLetter, assigned);
-                    string correctKey = npcLetter.GetUniqueLoadID();
+                    string correctKey = $"Letter_{assigned}";
                     RegisterDirectly(__instance, correctKey, __0);
                     Log.Warning(
-                        $"[RimChat] Pre-register fix: NpcInitiatedDialogue loadID={current} -> {assigned}, key={correctKey}");
-                    return false; // skip original RegisterLoaded
+                        $"[RimChat] Pre-register fix: NpcInitiatedDialogue loadID={current} -> {assigned}");
+                    return false;
                 }
             }
             else if (__0 is ChoiceLetter_PawnRpgInitiatedDialogue rpgLetter)
@@ -44,14 +44,14 @@ namespace RimChat.Patches
                 {
                     int assigned = ChoiceLetter_PawnRpgInitiatedDialogue.AssignNextUniqueLoadID();
                     LetterLoadIDField?.SetValue(rpgLetter, assigned);
-                    string correctKey = rpgLetter.GetUniqueLoadID();
+                    string correctKey = $"Letter_{assigned}";
                     RegisterDirectly(__instance, correctKey, __0);
                     Log.Warning(
-                        $"[RimChat] Pre-register fix: PawnRpgInitiatedDialogue loadID={current} -> {assigned}, key={correctKey}");
+                        $"[RimChat] Pre-register fix: PawnRpgInitiatedDialogue loadID={current} -> {assigned}");
                     return false;
                 }
             }
-            return true; // proceed with original RegisterLoaded
+            return true;
         }
 
         private static void RegisterDirectly(LoadedObjectDirectory dir, string key, ILoadReferenceable obj)

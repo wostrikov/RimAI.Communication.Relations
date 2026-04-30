@@ -14,6 +14,7 @@ namespace RimChat.UI
     {
         private readonly FactionPromptConfig factionConfig;
         private Vector2 scrollPosition;
+        private Vector2 previewScrollPosition;
         private Dictionary<string, string> fieldBuffers;
         private bool showPreview;
         private bool previewCollapsed;
@@ -192,25 +193,26 @@ namespace RimChat.UI
                     if (contentHeightFactor > 0.01f)
                     {
                         string previewText = BuildPreviewText();
-                        float actualPreviewHeight = 120f * contentHeightFactor;
-                        Rect previewRect = new Rect(0f, currentY, viewRect.width - 16f, actualPreviewHeight);
-                        
+                        float previewAreaHeight = 300f * contentHeightFactor;
+                        Rect previewOuterRect = new Rect(0f, currentY, viewRect.width - 16f, previewAreaHeight);
+
                         if (contentHeightFactor >= 1f)
                         {
-                            GUI.BeginGroup(previewRect);
-                            Rect previewInnerRect = new Rect(0f, 0f, previewRect.width - 16f, Mathf.Max(120f, Text.CalcHeight(previewText, previewRect.width - 20f) + 10f));
-                            
+                            float textHeight = Text.CalcHeight(previewText, previewOuterRect.width - 20f) + 10f;
+                            float contentH = Mathf.Max(previewAreaHeight, textHeight);
+                            Rect viewContentRect = new Rect(0f, 0f, previewOuterRect.width - 16f, contentH);
+
                             GUI.color = new Color(0f, 0f, 0f, 0.2f);
-                            GUI.DrawTexture(previewInnerRect, BaseContent.WhiteTex);
+                            GUI.DrawTexture(previewOuterRect, BaseContent.WhiteTex);
                             GUI.color = Color.white;
-                            
+
+                            previewScrollPosition = GUI.BeginScrollView(previewOuterRect, previewScrollPosition, viewContentRect);
                             Text.Font = GameFont.Small;
-                            Widgets.Label(previewInnerRect, previewText);
-                            
-                            GUI.EndGroup();
+                            Widgets.Label(viewContentRect, previewText);
+                            GUI.EndScrollView();
                         }
-                        
-                        currentY += 130f * contentHeightFactor;
+
+                        currentY += (previewAreaHeight + 4f) * contentHeightFactor;
                     }
                 }
                 else if (previewCollapsed)
@@ -254,8 +256,8 @@ namespace RimChat.UI
         {
             var parts = new List<string>();
             var renderContext = PromptRenderContext.Create("faction_editor.preview", "editor");
-            renderContext.SetValue("faction.name", factionConfig.DisplayName ?? "Faction");
-            renderContext.SetValue("faction.def_name", factionConfig.FactionDefName ?? "unknown");
+            renderContext.SetValue("ctx.faction_name", factionConfig.DisplayName ?? "Faction");
+            renderContext.SetValue("ctx.faction_def_name", factionConfig.FactionDefName ?? "unknown");
 
             foreach (var field in factionConfig.TemplateFields)
             {

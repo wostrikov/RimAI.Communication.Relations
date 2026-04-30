@@ -189,18 +189,7 @@ namespace RimChat.UI
                 label = label.Substring(0, StrategyLabelDisplayMaxChars);
             }
 
-            string basis = CompactStrategyReasonForDisplay(suggestion?.FactReason ?? string.Empty);
-            if (basis.Length > StrategyBasisDisplayMaxChars)
-            {
-                basis = basis.Substring(0, StrategyBasisDisplayMaxChars);
-            }
-
-            if (string.IsNullOrWhiteSpace(basis))
-            {
-                return label;
-            }
-
-            return $"{label}（{basis}）";
+            return label;
         }
 
         private string CompactStrategyReasonForDisplay(string reason)

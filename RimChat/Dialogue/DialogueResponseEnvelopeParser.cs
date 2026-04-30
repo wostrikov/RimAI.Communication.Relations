@@ -67,7 +67,13 @@ namespace RimChat.Dialogue
             string payload = StripMarkdownCodeFence(sanitized);
             if (!LooksLikeSingleJsonObject(payload))
             {
-                return false;
+                payload = ExtractJsonFromMixedContent(sanitized);
+                if (string.IsNullOrWhiteSpace(payload) || !LooksLikeSingleJsonObject(payload))
+                {
+                    return false;
+                }
+
+                Log.Warning("[RimChat] Model output contained narrative text before/after JSON block. Extracted JSON via code-fence recovery.");
             }
 
             string visibleDialogue = ExtractFirstNonEmptyString(payload, "visible_dialogue", "dialogue_text");
@@ -170,6 +176,96 @@ namespace RimChat.Dialogue
                 FailureReason = reason ?? "invalid_dialogue_contract",
                 ProtocolKind = DialogueResponseProtocolKind.Unknown
             };
+        }
+
+        private static string ExtractJsonFromMixedContent(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            // Look for ```json ... ``` blocks and extract the JSON object with visible_dialogue.
+            int fenceStart = text.IndexOf("```json", StringComparison.OrdinalIgnoreCase);
+            if (fenceStart < 0)
+            {
+                fenceStart = text.IndexOf("```", StringComparison.Ordinal);
+            }
+
+            if (fenceStart < 0)
+            {
+                // No code fence — try to find the first top-level JSON object containing visible_dialogue.
+                return ExtractJsonObjectContainingKey(text, "visible_dialogue");
+            }
+
+            int contentStart = text.IndexOf('\n', fenceStart);
+            if (contentStart < 0 || contentStart >= text.Length - 1)
+            {
+                return string.Empty;
+            }
+
+            contentStart++;
+            int fenceEnd = text.IndexOf("```", contentStart);
+            string block = fenceEnd > contentStart
+                ? text.Substring(contentStart, fenceEnd - contentStart).Trim()
+                : text.Substring(contentStart).Trim();
+
+            if (LooksLikeSingleJsonObject(block))
+            {
+                return block;
+            }
+
+            return ExtractJsonObjectContainingKey(block, "visible_dialogue");
+        }
+
+        private static string ExtractJsonObjectContainingKey(string text, string requiredKey)
+        {
+            if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(requiredKey))
+            {
+                return string.Empty;
+            }
+
+            string needle = "\"" + requiredKey + "\"";
+            int keyIndex = text.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
+            if (keyIndex < 0)
+            {
+                return string.Empty;
+            }
+
+            // Walk backwards to find the opening { of the containing object.
+            int depth = 0;
+            int objectStart = -1;
+            for (int i = keyIndex; i >= 0; i--)
+            {
+                char c = text[i];
+                if (c == '}')
+                {
+                    depth++;
+                }
+                else if (c == '{')
+                {
+                    if (depth == 0)
+                    {
+                        objectStart = i;
+                        break;
+                    }
+
+                    depth--;
+                }
+            }
+
+            if (objectStart < 0)
+            {
+                return string.Empty;
+            }
+
+            int objectEnd = FindMatchingBracket(text, objectStart, '{', '}');
+            if (objectEnd <= objectStart)
+            {
+                return string.Empty;
+            }
+
+            return text.Substring(objectStart, objectEnd - objectStart + 1).Trim();
         }
 
         private static string StripMarkdownCodeFence(string text)

@@ -270,6 +270,11 @@ namespace RimChat.DiplomacySystem
                 aiResponse,
                 intentHint,
                 targetFaction);
+            if (string.IsNullOrWhiteSpace(summary))
+            {
+                string targetLabel = targetFaction != null ? $"与{targetFaction.Name}" : string.Empty;
+                summary = $"{sourceFaction.Name}{targetLabel}就当前局势发表了公开声明。";
+            }
             return EnqueuePublicPost(
                 sourceFaction,
                 targetFaction,

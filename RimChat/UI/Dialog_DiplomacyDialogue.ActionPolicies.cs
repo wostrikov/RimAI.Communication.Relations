@@ -50,6 +50,13 @@ namespace RimChat.UI
             "cancel", "stop", "no need", "never mind"
         };
 
+        private static readonly string[] AirdropSelectionRejectionHints =
+        {
+            "不是", "不对", "不是这个", "换一个", "换别的", "其他的", "另一种",
+            "不是我想要", "不想要这个", "不要这个",
+            "not this", "wrong item", "something else", "different item", "another one"
+        };
+
         private sealed class SendInfoForcedActionDirective
         {
             public string ActionType;

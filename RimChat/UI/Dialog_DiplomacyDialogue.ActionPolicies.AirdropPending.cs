@@ -54,7 +54,9 @@ namespace RimChat.UI
             if (!TryResolvePendingAirdropCandidate(playerMessage, candidates, out PendingAirdropSelectionCandidate selected))
             {
                 string normalizedPlayer = (playerMessage ?? string.Empty).Trim().ToLowerInvariant();
-                bool shouldClarify = ContainsAnyHint(normalizedPlayer, ConfirmationHints) ||
+                bool isRejection = ContainsAnyHint(normalizedPlayer, AirdropSelectionRejectionHints);
+                bool shouldClarify = isRejection ||
+                                     ContainsAnyHint(normalizedPlayer, ConfirmationHints) ||
                                      ContainsAnyHint(normalizedPlayer, AmbiguousFollowupHints);
                 if (!shouldClarify)
                 {
@@ -62,9 +64,15 @@ namespace RimChat.UI
                 }
 
                 string clarification = BuildPendingAirdropSelectionClarification(candidates);
-                response.DialogueText = string.IsNullOrWhiteSpace(response.DialogueText)
+                string prefix = isRejection
+                    ? "RimChat_AirdropSelectionRejected".Translate().ToString()
+                    : string.Empty;
+                string combined = string.IsNullOrWhiteSpace(prefix)
                     ? clarification
-                    : $"{response.DialogueText}\n\n{clarification}";
+                    : $"{prefix}\n\n{clarification}";
+                response.DialogueText = string.IsNullOrWhiteSpace(response.DialogueText)
+                    ? combined
+                    : $"{response.DialogueText}\n\n{combined}";
 
                 return true;
             }

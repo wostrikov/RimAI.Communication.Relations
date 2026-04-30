@@ -67,6 +67,7 @@ namespace RimChat.PawnRpgPush
             base.StartedNewGame();
             Instance = this;
             ClearTransientState();
+            AutoSelectDefaultProtagonist();
         }
 
         public override void LoadedGame()
@@ -104,6 +105,7 @@ namespace RimChat.PawnRpgPush
                 queuedTriggers ??= new List<QueuedPawnRpgTrigger>();
                 proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
                 CleanupInvalidState();
+                AutoSelectDefaultProtagonist();
             }
         }
 
@@ -120,6 +122,12 @@ namespace RimChat.PawnRpgPush
             if (!IsFeatureEnabled())
             {
                 return;
+            }
+
+            // First-tick fallback: auto-select protagonist if list is still empty
+            if (proactiveProtagonists == null || proactiveProtagonists.Count == 0)
+            {
+                AutoSelectDefaultProtagonist();
             }
 
             if (currentTick % IncomingDrainInterval == 0)
@@ -330,6 +338,47 @@ namespace RimChat.PawnRpgPush
             RimChatSettings settings = RimChatMod.Instance?.InstanceSettings;
             int configured = settings?.PawnRpgProtagonistCap ?? 20;
             return Mathf.Clamp(configured, 1, 100);
+        }
+
+        /// <summary>
+        /// Auto-select the colonist with the highest total skills as default protagonist.
+        /// Called on PostLoadInit when protagonist list is empty (backward compatibility).
+        /// </summary>
+        private void AutoSelectDefaultProtagonist()
+        {
+            if (proactiveProtagonists == null || proactiveProtagonists.Count > 0) return;
+
+            Pawn best = FindBestSkillColonist();
+            if (best != null)
+            {
+                proactiveProtagonists.Add(PawnRpgProtagonistEntry.FromPawn(best));
+                Log.Message($"[RimChat] Auto-selected default protagonist: {best.LabelShortCap} (highest skills)");
+            }
+        }
+
+        private static Pawn FindBestSkillColonist()
+        {
+            Pawn best = null;
+            int bestScore = -1;
+            foreach (Map map in Find.Maps)
+            {
+                if (map == null) continue;
+                foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
+                {
+                    if (p?.skills == null || p.Dead || p.Destroyed || p.IsPrisoner || p.Faction != Faction.OfPlayer) continue;
+                    int score = 0;
+                    foreach (SkillRecord skill in p.skills.skills)
+                    {
+                        score += skill.Level;
+                    }
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        best = p;
+                    }
+                }
+            }
+            return best;
         }
 
         public void SetRpgProactiveProtagonistCap(int value)
@@ -742,6 +791,7 @@ namespace RimChat.PawnRpgPush
             threatStates.RemoveAll(s => s == null || s.faction == null || s.faction.defeated);
             queuedTriggers.RemoveAll(q => q == null || q.faction == null || q.faction.defeated);
             proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
+            proactiveProtagonists.RemoveAll(e => e == null || e.TryResolvePawn() == null);
         }
 
         private bool HasConfiguredProtagonists()

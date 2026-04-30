@@ -79,7 +79,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref ItemAirdropUntradeablePriceMultiplier, "ItemAirdropUntradeablePriceMultiplier", 6.0f);
             Scribe_Values.Look(ref ItemAirdropUntradeableLowValuePriceMultiplier, "ItemAirdropUntradeableLowValuePriceMultiplier", 15.0f);
             Scribe_Values.Look(ref ItemAirdropUntradeableMidValuePriceMultiplier, "ItemAirdropUntradeableMidValuePriceMultiplier", 8.0f);
-            Scribe_Values.Look(ref ItemAirdropNeedPriceMultiplier, "ItemAirdropNeedPriceMultiplier", 1.8f);
+            Scribe_Values.Look(ref ItemAirdropNeedPriceMultiplier, "ItemAirdropNeedPriceMultiplier", 1.6f);
             Scribe_Values.Look(ref ItemAirdropExoticMiscNeedPriceMultiplier, "ItemAirdropExoticMiscNeedPriceMultiplier", 3.0f);
             Scribe_Values.Look(ref ItemAirdropOfferPriceMultiplier, "ItemAirdropOfferPriceMultiplier", 0.6f);
             Scribe_Values.Look(ref ItemAirdropExoticMiscOfferPriceMultiplier, "ItemAirdropExoticMiscOfferPriceMultiplier", 0.9f);
@@ -130,7 +130,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref PresenceOnlineDuration_Archotech, "PresenceOnlineDuration_Archotech", 20);
 
             Scribe_Values.Look(ref EnableSocialCircle, "EnableSocialCircle", true);
-            Scribe_Values.Look(ref ScheduledNewsFrequencyLevel, "ScheduledNewsFrequencyLevel", global::RimChat.Config.ScheduledNewsFrequencyLevel.High);
+            Scribe_Values.Look(ref ScheduledNewsFrequencyLevel, "ScheduledNewsFrequencyLevel", global::RimChat.Config.ScheduledNewsFrequencyLevel.Medium);
             Scribe_Values.Look(ref SocialPostIntervalMinDays, "SocialPostIntervalMinDays", 5);
             Scribe_Values.Look(ref SocialPostIntervalMaxDays, "SocialPostIntervalMaxDays", 7);
             Scribe_Values.Look(ref EnablePlayerInfluenceNews, "EnablePlayerInfluenceNews", true);
@@ -249,11 +249,12 @@ namespace RimChat.Config
             PresenceSettings,
             NpcPushSettings,
             RpgDialogueSettings,
-            AIBehaviorSettings,
             RaidSettings,
             GoodwillSettings,
             GiftSettings,
-            AidSettings,
+            AidRequestSettings,
+            AirdropTradeSettings,
+            PrisonerRansomSettings,
             WarPeaceSettings,
             CaravanSettings,
             QuestSettings,
@@ -276,10 +277,11 @@ namespace RimChat.Config
             DrawAccordionSection(listing, AIControlSection.PresenceSettings, "RimChat_PresenceSettings".Translate(), ResetPresenceSettingsToDefault, DrawPresenceSettings, new Color(0.85f, 1f, 0.85f));
             DrawAccordionSection(listing, AIControlSection.NpcPushSettings, "RimChat_NpcPushSettings".Translate(), ResetNpcInitiatedDialogueSettings, DrawNpcInitiatedDialogueSettings, new Color(0.85f, 0.9f, 1f));
             DrawAccordionSection(listing, AIControlSection.RpgDialogueSettings, "RimChat_RpgDialogueSettingsModOptions".Translate(), ResetRpgNonPromptSettingsToDefault, DrawRpgNonPromptSettings, new Color(0.95f, 0.85f, 1f));
-            DrawAccordionSection(listing, AIControlSection.AIBehaviorSettings, "RimChat_AIBehaviorSettings".Translate(), ResetAIBehaviorToDefault, DrawAIBehaviorToggles);
             DrawAccordionSection(listing, AIControlSection.RaidSettings, "RimChat_RaidSettings".Translate(), ResetRaidSettingsToDefault, DrawRaidSettings, new Color(1f, 0.6f, 0.6f));
             DrawAccordionSection(listing, AIControlSection.GoodwillSettings, "RimChat_GoodwillSettings".Translate(), ResetGoodwillSettingsToDefault, DrawGoodwillSettings, new Color(0.8f, 0.9f, 1f));
-            DrawAccordionSection(listing, AIControlSection.AidSettings, "RimChat_AidSettings".Translate(), ResetAidSettingsToDefault, DrawAidSettings, new Color(0.7f, 1f, 0.8f));
+            DrawAccordionSection(listing, AIControlSection.AidRequestSettings, "RimChat_AidRequestSettings".Translate(), ResetAidRequestSettingsToDefault, DrawAidRequestSettings, new Color(0.7f, 1f, 0.8f));
+            DrawAccordionSection(listing, AIControlSection.AirdropTradeSettings, "RimChat_AirdropTradeSettings".Translate(), ResetAirdropTradeSettingsToDefault, DrawAirdropTradeSettings, new Color(0.6f, 0.95f, 0.8f));
+            DrawAccordionSection(listing, AIControlSection.PrisonerRansomSettings, "RimChat_PrisonerRansomSettings".Translate(), ResetPrisonerRansomSettingsToDefault, DrawPrisonerRansomSettings, new Color(0.85f, 0.75f, 0.9f));
             DrawAccordionSection(listing, AIControlSection.WarPeaceSettings, "RimChat_WarPeaceSettings".Translate(), ResetWarPeaceSettingsToDefault, DrawWarPeaceSettings, new Color(1f, 0.7f, 0.7f));
             DrawAccordionSection(listing, AIControlSection.CaravanSettings, "RimChat_CaravanSettings".Translate(), ResetCaravanSettingsToDefault, DrawCaravanSettings, new Color(0.9f, 0.8f, 1f));
             DrawAccordionSection(listing, AIControlSection.QuestSettings, "RimChat_QuestSettings".Translate(), ResetQuestSettingsToDefault, DrawQuestSettings, new Color(0.8f, 0.8f, 1f));
@@ -294,7 +296,7 @@ namespace RimChat.Config
  ///</summary>
         private float CalculateAIControlContentHeight(float width)
         {
-            float headerHeight = 34f * 12f + 120f;
+            float headerHeight = 34f * 14f + 120f;
             float expandedContentHeight = GetExpandedSectionBodyHeight();
             float viewHeight = headerHeight + expandedContentHeight + 40f;
             float minHeight = Mathf.Max(260f, width * 0.6f);
@@ -310,11 +312,12 @@ namespace RimChat.Config
                 AIControlSection.PresenceSettings => 760f,
                 AIControlSection.NpcPushSettings => 320f,
                 AIControlSection.RpgDialogueSettings => 360f,
-                AIControlSection.AIBehaviorSettings => 220f,
                 AIControlSection.RaidSettings => 760f,
                 AIControlSection.GoodwillSettings => 220f,
                 AIControlSection.GiftSettings => 0f,
-                AIControlSection.AidSettings => 2150f,
+                AIControlSection.AidRequestSettings => 200f,
+                AIControlSection.AirdropTradeSettings => 1600f,
+                AIControlSection.PrisonerRansomSettings => 350f,
                 AIControlSection.WarPeaceSettings => 300f,
                 AIControlSection.CaravanSettings => 180f,
                 AIControlSection.QuestSettings => 160f,
@@ -411,6 +414,18 @@ namespace RimChat.Config
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
             listing.Gap(6f);
+
+            listing.Label("RimChat_TerminalScale".Translate());
+            listing.Gap(6f);
+            Rect scaleRowRect = listing.GetRect(32f);
+            float scaleColW = (scaleRowRect.width - 24f) / 5f;
+            float scaleGap = 6f;
+            DrawSpeedOption(new Rect(scaleRowRect.x, scaleRowRect.y, scaleColW, 32f), "RimChat_ScaleAuto".Translate(), TerminalScale == TerminalScale.Auto, () => TerminalScale = TerminalScale.Auto);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap), scaleRowRect.y, scaleColW, 32f), "RimChat_Scale75".Translate(), TerminalScale == TerminalScale.S75, () => TerminalScale = TerminalScale.S75);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 2, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale100".Translate(), TerminalScale == TerminalScale.S100, () => TerminalScale = TerminalScale.S100);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 3, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale125".Translate(), TerminalScale == TerminalScale.S125, () => TerminalScale = TerminalScale.S125);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 4, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale150".Translate(), TerminalScale == TerminalScale.S150, () => TerminalScale = TerminalScale.S150);
+            listing.Gap(8f);
 
             listing.Label("RimChat_TypewriterSpeed".Translate());
             listing.Gap(6f);
@@ -809,7 +824,7 @@ namespace RimChat.Config
         }
 
         /// <summary>/// 闂備礁婀辩划顖氼焽濞嗘劖鍙忔い蹇撴婵ジ鏌涢幘妤€鎳忛悗? ///</summary>
-        private void DrawAidSettings(Listing_Standard listing)
+        private void DrawAidRequestSettings(Listing_Standard listing)
         {
             listing.Label($"RimChat_MinGoodwillForAid".Translate(MinGoodwillForAid));
             MinGoodwillForAid = (int)listing.Slider(MinGoodwillForAid, 0, 100);
@@ -823,8 +838,10 @@ namespace RimChat.Config
             listing.Label($"RimChat_AidDelay".Translate(delayDays.ToString("F1")));
             delayDays = listing.Slider(delayDays, 0.0f, 5f);
             AidDelayBaseTicks = (int)(delayDays * 60000);
+        }
 
-            listing.Gap(6f);
+        private void DrawAirdropTradeSettings(Listing_Standard listing)
+        {
             listing.Label("RimChat_ItemAirdropSettingsTitle".Translate());
             listing.Label("RimChat_ItemAirdropMinBudget".Translate(ItemAirdropMinBudgetSilver));
             ItemAirdropMinBudgetSilver = (int)listing.Slider(ItemAirdropMinBudgetSilver, 1, 5000);
@@ -904,8 +921,10 @@ namespace RimChat.Config
 
             listing.Label("RimChat_AirdropUntradeableHighValueMultiplier".Translate(ItemAirdropUntradeablePriceMultiplier.ToString("F2")));
             ItemAirdropUntradeablePriceMultiplier = listing.Slider(ItemAirdropUntradeablePriceMultiplier, 0.10f, 50.0f);
+        }
 
-            listing.Gap(8f);
+        private void DrawPrisonerRansomSettings(Listing_Standard listing)
+        {
             listing.Label("RimChat_PrisonerRansomSettingsTitle".Translate());
             listing.Label("RimChat_RansomReleaseTimeoutTicks".Translate(RansomReleaseTimeoutTicks));
             RansomReleaseTimeoutTicks = (int)listing.Slider(RansomReleaseTimeoutTicks, 2500, 600000);
@@ -1136,11 +1155,15 @@ namespace RimChat.Config
         }
 
         /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥蓟閵夈儳顔岄梺鍝勵槹閸ㄤ絻顤呴梺鑽ゅС缁€浣规櫠娴犲鍋柛鈩冾焽閳绘梹绻涘顔荤敖閻㈩垱鐩幃瑙勬媴闂堟稈鍋撻弴銏犵劦? ///</summary>
-        private void ResetAidSettingsToDefault()
+        private void ResetAidRequestSettingsToDefault()
         {
             MinGoodwillForAid = 40;
             AidCooldownTicks = 120000;
             AidDelayBaseTicks = 90000;
+        }
+
+        private void ResetAirdropTradeSettingsToDefault()
+        {
             ItemAirdropMinBudgetSilver = 200;
             ItemAirdropMaxBudgetSilver = 5000;
             ItemAirdropDefaultAIBudgetSilver = 800;
@@ -1160,13 +1183,17 @@ namespace RimChat.Config
             ItemAirdropUntradeablePriceMultiplier = 6.0f;
             ItemAirdropUntradeableLowValuePriceMultiplier = 15.0f;
             ItemAirdropUntradeableMidValuePriceMultiplier = 8.0f;
-            ItemAirdropNeedPriceMultiplier = 1.8f;
+            ItemAirdropNeedPriceMultiplier = 1.6f;
             ItemAirdropExoticMiscNeedPriceMultiplier = 3.0f;
             ItemAirdropOfferPriceMultiplier = 0.6f;
             ItemAirdropExoticMiscOfferPriceMultiplier = 0.9f;
             ItemAirdropUntradeableOfferPriceMultiplier = 1.0f;
             ItemAirdropSpecialItemDiscountMultiplier = 0.4f;
             ItemAirdropSpecialItemScarceMultiplier = 2.0f;
+        }
+
+        private void ResetPrisonerRansomSettingsToDefault()
+        {
             RansomPaymentModeDefault = "silver";
             RansomReleaseTimeoutTicks = 30000;
             RansomValueDropMajorThreshold = 0.30f;
@@ -1249,7 +1276,9 @@ namespace RimChat.Config
         {
             ResetGoodwillSettingsToDefault();
             ResetGiftSettingsToDefault();
-            ResetAidSettingsToDefault();
+            ResetAidRequestSettingsToDefault();
+            ResetAirdropTradeSettingsToDefault();
+            ResetPrisonerRansomSettingsToDefault();
             ResetWarPeaceSettingsToDefault();
             ResetCaravanSettingsToDefault();
             ResetQuestSettingsToDefault();

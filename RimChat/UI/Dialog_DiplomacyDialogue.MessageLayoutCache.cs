@@ -58,7 +58,7 @@ namespace RimChat.UI
 
             float maxSystemWidth = GetMaxSystemMessageWidth(viewportWidth);
             float maxBubbleWidth = GetMaxBubbleWidth(viewportWidth);
-            float contentHeight = 10f;
+            float contentHeight = 6f;
             DialogueMessageData prevMsg = null;
 
             for (int i = 0; i < session.messages.Count; i++)
@@ -66,7 +66,7 @@ namespace RimChat.UI
                 var msg = session.messages[i];
                 if (prevMsg != null && ShouldShowTimeGap(prevMsg.GetGameTick(), msg.GetGameTick()))
                 {
-                    contentHeight += 35f;
+                    contentHeight += 24f;
                 }
 
                 float maxW = msg.IsSystemMessage() ? maxSystemWidth : maxBubbleWidth;
@@ -85,7 +85,7 @@ namespace RimChat.UI
                 prevMsg = msg;
             }
 
-            contentHeight += 10f;
+            contentHeight += 6f;
             _lastLayoutCacheVersion = session.messageVersion;
             _lastLayoutCacheViewportWidth = viewportWidth;
             _cachedTotalContentHeight = contentHeight;

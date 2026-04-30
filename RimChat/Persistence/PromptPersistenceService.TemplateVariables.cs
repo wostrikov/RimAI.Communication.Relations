@@ -340,8 +340,85 @@ namespace RimChat.Persistence
                     return BuildFactionTechLevelVariableValue(context);
                 case "world.social.diplomacy_stance":
                     return BuildSocialDiplomacyStanceVariableValue(context);
+                case "world.social.source_faction":
+                    return context?.Faction?.Name ?? string.Empty;
+                case "world.social.target_faction":
+                    return Faction.OfPlayer?.Name ?? "Colony";
+                case "dialogue.action_names":
+                    return BuildAvailableActionNamesVariableValue(context);
+                case "dialogue.response_contract_body":
+                    return BuildResponseContractBodyVariableValue(context);
+                case "dialogue.api_limits_body":
+                    return "Follow rate limits and token budgets as specified in the system prompt.";
+                case "dialogue.example_line":
+                    return string.Empty;
+                case "dialogue.examples":
+                    return string.Empty;
+                case "dialogue.intent_hint":
+                    return string.Empty;
+                case "dialogue.mandatory_race_profile_body":
+                    return string.Empty;
+                case "dialogue.quest_guidance_body":
+                    return string.Empty;
+                case "dialogue.strategy_fact_pack_body":
+                    return string.Empty;
+                case "dialogue.strategy_player_negotiator_context_body":
+                    return string.Empty;
+                case "dialogue.strategy_scenario_dossier_body":
+                    return string.Empty;
+                case "dialogue.summary":
+                    return string.Empty;
+                case "dialogue.template_line":
+                    return string.Empty;
+                case "pawn.initiator":
+                    return context?.Initiator?.LabelShortCap ?? "Unknown";
+                case "pawn.profile":
+                    return BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
+                case "pawn.pronouns.be_verb":
+                    return "is";
+                case "pawn.pronouns.object":
+                    return "them";
+                case "pawn.pronouns.possessive":
+                    return "their";
+                case "pawn.pronouns.seek_verb":
+                    return "seeks";
+                case "pawn.pronouns.subject":
+                    return "They";
+                case "pawn.pronouns.subject_lower":
+                    return "they";
+                case "pawn.speaker.animal_sound":
+                    return "*growl*";
+                case "pawn.speaker.baby_sound":
+                    return "*coo*";
+                case "pawn.speaker.default_sound":
+                    return string.Empty;
+                case "pawn.speaker.kind":
+                    return context?.Initiator?.kindDef?.label ?? "human";
+                case "pawn.speaker.mechanoid_sound":
+                    return "*beep*";
+                case "pawn.target":
+                    return context?.Target?.LabelShortCap ?? "Unknown";
+                case "system.game_language":
+                    return Prefs.LangFolderName ?? "English";
+                case "system.punctuation.close_paren":
+                    return ")";
+                case "system.punctuation.open_paren":
+                    return "(";
+                case "world.social.category":
+                    return string.Empty;
+                case "world.social.credibility_label":
+                    return "official statement";
+                case "world.social.credibility_value":
+                    return "0.8";
+                case "world.social.fact_lines":
+                    return string.Empty;
+                case "world.social.origin_type":
+                    return "dialogue";
+                case "world.social.source_label":
+                    return context?.Faction?.Name ?? "Unknown";
                 default:
-                    Log.Warning($"[RimChat] Unknown template variable: '{variableName}' in ResolveTemplateVariableValue. Returning empty string.");
+                    // Validation layer (ValidateTemplateVariables) reports unknown variables.
+                    // Silent fallback here to avoid per-variable log spam during rendering.
                     return string.Empty;
             }
         }
@@ -799,6 +876,22 @@ namespace RimChat.Persistence
             FactionRelationKind relationKind = faction.PlayerRelationKind;
             int goodwill = faction.PlayerGoodwill;
             return $"{relationKind} (Goodwill: {goodwill})";
+        }
+
+        private static string BuildAvailableActionNamesVariableValue(DialogueScenarioContext context)
+        {
+            return "adjust_goodwill, send_gift, request_aid, request_caravan, request_visitor, "
+                 + "request_raid, request_item_airdrop, request_info, pay_prisoner_ransom, "
+                 + "create_quest, trigger_incident, exit_dialogue, go_offline, set_dnd, "
+                 + "reject_request, publish_public_post";
+        }
+
+        private static string BuildResponseContractBodyVariableValue(DialogueScenarioContext context)
+        {
+            return "Return exactly one JSON object. Required key: visible_dialogue. "
+                 + "Optional key: actions (array of {action, parameters} objects). "
+                 + "visible_dialogue must be a single in-character line. "
+                 + "If making an execution commitment, include matching action in actions array.";
         }
     }
 }

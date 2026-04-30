@@ -39,12 +39,24 @@ namespace RimChat.UI
         private void DrawFactionPresenceStatus(Faction factionToDraw, Rect rect, bool compact)
         {
             var status = GameComponent_DiplomacyManager.Instance?.GetPresenceStatus(factionToDraw) ?? FactionPresenceStatus.Online;
-            string label = GetPresenceLabel(status);
-            string text = compact ? $"● {label}" : $"● {label}";
-            GUI.color = GetPresenceColor(status);
+            int goodwill = factionToDraw?.PlayerGoodwill ?? 0;
+            Color dotColor = GetPresenceColor(status);
+            Color textColor = GetGoodwillColor(goodwill);
+            string relationLabel = GetRelationLabelShort(goodwill);
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(new Rect(rect.x, rect.y, rect.width, Mathf.Max(rect.height, 18f)), text);
+            float curX = rect.x;
+
+            // Dot with presence color
+            GUI.color = dotColor;
+            float dotW = Text.CalcSize("● ").x;
+            Widgets.Label(new Rect(curX, rect.y, dotW, Mathf.Max(rect.height, 18f)), "● ");
+            curX += dotW;
+
+            // Text with goodwill color
+            GUI.color = textColor;
+            Widgets.Label(new Rect(curX, rect.y, rect.width - dotW, Mathf.Max(rect.height, 18f)), relationLabel);
+
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
             GUI.color = Color.white;

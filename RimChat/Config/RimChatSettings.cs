@@ -33,6 +33,15 @@ namespace RimChat.Config
         Immersive = 2
     }
 
+    public enum TerminalScale
+    {
+        Auto = 0,
+        S75 = 1,
+        S100 = 2,
+        S125 = 3,
+        S150 = 4
+    }
+
     public enum ExpectedActionDenyLogLevel
     {
         Info = 0,
@@ -144,7 +153,7 @@ namespace RimChat.Config
         public float ItemAirdropUntradeablePriceMultiplier = 6.0f;
         public float ItemAirdropUntradeableLowValuePriceMultiplier = 15.0f;
         public float ItemAirdropUntradeableMidValuePriceMultiplier = 8.0f;
-        public float ItemAirdropNeedPriceMultiplier = 1.8f;
+        public float ItemAirdropNeedPriceMultiplier = 1.6f;
         public float ItemAirdropExoticMiscNeedPriceMultiplier = 3.0f;
         public float ItemAirdropOfferPriceMultiplier = 0.6f;
         public float ItemAirdropExoticMiscOfferPriceMultiplier = 0.9f;
@@ -199,6 +208,7 @@ namespace RimChat.Config
 
         // Comms Console Settings
         public bool ReplaceCommsConsole = false;
+        public TerminalScale TerminalScale = TerminalScale.Auto;
         [Obsolete("Thought chain feature removed")]
         public bool EnableThoughtChainNode = true;
         [Obsolete("Thought chain feature removed")]
@@ -231,7 +241,7 @@ namespace RimChat.Config
 
         // Social Circle Settings
         public bool EnableSocialCircle = true;
-        public ScheduledNewsFrequencyLevel ScheduledNewsFrequencyLevel = ScheduledNewsFrequencyLevel.High;
+        public ScheduledNewsFrequencyLevel ScheduledNewsFrequencyLevel = ScheduledNewsFrequencyLevel.Medium;
         // Legacy migration fields only. Current runtime scheduling uses ScheduledNewsFrequencyLevel; these values are kept for old save import.
         public int SocialPostIntervalMinDays = 5;
         public int SocialPostIntervalMaxDays = 7;
@@ -442,6 +452,7 @@ namespace RimChat.Config
 
             // Comms Console Settings
             Scribe_Values.Look(ref ReplaceCommsConsole, "ReplaceCommsConsole", false);
+            Scribe_Values.Look(ref TerminalScale, "TerminalScale", TerminalScale.Auto);
 #pragma warning disable CS0618 // Obsolete fields retained for save compatibility
             Scribe_Collections.Look(ref ThoughtChainByChannel, "ThoughtChainByChannel", LookMode.Deep);
             if (Scribe.mode == LoadSaveMode.LoadingVars)

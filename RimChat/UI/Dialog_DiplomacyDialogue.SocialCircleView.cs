@@ -34,33 +34,60 @@ namespace RimChat.UI
             string socialLabel = unreadCount > 0
                 ? "RimChat_SocialCircleTabWithUnread".Translate(unreadCount)
                 : "RimChat_SocialCircleTab".Translate();
-            float tabH = 28f;
-            float gap = 5f;
-            float chatW = 100f;
-            float socialW = 110f;
-            float albumW = 82f;
-            float selfieW = 82f;
-            float historyW = rect.width - chatW - socialW - albumW - selfieW - gap * 4;
-            Rect chatRect = new Rect(rect.x, rect.y, chatW, tabH);
-            Rect socialRect = new Rect(chatRect.xMax + gap, rect.y, socialW, tabH);
-            Rect albumRect = new Rect(socialRect.xMax + gap, rect.y, albumW, tabH);
-            Rect selfieRect = new Rect(albumRect.xMax + gap, rect.y, selfieW, tabH);
-            Rect historyRect = new Rect(selfieRect.xMax + gap, rect.y, historyW, tabH);
-            DrawDialogueMainTabButton(chatRect, "RimChat_DialogueMainTabChat".Translate(), currentMainTab == DialogueMainTab.Chat, DialogueMainTab.Chat);
-            DrawDialogueMainTabButton(socialRect, socialLabel, currentMainTab == DialogueMainTab.SocialCircle, DialogueMainTab.SocialCircle);
-            bool blockImageFeatures = false;
-            string blockedTooltip = string.Empty;
-            DrawActionTabButton(albumRect, "RimChat_DialogueMainTabAlbum".Translate(), OpenAlbumWindow, !blockImageFeatures, blockedTooltip);
-            bool canSelfie = !blockImageFeatures && negotiator != null;
-            DrawActionTabButton(
-                selfieRect,
-                "RimChat_DialogueMainTabSelfie".Translate(),
-                OpenSelfieWindow,
-                canSelfie,
-                canSelfie ? string.Empty : (blockImageFeatures ? blockedTooltip : "RimChat_SelfieUnavailableNoNegotiator".Translate()));
-            DrawActionTabButton(historyRect, "RimChat_DialogueMainTabHistory".Translate(), OpenHistoryWindow, true);
-            DrawSocialToast(new Rect(historyRect.xMax + 8f, rect.y + 6f, rect.width - historyRect.xMax + rect.x - 8f, 20f));
-            return 32f;
+
+            Text.Font = GameFont.Small;
+            float tabH = 20f;
+            float separatorW = 12f;
+            float curX = rect.x;
+
+            curX = DrawClickableTabText(curX, rect.y, "RimChat_DialogueMainTabChat".Translate(), currentMainTab == DialogueMainTab.Chat, () => SetDialogueMainTab(DialogueMainTab.Chat));
+            curX += separatorW;
+            curX = DrawClickableTabText(curX, rect.y, socialLabel, currentMainTab == DialogueMainTab.SocialCircle, () => SetDialogueMainTab(DialogueMainTab.SocialCircle));
+            curX += separatorW;
+            curX = DrawClickableTabText(curX, rect.y, "RimChat_DialogueMainTabAlbum".Translate(), false, OpenAlbumWindow);
+            curX += separatorW;
+            bool canSelfie = negotiator != null;
+            curX = DrawClickableTabText(curX, rect.y, "RimChat_DialogueMainTabSelfie".Translate(), false, canSelfie ? OpenSelfieWindow : (Action)null, canSelfie);
+            curX += separatorW;
+            curX = DrawClickableTabText(curX, rect.y, "RimChat_DialogueMainTabHistory".Translate(), false, OpenHistoryWindow);
+
+            DrawSocialToast(new Rect(curX + 8f, rect.y, rect.width - (curX - rect.x) - 8f, tabH));
+            return tabH;
+        }
+
+        private float DrawClickableTabText(float x, float y, string label, bool active, Action onClick, bool enabled = true)
+        {
+            Vector2 size = Text.CalcSize(label);
+            float w = size.x + 4f;
+            Rect rect = new Rect(x, y, w, 20f);
+
+            Color prev = GUI.color;
+            if (!enabled)
+            {
+                GUI.color = new Color(0.4f, 0.4f, 0.45f, 0.6f);
+            }
+            else if (active)
+            {
+                GUI.color = new Color(0.4f, 0.75f, 1f, 1f);
+            }
+            else if (Mouse.IsOver(rect))
+            {
+                GUI.color = new Color(0.7f, 0.8f, 0.95f, 1f);
+            }
+            else
+            {
+                GUI.color = new Color(0.65f, 0.68f, 0.75f, 0.9f);
+            }
+
+            Widgets.Label(rect, label);
+            GUI.color = prev;
+
+            if (enabled && onClick != null && Widgets.ButtonInvisible(rect))
+            {
+                onClick.Invoke();
+            }
+
+            return x + w;
         }
 
         private bool IsChatTabActive()
@@ -203,7 +230,7 @@ namespace RimChat.UI
             float totalHeight = 0f;
             foreach (PublicSocialPost post in posts)
             {
-                totalHeight += GetSocialPostCardHeight(post, cardWidth - 20f) + 8f;
+                totalHeight += GetSocialPostCardHeight(post, cardWidth - 20f) + 4f;
             }
 
             Rect viewRect = new Rect(0f, 0f, viewWidth, Mathf.Max(rect.height, totalHeight));
@@ -213,7 +240,7 @@ namespace RimChat.UI
             {
                 float cardHeight = GetSocialPostCardHeight(post, cardWidth - 20f);
                 DrawSocialPostCard(new Rect(0f, cursorY, cardWidth, cardHeight), post);
-                cursorY += cardHeight + 8f;
+                cursorY += cardHeight + 4f;
             }
 
             Widgets.EndScrollView();
@@ -235,13 +262,13 @@ namespace RimChat.UI
             float height = 54f;
             height += GetTextHeight(post?.Headline, contentWidth, GameFont.Medium) + 6f;
             height += GetActorsLineHeight(post, contentWidth);
-            height += GetTextHeight(BuildNarrativeBody(post), contentWidth, GameFont.Small) + 8f;
+            height += GetTextHeight(BuildNarrativeBody(post), contentWidth, GameFont.Small) + 4f;
             if (!string.IsNullOrWhiteSpace(post?.Quote))
             {
                 height += GetQuoteHeight(post, contentWidth);
             }
 
-            return Mathf.Max(148f, height + 4f);
+            return Mathf.Max(120f, height + 2f);
         }
 
         private float GetActorsLineHeight(PublicSocialPost post, float width)
@@ -271,7 +298,7 @@ namespace RimChat.UI
             float contentWidth = width - 20f;
             float quoteHeight = GetTextHeight(post?.Quote, contentWidth, GameFont.Small);
             float attributionHeight = GetTextHeight(BuildQuoteAttribution(post), contentWidth, GameFont.Tiny);
-            return quoteHeight + attributionHeight + 24f;
+            return quoteHeight + attributionHeight + 16f;
         }
 
         private void DrawSocialPostCard(Rect rect, PublicSocialPost post)

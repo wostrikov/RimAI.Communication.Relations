@@ -12,7 +12,7 @@ namespace RimChat.DiplomacySystem
     /// Architecture — three-tier pricing model:
     ///   Tier 1: Base price formula
     ///     Need side (player buys): BaseMarketValue × needMultiplier
-    ///       Normal: ItemAirdropNeedPriceMultiplier (default 1.8)
+    ///       Normal: ItemAirdropNeedPriceMultiplier (default 1.6)
     ///       ExoticMisc: ItemAirdropExoticMiscNeedPriceMultiplier (default 3.0)
     ///       Precious metal: 1.0 fixed
     ///     Offer side (player sells): BaseMarketValue × offerMultiplier
@@ -80,7 +80,7 @@ namespace RimChat.DiplomacySystem
         /// </summary>
         internal static float NeedPriceMultiplier =>
             RimChatMod.Instance?.InstanceSettings?.ItemAirdropNeedPriceMultiplier
-            ?? 1.8f;
+            ?? 1.6f;
 
         /// <summary>
         /// Active ExoticMisc need price multiplier, read from user settings.

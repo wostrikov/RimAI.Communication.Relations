@@ -1,3 +1,14 @@
+1.0.0
+- [Fix] Airdrop: AI not including player-specified quantity in need field; prompt now requires quantity
+- [Fix] Airdrop: missing language key for need_count_ambiguous error
+- [Fix] Airdrop: clear system message when item cannot be matched, guiding player to use action menu
+- [Fix] Airdrop: need_relevance_insufficient now shows explicit prompt instead of silent failure
+- [Fix] Parser: auto-recovers JSON from "narrative + code-fence JSON" mixed model output
+- [Fix] Parser: negative example added to prompt, forbids code-block wrapping and leading text
+- [New] Airdrop selection: rejection hints ("not this", "换一个") re-show available options
+- [Adjust] Normal item airdrop market price multiplier 1.8→1.6
+- [Adjust] Prompt hardened: single-item constraint for airdrop, need must not contain multiple items
+
 0.9.1049
 - [New] Comms terminal CRT display theme: barrel distortion, green phosphor, scanlines, vignette
 - [New] Terminal bezel texture (terminal.png) replaces flat color backgrounds

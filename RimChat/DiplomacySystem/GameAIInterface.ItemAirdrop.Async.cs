@@ -575,7 +575,7 @@ namespace RimChat.DiplomacySystem
                 SelectionReason = selection.Reason ?? string.Empty,
                 NeedPriceSemantic = selectedRecord?.Def?.tradeTags != null && selectedRecord.Def.tradeTags.Contains("ExoticMisc")
                     ? "market_value_x3.0"
-                    : "market_value_x1.8",
+                    : "market_value_x1.6",
                 PaymentPriceSemantic = "market_value_x0.6",
                 SpecialItemType = detectedSpecialItemType,
                 PaymentLines = context.PaymentLines,

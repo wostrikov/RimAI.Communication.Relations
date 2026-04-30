@@ -165,9 +165,16 @@
     <RimChat_UISettings>UI 设置</RimChat_UISettings>
     <RimChat_UISettingsTooltip>功能：配置通讯台替换与打字机显示体验。作用域：RimChat 交互界面表现层。</RimChat_UISettingsTooltip>
     <RimChat_ReplaceCommsConsole>替换通讯台</RimChat_ReplaceCommsConsole>
-    <RimChat_ReplaceCommsConsoleDesc>将原版通讯台替换为外交通讯台，支持AI对话功能</RimChat_ReplaceCommsConsoleDesc>
+    <RimChat_ReplaceCommsConsoleDesc>将原版通讯台入口完全替换为RimChat，部分原版内容可能不可用</RimChat_ReplaceCommsConsoleDesc>
     <RimChat_CommsToggleStatusOn>开启</RimChat_CommsToggleStatusOn>
     <RimChat_CommsToggleStatusOff>关闭</RimChat_CommsToggleStatusOff>
+    <RimChat_TerminalScale>终端缩放</RimChat_TerminalScale>
+    <RimChat_ScaleAuto>自动</RimChat_ScaleAuto>
+    <RimChat_Scale75>75%</RimChat_Scale75>
+    <RimChat_Scale100>100%</RimChat_Scale100>
+    <RimChat_Scale125>125%</RimChat_Scale125>
+    <RimChat_Scale150>150%</RimChat_Scale150>
+    <RimChat_StartConversation>开始对话...</RimChat_StartConversation>
     <RimChat_CommsToggleIconTooltip>功能：在地图右下图标行快速切换通讯台替换。当前状态：{0}。作用域：仅地图界面图标入口。</RimChat_CommsToggleIconTooltip>
     <RimChat_CommsToggleEnabledMessage>已启用通讯台替换。</RimChat_CommsToggleEnabledMessage>
     <RimChat_CommsToggleDisabledMessage>已禁用通讯台替换。</RimChat_CommsToggleDisabledMessage>
@@ -649,13 +656,13 @@
     <RimChat_DialogueSettlementCount>据点 {0}</RimChat_DialogueSettlementCount>
     <RimChat_SendButton>发送</RimChat_SendButton>
     <RimChat_SendInfoEntry>行动菜单</RimChat_SendInfoEntry>
-    <RimChat_SendInfoMenuTaunt>挑衅</RimChat_SendInfoMenuTaunt>
+    <RimChat_SendInfoMenuTaunt>发送挑衅信息</RimChat_SendInfoMenuTaunt>
     <RimChat_SendInfoMenuRequestCaravan>请求商队</RimChat_SendInfoMenuRequestCaravan>
     <RimChat_SendInfoMenuRequestVisitor>请求访客</RimChat_SendInfoMenuRequestVisitor>
     <RimChat_SendInfoMenuRequestSupport>请求支援</RimChat_SendInfoMenuRequestSupport>
     <RimChat_SendInfoMenuRequestQuest>请求任务</RimChat_SendInfoMenuRequestQuest>
     <RimChat_SendInfoMenuPrisoner>发送囚犯信息</RimChat_SendInfoMenuPrisoner>
-    <RimChat_SendInfoMenuAirdropTrade>发送空投交易请求</RimChat_SendInfoMenuAirdropTrade>
+    <RimChat_SendInfoMenuAirdropTrade>发送交易报价</RimChat_SendInfoMenuAirdropTrade>
     <RimChat_SendInfoMenuEndConversation>结束会话</RimChat_SendInfoMenuEndConversation>
     <RimChat_SendInfoMenuEndConversationAlreadyEnded>会话已经结束。</RimChat_SendInfoMenuEndConversationAlreadyEnded>
     <RimChat_SendInfoMenuEndConversationSuccess>已结束与 {0} 的会话。</RimChat_SendInfoMenuEndConversationSuccess>
@@ -871,6 +878,7 @@
     <RimChat_AirdropError_payment_items_entry_missing_count>payment_items[{0}] 需要正整数 count 字段指定支付数量。</RimChat_AirdropError_payment_items_entry_missing_count>
     <RimChat_AirdropError_need_missing>request_item_airdrop 需要字符串参数 need 描述请求的物品（如 泵动霰弹枪）。</RimChat_AirdropError_need_missing>
     <RimChat_AirdropError_need_type_invalid>request_item_airdrop 的 need 参数必须是纯文本字符串，不能是 JSON 对象。</RimChat_AirdropError_need_type_invalid>
+    <RimChat_AirdropError_need_count_ambiguous>need 中包含多个数量，无法确定要空投多少。请只指定一种物品的一个数量（如"1000原木"）。</RimChat_AirdropError_need_count_ambiguous>
     <RimChat_AirdropError_player_negotiator_required>空投需要地图上有一个有效的谈判者。请为殖民者指派谈判角色。</RimChat_AirdropError_player_negotiator_required>
     <RimChat_AirdropError_no_home_map>没有可用的玩家殖民地地图。请确认你有一个活跃的殖民地。</RimChat_AirdropError_no_home_map>
     <RimChat_AirdropError_map_unavailable>空投目标地图不可用。殖民地可能已被放弃或地图已卸载。</RimChat_AirdropError_map_unavailable>
@@ -906,9 +914,10 @@
     <RimChat_ItemAirdropSelectionInProgressSystem>边缘物流为您服务</RimChat_ItemAirdropSelectionInProgressSystem>
     <RimChat_ItemAirdropSelectionInProgressBar>空投二阶段匹配中，请稍候…</RimChat_ItemAirdropSelectionInProgressBar>
     <RimChat_ItemAirdropSelectionPendingSystem>二阶段选择超时，请从候选里指定一个后继续：\n{0}\n请回复“1/2/3/4/5”或直接回复 defName/物资名。</RimChat_ItemAirdropSelectionPendingSystem>
-    <RimChat_ItemAirdropNeedClarifySystem>当前需求仍不明确，无法给出安全空投候选。请直接回复精确物资名或 defName（例如：Chemfuel）。</RimChat_ItemAirdropNeedClarifySystem>
+    <RimChat_ItemAirdropNeedClarifySystem>无法匹配到你指定的物资，空投无法继续。请通过行动菜单中的报价卡片进行交易，或回复精确的物资 defName（例如：Pemmican、Steel）。</RimChat_ItemAirdropNeedClarifySystem>
     <RimChat_ItemAirdropSelectionPendingLine>{0}. {1}（{2}） 单价:{3} [{4}] 最大合法数量:{5}</RimChat_ItemAirdropSelectionPendingLine>
     <RimChat_ItemAirdropSelectionChosen>已记录你的选择：{0}（{1}），正在继续处理。</RimChat_ItemAirdropSelectionChosen>
+    <RimChat_AirdropSelectionRejected>这个不是你想要的？没问题，这些是当前可选的物资：</RimChat_AirdropSelectionRejected>
     <RimChat_ItemAirdropBoundNeedUnresolvedSystem>空投卡绑定的需求物资 {0} 无法解析，交易已阻断。</RimChat_ItemAirdropBoundNeedUnresolvedSystem>
     <RimChat_ItemAirdropBoundNeedFamilyConflictSystem>空投卡绑定物资 {0}（{1}）与当前需求类别冲突，交易已阻断。</RimChat_ItemAirdropBoundNeedFamilyConflictSystem>
     <RimChat_ItemAirdropBoundNeedFamilyConflictOverrideAudit>检测到绑定物资 {0}（{1}）与文本需求类别不一致，系统已按绑定物资继续执行并记录审计。</RimChat_ItemAirdropBoundNeedFamilyConflictOverrideAudit>
@@ -1203,6 +1212,12 @@ ID：{5}
     <!-- Aid Settings -->
     <RimChat_AidSettings>援助请求设置</RimChat_AidSettings>
     <RimChat_AidSettingsTooltip>功能：配置援助请求门槛、冷却和延迟。作用域：援助行动触发与到达流程。</RimChat_AidSettingsTooltip>
+    <RimChat_AidRequestSettings>援助请求设置</RimChat_AidRequestSettings>
+    <RimChat_AidRequestSettingsTooltip>功能：配置援助请求门槛、冷却和延迟。作用域：援助行动触发与到达流程。</RimChat_AidRequestSettingsTooltip>
+    <RimChat_AirdropTradeSettings>空投交易设置</RimChat_AirdropTradeSettings>
+    <RimChat_AirdropTradeSettingsTooltip>功能：配置空投交易预算、物品筛选和价格参数。作用域：AI 空投交易流程。</RimChat_AirdropTradeSettingsTooltip>
+    <RimChat_PrisonerRansomSettings>囚犯赎金设置</RimChat_PrisonerRansomSettings>
+    <RimChat_PrisonerRansomSettingsTooltip>功能：配置赎金超时、贬值和惩罚参数。作用域：囚犯赎金谈判流程。</RimChat_PrisonerRansomSettingsTooltip>
     <RimChat_MinGoodwillForAid>请求援助最低好感度: {0}</RimChat_MinGoodwillForAid>
     <RimChat_AidCooldown>冷却时间: {0} 天</RimChat_AidCooldown>
     <RimChat_AidDelay>援助到达延迟: {0} 天</RimChat_AidDelay>
@@ -2538,7 +2553,7 @@ ID：{5}
     <RimChat_DragMenu_Recruit>招募</RimChat_DragMenu_Recruit>
     <RimChat_DragMenu_Inspiration>赋予灵感</RimChat_DragMenu_Inspiration>
     <RimChat_DragMenu_Incident>触发事件</RimChat_DragMenu_Incident>
-    <RimChat_DragMenu_HoverHint>按住拖拽以触发强制行为</RimChat_DragMenu_HoverHint>
+    <RimChat_DragMenu_HoverHint>rua一下</RimChat_DragMenu_HoverHint>
 
     <!-- Module Transfer -->
     <RimChat_ModuleCreateTitle>新建模块</RimChat_ModuleCreateTitle>

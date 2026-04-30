@@ -67,22 +67,22 @@ namespace RimChat.UI
         private Rect lastWindowContentRect = Rect.zero;
         private const int MAX_INPUT_LENGTH = 500;
         private const float FACTION_LIST_WIDTH = 160f;
-        private const float INPUT_AREA_HEIGHT = 90f;
+        private const float INPUT_AREA_HEIGHT = 64f;
         private const float STRATEGY_BAR_HEIGHT = 36f;
         private const float TIME_GAP_THRESHOLD_MINUTES = 15f;
         private const float BUBBLE_CORNER_RADIUS = 12f;
-        private const float LayoutHeaderTop = 45f;
+        private const float LayoutHeaderTop = 37f;
         private const float LayoutPanelPadding = 8f;
-        private const float LayoutTabsHeight = 32f;
+        private const float LayoutTabsHeight = 20f;
         private const float LayoutTabsSpacing = 4f;
-        private const float LayoutTraderCardHeight = 60f;
-        private const float LayoutTraderCardSpacing = 65f;
+        private const float LayoutTraderCardHeight = 40f;
+        private const float LayoutTraderCardSpacing = 42f;
         private const float LayoutTitleWeatherLineTopPadding = 10f;
-        private const float LayoutTitleBarHeight = 40f;
+        private const float LayoutTitleBarHeight = 32f;
         private const float LayoutTitleLeftPadding = 10f;
         private const float LayoutTitleTopPadding = 5f;
         private const float LayoutTitleRightPadding = 10f;
-        private const float LayoutTitleFactionLineTopPadding = 10f;
+        private const float LayoutTitleFactionLineTopPadding = 8f;
         private const float LayoutTitleVersionLineTopPadding = 9f;
         private const float LayoutTitleVersionLineHeight = 16f;
         private const float LayoutTitleVersionLineGap = 6f;
@@ -99,7 +99,7 @@ namespace RimChat.UI
         private const float LayoutFactionRowSpacing = 4f;
         private const float LayoutFactionVerticalLineY = 26f;
         private const float LayoutGoodwillAnimOffsetX = 47f;
-        private const float LayoutGoodwillAnimOffsetY = 22f;
+        private const float LayoutGoodwillAnimOffsetY = 18f;
         private const float BlockedReasonAutoScrollSpeed = 18f;
         private const float BlockedReasonAutoScrollPauseSeconds = 0.6f;
         private const string DialogueInputControlName = "DialogueInput";
@@ -310,12 +310,15 @@ namespace RimChat.UI
             draggable = true;
             doWindowBackground = false;
 
+            // Apply terminal scale override (non-Auto modes modify Prefs.UIScale directly)
+            ApplyTerminalScale();
+
             // Settings打开和关闭音效
             if (!muteOpenSound)
             {
                 this.soundAppear = DefDatabase<SoundDef>.GetNamed("CommsWindow_Open");
             }
-            this.soundClose = DefDatabase<SoundDef>.GetNamed("CommsWindow_Close");
+            this.soundClose = DefDatabase<SoundDef>.GetNamed("RimChat_DiplomacyConversationEndedByAi");
 
             BindActiveFactionState(faction, runtimeContext, windowLifecycleKey);
             RefreshPresenceOnDialogueOpen();
@@ -346,6 +349,7 @@ namespace RimChat.UI
 
         public override void PreClose()
         {
+            RestoreTerminalScale();
             UnsubscribeFromDiplomacyMemoryChanges();
             CancelStrategySuggestionRequest();
             CancelPendingAirdropSelectionRequest();
@@ -520,6 +524,8 @@ namespace RimChat.UI
 
             // Shrink content area inward so nothing is hidden behind the bezel frame
             Rect crtContent = ShrinkForBezel(inRect);
+            // Offset content right and down
+            crtContent = new Rect(crtContent.x + 8f, crtContent.y + 8f, crtContent.width - 8f, crtContent.height - 8f);
 
             PollDiplomacyMemoryRevision();
             ApplyPendingDiplomacyMemoryRefresh();
@@ -569,7 +575,7 @@ namespace RimChat.UI
             }
 
             // Layer 2: CRT overlay (green tint + scanlines + vignette on content)
-            DrawCRTOverlay(crtContent);
+            // DrawCRTOverlay(crtContent); // Disabled: CRT mask effect removed
 
             // Layer 3: goodwill animations and hover cards (topmost interactive layer)
             GoodwillChangeAnimator.UpdateAndDrawAnimations();
@@ -580,10 +586,11 @@ namespace RimChat.UI
         {
             Widgets.DrawBoxSolid(new Rect(inRect.x, inRect.y, inRect.width, LayoutTitleBarHeight), new Color(0.15f, 0.15f, 0.18f));
 
-            Text.Font = GameFont.Medium;
+            Text.Font = GameFont.Small;
             GUI.color = new Color(0.9f, 0.9f, 0.95f);
             string title = "RimChat_TerminalTitle".Translate();
-            Widgets.Label(new Rect(inRect.x + LayoutTitleLeftPadding, inRect.y + LayoutTitleTopPadding, 250f, 30f), title);
+            float titleY = inRect.y + (LayoutTitleBarHeight - 20f) / 2f;
+            Widgets.Label(new Rect(inRect.x + LayoutTitleLeftPadding, titleY, 250f, 20f), title);
 
             Text.Font = GameFont.Small;
             GUI.color = new Color(0.7f, 0.7f, 0.75f);
@@ -597,14 +604,6 @@ namespace RimChat.UI
             DrawVersionLine(inRect, centerX, factionTitleWidth);
 
             Text.Font = GameFont.Small;
-            GUI.color = Color.white;
-
-            Rect closeRect = new Rect(inRect.xMax - (LayoutCloseButtonSize + 5f), inRect.y + 5f, LayoutCloseButtonSize, LayoutCloseButtonSize);
-            GUI.color = new Color(0.8f, 0.3f, 0.3f, 0.8f);
-            if (Widgets.ButtonText(closeRect, "×"))
-            {
-                Close();
-            }
             GUI.color = Color.white;
         }
 
@@ -745,7 +744,6 @@ namespace RimChat.UI
                 Rect rowRect = new Rect(5f, curY, viewRect.width - 10f, rowHeight);
                 DrawFactionListItem(f, rowRect);
 
-                // Recordfaction位置 (转换为屏幕坐标used for动画)
                 Rect screenRect = new Rect(
                     rect.x + 8f + rowRect.x,
                     rect.y + 8f + 31f + rowRect.y - factionScrollPosition.y,
@@ -755,6 +753,16 @@ namespace RimChat.UI
                 factionRowRects[f] = screenRect;
 
                 curY += rowHeight + LayoutFactionRowSpacing;
+
+                // Show quests below the selected faction
+                if (f == faction)
+                {
+                    float questH = DrawFactionQuests(new Rect(5f, curY, viewRect.width - 10f, 200f), f);
+                    if (questH > 0f)
+                    {
+                        curY += questH + 2f;
+                    }
+                }
             }
 
             GUI.EndScrollView();
@@ -865,11 +873,11 @@ namespace RimChat.UI
             float hoverAlpha = UpdateGoodwillHoverAlpha(f, isHovering);
             bool showGoodwillValue = hoverAlpha > 0.01f;
 
+            Color rowBase = new Color(0.11f, 0.12f, 0.16f, 0.78f);
+            Color rowHover = new Color(0.25f, 0.28f, 0.38f, 0.95f);
             Color rowColor = isSelected
                 ? new Color(0.18f, 0.4f, 0.66f, 0.72f)
-                : isHovering
-                    ? new Color(0.15f, 0.17f, 0.23f, 0.82f)
-                    : new Color(0.11f, 0.12f, 0.16f, 0.78f);
+                : Color.Lerp(rowBase, rowHover, hoverAlpha);
             Widgets.DrawBoxSolid(rect, rowColor);
             GUI.color = isSelected ? new Color(0.42f, 0.58f, 0.85f, 0.95f) : new Color(0.25f, 0.28f, 0.35f, 0.95f);
             Widgets.DrawBox(rect);
@@ -897,16 +905,16 @@ namespace RimChat.UI
             }
             x += 38f;
 
-            float rightReserved = Mathf.Lerp(4f, 44f, hoverAlpha);
+            float rightReserved = Mathf.Lerp(4f, 40f, hoverAlpha);
             float contentWidth = Mathf.Max(40f, rect.xMax - x - rightReserved);
-            Rect nameRect = new Rect(x, y + 1f, contentWidth, 24f);
+            Rect nameRect = new Rect(x, y + 1f, contentWidth, 20f);
             GUI.color = isSelected ? Color.white : new Color(0.9f, 0.93f, 0.98f);
             bool previousWordWrap = Text.WordWrap;
-            Text.WordWrap = true;
-            Widgets.Label(nameRect, f.Name ?? "Unknown");
+            Text.WordWrap = false;
+            Widgets.Label(nameRect, (f.Name ?? "Unknown").Truncate(nameRect.width));
             Text.WordWrap = previousWordWrap;
 
-            Rect presenceRect = new Rect(x, y + 25f, contentWidth, 14f);
+            Rect presenceRect = new Rect(x, y + 21f, contentWidth, 14f);
             Text.Font = GameFont.Tiny;
             DrawFactionPresenceStatus(f, presenceRect, false);
 
@@ -919,14 +927,6 @@ namespace RimChat.UI
                 Widgets.Label(goodwillRect, goodwillText);
                 Text.Anchor = TextAnchor.UpperLeft;
             }
-
-            Rect relationBgRect = new Rect(rect.xMax - 48f, y + 25f, 42f, 14f);
-            Widgets.DrawBoxSolid(relationBgRect, new Color(goodwillColor.r * 0.3f, goodwillColor.g * 0.3f, goodwillColor.b * 0.3f, 0.55f));
-            GUI.color = goodwillColor;
-            Text.Font = GameFont.Tiny;
-            Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(relationBgRect, GetRelationLabelShort(goodwill));
-            Text.Anchor = TextAnchor.UpperLeft;
 
             Text.Font = GameFont.Small;
             GUI.color = Color.white;
@@ -1022,7 +1022,7 @@ namespace RimChat.UI
             if (faction == null) return 0f;
             float current = goodwillHoverAlpha.TryGetValue(faction, out float alpha) ? alpha : 0f;
             float target = isHovering ? 1f : 0f;
-            float next = Mathf.MoveTowards(current, target, 0.1f);
+            float next = Mathf.MoveTowards(current, target, 0.04f);
             goodwillHoverAlpha[faction] = next;
             return next;
         }
@@ -1052,30 +1052,27 @@ namespace RimChat.UI
             Widgets.DrawBoxSolid(rect, new Color(0.15f, 0.2f, 0.25f, 0.8f));
             Widgets.DrawBox(rect);
 
-            Rect innerRect = rect.ContractedBy(8f);
-            
-            // Text区域 - 移除图标, 直接从左侧开始
-            float textX = innerRect.x;
-            Rect labelRect = new Rect(textX, innerRect.y, innerRect.width - textX - 120f, 22f);
+            Rect innerRect = rect.ContractedBy(6f);
+
+            // Button on the right
+            Rect btnRect = new Rect(innerRect.xMax - 90f, innerRect.y + (innerRect.height - 26f) / 2f, 90f, 26f);
+
+            // Text area - left of button
+            float textWidth = innerRect.width - 100f;
+
             Text.Font = GameFont.Small;
             GUI.color = new Color(0.9f, 0.9f, 1f);
-            
-            // Display商船name和类型
             string shipName = tradeShip.name;
-            string traderKind = tradeShip.def.LabelCap; // 使用 LabelCap get首字母大写的类型name
+            string traderKind = tradeShip.def.LabelCap;
+            Rect labelRect = new Rect(innerRect.x, innerRect.y, textWidth, 18f);
             Widgets.Label(labelRect, "RimChat_OrbitalTraderAvailable".Translate(shipName, traderKind));
-            
-            GUI.color = Color.white;
-            
-            Rect descRect = new Rect(textX, innerRect.y + 24f, innerRect.width - textX - 120f, 20f);
+
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
+            Rect descRect = new Rect(innerRect.x, innerRect.y + 18f, textWidth, 14f);
             Widgets.Label(descRect, "RimChat_ClickToTrade".Translate());
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
-
-            // Button区域
-            Rect btnRect = new Rect(innerRect.xMax - 110f, innerRect.y + 6f, 110f, 32f);
             bool canTrade = negotiator != null && negotiator.Map == Find.CurrentMap && !negotiator.Downed && !negotiator.InMentalState;
             
             if (canTrade)
@@ -1110,10 +1107,6 @@ namespace RimChat.UI
                 float height = DrawRoyaltyActions(new Rect(rect.x, rect.y + curY, rect.width, rect.height - curY));
                 curY += height;
             }
-
-            // 任务动作
-            float questHeight = DrawQuestActions(new Rect(rect.x, rect.y + curY, rect.width, rect.height - curY));
-            curY += questHeight;
 
             return curY;
         }
@@ -1175,10 +1168,11 @@ namespace RimChat.UI
             return height + 5f;
         }
 
-        private float DrawQuestActions(Rect rect)
+        private float DrawFactionQuests(Rect rect, Faction targetFaction)
         {
             List<Quest> quests = Find.QuestManager.QuestsListForReading
-                .Where(q => q.State == QuestState.Ongoing && q.InvolvedFactions.Contains(faction) && !q.hidden)
+                .Where(q => q.State == QuestState.Ongoing && !q.hidden
+                    && q.InvolvedFactions.Contains(targetFaction))
                 .ToList();
 
             if (!quests.Any())
@@ -1186,60 +1180,37 @@ namespace RimChat.UI
                 return 0f;
             }
 
-            const float topPadding = 2f;
-            const float leftPadding = 10f;
-            const float rightPadding = 6f;
-            const float horizontalSpacing = 6f;
-            const float verticalSpacing = 2f;
-            const float rowHeight = 20f;
-            const float minColumnWidth = 90f;
-            const float bottomSpacing = 5f;
-
-            Text.Font = GameFont.Small;
-            Vector2 headerSize = Text.CalcSize("RimChat_QuestActions".Translate());
-            Rect headerRect = new Rect(rect.x + leftPadding, rect.y + topPadding, headerSize.x, rowHeight);
-            GUI.color = new Color(0.4f, 0.8f, 1f);
-            Widgets.Label(headerRect, "RimChat_QuestActions".Translate());
-            GUI.color = Color.white;
-
-            float contentX = headerRect.xMax + 10f;
-            float contentWidth = Mathf.Max(minColumnWidth, rect.xMax - rightPadding - contentX);
-            int columns = Mathf.Max(1, Mathf.FloorToInt((contentWidth + horizontalSpacing) / (minColumnWidth + horizontalSpacing)));
-            float itemWidth = (contentWidth - horizontalSpacing * (columns - 1)) / columns;
-            int rowCount = Mathf.CeilToInt(quests.Count / (float)columns);
+            float x = rect.x + 6f;
+            float rowH = 16f;
+            float curY = rect.y;
 
             Text.Font = GameFont.Tiny;
-            Color previousColor = GUI.color;
-            float itemsStartY = rect.y + topPadding + rowHeight + verticalSpacing;
-            for (int i = 0; i < quests.Count; i++)
+            Color prev = GUI.color;
+            GUI.color = new Color(0.5f, 0.7f, 0.9f, 0.8f);
+            Widgets.Label(new Rect(x, curY, rect.width - 12f, rowH), "RimChat_QuestActions".Translate());
+            GUI.color = prev;
+            curY += rowH + 2f;
+
+            foreach (Quest quest in quests)
             {
-                Quest quest = quests[i];
-                int column = i % columns;
-                int row = i / columns;
-                Rect itemRect = new Rect(
-                    contentX + column * (itemWidth + horizontalSpacing),
-                    itemsStartY + row * (rowHeight + verticalSpacing),
-                    itemWidth,
-                    rowHeight);
-
+                Rect itemRect = new Rect(x, curY, rect.width - 12f, rowH);
                 Widgets.DrawHighlightIfMouseover(itemRect);
-                GUI.color = new Color(0.72f, 0.86f, 1f);
+                GUI.color = new Color(0.72f, 0.86f, 1f, 0.9f);
                 Widgets.Label(itemRect, (quest?.name ?? string.Empty).Truncate(itemRect.width));
-                GUI.color = previousColor;
+                GUI.color = prev;
 
-                if (!Widgets.ButtonInvisible(itemRect))
+                if (Widgets.ButtonInvisible(itemRect))
                 {
-                    continue;
+                    MainTabWindow_Quests questsWindow = (MainTabWindow_Quests)MainButtonDefOf.Quests.TabWindow;
+                    questsWindow.Select(quest);
+                    Find.MainTabsRoot.SetCurrentTab(MainButtonDefOf.Quests, true);
                 }
 
-                MainTabWindow_Quests questsWindow = (MainTabWindow_Quests)MainButtonDefOf.Quests.TabWindow;
-                questsWindow.Select(quest);
-                Find.MainTabsRoot.SetCurrentTab(MainButtonDefOf.Quests, true);
+                curY += rowH + 2f;
             }
 
             Text.Font = GameFont.Small;
-            GUI.color = previousColor;
-            return rowHeight + verticalSpacing + rowCount * rowHeight + Mathf.Max(0, rowCount - 1) * verticalSpacing + bottomSpacing + topPadding;
+            return curY - rect.y;
         }
 
         private void DrawChatArea(Rect rect)
@@ -1292,7 +1263,7 @@ namespace RimChat.UI
             {
                 GUI.color = new Color(0.4f, 0.4f, 0.45f);
                 Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(rect, "Start a conversation...");
+                Widgets.Label(rect, "RimChat_StartConversation".Translate());
                 Text.Anchor = TextAnchor.UpperLeft;
                 GUI.color = Color.white;
                 lastMessageCount = 0;
@@ -1395,7 +1366,7 @@ namespace RimChat.UI
                 return 4f;
             }
 
-            return 12f;
+            return 6f;
         }
 
         private void DrawTimeGapLine(int prevGameTick, int currentGameTick, float width, float y)
@@ -1503,10 +1474,9 @@ namespace RimChat.UI
             // 绘制气泡背景 (圆角)
             DrawRoundedRect(rect, bubbleColor, BUBBLE_CORNER_RADIUS);
 
-            // 增加内边距
-            float padding = 16f;
+            float padding = 10f;
             float contentX = rect.x + padding;
-            float contentY = rect.y + 12f;
+            float contentY = rect.y + 8f;
             float contentWidth = rect.width - padding * 2f;
 
             // 发送者name与时间戳 (头部)
@@ -1609,9 +1579,9 @@ namespace RimChat.UI
         {
             Widgets.DrawBoxSolid(rect, new Color(0.12f, 0.12f, 0.15f));
 
-            float padding = 10f;
+            float padding = 8f;
             float inputWidth = rect.width - padding * 2f - 90f;
-            float inputHeight = rect.height - padding * 2f - 20f;
+            float inputHeight = rect.height - padding * 2f - 14f;
 
             Rect textRect = new Rect(rect.x + padding, rect.y + padding, inputWidth, inputHeight);
             
@@ -1675,7 +1645,6 @@ namespace RimChat.UI
                 SendMessage();
             }
             GUI.enabled = true;
-            DrawPotentialActionsHint(sendRect);
             DrawSendInfoEntry(sendRect, sendGate);
 
             bool conversationEnded = session?.isConversationEndedByNpc ?? false;
@@ -1695,7 +1664,7 @@ namespace RimChat.UI
                 if (IsWaitingForNpcTurn())
                 {
                     ResetBlockedReasonAutoScroll(true);
-                    Rect typingRect = new Rect(rect.x + padding + 110f, rect.y + rect.height - 22f, 320f, 20f);
+                    Rect typingRect = new Rect(rect.x + padding + 60f, rect.y + rect.height - 22f, 320f, 20f);
                     DrawDiplomacyTypingStatus(typingRect);
                 }
                 else
@@ -1797,10 +1766,14 @@ namespace RimChat.UI
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
-            if (!canOpen && !string.IsNullOrWhiteSpace(sendGate.BlockedReason))
+            string actionsTooltip = GetPotentialActionsTooltipText();
+            if (!string.IsNullOrWhiteSpace(actionsTooltip))
+            {
+                TooltipHandler.TipRegion(entryRect, actionsTooltip);
+            }
+            else if (!canOpen && !string.IsNullOrWhiteSpace(sendGate.BlockedReason))
             {
                 TooltipHandler.TipRegion(entryRect, sendGate.BlockedReason);
-                return;
             }
 
             if (canOpen && Widgets.ButtonInvisible(entryRect))
@@ -1822,9 +1795,6 @@ namespace RimChat.UI
             var options = new List<FloatMenuOption>
             {
                 new FloatMenuOption(
-                    "RimChat_SendInfoMenuTaunt".Translate(),
-                    TryStartManualTauntSend),
-                new FloatMenuOption(
                     "RimChat_SendInfoMenuRequestCaravan".Translate(),
                     TryStartManualCaravanRequestSend),
                 new FloatMenuOption(
@@ -1842,6 +1812,9 @@ namespace RimChat.UI
                 new FloatMenuOption(
                     BuildManualAirdropTradeMenuLabel(prisonerLabel, prisonerValidation),
                     prisonerValidation != null && !prisonerValidation.Allowed ? null : (Action)TryStartManualPrisonerInfoSend),
+                new FloatMenuOption(
+                    "RimChat_SendInfoMenuTaunt".Translate(),
+                    TryStartManualTauntSend),
                 new FloatMenuOption(
                     "RimChat_SendInfoMenuEndConversation".Translate(),
                     TryEndConversation)
@@ -2423,11 +2396,14 @@ namespace RimChat.UI
             }
 
             // 精确计算text高度: based ondynamicoutput的字符重新计算
-            float contentWidth = width - 32f;
-            float textHeight = Text.CalcHeight(displayText, contentWidth);
+            float contentWidth = width - 20f; // padding 10f * 2
+            float retryReserved = (msg != null && msg.allowFallbackRetry && !msg.isPlayer)
+                ? FallbackRetryButtonSize + FallbackRetryButtonMargin : 0f;
+            float effectiveWidth = Mathf.Max(40f, contentWidth - retryReserved);
+            float textHeight = Text.CalcHeight(displayText, effectiveWidth);
 
-            // 总高度 = 上内边距(12f) + 头高度(18f) + 间距(2f) + contents高度 + 下内边距(16f) = 48f + textHeight
-            float totalHeight = 48f + textHeight;
+            // 总高度 = 上内边距(8f) + 头高度(18f) + 间距(2f) + contents高度 + 下内边距(6f) = 34f + textHeight
+            float totalHeight = 34f + textHeight;
             return Mathf.Max(50f, totalHeight);
         }
 
@@ -2897,7 +2873,17 @@ namespace RimChat.UI
                 return visibleText;
             }
 
-            return $"{visibleText}\n\n{string.Join("\n\n", blocks)}";
+            string result = $"{visibleText}\n\n{string.Join("\n\n", blocks)}";
+
+            // Reinforce JSON format when airdrop data is present
+            if (currentSession.hasPendingAirdropTradeCardReference)
+            {
+                result += "\n\n[REMINDER] Your reply MUST be a JSON object with \"visible_dialogue\" and \"actions\" array. "
+                    + "If you agree to this trade, include: {\"action\":\"request_item_airdrop\",\"parameters\":{\"need\":\"...\",\"payment_items\":[{\"item\":\"...\",\"count\":N}]}}. "
+                    + "Do NOT reply with plain text only.";
+            }
+
+            return result;
         }
 
         private static bool TryBuildRansomStateReference(FactionDialogueSession currentSession, out string referenceBlock)

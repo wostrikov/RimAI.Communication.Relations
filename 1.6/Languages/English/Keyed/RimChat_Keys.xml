@@ -91,9 +91,16 @@
     <RimChat_UISettings>UI Settings</RimChat_UISettings>
     <RimChat_UISettingsTooltip>Function: configure comms-console replacement and typewriter UX. Scope: RimChat interface presentation layer.</RimChat_UISettingsTooltip>
     <RimChat_ReplaceCommsConsole>Replace Comms Console</RimChat_ReplaceCommsConsole>
-    <RimChat_ReplaceCommsConsoleDesc>Replace the vanilla comms console with diplomacy console, enabling AI dialogue features</RimChat_ReplaceCommsConsoleDesc>
+    <RimChat_ReplaceCommsConsoleDesc>Fully replace the vanilla comms console entry with RimChat. Some vanilla content may be unavailable.</RimChat_ReplaceCommsConsoleDesc>
     <RimChat_CommsToggleStatusOn>ON</RimChat_CommsToggleStatusOn>
     <RimChat_CommsToggleStatusOff>OFF</RimChat_CommsToggleStatusOff>
+    <RimChat_TerminalScale>Terminal Scale</RimChat_TerminalScale>
+    <RimChat_ScaleAuto>Auto</RimChat_ScaleAuto>
+    <RimChat_Scale75>75%</RimChat_Scale75>
+    <RimChat_Scale100>100%</RimChat_Scale100>
+    <RimChat_Scale125>125%</RimChat_Scale125>
+    <RimChat_Scale150>150%</RimChat_Scale150>
+    <RimChat_StartConversation>Start a conversation...</RimChat_StartConversation>
     <RimChat_CommsToggleIconTooltip>Function: quick-toggle comms replacement from map controls. Current: {0}. Scope: map UI icon row only.</RimChat_CommsToggleIconTooltip>
     <RimChat_CommsToggleEnabledMessage>Comms console replacement enabled.</RimChat_CommsToggleEnabledMessage>
     <RimChat_CommsToggleDisabledMessage>Comms console replacement disabled.</RimChat_CommsToggleDisabledMessage>
@@ -794,6 +801,12 @@
     <!-- Aid Settings -->
     <RimChat_AidSettings>Aid Request Settings</RimChat_AidSettings>
     <RimChat_AidSettingsTooltip>Function: set aid thresholds, cooldown, and delay. Scope: aid action trigger and arrival flow.</RimChat_AidSettingsTooltip>
+    <RimChat_AidRequestSettings>Aid Request Settings</RimChat_AidRequestSettings>
+    <RimChat_AidRequestSettingsTooltip>Function: set aid thresholds, cooldown, and delay. Scope: aid action trigger and arrival flow.</RimChat_AidRequestSettingsTooltip>
+    <RimChat_AirdropTradeSettings>Airdrop Trade Settings</RimChat_AirdropTradeSettings>
+    <RimChat_AirdropTradeSettingsTooltip>Function: configure airdrop trade budgets, item filters, and pricing. Scope: AI airdrop trade flow.</RimChat_AirdropTradeSettingsTooltip>
+    <RimChat_PrisonerRansomSettings>Prisoner Ransom Settings</RimChat_PrisonerRansomSettings>
+    <RimChat_PrisonerRansomSettingsTooltip>Function: configure ransom timeout, depreciation, and penalty parameters. Scope: prisoner ransom negotiation flow.</RimChat_PrisonerRansomSettingsTooltip>
     <RimChat_MinGoodwillForAid>Min goodwill for aid: {0}</RimChat_MinGoodwillForAid>
     <RimChat_AidCooldown>Cooldown: {0} days</RimChat_AidCooldown>
     <RimChat_AidDelay>Aid arrival delay: {0} days</RimChat_AidDelay>
@@ -1227,6 +1240,7 @@
     <RimChat_AirdropError_payment_items_entry_missing_count>payment_items[{0}] requires a positive integer count field for the payment quantity.</RimChat_AirdropError_payment_items_entry_missing_count>
     <RimChat_AirdropError_need_missing>request_item_airdrop requires a string parameter need describing what item is requested (e.g. pump shotgun).</RimChat_AirdropError_need_missing>
     <RimChat_AirdropError_need_type_invalid>request_item_airdrop need parameter must be a plain text string, not a JSON object.</RimChat_AirdropError_need_type_invalid>
+    <RimChat_AirdropError_need_count_ambiguous>Need contains multiple quantities and it is unclear how many to airdrop. Please specify only one item with one quantity (e.g. "1000 wood logs").</RimChat_AirdropError_need_count_ambiguous>
     <RimChat_AirdropError_player_negotiator_required>An airdrop requires a valid negotiator on the map. Assign a colonist to the negotiation role.</RimChat_AirdropError_player_negotiator_required>
     <RimChat_AirdropError_no_home_map>No player home map is available for item airdrop. Ensure you have an active colony.</RimChat_AirdropError_no_home_map>
     <RimChat_AirdropError_map_unavailable>The airdrop target map is no longer available. The colony may have been abandoned or the map unloaded.</RimChat_AirdropError_map_unavailable>
@@ -1262,9 +1276,10 @@
     <RimChat_ItemAirdropSelectionInProgressSystem>Rim Logistics at your service.</RimChat_ItemAirdropSelectionInProgressSystem>
     <RimChat_ItemAirdropSelectionInProgressBar>Airdrop second-pass matching in progress...</RimChat_ItemAirdropSelectionInProgressBar>
     <RimChat_ItemAirdropSelectionPendingSystem>Second-pass selection timed out. Choose one candidate to continue:\n{0}\nReply with \"1/2/3/4/5\" or a defName/item label.</RimChat_ItemAirdropSelectionPendingSystem>
-    <RimChat_ItemAirdropNeedClarifySystem>Need is still ambiguous for a safe airdrop. Please reply with a precise item name or defName (example: Chemfuel).</RimChat_ItemAirdropNeedClarifySystem>
+    <RimChat_ItemAirdropNeedClarifySystem>Could not match the specified item. Airdrop cannot proceed. Please use the trade card from the action menu, or reply with a precise item defName (e.g. Pemmican, Steel).</RimChat_ItemAirdropNeedClarifySystem>
     <RimChat_ItemAirdropSelectionPendingLine>{0}. {1} ({2}) unit:{3} [{4}] max legal count:{5}</RimChat_ItemAirdropSelectionPendingLine>
     <RimChat_ItemAirdropSelectionChosen>Selection recorded: {0} ({1}). Continuing the request.</RimChat_ItemAirdropSelectionChosen>
+    <RimChat_AirdropSelectionRejected>Not what you're looking for? Here are the available options:</RimChat_AirdropSelectionRejected>
     <RimChat_ItemAirdropBoundNeedUnresolvedSystem>The bound need item {0} from the airdrop card could not be resolved. Trade blocked.</RimChat_ItemAirdropBoundNeedUnresolvedSystem>
     <RimChat_ItemAirdropBoundNeedFamilyConflictSystem>The bound airdrop-card item {0} ({1}) conflicts with the current need family. Trade blocked.</RimChat_ItemAirdropBoundNeedFamilyConflictSystem>
     <RimChat_ItemAirdropBoundNeedFamilyConflictOverrideAudit>Detected need-family drift for bound item {0} ({1}); execution continued with the bound item and was logged for audit.</RimChat_ItemAirdropBoundNeedFamilyConflictOverrideAudit>
@@ -2447,7 +2462,7 @@ Selected prisoners: {1}
     <RimChat_DragMenu_Recruit>Recruit</RimChat_DragMenu_Recruit>
     <RimChat_DragMenu_Inspiration>Grant Inspiration</RimChat_DragMenu_Inspiration>
     <RimChat_DragMenu_Incident>Trigger Incident</RimChat_DragMenu_Incident>
-    <RimChat_DragMenu_HoverHint>Hold and drag to force actions</RimChat_DragMenu_HoverHint>
+    <RimChat_DragMenu_HoverHint>rua it</RimChat_DragMenu_HoverHint>
 
     <!-- Module Transfer -->
     <RimChat_ModuleCreateTitle>New Module</RimChat_ModuleCreateTitle>

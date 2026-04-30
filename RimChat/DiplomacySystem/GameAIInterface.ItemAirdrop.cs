@@ -799,6 +799,10 @@ namespace RimChat.DiplomacySystem
             if (def.MadeFromStuff)
             {
                 stuff = def.defaultStuff;
+                if (stuff == null)
+                {
+                    stuff = GenStuff.DefaultStuffFor(def) ?? ThingDefOf.Steel;
+                }
             }
 
             int neededStacks = Math.Max(1, (int)System.Math.Ceiling((double)totalCount / stackLimit));

@@ -1,4 +1,6 @@
 using System.Linq;
+using RimChat.Config;
+using RimChat.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -25,9 +27,18 @@ namespace RimChat.UI
         private static Texture2D TexCRTBezelSpacer;
 
         // Texture switch hotspot — rect in original texture coords (1402x1122): (40,665)→(148,783)
-        // Scaled to window 960x720: (27,427)→(101,503)
+        // Scaled to window 960x720: (27,404)→(101,480)
         private static readonly Rect SwitchHotspotWindow = new Rect(27f, 404f, 74f, 76f);
+
+        // Close button hotspot — rect in original texture coords (1402x1122): (1099,1036)→(1285,1110)
+        // Scaled to window 960x720: (753,665)→(880,712)
+        private static readonly Rect CloseHotspotWindow = new Rect(724f, 632f, 127f, 47f);
+        private static bool _closeHotspotWasHovering;
         private static bool _forceSpacerBezel;
+
+        // Terminal UI scale override
+        private float _originalUIScale;
+        private bool _scaleOverridden;
         private static bool _spacerAutoSwitched;
         private static bool _switchHotspotWasHovering;
 
@@ -94,7 +105,7 @@ namespace RimChat.UI
         /// Draw the bezel frame as the OUTERMOST background layer.
         /// Call this BEFORE drawing any content.
         /// </summary>
-        private static void DrawCRTBezelBackground(Rect windowRect)
+        private void DrawCRTBezelBackground(Rect windowRect)
         {
             Texture2D tex = GetActiveBezelTexture();
             if (tex == null) return;
@@ -147,6 +158,42 @@ namespace RimChat.UI
                     _switchHotspotWasHovering = false;
                 }
             }
+
+            // Close button hotspot
+            {
+                Rect closeBtn = new Rect(
+                    windowRect.x + CloseHotspotWindow.x,
+                    windowRect.y + CloseHotspotWindow.y,
+                    CloseHotspotWindow.width,
+                    CloseHotspotWindow.height);
+
+                bool hovering = Mouse.IsOver(closeBtn);
+
+                if (hovering)
+                {
+                    Color prev = GUI.color;
+                    GUI.color = new Color(0.8f, 0.3f, 0.3f, 0.2f);
+                    GUI.DrawTexture(closeBtn, BaseContent.WhiteTex);
+                    GUI.color = prev;
+
+                    if (!_closeHotspotWasHovering)
+                    {
+                        SoundDefOf.Mouseover_ButtonToggle.PlayOneShotOnCamera();
+                    }
+
+                    if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
+                    {
+                        Close();
+                        Event.current.Use();
+                    }
+
+                    _closeHotspotWasHovering = true;
+                }
+                else
+                {
+                    _closeHotspotWasHovering = false;
+                }
+            }
         }
 
         private static Texture2D GetActiveBezelTexture()
@@ -160,6 +207,37 @@ namespace RimChat.UI
         {
             return DefDatabase<ResearchProjectDef>.AllDefsListForReading
                 .Any(r => r.techLevel >= TechLevel.Spacer && r.IsFinished);
+        }
+
+        private static float GetDesiredScale()
+        {
+            var settings = LoadedModManager.GetMod<RimChatMod>()?.GetSettings<RimChatSettings>();
+            switch (settings?.TerminalScale ?? TerminalScale.Auto)
+            {
+                case TerminalScale.S75: return 0.75f;
+                case TerminalScale.S100: return 1.0f;
+                case TerminalScale.S125: return 1.25f;
+                case TerminalScale.S150: return 1.5f;
+                default: return -1f; // Auto: don't override
+            }
+        }
+
+        private void ApplyTerminalScale()
+        {
+            float desired = GetDesiredScale();
+            if (desired < 0f) return; // Auto mode, no override
+            _originalUIScale = Prefs.UIScale;
+            _scaleOverridden = true;
+            Prefs.UIScale = desired;
+        }
+
+        private void RestoreTerminalScale()
+        {
+            if (_scaleOverridden)
+            {
+                Prefs.UIScale = _originalUIScale;
+                _scaleOverridden = false;
+            }
         }
 
         /// <summary>
