@@ -1,4 +1,5 @@
 using System;
+using RimChat.DiplomacySystem;
 using RimChat.Prompting;
 using RimWorld;
 using UnityEngine;
@@ -46,6 +47,11 @@ namespace RimChat.UI
             _kind = QuickPromptTargetKind.Pawn;
             _targetLabel = RimChat.Config.RimChatSettings.GetPromptWorkspaceQuickPawnLabel(pawn);
             _templateText = UserDefinedPromptVariableService.GetQuickPawnTemplate(settings, pawn);
+            if (string.IsNullOrWhiteSpace(_templateText))
+            {
+                var rpgManager = Current.Game?.GetComponent<GameComponent_RPGManager>();
+                _templateText = rpgManager?.GetPawnPersonaPrompt(pawn) ?? string.Empty;
+            }
             ConfigureWindow();
         }
 

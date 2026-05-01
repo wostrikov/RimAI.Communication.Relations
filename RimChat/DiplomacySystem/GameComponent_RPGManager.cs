@@ -306,7 +306,8 @@ namespace RimChat.DiplomacySystem
                 return string.Empty;
             }
 
-            return pawnPersonaPromptsById.TryGetValue(pawnId, out string prompt) ? prompt ?? string.Empty : string.Empty;
+            bool found = pawnPersonaPromptsById.TryGetValue(pawnId, out string prompt);
+            return found ? prompt ?? string.Empty : string.Empty;
         }
 
         public string ResolveEffectivePawnPersonalityPrompt(Pawn pawn, bool allowGenerateFallback = true)

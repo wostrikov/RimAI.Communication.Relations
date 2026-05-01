@@ -257,19 +257,19 @@ namespace RimChat.DiplomacySystem
                 return result;
             }
 
-            MatchCollection matches = Regex.Matches(needText, "\\d+");
-            if (matches.Count <= 0)
+            string trimmed = needText.Trim();
+            // Only extract a leading number as count when followed by:
+            // - non-ASCII text (CJK): "1000原木" → count=1000
+            // - whitespace then text: "5 医疗包" → count=5
+            // - end of string (pure number): "10" → count=10
+            // NOT when followed by ASCII letters/digits: "75x350mmR" → no count (item name)
+            Match match = Regex.Match(trimmed, @"^(\d+)(?=[^\x00-\x7F]|\s+\S|\s*$)");
+            if (!match.Success)
             {
                 return result;
             }
 
-            if (matches.Count > 1)
-            {
-                result.HasMultipleCounts = true;
-                return result;
-            }
-
-            if (!int.TryParse(matches[0].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+            if (!int.TryParse(match.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
             {
                 return result;
             }

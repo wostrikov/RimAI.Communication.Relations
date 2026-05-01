@@ -1,3 +1,9 @@
+1.1.0
+- [Fix] Airdrop: mod items with digits in name (e.g. 75x350mmR) failed to parse; now only matches leading quantity prefix
+- [Fix] Diplomacy: new message bubble truncated during typewriter effect; scroll now follows content growth
+- [Fix] Persona: quick editor pre-fills with RimTalk-synced persona content
+- [Adjust] Prompt workbench title now shows Beta tag
+
 1.0.0
 - [Fix] Airdrop: AI not including player-specified quantity in need field; prompt now requires quantity
 - [Fix] Airdrop: missing language key for need_count_ambiguous error

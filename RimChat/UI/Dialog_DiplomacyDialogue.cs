@@ -1282,7 +1282,7 @@ namespace RimChat.UI
 
             Vector2 beforeScroll = messageScrollPosition;
 
-            if (hasNewMessage && !userIsScrolling)
+            if ((hasNewMessage || _typewriterActiveMsg != null) && !userIsScrolling)
             {
                 messageScrollPosition.y = maxScroll;
             }

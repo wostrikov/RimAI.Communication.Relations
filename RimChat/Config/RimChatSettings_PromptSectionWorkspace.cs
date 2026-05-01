@@ -224,7 +224,7 @@ namespace RimChat.Config
             Text.Font = GameFont.Medium;
             Text.Anchor = TextAnchor.MiddleLeft;
             GUI.color = WorkspaceAccentGold;
-            Widgets.Label(new Rect(inner.x, inner.y, inner.width * 0.42f, 28f), "RimChat_Tab_PromptWorkbench".Translate());
+            Widgets.Label(new Rect(inner.x, inner.y, inner.width * 0.42f, 28f), "RimChat_Tab_PromptWorkbench".Translate() + " Beta");
             GUI.color = Color.white;
             Text.Font = oldFont;
             Text.Anchor = oldAnchor;
