@@ -1,3 +1,8 @@
+1.1.1
+- [Optimize] QuestGenerationProbe repeated world scans on message send/action click; added per-faction cache (TTL=300 ticks)
+- [Fix] Chat bubbles hidden by input area: layout cache time gap height 24f→35f, top padding 6f→10f aligned with draw code
+- [Optimize] Faction switch performance: speaker per-faction cache, tooltip lazy computation, create_quest lightweight validation
+
 1.1.0
 - [Fix] Airdrop: mod items with digits in name (e.g. 75x350mmR) failed to parse; now only matches leading quantity prefix
 - [Fix] Diplomacy: new message bubble truncated during typewriter effect; scroll now follows content growth

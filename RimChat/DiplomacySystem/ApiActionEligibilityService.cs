@@ -18,6 +18,10 @@ namespace RimChat.DiplomacySystem
         private static ApiActionEligibilityService _instance;
         public static ApiActionEligibilityService Instance => _instance ?? (_instance = new ApiActionEligibilityService());
 
+        private readonly Dictionary<int, (FactionQuestAvailabilityReport report, int tick)> _questReportCache =
+            new Dictionary<int, (FactionQuestAvailabilityReport, int)>();
+        private const int QuestReportCacheTtl = 300;
+
         private static readonly string[] SupportedActions =
         {
             "adjust_goodwill",
@@ -89,23 +93,36 @@ namespace RimChat.DiplomacySystem
 
         public FactionQuestAvailabilityReport GetFactionQuestAvailabilityReport(Faction faction, Dictionary<string, object> parameters = null)
         {
+            if (faction == null)
+            {
+                var nullReport = new FactionQuestAvailabilityReport
+                {
+                    Faction = null,
+                    EvaluatedQuestDefs = new List<QuestTemplateEligibility>(),
+                    ActionValidation = ActionValidationResult.Denied("invalid_faction", "Faction cannot be null")
+                };
+                return nullReport;
+            }
+
+            int factionId = faction.loadID;
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            if (_questReportCache.TryGetValue(factionId, out var cached) && currentTick - cached.tick < QuestReportCacheTtl)
+            {
+                return cached.report;
+            }
+
             var report = new FactionQuestAvailabilityReport
             {
                 Faction = faction,
                 EvaluatedQuestDefs = new List<QuestTemplateEligibility>()
             };
 
-            if (faction == null)
-            {
-                report.ActionValidation = ActionValidationResult.Denied("invalid_faction", "Faction cannot be null");
-                return report;
-            }
-
             Dictionary<string, object> normalizedParameters = NormalizeQuestParameters(faction, parameters);
             report.Parameters = normalizedParameters;
             report.ActionValidation = ValidateCreateQuestActionAvailability(faction, normalizedParameters);
             if (!report.ActionValidation.Allowed)
             {
+                _questReportCache[factionId] = (report, currentTick);
                 return report;
             }
 
@@ -114,20 +131,21 @@ namespace RimChat.DiplomacySystem
                 report.EvaluatedQuestDefs.Add(EvaluateQuestTemplateAvailability(faction, questDefName, normalizedParameters));
             }
 
+            _questReportCache[factionId] = (report, currentTick);
             return report;
         }
 
-        public Dictionary<string, ActionValidationResult> GetAllowedActions(Faction faction)
+        public Dictionary<string, ActionValidationResult> GetAllowedActions(Faction faction, bool lightweight = false)
         {
             var result = new Dictionary<string, ActionValidationResult>(StringComparer.OrdinalIgnoreCase);
             foreach (string action in SupportedActions)
             {
-                result[action] = ValidateActionExecution(faction, action, null);
+                result[action] = ValidateActionExecution(faction, action, null, lightweight);
             }
             return result;
         }
 
-        public ActionValidationResult ValidateActionExecution(Faction faction, string actionType, Dictionary<string, object> parameters)
+        public ActionValidationResult ValidateActionExecution(Faction faction, string actionType, Dictionary<string, object> parameters, bool lightweight = false)
         {
             if (faction == null)
             {
@@ -241,6 +259,13 @@ namespace RimChat.DiplomacySystem
                         if (!questAvailability.Allowed)
                         {
                             return questAvailability;
+                        }
+
+                        if (lightweight)
+                        {
+                            // Skip expensive QuestGenerationProbe (world scan + distance sort)
+                            // for tooltip hints. Actual execution still does full validation.
+                            return ActionValidationResult.AllowedResult();
                         }
 
                         var available = GetFactionQuestAvailabilityReport(faction, parameters).AllowedQuestDefs;
