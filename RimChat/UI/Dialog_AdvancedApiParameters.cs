@@ -149,7 +149,7 @@ namespace RimChat.UI
             Rect resetRect = new Rect(rect.x + (w - resetW) / 2f, y, resetW, 32f);
             if (Widgets.ButtonText(resetRect, "RimChat_ResetDefaults".Translate()))
             {
-                settings.Temperature = 0.7f;
+                settings.Temperature = 0.5f;
                 settings.MaxTokens = 2048;
                 settings.ThinkingEnabled = false;
                 settings.ReasoningEffort = "medium";

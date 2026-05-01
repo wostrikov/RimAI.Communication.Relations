@@ -395,7 +395,7 @@ namespace RimChat.AI
             }
 
             sb.Append("],");
-            sb.Append("\"temperature\":0.7,");
+            sb.Append("\"temperature\":0.5,");
             sb.Append("\"max_tokens\":2000");
             sb.Append("}");
             return sb.ToString();

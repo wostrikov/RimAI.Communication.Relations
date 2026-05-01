@@ -2308,7 +2308,7 @@ namespace RimChat.AI
             RimChatSettings globalSettings = RimChatMod.Settings;
             bool thinkingEnabled = globalSettings?.ThinkingEnabled ?? false;
             bool isDeepSeek = config.Provider == AIProvider.DeepSeek;
-            float temperature = globalSettings?.Temperature ?? 0.7f;
+            float temperature = globalSettings?.Temperature ?? 0.5f;
             int maxTokens = globalSettings?.MaxTokens ?? 2048;
             if (maxTokens < 64) maxTokens = 2048;
 
