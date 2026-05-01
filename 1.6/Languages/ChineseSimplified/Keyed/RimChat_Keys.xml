@@ -170,10 +170,12 @@
     <RimChat_CommsToggleStatusOff>关闭</RimChat_CommsToggleStatusOff>
     <RimChat_TerminalScale>终端缩放</RimChat_TerminalScale>
     <RimChat_ScaleAuto>自动</RimChat_ScaleAuto>
-    <RimChat_Scale75>75%</RimChat_Scale75>
-    <RimChat_Scale100>100%</RimChat_Scale100>
-    <RimChat_Scale125>125%</RimChat_Scale125>
-    <RimChat_Scale150>150%</RimChat_Scale150>
+    <RimChat_Scale100>1x</RimChat_Scale100>
+    <RimChat_Scale125>1.25x</RimChat_Scale125>
+    <RimChat_Scale150>1.5x</RimChat_Scale150>
+    <RimChat_Scale175>1.75x</RimChat_Scale175>
+    <RimChat_Scale200>2x</RimChat_Scale200>
+    <RimChat_Scale250>2.5x</RimChat_Scale250>
     <RimChat_StartConversation>开始对话...</RimChat_StartConversation>
     <RimChat_CommsToggleIconTooltip>功能：在地图右下图标行快速切换通讯台替换。当前状态：{0}。作用域：仅地图界面图标入口。</RimChat_CommsToggleIconTooltip>
     <RimChat_CommsToggleEnabledMessage>已启用通讯台替换。</RimChat_CommsToggleEnabledMessage>

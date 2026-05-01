@@ -214,10 +214,12 @@ namespace RimChat.UI
             var settings = LoadedModManager.GetMod<RimChatMod>()?.GetSettings<RimChatSettings>();
             switch (settings?.TerminalScale ?? TerminalScale.Auto)
             {
-                case TerminalScale.S75: return 0.75f;
                 case TerminalScale.S100: return 1.0f;
                 case TerminalScale.S125: return 1.25f;
                 case TerminalScale.S150: return 1.5f;
+                case TerminalScale.S175: return 1.75f;
+                case TerminalScale.S200: return 2.0f;
+                case TerminalScale.S250: return 2.5f;
                 default: return -1f; // Auto: don't override
             }
         }

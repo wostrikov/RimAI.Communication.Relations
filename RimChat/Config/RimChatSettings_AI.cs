@@ -418,13 +418,15 @@ namespace RimChat.Config
             listing.Label("RimChat_TerminalScale".Translate());
             listing.Gap(6f);
             Rect scaleRowRect = listing.GetRect(32f);
-            float scaleColW = (scaleRowRect.width - 24f) / 5f;
-            float scaleGap = 6f;
+            float scaleGap = 4f;
+            float scaleColW = (scaleRowRect.width - scaleGap * 6) / 7f;
             DrawSpeedOption(new Rect(scaleRowRect.x, scaleRowRect.y, scaleColW, 32f), "RimChat_ScaleAuto".Translate(), TerminalScale == TerminalScale.Auto, () => TerminalScale = TerminalScale.Auto);
-            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap), scaleRowRect.y, scaleColW, 32f), "RimChat_Scale75".Translate(), TerminalScale == TerminalScale.S75, () => TerminalScale = TerminalScale.S75);
-            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 2, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale100".Translate(), TerminalScale == TerminalScale.S100, () => TerminalScale = TerminalScale.S100);
-            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 3, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale125".Translate(), TerminalScale == TerminalScale.S125, () => TerminalScale = TerminalScale.S125);
-            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 4, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale150".Translate(), TerminalScale == TerminalScale.S150, () => TerminalScale = TerminalScale.S150);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap), scaleRowRect.y, scaleColW, 32f), "RimChat_Scale100".Translate(), TerminalScale == TerminalScale.S100, () => TerminalScale = TerminalScale.S100);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 2, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale125".Translate(), TerminalScale == TerminalScale.S125, () => TerminalScale = TerminalScale.S125);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 3, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale150".Translate(), TerminalScale == TerminalScale.S150, () => TerminalScale = TerminalScale.S150);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 4, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale175".Translate(), TerminalScale == TerminalScale.S175, () => TerminalScale = TerminalScale.S175);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 5, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale200".Translate(), TerminalScale == TerminalScale.S200, () => TerminalScale = TerminalScale.S200);
+            DrawSpeedOption(new Rect(scaleRowRect.x + (scaleColW + scaleGap) * 6, scaleRowRect.y, scaleColW, 32f), "RimChat_Scale250".Translate(), TerminalScale == TerminalScale.S250, () => TerminalScale = TerminalScale.S250);
             listing.Gap(8f);
 
             listing.Label("RimChat_TypewriterSpeed".Translate());

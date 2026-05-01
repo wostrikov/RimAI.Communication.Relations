@@ -96,10 +96,12 @@
     <RimChat_CommsToggleStatusOff>OFF</RimChat_CommsToggleStatusOff>
     <RimChat_TerminalScale>Terminal Scale</RimChat_TerminalScale>
     <RimChat_ScaleAuto>Auto</RimChat_ScaleAuto>
-    <RimChat_Scale75>75%</RimChat_Scale75>
-    <RimChat_Scale100>100%</RimChat_Scale100>
-    <RimChat_Scale125>125%</RimChat_Scale125>
-    <RimChat_Scale150>150%</RimChat_Scale150>
+    <RimChat_Scale100>1x</RimChat_Scale100>
+    <RimChat_Scale125>1.25x</RimChat_Scale125>
+    <RimChat_Scale150>1.5x</RimChat_Scale150>
+    <RimChat_Scale175>1.75x</RimChat_Scale175>
+    <RimChat_Scale200>2x</RimChat_Scale200>
+    <RimChat_Scale250>2.5x</RimChat_Scale250>
     <RimChat_StartConversation>Start a conversation...</RimChat_StartConversation>
     <RimChat_CommsToggleIconTooltip>Function: quick-toggle comms replacement from map controls. Current: {0}. Scope: map UI icon row only.</RimChat_CommsToggleIconTooltip>
     <RimChat_CommsToggleEnabledMessage>Comms console replacement enabled.</RimChat_CommsToggleEnabledMessage>

@@ -36,10 +36,12 @@ namespace RimChat.Config
     public enum TerminalScale
     {
         Auto = 0,
-        S75 = 1,
-        S100 = 2,
-        S125 = 3,
-        S150 = 4
+        S100 = 1,
+        S125 = 2,
+        S150 = 3,
+        S175 = 4,
+        S200 = 5,
+        S250 = 6
     }
 
     public enum ExpectedActionDenyLogLevel
