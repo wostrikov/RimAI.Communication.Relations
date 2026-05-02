@@ -573,10 +573,8 @@ namespace RimChat.DiplomacySystem
                 NeedText = context.Need,
                 Scenario = context.Scenario,
                 SelectionReason = selection.Reason ?? string.Empty,
-                NeedPriceSemantic = selectedRecord?.Def?.tradeTags != null && selectedRecord.Def.tradeTags.Contains("ExoticMisc")
-                    ? "market_value_x3.0"
-                    : "market_value_x1.6",
-                PaymentPriceSemantic = "market_value_x0.6",
+                NeedPriceSemantic = ItemAirdropTradePolicy.ResolveNeedPriceSemantic(selectedRecord?.Def, context.Faction),
+                PaymentPriceSemantic = ItemAirdropTradePolicy.ResolveOfferPriceSemantic(selectedRecord?.Def),
                 SpecialItemType = detectedSpecialItemType,
                 PaymentLines = context.PaymentLines,
                 DeductionPlan = context.DeductionPlan,

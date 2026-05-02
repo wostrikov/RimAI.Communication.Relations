@@ -1285,6 +1285,8 @@ ID：{5}
     <!-- Security Settings -->
     <RimChat_SecuritySettings>安全设置</RimChat_SecuritySettings>
     <RimChat_SecuritySettingsTooltip>功能：限制 API 调用频率并记录调用日志。作用域：全局请求安全与节流控制。</RimChat_SecuritySettingsTooltip>
+    <RimChat_ModCompatSettings>Mod 兼容</RimChat_ModCompatSettings>
+    <RimChat_ModCompatRimTalkExpandMemory>RimTalk - ExpandMemory [常识库]</RimChat_ModCompatRimTalkExpandMemory>
     <RimChat_EnableAPICallLogging>启用API调用日志</RimChat_EnableAPICallLogging>
     <RimChat_MaxAPICallsPerHour>每小时最大API调用: {0}</RimChat_MaxAPICallsPerHour>
     <RimChat_Unlimited>无限制</RimChat_Unlimited>
@@ -2403,6 +2405,10 @@ ID：{5}
     <RimChat_RimTalkTabUseStablePromptPage>打开提示词工作台</RimChat_RimTalkTabUseStablePromptPage>
     <RimChat_RimTalkBridgeCardTitle>桥接</RimChat_RimTalkBridgeCardTitle>
     <RimChat_RimTalkBridgeCardHint>RimChat 负责提示词结构，RimTalk 与 MemoryPatch 只提供运行时变量来源。</RimChat_RimTalkBridgeCardHint>
+    <RimChat_ExpandMemoryCompatTitle>ExpandMemory 兼容</RimChat_ExpandMemoryCompatTitle>
+    <RimChat_ExpandMemoryCompatAuto>自动（检测已安装模组）</RimChat_ExpandMemoryCompatAuto>
+    <RimChat_ExpandMemoryCompatOn>开启（强制启用）</RimChat_ExpandMemoryCompatOn>
+    <RimChat_ExpandMemoryCompatOff>关闭（强制禁用）</RimChat_ExpandMemoryCompatOff>
     <RimChat_RimTalkOpenDiplomacySections>打开外交分段</RimChat_RimTalkOpenDiplomacySections>
     <RimChat_RimTalkOpenRpgSections>打开 RPG 分段</RimChat_RimTalkOpenRpgSections>
     <RimChat_RimTalkSummaryPersonaTitle>摘要与人格</RimChat_RimTalkSummaryPersonaTitle>
@@ -2485,6 +2491,7 @@ ID：{5}
     <RimChat_PromptNode_RpgStateAnchor>RPG状态锚定</RimChat_PromptNode_RpgStateAnchor>
     <RimChat_PromptNode_RpgSurvivalInstinct>RPG求生本能</RimChat_PromptNode_RpgSurvivalInstinct>
     <RimChat_PromptNode_RpgAliveFeeling>RPG活人感</RimChat_PromptNode_RpgAliveFeeling>
+    <RimChat_PromptNode_CommonKnowledge>常识库</RimChat_PromptNode_CommonKnowledge>
     <RimChat_ImmersionFallback_Diplomacy>我们会以更专注、更体面的方式继续这次会谈。</RimChat_ImmersionFallback_Diplomacy>
     <RimChat_ImmersionFallback_Rpg>我会留在当下，用自己的心声回应你。</RimChat_ImmersionFallback_Rpg>
     <RimChat_ImmersionGuardWarning>（检测到回复可能受机制描述干扰，对话已保留）</RimChat_ImmersionGuardWarning>

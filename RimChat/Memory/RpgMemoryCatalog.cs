@@ -35,24 +35,7 @@ namespace RimChat.Memory
             new MemoryProfile("RimChat_Teased", "teased", "teasing", "embarrassed"),
             new MemoryProfile("RimChat_Praised", "praised", "praise", "appreciated"),
             new MemoryProfile("RimChat_FeelingInsulted", "feelinginsulted", "insulted", "offended", "insult"),
-            new MemoryProfile("RimChat_FeelingIgnored", "feelingignored", "ignored", "dismissed", "slighted", "slight", "slightedmemory"),
-            new MemoryProfile("RimChat_HeartfeltCompliment", "heartfeltcompliment", "compliment", "heartfelt", "kindwords", "kindword", "warmwords"),
-            new MemoryProfile("RimChat_GratefulFeeling", "gratefulfeeling", "grateful", "gratitude", "thankful"),
-            new MemoryProfile("RimChat_ShamefulMoment", "shamefulmoment", "shameful", "ashamed"),
-            new MemoryProfile("RimChat_ProudMoment", "proudmoment", "proud"),
-            new MemoryProfile("RimChat_ResentfulFeeling", "resentfulfeeling", "resentful", "resentment"),
-            new MemoryProfile("RimChat_LonelyFeeling", "lonelyfeeling", "lonely", "loneliness"),
-            new MemoryProfile("RimChat_TrustBetrayed", "trustbetrayed", "betrayed", "betrayal"),
-            new MemoryProfile("RimChat_DeepConnection", "deepconnection", "deepconversation", "deepconversationmemory", "deeptalk", "deep_talk", "deepchat", "meaningfulconversation", "connection"),
-            new MemoryProfile("RimChat_EmpoweringTalk", "empoweringtalk", "empowering", "empowered"),
-            new MemoryProfile("RimChat_DebilitatingWords", "debilitatingwords", "debilitating", "crushed", "devastated"),
-            new MemoryProfile("RimChat_UnforgettableMoment", "unforgettablemoment", "unforgettable", "memorable"),
-            new MemoryProfile("RimChat_WoundingMemory", "woundingmemory", "wounding", "wounded", "lastingwound"),
-            new MemoryProfile("RimChat_LoveAndDestruction", "loveanddestruction", "toxiclove", "intertwinedlove"),
-            new MemoryProfile("RimChat_GoodAndEvilConflict", "goodandevilconflict", "goodandevil", "moralconflict"),
-            new MemoryProfile("RimChat_LateRegret", "lateregret", "regret", "toolate"),
-            new MemoryProfile("RimChat_UnconditionalCompassion", "unconditionalcompassion", "compassion", "understanding"),
-            new MemoryProfile("RimChat_JoyInSuffering", "joyinsuffering", "absurdjoy", "endurance")
+            new MemoryProfile("RimChat_FeelingIgnored", "feelingignored", "ignored", "dismissed", "slighted", "slight", "slightedmemory")
         };
 
         private static readonly string[] EarlyPositiveAuto =
@@ -65,22 +48,22 @@ namespace RimChat.Memory
         private static readonly string[] MidPositiveAuto =
         {
             "RimChat_Comforted",
-            "RimChat_HeartfeltCompliment",
-            "RimChat_GratefulFeeling"
+            "RimChat_Praised",
+            "RimChat_Encouraged"
         };
 
         private static readonly string[] DeepPositiveAuto =
         {
-            "RimChat_ProudMoment",
-            "RimChat_DeepConnection",
-            "RimChat_EmpoweringTalk"
+            "RimChat_Comforted",
+            "RimChat_Encouraged",
+            "RimChat_Praised"
         };
 
         private static readonly string[] PeakPositiveAuto =
         {
-            "RimChat_UnforgettableMoment",
-            "RimChat_EmpoweringTalk",
-            "RimChat_DeepConnection"
+            "RimChat_Comforted",
+            "RimChat_Encouraged",
+            "RimChat_Praised"
         };
 
         private static readonly Dictionary<string, string> AliasMap = BuildAliasMap();
@@ -242,7 +225,7 @@ namespace RimChat.Memory
                     return ResolveLoadedThoughtDef("RimChat_BriefJoy") ?? def;
                 case "DeepTalk":
                     resolvedFrom = "legacy-visible-deep-talk";
-                    return ResolveLoadedThoughtDef("RimChat_DeepConnection") ?? def;
+                    return ResolveLoadedThoughtDef("RimChat_Comforted") ?? def;
                 case "Slighted":
                     resolvedFrom = "legacy-visible-slighted";
                     return ResolveLoadedThoughtDef("RimChat_FeelingIgnored") ?? def;
@@ -359,7 +342,6 @@ namespace RimChat.Memory
             AddAlias(map, "KindWordsMood", "KindWordsMood");
             AddAlias(map, "InsultedMood", "InsultedMood");
             AddAlias(map, "RimChat_PleasantChatMemory", "RimChat_BriefJoy");
-            AddAlias(map, "RimChat_DeepConversationMemory", "RimChat_DeepConnection");
             AddAlias(map, "RimChat_SlightedMemory", "RimChat_FeelingIgnored");
             return map;
         }

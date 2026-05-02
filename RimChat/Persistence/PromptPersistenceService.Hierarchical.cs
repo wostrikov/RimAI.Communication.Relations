@@ -18,6 +18,9 @@ namespace RimChat.Persistence
  ///</summary>
     public partial class PromptPersistenceService
     {
+        private const string DefaultDiplomacyFallbackRoleTemplate =
+            "You are the leader of {{ world.faction.name }} in RimWorld.";
+
         internal string BuildFullSystemPromptHierarchicalCore(
             Faction faction,
             SystemPromptConfig config,
@@ -423,7 +426,9 @@ namespace RimChat.Persistence
             });
 
             var placements = new List<ResolvedPromptNodePlacement>();
-            foreach (PromptUnifiedNodeLayoutConfig layout in GetOrderedNodeLayouts(promptChannel))
+            List<PromptUnifiedNodeLayoutConfig> diploLayouts = GetOrderedNodeLayouts(promptChannel);
+            Log.Message($"[RimChat] ResolveDiplomacyNodePlacements: channel={promptChannel}, layout_count={diploLayouts.Count}, node_ids=[{string.Join(", ", diploLayouts.Select(l => l.NodeId))}]");
+            foreach (PromptUnifiedNodeLayoutConfig layout in diploLayouts)
             {
                 if (layout == null)
                 {
@@ -501,6 +506,10 @@ namespace RimChat.Persistence
                             "response_contract_body",
                             responseContractBody);
                         break;
+                    case "common_knowledge":
+                        placement.OutputTag = "common_knowledge";
+                        placement.Content = BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
+                        break;
                     default:
                         placement.Content = string.Empty;
                         break;
@@ -527,7 +536,9 @@ namespace RimChat.Persistence
             bool includeOpeningObjective)
         {
             var placements = new List<ResolvedPromptNodePlacement>();
-            foreach (PromptUnifiedNodeLayoutConfig layout in GetOrderedNodeLayouts(promptChannel))
+            List<PromptUnifiedNodeLayoutConfig> layouts = GetOrderedNodeLayouts(promptChannel);
+            Log.Message($"[RimChat] ResolveRpgNodePlacements: channel={promptChannel}, layout_count={layouts.Count}, node_ids=[{string.Join(", ", layouts.Select(l => l.NodeId))}]");
+            foreach (PromptUnifiedNodeLayoutConfig layout in layouts)
             {
                 if (layout == null)
                 {
@@ -603,6 +614,10 @@ namespace RimChat.Persistence
                             ResolveUnifiedNodeTemplate(promptChannel, "response_contract_node_template", PromptTextConstants.ResponseContractNodeLiteralDefault),
                             "response_contract_body",
                             BuildRpgApiContractText(settings, config, context, preferCompactApiContract));
+                        break;
+                    case "common_knowledge":
+                        placement.OutputTag = "common_knowledge";
+                        placement.Content = BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
                         break;
 
                     default:
@@ -1199,6 +1214,27 @@ namespace RimChat.Persistence
             DialogueScenarioContext context)
         {
             string promptChannel = ResolvePromptChannelForContext(context);
+
+            // Workbench priority: if user customized diplomacy_fallback_role, use it first.
+            string workbenchNode = RimChatMod.Settings?.ResolvePromptNodeText(promptChannel, "diplomacy_fallback_role")?.Trim();
+            if (!string.IsNullOrWhiteSpace(workbenchNode)
+                && !string.Equals(workbenchNode, DefaultDiplomacyFallbackRoleTemplate, StringComparison.Ordinal))
+            {
+                string renderChannel = ResolveRenderChannel(context);
+                Faction resolvedFaction = faction ?? context?.Faction;
+                string factionName = resolvedFaction?.Name ?? "Unknown Faction";
+                Dictionary<string, object> variables = BuildSharedPromptTemplateVariables(context, string.Empty);
+                variables["world.faction.name"] = factionName;
+                variables["world.faction"] = resolvedFaction != null
+                    ? (object)resolvedFaction
+                    : CreatePreviewFactionPlaceholder(factionName);
+                string normalizedTemplate = NormalizeFactionPromptTemplateAliases(workbenchNode);
+                string rendered = RenderTemplateOrThrow("prompt_templates.diplomacy_fallback_role", renderChannel, normalizedTemplate, variables);
+                string enriched = TryAppendFactionToneVariables(rendered.Trim());
+                return ApplyPromptSourceTag(AppendFixedFactionIntelBlock(enriched, resolvedFaction, promptChannel), true);
+            }
+
+            // Fallback: FactionPromptManager per-faction prompts.
             string factionPrompt = FactionPromptManager.Instance.GetPrompt(faction);
             if (!string.IsNullOrWhiteSpace(factionPrompt))
             {
@@ -1218,24 +1254,25 @@ namespace RimChat.Persistence
                 return ApplyPromptSourceTag(AppendFixedFactionIntelBlock(enrichedTemplatePrompt, faction, promptChannel), true);
             }
 
+            // Final fallback: default diplomacy_fallback_role template.
             string legacyTemplate = config?.PromptTemplates?.DiplomacyFallbackRoleTemplate;
             string channel = ResolveRenderChannel(context);
             string template = ResolveUnifiedNodeTemplate(promptChannel, "diplomacy_fallback_role", legacyTemplate);
             string requiredTemplate = RequireTemplateText("prompt_templates.diplomacy_fallback_role", channel, template);
-            Faction resolvedFaction = faction ?? context?.Faction;
-            string factionName = resolvedFaction?.Name ?? "Unknown Faction";
-            Dictionary<string, object> variables = BuildSharedPromptTemplateVariables(context, string.Empty);
-            variables["world.faction.name"] = factionName;
-            variables["world.faction"] = resolvedFaction != null
-                ? (object)resolvedFaction
-                : CreatePreviewFactionPlaceholder(factionName);
+            Faction finalFaction = faction ?? context?.Faction;
+            string finalFactionName = finalFaction?.Name ?? "Unknown Faction";
+            Dictionary<string, object> finalVariables = BuildSharedPromptTemplateVariables(context, string.Empty);
+            finalVariables["world.faction.name"] = finalFactionName;
+            finalVariables["world.faction"] = finalFaction != null
+                ? (object)finalFaction
+                : CreatePreviewFactionPlaceholder(finalFactionName);
             string fallbackText = RenderTemplateOrThrow(
                 "prompt_templates.diplomacy_fallback_role",
                 channel,
                 requiredTemplate,
-                variables);
+                finalVariables);
             string enrichedFallback = TryAppendFactionToneVariables(fallbackText.Trim());
-            return ApplyPromptSourceTag(AppendFixedFactionIntelBlock(enrichedFallback, resolvedFaction, promptChannel), true);
+            return ApplyPromptSourceTag(AppendFixedFactionIntelBlock(enrichedFallback, finalFaction, promptChannel), true);
         }
 
         private static string AppendFixedFactionIntelBlock(string baseText, Faction faction, string promptChannel)

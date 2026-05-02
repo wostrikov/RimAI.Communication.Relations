@@ -459,7 +459,7 @@ namespace RimChat.Config
         {
             var config = new EnvironmentPromptConfig();
             config.Worldview.Enabled = true;
-            config.Worldview.Content = "你处于 RimWorld 的真实世界观中。请以当前世界事件、资源压力、派系立场和生存逻辑来组织回应。";
+            config.Worldview.Content = string.Empty;
             config.SceneSystem.Enabled = true;
             config.SceneSystem.MaxSceneChars = 1200;
             config.SceneSystem.MaxTotalChars = 4000;

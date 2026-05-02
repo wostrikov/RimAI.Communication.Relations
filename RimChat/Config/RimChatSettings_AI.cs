@@ -259,7 +259,8 @@ namespace RimChat.Config
             CaravanSettings,
             QuestSettings,
             SocialCircleSettings,
-            SecuritySettings
+            SecuritySettings,
+            ModCompatSettings
         }
 
         private void DrawTab_AIControl(Rect rect)
@@ -287,6 +288,7 @@ namespace RimChat.Config
             DrawAccordionSection(listing, AIControlSection.QuestSettings, "RimChat_QuestSettings".Translate(), ResetQuestSettingsToDefault, DrawQuestSettings, new Color(0.8f, 0.8f, 1f));
             DrawAccordionSection(listing, AIControlSection.SocialCircleSettings, "RimChat_SocialCircleSettings".Translate(), ResetSocialCircleSettingsToDefault, DrawSocialCircleSettings, new Color(0.8f, 1f, 0.95f));
             DrawAccordionSection(listing, AIControlSection.SecuritySettings, "RimChat_SecuritySettings".Translate(), ResetSecuritySettingsToDefault, DrawSecuritySettings, new Color(1f, 0.9f, 0.5f));
+            DrawAccordionSection(listing, AIControlSection.ModCompatSettings, "RimChat_ModCompatSettings".Translate(), ResetModCompatSettingsToDefault, DrawModCompatSettings, new Color(0.8f, 1f, 0.9f));
 
             listing.End();
             Widgets.EndScrollView();
@@ -323,6 +325,7 @@ namespace RimChat.Config
                 AIControlSection.QuestSettings => 160f,
                 AIControlSection.SocialCircleSettings => 320f,
                 AIControlSection.SecuritySettings => 170f,
+                AIControlSection.ModCompatSettings => 200f,
                 _ => 260f
             };
         }
@@ -1288,6 +1291,43 @@ namespace RimChat.Config
             ResetSecuritySettingsToDefault();
             ResetPresenceSettingsToDefault();
             ResetNpcInitiatedDialogueSettings();
+            ResetModCompatSettingsToDefault();
+        }
+
+        #endregion
+
+        #region Mod Compatibility Settings
+
+        private void DrawModCompatSettings(Listing_Standard listing)
+        {
+            listing.Label("RimChat_ModCompatRimTalkExpandMemory".Translate());
+            listing.GapLine();
+
+            bool detected = Prompting.PromptRuntimeVariableBridge.IsDependencyAvailable("expandmemory");
+            string status = detected
+                ? "RimChat_PromptVariableReady".Translate().ToString()
+                : "RimChat_PromptVariableDependencyMissing".Translate().ToString();
+            listing.Label(status);
+            listing.Gap();
+
+            string[] modes = { "auto", "on", "off" };
+            int selectedIndex = System.Array.IndexOf(modes, (ExpandMemoryCompatMode ?? "auto").ToLowerInvariant());
+            if (selectedIndex < 0) selectedIndex = 0;
+
+            Rect autoRect = listing.GetRect(28f);
+            Rect onRect = listing.GetRect(28f);
+            Rect offRect = listing.GetRect(28f);
+            if (Widgets.RadioButtonLabeled(autoRect, "RimChat_ExpandMemoryCompatAuto".Translate(), selectedIndex == 0))
+                ExpandMemoryCompatMode = modes[0];
+            if (Widgets.RadioButtonLabeled(onRect, "RimChat_ExpandMemoryCompatOn".Translate(), selectedIndex == 1))
+                ExpandMemoryCompatMode = modes[1];
+            if (Widgets.RadioButtonLabeled(offRect, "RimChat_ExpandMemoryCompatOff".Translate(), selectedIndex == 2))
+                ExpandMemoryCompatMode = modes[2];
+        }
+
+        private void ResetModCompatSettingsToDefault()
+        {
+            ExpandMemoryCompatMode = "auto";
         }
 
         #endregion

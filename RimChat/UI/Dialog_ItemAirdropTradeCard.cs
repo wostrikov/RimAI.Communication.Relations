@@ -180,17 +180,6 @@ namespace RimChat.UI
                 return 0.01f;
             }
 
-            // Check if this is a special item (discount/scarce) and apply special pricing
-            if (faction != null && 
-                FactionSpecialItemsManager.Instance.TryMatchSpecialItem(faction, def.defName, out SpecialItemType specialItemType))
-            {
-                if (ItemAirdropTradePolicy.TryResolveSpecialItemPrice(def, specialItemType, out float specialPrice, out _))
-                {
-                    return Math.Max(0.01f, specialPrice);
-                }
-            }
-
-            // Fallback to standard offer pricing
             if (ItemAirdropTradePolicy.TryResolveOfferUnitPrice(def, out float resolved, out _))
             {
                 return Math.Max(0.01f, resolved);
@@ -206,27 +195,7 @@ namespace RimChat.UI
                 return string.Empty;
             }
 
-            // Check if this is a special item
-            if (faction != null && 
-                FactionSpecialItemsManager.Instance.TryMatchSpecialItem(faction, def.defName, out SpecialItemType specialItemType))
-            {
-                return specialItemType == SpecialItemType.Discount 
-                    ? $"special_item_discount_x{ItemAirdropTradePolicy.SpecialItemDiscountMultiplier:F1}" 
-                    : $"special_item_scarce_x{ItemAirdropTradePolicy.SpecialItemScarceMultiplier:F1}";
-            }
-
-            // Use correct offer multiplier based on item type
-            float multiplier;
-            if (def.tradeability == Tradeability.None)
-                multiplier = ItemAirdropTradePolicy.UntradeableOfferPriceMultiplier;
-            else if (def.tradeTags != null && def.tradeTags.Contains("ExoticMisc"))
-                multiplier = ItemAirdropTradePolicy.ExoticMiscOfferPriceMultiplier;
-            else
-                multiplier = ItemAirdropTradePolicy.OfferPriceMultiplier;
-
-            return ItemAirdropTradePolicy.IsPreciousMetalFixedPrice(def)
-                ? "market_value"
-                : $"market_value_x{multiplier:F1}";
+            return ItemAirdropTradePolicy.ResolveOfferPriceSemantic(def);
         }
 
         private void ApplyInventoryFilter()

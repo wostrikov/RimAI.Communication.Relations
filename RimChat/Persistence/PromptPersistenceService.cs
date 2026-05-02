@@ -1966,6 +1966,18 @@ namespace RimChat.Persistence
                 return string.Empty;
             }
 
+            // Workbench priority: if user wrote pure text in character_persona (no template variables),
+            // use it directly. Template content (e.g. {{ pawn.personality }}) is skipped to avoid
+            // circular dependency where rendering would read back from GameComponent_RPGManager.
+            string promptChannel = RimTalkPromptEntryChannelCatalog.RpgDialogue;
+            string personaSection = RimChatMod.Settings?.ResolvePromptSectionText(promptChannel, "character_persona");
+            if (!string.IsNullOrWhiteSpace(personaSection)
+                && personaSection.IndexOf("{{", StringComparison.Ordinal) < 0)
+            {
+                return personaSection.Trim();
+            }
+
+            // Fallback: GameComponent_RPGManager per-pawn persona.
             var rpgManager = GameComponent_RPGManager.Instance ?? Current.Game?.GetComponent<GameComponent_RPGManager>();
             return rpgManager?.GetPawnPersonaPrompt(target) ?? string.Empty;
         }

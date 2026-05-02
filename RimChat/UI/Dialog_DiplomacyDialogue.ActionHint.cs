@@ -80,6 +80,7 @@ namespace RimChat.UI
 
         private int actionHintTooltipCacheTick = -999999;
         private string actionHintTooltipCache = string.Empty;
+        private readonly Dictionary<int, (string text, int tick)> actionHintCacheByFaction = new Dictionary<int, (string, int)>();
 
         private void DrawPotentialActionsHint(Rect sendRect)
         {
@@ -112,10 +113,19 @@ namespace RimChat.UI
                 return actionHintTooltipCache;
             }
 
+            int factionId = faction?.loadID ?? -1;
+            if (factionId >= 0 && actionHintCacheByFaction.TryGetValue(factionId, out var cached)
+                && !string.IsNullOrEmpty(cached.text) && currentTick - cached.tick <= 600)
+            {
+                actionHintTooltipCache = cached.text;
+                actionHintTooltipCacheTick = currentTick;
+                return actionHintTooltipCache;
+            }
+
             var sb = new StringBuilder();
             sb.AppendLine("RimChat_ActionsHint_DiplomacyTitle".Translate());
 
-            Dictionary<string, ActionValidationResult> allowedActions = ApiActionEligibilityService.Instance?.GetAllowedActions(faction);
+            Dictionary<string, ActionValidationResult> allowedActions = ApiActionEligibilityService.Instance?.GetAllowedActions(faction, lightweight: true);
             if (allowedActions == null || allowedActions.Count == 0)
             {
                 sb.Append("RimChat_ActionsHint_None".Translate());
@@ -143,8 +153,13 @@ namespace RimChat.UI
                 }
             }
 
-            actionHintTooltipCache = sb.ToString().TrimEnd();
+            string result = sb.ToString().TrimEnd();
+            actionHintTooltipCache = result;
             actionHintTooltipCacheTick = currentTick;
+            if (factionId >= 0)
+            {
+                actionHintCacheByFaction[factionId] = (result, currentTick);
+            }
             return actionHintTooltipCache;
         }
 

@@ -384,6 +384,8 @@ namespace RimChat.UI
             DialogueRuntimeContext targetRuntimeContext = null,
             string lifecycleKey = null)
         {
+            long startTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+            sessionFallbackFactionSpeaker = null;
             faction = targetFaction;
             runtimeContext = targetRuntimeContext ?? DialogueRuntimeContext.CreateDiplomacy(targetFaction, negotiator, negotiator?.Map);
             windowLifecycleKey = string.IsNullOrWhiteSpace(lifecycleKey)
@@ -391,19 +393,27 @@ namespace RimChat.UI
                 : lifecycleKey.Trim();
 
             session = GameComponent_DiplomacyManager.Instance?.GetOrCreateSession(targetFaction);
+            long t1 = System.Diagnostics.Stopwatch.GetTimestamp();
             if (session != null)
             {
                 session.MarkAsRead();
                 EnsureSessionMessageSpeakers(session);
             }
+            long t2 = System.Diagnostics.Stopwatch.GetTimestamp();
             _typewriterDirty = true;
             InvalidateLayoutCache();
             PreFillTypewriterStatesForExistingMessages();
 
             lastObservedDiplomacyMemoryRevision = LeaderMemoryManager.Instance?.GetFactionMemoryRevision(targetFaction) ?? 0;
+            long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
             pendingDialogueMemoryRefresh = true;
             sessionMessageBaselineCount = session?.messages?.Count ?? 0;
             sessionCloseSummaryCommitted = false;
+            double freq = System.Diagnostics.Stopwatch.Frequency;
+            double ms1 = (t1 - startTicks) * 1000.0 / freq;
+            double ms2 = (t2 - t1) * 1000.0 / freq;
+            double ms3 = (t3 - t2) * 1000.0 / freq;
+            Log.Message($"[RimChat][PerfDiag] BindState: session={ms1:F1}ms, speakers={ms2:F1}ms, memory={ms3:F1}ms, msgs={session?.messages?.Count ?? 0}");
         }
 
         private void ResetWindowUiStateForFactionSwitch()
@@ -437,8 +447,7 @@ namespace RimChat.UI
             strategyFxSignature = 0;
             strategyFxStartRealtime = -99f;
 
-            actionHintTooltipCacheTick = -999999;
-            actionHintTooltipCache = string.Empty;
+            // Per-faction tooltip cache persists across switches; no need to invalidate
             ClearPendingAirdropDialogState("switch_faction", true);
         }
 
@@ -449,16 +458,25 @@ namespace RimChat.UI
                 return false;
             }
 
+            long startTicks = System.Diagnostics.Stopwatch.GetTimestamp();
             CancelStrategySuggestionRequest();
             CancelPendingAirdropSelectionRequest();
             TryCommitDiplomacySessionSummaryOnClose();
+            long t1 = System.Diagnostics.Stopwatch.GetTimestamp();
             LockPresenceCacheOnDialogueClose();
 
             BindActiveFactionState(targetFaction);
+            long t2 = System.Diagnostics.Stopwatch.GetTimestamp();
             ResetWindowUiStateForFactionSwitch();
             RefreshPresenceOnDialogueOpen();
+            long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
 
-            Log.Message($"[RimChat] Switched diplomacy window in place to faction={targetFaction.Name}");
+            double freq = System.Diagnostics.Stopwatch.Frequency;
+            double ms1 = (t1 - startTicks) * 1000.0 / freq;
+            double ms2 = (t2 - t1) * 1000.0 / freq;
+            double ms3 = (t3 - t2) * 1000.0 / freq;
+            double total = (t3 - startTicks) * 1000.0 / freq;
+            Log.Message($"[RimChat] Switched to {targetFaction.Name}: summary={ms1:F1}ms, bind={ms2:F1}ms, presence={ms3:F1}ms, total={total:F1}ms");
             return true;
         }
 
@@ -517,8 +535,13 @@ namespace RimChat.UI
             }
         }
 
+        private int _frameDiagThrottle;
+        private int _lastFrameDiagFactionId = -1;
+
         public override void DoWindowContents(Rect inRect)
         {
+            long frameStart = System.Diagnostics.Stopwatch.GetTimestamp();
+
             // Layer 1: CRT bezel frame (outermost background)
             DrawCRTBezelBackground(inRect);
 
@@ -528,13 +551,16 @@ namespace RimChat.UI
             crtContent = new Rect(crtContent.x + 8f, crtContent.y + 8f, crtContent.width - 8f, crtContent.height - 8f);
 
             PollDiplomacyMemoryRevision();
+            long tPre1 = System.Diagnostics.Stopwatch.GetTimestamp();
             ApplyPendingDiplomacyMemoryRefresh();
+            long tPre2 = System.Diagnostics.Stopwatch.GetTimestamp();
             lastWindowScreenPos = new Vector2(crtContent.x, crtContent.y);
             lastWindowContentRect = crtContent;
             speakerHoverRequestThisFrame = false;
             UpdateTypewriterEffect();
 
             DrawTitleBar(crtContent);
+            long t1 = System.Diagnostics.Stopwatch.GetTimestamp();
 
             Rect factionListRect = new Rect(
                 crtContent.x,
@@ -542,13 +568,16 @@ namespace RimChat.UI
                 FACTION_LIST_WIDTH,
                 crtContent.height - LayoutHeaderTop - LayoutPanelPadding);
             DrawFactionList(factionListRect);
+            long t2 = System.Diagnostics.Stopwatch.GetTimestamp();
 
             float rightX = crtContent.x + FACTION_LIST_WIDTH + LayoutPanelPadding;
             float rightWidth = crtContent.width - FACTION_LIST_WIDTH - LayoutPanelPadding;
             float contentY = LayoutHeaderTop;
 
+            long t2a = System.Diagnostics.Stopwatch.GetTimestamp();
             Rect tabsRect = new Rect(rightX, crtContent.y + contentY, rightWidth, LayoutTabsHeight);
             contentY += DrawDialogueMainTabs(tabsRect) + LayoutTabsSpacing;
+            long t2b = System.Diagnostics.Stopwatch.GetTimestamp();
 
             if (IsChatTabActive())
             {
@@ -562,6 +591,7 @@ namespace RimChat.UI
 
                 contentY += DrawExpandedActions(new Rect(rightX, crtContent.y + contentY, rightWidth, crtContent.height - contentY));
             }
+            long t2c = System.Diagnostics.Stopwatch.GetTimestamp();
 
             float contentHeight = crtContent.height - contentY - LayoutPanelPadding;
             Rect rightPanelRect = new Rect(rightX, crtContent.y + contentY, rightWidth, contentHeight);
@@ -573,6 +603,7 @@ namespace RimChat.UI
             {
                 DrawSocialCirclePanel(rightPanelRect);
             }
+            long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
 
             // Layer 2: CRT overlay (green tint + scanlines + vignette on content)
             // DrawCRTOverlay(crtContent); // Disabled: CRT mask effect removed
@@ -580,6 +611,26 @@ namespace RimChat.UI
             // Layer 3: goodwill animations and hover cards (topmost interactive layer)
             GoodwillChangeAnimator.UpdateAndDrawAnimations();
             DrawSpeakerHoverCard();
+            long t4 = System.Diagnostics.Stopwatch.GetTimestamp();
+
+            int factionId = faction?.loadID ?? -1;
+            bool factionChanged = factionId != _lastFrameDiagFactionId;
+            _lastFrameDiagFactionId = factionId;
+            _frameDiagThrottle++;
+            double freq = System.Diagnostics.Stopwatch.Frequency;
+            double totalMs = (t4 - frameStart) * 1000.0 / freq;
+            // Log on faction switch or every 300 frames to avoid spam
+            if (factionChanged || (_frameDiagThrottle % 300 == 0 && totalMs > 3.0))
+            {
+                double memRefreshMs = (tPre2 - tPre1) * 1000.0 / freq;
+                double titleMs = (t1 - frameStart) * 1000.0 / freq;
+                double listMs = (t2 - t1) * 1000.0 / freq;
+                double tabsMs = (t2b - t2a) * 1000.0 / freq;
+                double actionsMs = (t2c - t2b) * 1000.0 / freq;
+                double chatMs = (t3 - t2c) * 1000.0 / freq;
+                double overlayMs = (t4 - t3) * 1000.0 / freq;
+                Log.Message($"[RimChat][FrameDiag] {faction?.Name}: mem={memRefreshMs:F1}ms, title={titleMs:F1}ms, list={listMs:F1}ms, tabs={tabsMs:F1}ms, actions={actionsMs:F1}ms, chat={chatMs:F1}ms, overlay={overlayMs:F1}ms, total={totalMs:F1}ms");
+            }
         }
 
         private void DrawTitleBar(Rect inRect)
@@ -726,7 +777,7 @@ namespace RimChat.UI
             Widgets.DrawLineHorizontal(innerRect.x, innerRect.y + LayoutFactionVerticalLineY, innerRect.width);
             GUI.color = Color.white;
 
-            var allFactions = GetAvailableFactions(true);
+            var allFactions = GetAvailableFactions(false);
             CleanupGoodwillHoverAlpha(allFactions);
             CleanupHoverCardAlpha(allFactions.Select(f => $"faction:{f.loadID}"));
 
@@ -773,6 +824,9 @@ namespace RimChat.UI
 
         private List<Faction> _cachedFactionList;
         private int _cachedFactionListTick = -1;
+        private Faction _cachedQuestFaction;
+        private List<Quest> _cachedQuests;
+        private int _cachedQuestsTick = -1;
 
         private List<Faction> GetAvailableFactions(bool refreshPresence = false)
         {
@@ -1170,12 +1224,18 @@ namespace RimChat.UI
 
         private float DrawFactionQuests(Rect rect, Faction targetFaction)
         {
-            List<Quest> quests = Find.QuestManager.QuestsListForReading
-                .Where(q => q.State == QuestState.Ongoing && !q.hidden
-                    && q.InvolvedFactions.Contains(targetFaction))
-                .ToList();
+            int currentTick = Find.TickManager.TicksGame;
+            if (_cachedQuestFaction != targetFaction || _cachedQuestsTick != currentTick)
+            {
+                _cachedQuestFaction = targetFaction;
+                _cachedQuestsTick = currentTick;
+                _cachedQuests = Find.QuestManager.QuestsListForReading
+                    .Where(q => q.State == QuestState.Ongoing && !q.hidden
+                        && q.InvolvedFactions.Contains(targetFaction))
+                    .ToList();
+            }
 
-            if (!quests.Any())
+            if (_cachedQuests == null || _cachedQuests.Count == 0)
             {
                 return 0f;
             }
@@ -1191,7 +1251,7 @@ namespace RimChat.UI
             GUI.color = prev;
             curY += rowH + 2f;
 
-            foreach (Quest quest in quests)
+            foreach (Quest quest in _cachedQuests)
             {
                 Rect itemRect = new Rect(x, curY, rect.width - 12f, rowH);
                 Widgets.DrawHighlightIfMouseover(itemRect);
@@ -1766,10 +1826,13 @@ namespace RimChat.UI
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
-            string actionsTooltip = GetPotentialActionsTooltipText();
-            if (!string.IsNullOrWhiteSpace(actionsTooltip))
+            if (hovered)
             {
-                TooltipHandler.TipRegion(entryRect, actionsTooltip);
+                string actionsTooltip = GetPotentialActionsTooltipText();
+                if (!string.IsNullOrWhiteSpace(actionsTooltip))
+                {
+                    TooltipHandler.TipRegion(entryRect, actionsTooltip);
+                }
             }
             else if (!canOpen && !string.IsNullOrWhiteSpace(sendGate.BlockedReason))
             {
@@ -2764,7 +2827,11 @@ namespace RimChat.UI
         {
             var chatMessages = new List<ChatMessageData>();
 
-            string systemPrompt = BuildSystemPrompt();
+            string systemPrompt;
+            using (Persistence.ExpandMemoryMatchContext.Push(playerMessage))
+            {
+                systemPrompt = BuildSystemPrompt();
+            }
             chatMessages.Add(new ChatMessageData { role = "system", content = systemPrompt });
 
             FactionDialogueSession activeSession = currentSession ?? session;
@@ -3286,8 +3353,8 @@ namespace RimChat.UI
             }
 
             int quantity = Math.Max(0, payload?.Quantity ?? 0);
-            int budget = Math.Max(0, payload?.BudgetUsed ?? 0);
-            return "RimChat_ItemAirdropTriggeredSystem".Translate(label, quantity, budget);
+            int finalPrice = Math.Max(0, payload?.PaymentTotalSilver ?? payload?.BudgetUsed ?? 0);
+            return "RimChat_ItemAirdropTriggeredSystem".Translate(label, quantity, finalPrice);
         }
 
         private static string BuildAirdropFailureSystemMessage(string failureCode, string detail = null)

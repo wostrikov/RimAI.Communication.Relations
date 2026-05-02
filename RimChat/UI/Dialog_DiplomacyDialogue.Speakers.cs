@@ -24,6 +24,7 @@ namespace RimChat.UI
         private const float AvatarCameraZoom = 1.95f;
         private static readonly HashSet<string> BubbleLayoutWarnings = new HashSet<string>(StringComparer.Ordinal);
         private Pawn sessionFallbackFactionSpeaker;
+        private readonly Dictionary<Faction, Pawn> factionSpeakerCache = new Dictionary<Faction, Pawn>();
 
         private void EnsureSessionMessageSpeakers(FactionDialogueSession currentSession)
         {
@@ -31,6 +32,11 @@ namespace RimChat.UI
             {
                 return;
             }
+
+            Faction currentFaction = currentSession.faction ?? faction;
+            // Pre-resolve the faction speaker ONCE to avoid repeated expensive lookups
+            // (PawnsFinder.AllMapsWorldAndTemporary_Alive / PawnGenerator.GeneratePawn)
+            ResolveFactionSpeakerPawn(currentSession, currentFaction);
 
             for (int i = 0; i < currentSession.messages.Count; i++)
             {
@@ -120,27 +126,39 @@ namespace RimChat.UI
                 return sessionFallbackFactionSpeaker;
             }
 
+            // Check per-faction cache to avoid repeated PawnsFinder/GeneratePawn calls
+            if (currentFaction != null && factionSpeakerCache.TryGetValue(currentFaction, out Pawn cached)
+                && IsEligibleSpeakerPawn(cached, currentFaction))
+            {
+                sessionFallbackFactionSpeaker = cached;
+                return sessionFallbackFactionSpeaker;
+            }
+
             if (TryGetSessionFactionSpeaker(currentSession, currentFaction, out Pawn persistedSpeaker))
             {
                 sessionFallbackFactionSpeaker = persistedSpeaker;
+                factionSpeakerCache[currentFaction] = persistedSpeaker;
                 return sessionFallbackFactionSpeaker;
             }
 
             if (IsEligibleSpeakerPawn(currentFaction?.leader, currentFaction))
             {
                 sessionFallbackFactionSpeaker = currentFaction.leader;
+                factionSpeakerCache[currentFaction] = currentFaction.leader;
                 return sessionFallbackFactionSpeaker;
             }
 
             if (TryGetExistingFactionSpeakerPawn(currentFaction, out Pawn existingSpeaker))
             {
                 sessionFallbackFactionSpeaker = existingSpeaker;
+                factionSpeakerCache[currentFaction] = existingSpeaker;
                 return sessionFallbackFactionSpeaker;
             }
 
             if (TryGenerateFactionSpeakerPawn(currentFaction, out Pawn generatedSpeaker))
             {
                 sessionFallbackFactionSpeaker = generatedSpeaker;
+                factionSpeakerCache[currentFaction] = generatedSpeaker;
                 return sessionFallbackFactionSpeaker;
             }
 

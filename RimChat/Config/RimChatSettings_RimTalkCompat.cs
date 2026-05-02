@@ -16,6 +16,7 @@ namespace RimChat.Config
         public string RimTalkPersonaCopyTemplate = DefaultRimTalkPersonaCopyTemplate;
         public bool RimTalkAutoPushSessionSummary;
         public bool RimTalkAutoInjectCompatPreset;
+        public string ExpandMemoryCompatMode = "auto";
         internal RimTalkPromptEntryDefaultsConfig PromptSectionCatalog = RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot();
         internal PromptUnifiedCatalog UnifiedPromptCatalog = PromptUnifiedCatalog.CreateFallback();
 
@@ -83,8 +84,17 @@ You may reference RimTalk variables/plugins directly in this section.";
                 Scribe_Deep.Look(ref _legacyRimTalkRpg, "RimTalkRpg");
             }
 
+            Scribe_Values.Look(ref ExpandMemoryCompatMode, "ExpandMemoryCompatMode", "auto");
             EnsurePromptSectionCatalogReady();
             ClampRimTalkCompatSettings();
+        }
+
+        public bool IsExpandMemoryCompatEnabled()
+        {
+            string mode = (ExpandMemoryCompatMode ?? "auto").ToLowerInvariant();
+            if (mode == "on") return true;
+            if (mode == "off") return false;
+            return Prompting.PromptRuntimeVariableBridge.IsDependencyAvailable("expandmemory");
         }
 
         public bool IsAnyRimTalkPromptCompatEnabled()

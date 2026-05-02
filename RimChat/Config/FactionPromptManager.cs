@@ -444,7 +444,7 @@ namespace RimChat.Config
             {
                 string instanceKey = BuildFactionInstanceConfigKey(defName, faction.loadID);
                 FactionPromptConfig instanceConfig = _configCollection?.GetConfig(instanceKey);
-                if (instanceConfig != null)
+                if (instanceConfig != null && instanceConfig.TemplateFields != null && instanceConfig.TemplateFields.Count > 0)
                 {
                     return instanceConfig;
                 }
@@ -515,6 +515,11 @@ namespace RimChat.Config
             if (string.IsNullOrWhiteSpace(clone.DisplayName))
             {
                 clone.DisplayName = faction.Name ?? factionDefName ?? instanceKey;
+            }
+
+            if (clone.TemplateFields == null || clone.TemplateFields.Count == 0)
+            {
+                SetupDefaultTemplateFields(clone, factionDefName);
             }
 
             return clone;

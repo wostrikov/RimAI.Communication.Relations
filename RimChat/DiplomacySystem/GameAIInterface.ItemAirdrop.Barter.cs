@@ -125,8 +125,6 @@ namespace RimChat.DiplomacySystem
                 leaveSlag: false,
                 canRoofPunch: false);
 
-            int finalQuoteTotal = preparedData.BudgetSilver + preparedData.ShippingCostSilver;
-            
             string stageText = $"def={selectedRecord.DefName},count={deliveredCount},budget={preparedData.BudgetSilver},reason={preparedData.SelectionReason},drop={dropCell},payment={preparedData.PaymentTotalSilver}";
             RecordStageAudit("execute", faction, preparedData.ParametersSnapshot, stageText);
             RecordAPICall("RequestItemAirdrop", true, stageText);
@@ -136,7 +134,7 @@ namespace RimChat.DiplomacySystem
                 faction.Name,
                 selectedRecord.Label.CapitalizeFirst(),
                 deliveredCount,
-                finalQuoteTotal);
+                preparedData.PaymentTotalSilver);
             Find.LetterStack.ReceiveLetter(playerTitle, playerBody, LetterDefOf.PositiveEvent, new TargetInfo(dropCell, map), faction);
 
             var payload = new ItemAirdropResultData
@@ -144,6 +142,8 @@ namespace RimChat.DiplomacySystem
                 SelectedDefName = selectedRecord.DefName,
                 ResolvedLabel = selectedRecord.Label,
                 BudgetUsed = preparedData.BudgetSilver,
+                ShippingCostSilver = preparedData.ShippingCostSilver,
+                PaymentTotalSilver = preparedData.PaymentTotalSilver,
                 Quantity = deliveredCount,
                 DropCell = dropCell.ToString(),
                 FailureCode = string.Empty
@@ -409,8 +409,11 @@ namespace RimChat.DiplomacySystem
                     parameters);
             }
 
+            SpecialItemType? barterSpecialType = null;
+            if (faction != null && FactionSpecialItemsManager.Instance.TryMatchSpecialItem(faction, selectedRecord.DefName, out SpecialItemType bst))
+                barterSpecialType = bst;
             float needQuotedUnitSilver = ResolveAirdropNeedQuotedUnitPrice(
-                selectedRecord, faction, playerNegotiator, map, candidatePack, null);
+                selectedRecord, faction, playerNegotiator, map, candidatePack, barterSpecialType);
             int quotedNeedTotalSilver = ResolveAirdropNeedQuotedTotalSilver(
                 selectedRecord,
                 validatedCount,
@@ -418,7 +421,7 @@ namespace RimChat.DiplomacySystem
                 playerNegotiator,
                 map,
                 candidatePack,
-                null);
+                barterSpecialType);
             AirdropTradeRuleSnapshot tradeRuleSnapshot = ItemAirdropTradePolicy.ResolveRuleSnapshot(
                 faction,
                 map.wealthWatcher?.WealthItems ?? 0f,
@@ -460,6 +463,11 @@ namespace RimChat.DiplomacySystem
             string paymentSummary = $"budget={budget},payment={paymentTotalSilver},overpay={overpay},budgetMismatch={budgetMismatchSummary},paymentLines={paymentLines.Count},deductionRows={deductionPlan.Count}";
             RecordStageAudit("prepare_trade", faction, parameters, paymentSummary);
 
+            string offerDefName = paymentLines?.FirstOrDefault()?.DefName;
+            ThingDef offerDef = !string.IsNullOrWhiteSpace(offerDefName)
+                ? DefDatabase<ThingDef>.GetNamedSilentFail(offerDefName)
+                : null;
+
             var prepared = new ItemAirdropPreparedTradeData
             {
                 SelectedDefName = selectedRecord.DefName,
@@ -475,13 +483,17 @@ namespace RimChat.DiplomacySystem
                 BudgetSilver = budget,
                 NeedQuotedUnitSilver = needQuotedUnitSilver,
                 PaymentTotalSilver = paymentTotalSilver,
+                PaymentItemTotalSilver = paymentTotalSilver,
+                ShippingPodCount = shippingPodCount,
+                ShippingCostSilver = shippingCostSilver,
                 PaymentOverpaySilver = overpay,
                 MapUniqueId = map.uniqueID,
                 NeedText = need,
                 Scenario = scenario,
                 SelectionReason = selection.Reason ?? string.Empty,
                 NeedPriceSemantic = ItemAirdropTradePolicy.ResolveNeedPriceSemantic(selectedRecord?.Def, faction),
-                PaymentPriceSemantic = $"market_value_x{ItemAirdropTradePolicy.OfferPriceMultiplier:F1}",
+                PaymentPriceSemantic = ItemAirdropTradePolicy.ResolveOfferPriceSemantic(offerDef),
+                SpecialItemType = barterSpecialType,
                 PaymentLines = paymentLines,
                 DeductionPlan = deductionPlan,
                 ParametersSnapshot = CloneParameterDictionary(parameters)

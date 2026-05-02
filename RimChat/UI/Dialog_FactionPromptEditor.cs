@@ -31,7 +31,18 @@ namespace RimChat.UI
             this.closeOnClickedOutside = false;
             this.absorbInputAroundWindow = true;
 
-            // Initializeedit缓冲区
+            // Pre-fill default template fields if empty (modded factions without defaults).
+            if (factionConfig.TemplateFields == null || factionConfig.TemplateFields.Count == 0)
+            {
+                factionConfig.TemplateFields = new List<PromptTemplateField>();
+                factionConfig.GetOrCreateField("核心风格", string.Empty, "描述派系的核心对话风格");
+                factionConfig.GetOrCreateField("用词特征", string.Empty, "描述用词习惯和特征");
+                factionConfig.GetOrCreateField("语气特征", string.Empty, "描述语气和情感特征");
+                factionConfig.GetOrCreateField("句式特征", string.Empty, "描述句式结构特征");
+                factionConfig.GetOrCreateField("表达禁忌", string.Empty, "描述表达禁忌和限制");
+            }
+
+            // Initialize edit buffers.
             foreach (var field in factionConfig.TemplateFields)
             {
                 fieldBuffers[field.FieldName] = field.FieldValue;

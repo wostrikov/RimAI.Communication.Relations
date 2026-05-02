@@ -765,6 +765,7 @@ namespace RimChat.UI
                 allowMemoryCompressionScheduling: !openingTurn,
                 allowMemoryColdLoad: !openingTurn,
                 turnCount: GetNpcDialogueRoundCount()))
+            using (RimChat.Persistence.ExpandMemoryMatchContext.Push(currentTurnUserIntent))
             {
                 prompt = RimChat.Persistence.PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(
                     initiator,

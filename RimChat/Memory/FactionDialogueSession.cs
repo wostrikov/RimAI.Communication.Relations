@@ -412,20 +412,18 @@ namespace RimChat.Memory
                         ItemAirdropTradePolicy.TryResolveSpecialItemPrice(def, detectedSpecialType.Value, out float specialPrice, out _))
                     {
                         needUnitValue = specialPrice;
-                        needValueSemantic = detectedSpecialType.Value == SpecialItemType.Discount
-                            ? "special_item_discount"
-                            : "special_item_scarce";
                     }
                     else if (ItemAirdropTradePolicy.TryResolveNeedUnitPrice(def, out float resolvedNeedUnit, out _))
                     {
                         needUnitValue = resolvedNeedUnit;
                         ItemAirdropTradePolicy.ApplyUntradeablePremium(def, ref needUnitValue);
-                        needValueSemantic = ItemAirdropTradePolicy.ResolveNeedPriceSemantic(def, faction);
                     }
                     else
                     {
                         needUnitValue = def.BaseMarketValue;
                     }
+
+                    needValueSemantic = ItemAirdropTradePolicy.ResolveNeedPriceSemantic(def, faction);
 
                     needTotalValue = needUnitValue * requestedCount;
                 }
@@ -439,9 +437,7 @@ namespace RimChat.Memory
                     if (ItemAirdropTradePolicy.TryResolveOfferUnitPrice(offerDef, out float resolvedOfferUnit, out _))
                     {
                         offerUnitValue = resolvedOfferUnit;
-                        offerValueSemantic = ItemAirdropTradePolicy.IsPreciousMetalFixedPrice(offerDef)
-                            ? "market_value"
-                            : "market_value_x0.6";
+                        offerValueSemantic = ItemAirdropTradePolicy.ResolveOfferPriceSemantic(offerDef);
                     }
                     else
                     {

@@ -395,6 +395,23 @@ namespace RimChat.DiplomacySystem
             return $"market_value_x{NeedPriceMultiplier:F1}";
         }
 
+        internal static string ResolveOfferPriceSemantic(ThingDef def)
+        {
+            if (def == null)
+                return $"market_value_x{OfferPriceMultiplier:F1}";
+
+            if (IsPreciousMetalFixedPrice(def))
+                return "market_value";
+
+            if (def.tradeability == Tradeability.None)
+                return $"market_value_x{UntradeableOfferPriceMultiplier:F1}";
+
+            if (def.tradeTags != null && def.tradeTags.Contains("ExoticMisc"))
+                return $"market_value_x{ExoticMiscOfferPriceMultiplier:F1}";
+
+            return $"market_value_x{OfferPriceMultiplier:F1}";
+        }
+
         internal static bool IsPreciousMetalFixedPrice(ThingDef def)
         {
             string defName = def?.defName ?? string.Empty;

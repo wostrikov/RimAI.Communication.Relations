@@ -874,6 +874,8 @@
     <!-- Security Settings -->
     <RimChat_SecuritySettings>Security Settings</RimChat_SecuritySettings>
     <RimChat_SecuritySettingsTooltip>Function: control API logging and rate limits. Scope: global request safety and throttling controls.</RimChat_SecuritySettingsTooltip>
+    <RimChat_ModCompatSettings>Mod Compatibility</RimChat_ModCompatSettings>
+    <RimChat_ModCompatRimTalkExpandMemory>RimTalk - ExpandMemory [Common Knowledge]</RimChat_ModCompatRimTalkExpandMemory>
     <RimChat_EnableAPICallLogging>Enable API Call Logging</RimChat_EnableAPICallLogging>
     <RimChat_MaxAPICallsPerHour>Max API calls per hour: {0}</RimChat_MaxAPICallsPerHour>
     <RimChat_Unlimited>Unlimited</RimChat_Unlimited>
@@ -2311,6 +2313,10 @@ Selected prisoners: {1}
     <RimChat_RimTalkTabUseStablePromptPage>Open Prompt Workbench</RimChat_RimTalkTabUseStablePromptPage>
     <RimChat_RimTalkBridgeCardTitle>Bridge</RimChat_RimTalkBridgeCardTitle>
     <RimChat_RimTalkBridgeCardHint>RimChat owns prompt structure. RimTalk and MemoryPatch only contribute runtime variable sources.</RimChat_RimTalkBridgeCardHint>
+    <RimChat_ExpandMemoryCompatTitle>ExpandMemory Compatibility</RimChat_ExpandMemoryCompatTitle>
+    <RimChat_ExpandMemoryCompatAuto>Auto (detect installed mod)</RimChat_ExpandMemoryCompatAuto>
+    <RimChat_ExpandMemoryCompatOn>On (force enable)</RimChat_ExpandMemoryCompatOn>
+    <RimChat_ExpandMemoryCompatOff>Off (force disable)</RimChat_ExpandMemoryCompatOff>
     <RimChat_RimTalkOpenDiplomacySections>Open Diplomacy Sections</RimChat_RimTalkOpenDiplomacySections>
     <RimChat_RimTalkOpenRpgSections>Open RPG Sections</RimChat_RimTalkOpenRpgSections>
     <RimChat_RimTalkSummaryPersonaTitle>Summary &amp; Persona</RimChat_RimTalkSummaryPersonaTitle>
@@ -2394,6 +2400,7 @@ Selected prisoners: {1}
     <RimChat_PromptNode_RpgStateAnchor>RPG State Anchor</RimChat_PromptNode_RpgStateAnchor>
     <RimChat_PromptNode_RpgSurvivalInstinct>RPG Survival Instinct</RimChat_PromptNode_RpgSurvivalInstinct>
     <RimChat_PromptNode_RpgAliveFeeling>RPG Alive Feeling</RimChat_PromptNode_RpgAliveFeeling>
+    <RimChat_PromptNode_CommonKnowledge>Common Knowledge</RimChat_PromptNode_CommonKnowledge>
     <RimChat_ImmersionFallback_Diplomacy>We will continue this talk with focus and dignity.</RimChat_ImmersionFallback_Diplomacy>
     <RimChat_ImmersionFallback_Rpg>I stay in the moment and speak from my heart.</RimChat_ImmersionFallback_Rpg>
     <RimChat_ImmersionGuardWarning>(Detected possible mechanic leakage in response, original dialogue preserved)</RimChat_ImmersionGuardWarning>

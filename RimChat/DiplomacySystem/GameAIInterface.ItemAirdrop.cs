@@ -947,6 +947,8 @@ namespace RimChat.DiplomacySystem
         public string SelectedDefName { get; set; }
         public string ResolvedLabel { get; set; }
         public int BudgetUsed { get; set; }
+        public int ShippingCostSilver { get; set; }
+        public int PaymentTotalSilver { get; set; }
         public int Quantity { get; set; }
         public string DropCell { get; set; }
         public string FailureCode { get; set; }

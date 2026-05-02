@@ -143,10 +143,16 @@ namespace RimChat.Prompting
                 : string.Empty;
             string overridePath = BuildPath("pawn_personality_override");
             string appendPath = BuildPath("pawn_personality_append");
+            string quickPawnPath = BuildPath("quick_pawn_persona");
             string overrideText = ResolveOptionalVariableValue(overridePath, values, context, cache, resolving);
+            string quickPawnText = ResolveOptionalVariableValue(quickPawnPath, values, context, cache, resolving);
             string appendText = ResolveOptionalVariableValue(appendPath, values, context, cache, resolving);
 
-            string effective = string.IsNullOrWhiteSpace(overrideText) ? raw : overrideText.Trim();
+            string effective = !string.IsNullOrWhiteSpace(overrideText)
+                ? overrideText.Trim()
+                : !string.IsNullOrWhiteSpace(quickPawnText)
+                    ? quickPawnText.Trim()
+                    : raw;
             if (!string.IsNullOrWhiteSpace(appendText))
             {
                 effective = string.IsNullOrWhiteSpace(effective)

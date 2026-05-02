@@ -848,6 +848,7 @@ namespace RimChat.Persistence
             bool suppressFallbackRoleNode = !deterministicPreview &&
                 ShouldSuppressDiplomacyFallbackRoleNode(normalizedChannel, scenarioContext);
 
+            string expandMemoryPlayerMessage = ExpandMemoryMatchContext.PlayerMessage;
             var placements = new List<ResolvedPromptNodePlacement>();
             foreach (PromptUnifiedNodeLayoutConfig layout in layouts
                          .Where(item => item != null)
@@ -857,15 +858,23 @@ namespace RimChat.Persistence
             {
                 string nodeId = layout.NodeId ?? string.Empty;
                 string template = RimChatMod.Settings?.ResolvePromptNodeText(normalizedChannel, nodeId) ?? string.Empty;
-                string rendered = RenderUnifiedTemplate(
-                    $"prompt_nodes.{normalizedChannel}.{nodeId}",
-                    normalizedChannel,
-                    template,
-                    rootChannel,
-                    deterministicPreview,
-                    scenarioContext,
-                    environmentConfig,
-                    additionalValues);
+                string rendered;
+                if (string.Equals(nodeId, "common_knowledge", StringComparison.OrdinalIgnoreCase))
+                {
+                    rendered = BuildCommonKnowledgeBlock(expandMemoryPlayerMessage);
+                }
+                else
+                {
+                    rendered = RenderUnifiedTemplate(
+                        $"prompt_nodes.{normalizedChannel}.{nodeId}",
+                        normalizedChannel,
+                        template,
+                        rootChannel,
+                        deterministicPreview,
+                        scenarioContext,
+                        environmentConfig,
+                        additionalValues);
+                }
                 if (suppressFallbackRoleNode &&
                     string.Equals(
                         PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId),
