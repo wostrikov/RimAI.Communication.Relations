@@ -28,7 +28,13 @@
     <RimChat_DiplomacyVersionTooltip>Function: open version notes language picker. Scope: diplomacy dialogue title bar only.</RimChat_DiplomacyVersionTooltip>
     <RimChat_VersionLogLanguageChinese>Chinese</RimChat_VersionLogLanguageChinese>
     <RimChat_VersionLogLanguageEnglish>English</RimChat_VersionLogLanguageEnglish>
-    <RimChat_VersionLogWindowTitleByLanguage>Version Log - {0}</RimChat_VersionLogWindowTitleByLanguage>
+    <RimChat_DiplomacyHelpButton>Help</RimChat_DiplomacyHelpButton>
+    <RimChat_DiplomacyHelpTooltip>Function: open the help document. Scope: diplomacy dialogue title bar only.</RimChat_DiplomacyHelpTooltip>
+    <RimChat_HelpWindowTitle>Help</RimChat_HelpWindowTitle>
+    <RimChat_HelpWindowTitleByLanguage>Help - {0}</RimChat_HelpWindowTitleByLanguage>
+    <RimChat_HelpReadFailed>Failed to read help file: {0} ({1})</RimChat_HelpReadFailed>
+    <RimChat_HelpMissing>Help file not found: {0}</RimChat_HelpMissing>
+    <RimChat_HelpEmpty>Help file is empty: {0}</RimChat_HelpEmpty>
     <RimChat_APIGitHubButton>GitHub</RimChat_APIGitHubButton>
     <RimChat_APIGitHubButtonTooltip>Function: open RimChat GitHub repository. Scope: external browser navigation.</RimChat_APIGitHubButtonTooltip>
     <RimChat_VersionLogWindowTitle>Version Log</RimChat_VersionLogWindowTitle>
@@ -1290,6 +1296,30 @@
     <RimChat_ItemAirdropBoundNeedCandidateConflictSystem>The candidate pool conflicted with the bound airdrop-card item {0} ({1}). The order was rebuilt from the bound item.</RimChat_ItemAirdropBoundNeedCandidateConflictSystem>
     <RimChat_ItemAirdropBoundNeedStateLostSystem>The bound item state from the airdrop trade card was lost. Resubmit the trade card before confirming.</RimChat_ItemAirdropBoundNeedStateLostSystem>
     <RimChat_ItemAirdropBoundNeedPreparedMismatchSystem>The prepared airdrop item {0} ({1}) does not match the trade-card bound item {2} ({3}). Trade blocked.</RimChat_ItemAirdropBoundNeedPreparedMismatchSystem>
+    <RimChat_MakePeaceAwaitingConfirmSystem>Peace payment prepared and waiting for player confirmation.</RimChat_MakePeaceAwaitingConfirmSystem>
+    <RimChat_MakePeaceConfirmTitle>Confirm Peace Payment</RimChat_MakePeaceConfirmTitle>
+    <RimChat_MakePeaceConfirmBody>{0} is offering peace.
+Confirming will deduct {1} silver from tradeable stock / powered orbital trade beacons.
+Payment source: {2}
+Peace is only concluded after successful payment.</RimChat_MakePeaceConfirmBody>
+    <RimChat_MakePeaceConfirmAccept>Confirm Payment and Make Peace</RimChat_MakePeaceConfirmAccept>
+    <RimChat_MakePeaceConfirmCancel>Cancel</RimChat_MakePeaceConfirmCancel>
+    <RimChat_MakePeaceCancelledSystem>You cancelled the peace payment for {0}. No silver was deducted and relations remain unchanged.</RimChat_MakePeaceCancelledSystem>
+    <RimChat_MakePeaceConfirmedSystem>Paid {1} silver to {0} and formally made peace.</RimChat_MakePeaceConfirmedSystem>
+    <RimChat_MakePeaceCommitFailedSystem>Peace payment failed. Check stock / beacon state and retry.</RimChat_MakePeaceCommitFailedSystem>
+    <RimChat_MakePeaceConfirmCostInvalidSystem>make_peace requires a valid cost greater than 0 before entering the payment confirmation flow.</RimChat_MakePeaceConfirmCostInvalidSystem>
+    <RimChat_SendGiftAwaitingConfirmSystem>Gift payment prepared and waiting for player confirmation.</RimChat_SendGiftAwaitingConfirmSystem>
+    <RimChat_SendGiftConfirmTitle>Confirm Gift Payment</RimChat_SendGiftConfirmTitle>
+    <RimChat_SendGiftConfirmBody>{0} wants to send a gift.
+Confirming will deduct {1} silver from tradeable stock / powered orbital trade beacons and send the silver gift.
+Expected relation gain: {2} goodwill.
+Payment source: {3}</RimChat_SendGiftConfirmBody>
+    <RimChat_SendGiftConfirmAccept>Confirm Payment and Send Gift</RimChat_SendGiftConfirmAccept>
+    <RimChat_SendGiftConfirmCancel>Cancel</RimChat_SendGiftConfirmCancel>
+    <RimChat_SendGiftCancelledSystem>You cancelled the gift payment for {0}. No silver was deducted and no relation gain was applied.</RimChat_SendGiftCancelledSystem>
+    <RimChat_SendGiftConfirmedSystem>Sent a {1} silver gift to {0} and gained {2} goodwill.</RimChat_SendGiftConfirmedSystem>
+    <RimChat_SendGiftCommitFailedSystem>Gift execution failed. Check stock / beacon state and retry.</RimChat_SendGiftCommitFailedSystem>
+    <RimChat_SendGiftConfirmSilverInvalidSystem>send_gift requires silver greater than 0 before entering the payment confirmation flow.</RimChat_SendGiftConfirmSilverInvalidSystem>
     <RimChat_PrisonerRansomPaidTitle>Ransom Payment Received</RimChat_PrisonerRansomPaidTitle>
     <RimChat_PrisonerRansomPaidBody>{0} accepted {2} silver and registered the ransom contract for {1}. Silver drop landed at {3}. Release now requires manual player action.</RimChat_PrisonerRansomPaidBody>
     <RimChat_PrisonerRansomPenaltyTitle>Ransom Contract Breach</RimChat_PrisonerRansomPenaltyTitle>
@@ -1404,7 +1434,7 @@ Selected prisoners: {1}
     <RimChat_ReinitiateCooldownHint>Reinitiate available in {0} hours.</RimChat_ReinitiateCooldownHint>
     <RimChat_StrategyFallbackLabel>Strategy</RimChat_StrategyFallbackLabel>
     <RimChat_StrategyFallbackBasis>Composite</RimChat_StrategyFallbackBasis>
-    <RimChat_StrategyNeedSocialHint>Strategy unlock requires Social >= 5 (current {0})</RimChat_StrategyNeedSocialHint>
+    <RimChat_StrategyNeedSocialHint>Strategy unlock requires Social >= 3 (current {0}), +1 use per 2 levels, unlimited at 20</RimChat_StrategyNeedSocialHint>
     <RimChat_StrategyGeneratingHint>Generating strategies... ({0}/{1} uses left)</RimChat_StrategyGeneratingHint>
     <RimChat_StrategyUsesExhaustedHint>Strategy uses exhausted this session (max {0})</RimChat_StrategyUsesExhaustedHint>
     <RimChat_StrategyRemainingHint>Strategy uses: {0}/{1}</RimChat_StrategyRemainingHint>
@@ -2091,6 +2121,8 @@ Selected prisoners: {1}
     <RimChat_PromptTemplateTurnObjectiveLabel>Turn objective template</RimChat_PromptTemplateTurnObjectiveLabel>
     <RimChat_PromptTemplateOpeningObjectiveLabel>Opening objective template</RimChat_PromptTemplateOpeningObjectiveLabel>
     <RimChat_PromptTemplateTopicShiftRuleLabel>Topic shift rule template</RimChat_PromptTemplateTopicShiftRuleLabel>
+    <RimChat_PromptTemplateActionPriorityRuleLabel>Action priority rule template</RimChat_PromptTemplateActionPriorityRuleLabel>
+    <RimChat_PromptTemplateProactiveRomanceRuleLabel>Proactive romance rule template</RimChat_PromptTemplateProactiveRomanceRuleLabel>
     <RimChat_PromptTemplateApiLimitsNodeLabel>API limits node template</RimChat_PromptTemplateApiLimitsNodeLabel>
     <RimChat_PromptTemplateQuestGuidanceNodeLabel>Quest guidance node template</RimChat_PromptTemplateQuestGuidanceNodeLabel>
     <RimChat_PromptTemplateResponseContractNodeLabel>Response contract node template</RimChat_PromptTemplateResponseContractNodeLabel>
@@ -2214,6 +2246,8 @@ Selected prisoners: {1}
     <RimChat_ApiDebugColumnHttp>HTTP</RimChat_ApiDebugColumnHttp>
     <RimChat_ApiDebugDetailTitle>Detail</RimChat_ApiDebugDetailTitle>
     <RimChat_ApiDebugNoSelection>Select one item to inspect full request/response.</RimChat_ApiDebugNoSelection>
+    <RimChat_ApiDebugDetailSearchSummary>Keyword "{0}" matched {1} times:</RimChat_ApiDebugDetailSearchSummary>
+    <RimChat_ApiDebugDetailSearchNoMatch>No match found in the current detail for: {0}</RimChat_ApiDebugDetailSearchNoMatch>
     <RimChat_ApiDebugErrorLabel>Error</RimChat_ApiDebugErrorLabel>
     <RimChat_ApiDebugRequestLabel>Full Request</RimChat_ApiDebugRequestLabel>
     <RimChat_ApiDebugResponseLabel>Full Response</RimChat_ApiDebugResponseLabel>
@@ -2394,6 +2428,8 @@ Selected prisoners: {1}
     <RimChat_PromptNode_RpgRoleFallback>RPG Role Fallback</RimChat_PromptNode_RpgRoleFallback>
     <RimChat_PromptNode_RpgRelationshipProfile>RPG Relationship Profile</RimChat_PromptNode_RpgRelationshipProfile>
     <RimChat_PromptNode_RpgKinshipBoundary>RPG Kinship Boundary</RimChat_PromptNode_RpgKinshipBoundary>
+    <RimChat_PromptNode_RpgActionPriority>RPG Action Priority</RimChat_PromptNode_RpgActionPriority>
+    <RimChat_PromptNode_RpgProactiveRomance>RPG Proactive Romance</RimChat_PromptNode_RpgProactiveRomance>
     <RimChat_PromptNode_DiplomacyStateOverride>Diplomacy State Override</RimChat_PromptNode_DiplomacyStateOverride>
     <RimChat_PromptNode_DiplomacyAliveFeeling>Diplomacy Alive Feeling</RimChat_PromptNode_DiplomacyAliveFeeling>
     <RimChat_PromptNode_RpgBodyEmotionOverride>RPG Body Emotion Override</RimChat_PromptNode_RpgBodyEmotionOverride>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using RimChat.AI;
 using RimChat.Core;
 using RimChat.Prompting;
@@ -25,6 +26,12 @@ namespace RimChat.UI
         private const float SectionGap = 8f;
         private const float RowHeight = 24f;
         private const float TrendStatsPanelWidth = 300f;
+        private const string DetailSearchHighlightColor = "#0539A3";
+        private static readonly GUIStyle DetailTextStyle = new GUIStyle(GUI.skin.textArea)
+        {
+            wordWrap = true,
+            richText = true
+        };
         private static readonly float[] TableColumnWeights = { 0.11f, 0.18f, 0.11f, 0.26f, 0.12f, 0.12f, 0.10f };
 
         private enum SourceFilterMode
@@ -49,6 +56,12 @@ namespace RimChat.UI
         private SourceFilterMode sourceFilter = SourceFilterMode.All;
         private StatusFilterMode statusFilter = StatusFilterMode.All;
         private int currentPageIndex;
+        private string detailSearchInput = string.Empty;
+        private string detailSearchApplied = string.Empty;
+        private float detailSearchApplyAtRealtime;
+        private string detailCacheRequestId = string.Empty;
+        private string detailCacheSearchQuery = string.Empty;
+        private string detailCacheContent = string.Empty;
 
         public override Vector2 InitialSize => new Vector2(1400f, 860f);
 
@@ -566,13 +579,141 @@ namespace RimChat.UI
                 return;
             }
 
-            string content = BuildDetailText(selected);
-            Rect scrollRect = new Rect(inner.x, inner.y + 28f, inner.width, inner.height - 28f);
-            float contentHeight = Mathf.Max(scrollRect.height, Text.CalcHeight(content, scrollRect.width - 16f) + 10f);
-            Rect viewRect = new Rect(0f, 0f, scrollRect.width - 16f, contentHeight);
+            UpdateDetailSearchDebounced();
+            Rect searchRect = new Rect(inner.x, inner.y + 28f, inner.width, 24f);
+            DrawDetailSearchBar(searchRect);
+            string content = GetDetailContentForView(selected);
+            Rect scrollRect = new Rect(inner.x, searchRect.yMax + 6f, inner.width, inner.yMax - searchRect.yMax - 6f);
+            float viewWidth = Mathf.Max(1f, scrollRect.width - 16f);
+            float textHeight = DetailTextStyle.CalcHeight(new GUIContent(content), viewWidth);
+            float contentHeight = Mathf.Max(scrollRect.height, textHeight + 24f);
+            Rect viewRect = new Rect(0f, 0f, viewWidth, contentHeight);
             Widgets.BeginScrollView(scrollRect, ref detailScrollPosition, viewRect);
-            Widgets.Label(new Rect(0f, 0f, viewRect.width, viewRect.height), content);
+            GUI.TextArea(new Rect(0f, 0f, viewWidth, textHeight + 8f), content, DetailTextStyle);
             Widgets.EndScrollView();
+        }
+
+        private void DrawDetailSearchBar(Rect rect)
+        {
+            string nextValue = Widgets.TextField(rect, detailSearchInput ?? string.Empty);
+            if (string.Equals(nextValue, detailSearchInput, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            detailSearchInput = nextValue ?? string.Empty;
+            detailSearchApplyAtRealtime = Time.realtimeSinceStartup + 0.2f;
+        }
+
+        private void UpdateDetailSearchDebounced()
+        {
+            if (string.Equals(detailSearchApplied, detailSearchInput, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (Time.realtimeSinceStartup < detailSearchApplyAtRealtime)
+            {
+                return;
+            }
+
+            detailSearchApplied = detailSearchInput ?? string.Empty;
+            detailScrollPosition = Vector2.zero;
+            detailCacheRequestId = string.Empty;
+            detailCacheSearchQuery = string.Empty;
+            detailCacheContent = string.Empty;
+        }
+
+        private string GetDetailContentForView(AIRequestDebugRecord selected)
+        {
+            if (selected == null)
+            {
+                return string.Empty;
+            }
+
+            string requestId = selected.RequestId ?? string.Empty;
+            string query = detailSearchApplied ?? string.Empty;
+            if (string.Equals(detailCacheRequestId, requestId, StringComparison.Ordinal) &&
+                string.Equals(detailCacheSearchQuery, query, StringComparison.Ordinal))
+            {
+                return detailCacheContent ?? string.Empty;
+            }
+
+            string rawText = BuildDetailText(selected);
+            string content = string.IsNullOrWhiteSpace(query)
+                ? rawText
+                : BuildDetailSearchResultText(rawText, query);
+            detailCacheRequestId = requestId;
+            detailCacheSearchQuery = query;
+            detailCacheContent = content ?? string.Empty;
+            return detailCacheContent;
+        }
+
+        private string BuildDetailSearchResultText(string rawText, string query)
+        {
+            string normalizedQuery = (query ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalizedQuery))
+            {
+                return rawText ?? string.Empty;
+            }
+
+            string[] lines = (rawText ?? string.Empty).Replace("\r", string.Empty).Split('\n');
+            var matched = new List<int>();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i]?.IndexOf(normalizedQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    matched.Add(i);
+                }
+            }
+
+            if (matched.Count == 0)
+            {
+                return "RimChat_ApiDebugDetailSearchNoMatch".Translate(normalizedQuery).ToString();
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("RimChat_ApiDebugDetailSearchSummary".Translate(normalizedQuery, matched.Count).ToString());
+            sb.AppendLine();
+            var emitted = new HashSet<int>();
+            foreach (int index in matched.Take(50))
+            {
+                int start = Math.Max(0, index - 2);
+                int end = Math.Min(lines.Length - 1, index + 2);
+                if (start > 0)
+                {
+                    sb.AppendLine("...");
+                }
+
+                for (int lineIndex = start; lineIndex <= end; lineIndex++)
+                {
+                    if (!emitted.Add(lineIndex))
+                    {
+                        continue;
+                    }
+
+                    sb.AppendLine(HighlightSearchMatches(lines[lineIndex] ?? string.Empty, normalizedQuery));
+                }
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        private static string HighlightSearchMatches(string line, string query)
+        {
+            string source = line ?? string.Empty;
+            string normalizedQuery = (query ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(normalizedQuery))
+            {
+                return source;
+            }
+
+            string escapedQuery = Regex.Escape(normalizedQuery);
+            return Regex.Replace(
+                source,
+                escapedQuery,
+                match => $"<color={DetailSearchHighlightColor}>{match.Value}</color>",
+                RegexOptions.IgnoreCase);
         }
 
         private string BuildDetailText(AIRequestDebugRecord record)

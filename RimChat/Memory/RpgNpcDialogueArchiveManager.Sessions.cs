@@ -119,6 +119,7 @@ namespace RimChat.Memory
             if (request == null || request.Count == 0)
             {
                 _compressionInFlight.Remove(compressionKey);
+                MarkSummaryCompressionFailed(archive, session);
                 return;
             }
 

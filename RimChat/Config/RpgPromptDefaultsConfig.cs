@@ -32,6 +32,9 @@ namespace RimChat.Config
         public string TopicShiftRuleTemplate;
         public string RelationshipProfileTemplate;
         public string KinshipBoundaryRuleTemplate;
+        public string ActionPriorityRuleTemplate;
+        public string ProactiveRomanceRuleTemplate;
+        public string ProactiveSocialActionRuleTemplate;
         public string PersonaBootstrapSystemPrompt;
         public string PersonaBootstrapUserPromptTemplate;
         public string PersonaBootstrapOutputTemplate;
@@ -92,6 +95,20 @@ namespace RimChat.Config
                     "When kinship is {{ pawn.relation.kinship }}, keep family boundaries first. " +
                     "If kinship is yes, do not narratively escalate toward RomanceAttempt, Date, or MarriageProposal. " +
                     "Use respectful, caring, boundary-aware wording instead.",
+                ActionPriorityRuleTemplate =
+                    "=== ACTION PRIORITY RULE ===\n" +
+                    "Recruitment actions (Recruit, ReduceResistance, ReduceWill) and romance actions (RomanceAttempt, MarriageProposal, Breakup, Divorce, Date) both take priority over mood memory actions (TryGainMemory). " +
+                    "When mood memory conflicts with either category, prioritize the action. Important: recruitment and romance are MUTUALLY EXCLUSIVE — never mix them in the same reply. Choose the correct category based on context.",
+                ProactiveRomanceRuleTemplate =
+                    "=== PROACTIVE ROMANCE RULE ===\n" +
+                    "1. When the player clearly requests romance or marriage and you agree, you MUST call RomanceAttempt or MarriageProposal in the current reply. Do not wait for the next turn.\n" +
+                    "2. When relationship profile shows romance state as lover/partner/spouse, you may show intimacy and proactively call RomanceAttempt or Date when appropriate.\n" +
+                    "3. CONTEXT BOUNDARY: Romance actions are ONLY for established romantic relationships or explicit romance requests. NEVER use RomanceAttempt, Date, or MarriageProposal in recruitment, persuasion, trade, military, aid, or negotiation contexts. Friendliness is NOT romance.",
+                ProactiveSocialActionRuleTemplate =
+                    "=== PROACTIVE SOCIAL ACTION RULE ===\n" +
+                    "1. Recruit: When you verbally say \"I join\" \"I agree\" \"I'll stay\" \"I accept recruitment\" or equivalent in visible_dialogue, you MUST include the Recruit action in the current reply's actions array. Agreeing to join without calling Recruit is an incomplete response and a contract violation. This rule OVERRIDES the general \"omit actions when unsure\" guidance — when agreeing to join, you MUST call the action with no exceptions. Do not wait for the next turn.\n" +
+                    "2. ReduceResistance: When you show willingness to cooperate or be persuaded, proactively call ReduceResistance with an appropriate amount. Do not stay at verbal expression only. Reducing resistance is NOT romance — never mix with romantic actions.\n" +
+                    "3. ReduceWill: Same as ReduceResistance — when expressing willingness to submit, call ReduceWill proactively.",
                 PersonaBootstrapSystemPrompt = "You are a concise character profiler for RimWorld NPC roleplay prompts.",
                 PersonaBootstrapUserPromptTemplate =
                     "Analyze the NPC personality profile and output exactly one line.\n" +
@@ -144,6 +161,9 @@ namespace RimChat.Config
             TopicShiftRuleTemplate = Coalesce(TopicShiftRuleTemplate, fallback.TopicShiftRuleTemplate);
             RelationshipProfileTemplate = Coalesce(RelationshipProfileTemplate, fallback.RelationshipProfileTemplate);
             KinshipBoundaryRuleTemplate = Coalesce(KinshipBoundaryRuleTemplate, fallback.KinshipBoundaryRuleTemplate);
+            ActionPriorityRuleTemplate = Coalesce(ActionPriorityRuleTemplate, fallback.ActionPriorityRuleTemplate);
+            ProactiveRomanceRuleTemplate = Coalesce(ProactiveRomanceRuleTemplate, fallback.ProactiveRomanceRuleTemplate);
+            ProactiveSocialActionRuleTemplate = Coalesce(ProactiveSocialActionRuleTemplate, fallback.ProactiveSocialActionRuleTemplate);
             PersonaBootstrapSystemPrompt = Coalesce(PersonaBootstrapSystemPrompt, fallback.PersonaBootstrapSystemPrompt);
             PersonaBootstrapUserPromptTemplate = Coalesce(PersonaBootstrapUserPromptTemplate, fallback.PersonaBootstrapUserPromptTemplate);
             PersonaBootstrapOutputTemplate = Coalesce(PersonaBootstrapOutputTemplate, fallback.PersonaBootstrapOutputTemplate);
@@ -181,14 +201,14 @@ namespace RimChat.Config
         private static readonly List<string> DefaultSharedActionLines = new List<string>
         {
             "- TryAffectSocialGoodwill: Change goodwill between your faction and player. Use when you have a intention to change the relationship. Required 'amount' (int).",
-            "- RomanceAttempt: Force-set romantic relationship status with the interlocutor.",
-            "- MarriageProposal: Force-set marriage status (spouse) with the interlocutor.",
-            "- Breakup: Force-set breakup result (remove romance/marriage and apply ex relation).",
-            "- Divorce: Force-set divorce result (remove spouse and set ex-spouse).",
-            "- Date: Treated as a romantic status progression action.",
-            "- ReduceResistance: If you are a prisoner, reduce your recruitment resistance. Required 'amount' (float/int).",
-            "- ReduceWill: If you are a prisoner, reduce your enslavement will. Required 'amount' (float/int).",
-            "- Recruit: Immediately join the player's faction (no parameters). Use when relation is warm and trust is stable, and you clearly express willingness to join. If your policy list uses numbered actions, this is Action 4.",
+            "- RomanceAttempt: Progress romantic relationship with the interlocutor. Use when both parties express romantic intent or player requests romance and you agree. Takes priority over TryGainMemory. If you agree to player's romance request, proactively call this in the next reply. Only use in established romantic or explicitly romantic contexts — never in recruitment, persuasion, resistance reduction, trade, or military contexts.",
+            "- MarriageProposal: Propose marriage or progress to spouse status. Use when relationship is well-established and proposal intent is clear. Takes priority over TryGainMemory. If you agree to player's proposal, proactively call this in the next reply.",
+            "- Breakup: End existing romance or marriage. Use when reply clearly expresses breakup intent. Takes priority over TryGainMemory.",
+            "- Divorce: End existing marriage. Use when reply clearly expresses divorce or spouse separation intent. Takes priority over TryGainMemory.",
+            "- Date: Progress romantic relationship through explicit dating interaction. Use when both parties have clear dating intent. Do not use with light flirting only. Takes priority over TryGainMemory.",
+            "- ReduceResistance: If you are a prisoner, reduce your recruitment resistance. Required 'amount' (float/int). Takes priority over TryGainMemory.",
+            "- ReduceWill: If you are a prisoner, reduce your enslavement will. Required 'amount' (float/int). Takes priority over TryGainMemory.",
+            "- Recruit: Immediately join the player's faction (no parameters). Use when relation is warm and trust is stable, and you clearly express willingness to join. Takes priority over TryGainMemory. CRITICAL: When you verbally say \"I join\" \"I agree\" \"I'll stay\" \"I accept recruitment\" or equivalent in the visible_dialogue text, you MUST call this action in the same reply. Agreeing to join without calling Recruit is an incomplete response and a contract violation.",
             "- TryTakeOrderedJob: Execute a job. Use 'defName': 'AttackMelee' to attack the interlocutor.",
             "- TriggerIncident: Trigger a game event (incident). Required 'defName'. Optional 'amount' for incident points. Examples: 'RaidEnemy', 'TraderCaravanArrival', 'TravelerGroup'.",
             "- GrantInspiration: Attempt to grant yourself an inspiration. Use when interlocutor inspire you through encouragement, new ideas, emotional impact, or strategic insight. 'defName' (InspirationDef). e.g.:Frenzy_Work/Frenzy_Go/Frenzy_Shoot/Inspired_Trade/Inspired_Recruitment/Inspired_Taming/Inspired_Surgery/Inspired_Creativity",

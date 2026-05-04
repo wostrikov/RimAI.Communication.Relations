@@ -37,29 +37,17 @@ namespace RimChat.UI
                 return NormalizeVisibleNpcDialogueText(visibleDialogueText);
             }
 
-            return ExtractNarrativeOnly(envelope?.RawResponse);
+            return string.Empty;
         }
 
         private string ExtractNarrativeOnly(string rawResponse)
         {
-            string text = rawResponse?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(text))
+            string narrative = ModelOutputSanitizer.TryExtractSafeVisibleDialogue(rawResponse);
+            if (string.IsNullOrWhiteSpace(narrative))
             {
                 return string.Empty;
             }
 
-            if (text.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
-            {
-                return string.Empty;
-            }
-
-            int firstBrace = text.IndexOf('{');
-            if (firstBrace == 0)
-            {
-                return string.Empty;
-            }
-
-            string narrative = firstBrace > 0 ? text.Substring(0, firstBrace).Trim() : text;
             return NormalizeVisibleNpcDialogueText(narrative);
         }
 

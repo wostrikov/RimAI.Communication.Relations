@@ -22,6 +22,8 @@ namespace RimChat.Config
         private const string VersionLogFileLocalizedDefault = "VersionLog.txt";
         private const string VersionLogFileEnglish = "VersionLog_en.txt";
         private const string VersionLogFileByLanguagePattern = "VersionLog_{0}.txt";
+        private const string HelpFileLocalizedDefault = "help.md";
+        private const string HelpFileEnglish = "help_en.md";
         private const string RimChatGitHubUrl = "https://github.com/yancy22737-sudo/RimChat";
         private const string DefaultVersionValue = "0.0.0";
         private static readonly Dictionary<string, string> LanguageFolderAliasMap =
@@ -117,43 +119,11 @@ namespace RimChat.Config
 
         private string ResolveVersionLogPath(string languageFolder)
         {
-            string rootDir = ResolveModRootDir();
-            List<string> availableLanguages = GetAvailableLanguages(rootDir);
-            string matchedFolder = ResolveActiveLanguageFolder(languageFolder, availableLanguages);
-            bool fallbackToEnglishFolder = !IsFolderMatched(matchedFolder, languageFolder);
-            if (fallbackToEnglishFolder)
-            {
-                string fallbackPath = CombineRootPath(rootDir, VersionLogFileEnglish);
-                string availableLabel = availableLanguages.Count == 0
-                    ? "(none)"
-                    : string.Join(", ", availableLanguages.ToArray());
-                Log.Warning(
-                    $"[RimChat] Active language folder '{languageFolder}' was not found in '{LanguagesRelativePath}'. " +
-                    $"Available folders: {availableLabel}. Fail-fast fallback to '{EnglishLanguageFolder}' and '{fallbackPath}'.");
-            }
-
-            List<string> candidates = BuildVersionLogCandidates(rootDir, matchedFolder);
-            for (int i = 0; i < candidates.Count; i++)
-            {
-                string path = candidates[i];
-                if (File.Exists(path))
-                {
-                    if (i > 0)
-                    {
-                        Log.Warning(
-                            $"[RimChat] Version log file missing for language folder '{matchedFolder}'. " +
-                            $"Tried '{candidates[0]}'. Fail-fast fallback to '{path}'.");
-                    }
-
-                    return path;
-                }
-            }
-
-            string englishPath = CombineRootPath(rootDir, VersionLogFileEnglish);
-            Log.Warning(
-                $"[RimChat] No version log file exists for language folder '{matchedFolder}'. " +
-                $"Tried: {string.Join(" | ", candidates.ToArray())}. Final fallback path: '{englishPath}'.");
-            return englishPath;
+            return ResolveLocalizedDocumentPath(
+                languageFolder,
+                BuildVersionLogCandidates,
+                VersionLogFileEnglish,
+                "version log");
         }
 
         private static string ResolveModRootDir()
@@ -341,6 +311,74 @@ namespace RimChat.Config
             return candidates;
         }
 
+        private static List<string> BuildHelpCandidates(string rootDir, string matchedFolder)
+        {
+            var candidates = new List<string>();
+            string normalizedFolder = NormalizeLanguageToken(matchedFolder);
+            bool isChineseSimplified = string.Equals(normalizedFolder, "chinesesimplified", StringComparison.Ordinal);
+            bool isEnglish = string.Equals(normalizedFolder, NormalizeLanguageToken(EnglishLanguageFolder), StringComparison.Ordinal);
+
+            if (isChineseSimplified)
+            {
+                candidates.Add(CombineRootPath(rootDir, HelpFileLocalizedDefault));
+                candidates.Add(CombineRootPath(rootDir, HelpFileEnglish));
+                return candidates;
+            }
+
+            candidates.Add(CombineRootPath(rootDir, HelpFileEnglish));
+            if (!isEnglish)
+            {
+                candidates.Add(CombineRootPath(rootDir, HelpFileLocalizedDefault));
+            }
+
+            return candidates;
+        }
+
+        private static string ResolveLocalizedDocumentPath(
+            string languageFolder,
+            Func<string, string, List<string>> buildCandidates,
+            string fallbackFileName,
+            string logLabel)
+        {
+            string rootDir = ResolveModRootDir();
+            List<string> availableLanguages = GetAvailableLanguages(rootDir);
+            string matchedFolder = ResolveActiveLanguageFolder(languageFolder, availableLanguages);
+            bool fallbackToEnglishFolder = !IsFolderMatched(matchedFolder, languageFolder);
+            if (fallbackToEnglishFolder)
+            {
+                string fallbackPath = CombineRootPath(rootDir, fallbackFileName);
+                string availableLabel = availableLanguages.Count == 0
+                    ? "(none)"
+                    : string.Join(", ", availableLanguages.ToArray());
+                Log.Warning(
+                    $"[RimChat] Active language folder '{languageFolder}' was not found in '{LanguagesRelativePath}'. " +
+                    $"Available folders: {availableLabel}. Fail-fast fallback to '{EnglishLanguageFolder}' and '{fallbackPath}' for {logLabel}.");
+            }
+
+            List<string> candidates = buildCandidates(rootDir, matchedFolder);
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                string path = candidates[i];
+                if (File.Exists(path))
+                {
+                    if (i > 0)
+                    {
+                        Log.Warning(
+                            $"[RimChat] {logLabel} file missing for language folder '{matchedFolder}'. " +
+                            $"Tried '{candidates[0]}'. Fail-fast fallback to '{path}'.");
+                    }
+
+                    return path;
+                }
+            }
+
+            string finalFallbackPath = CombineRootPath(rootDir, fallbackFileName);
+            Log.Warning(
+                $"[RimChat] No {logLabel} file exists for language folder '{matchedFolder}'. " +
+                $"Tried: {string.Join(" | ", candidates.ToArray())}. Final fallback path: '{finalFallbackPath}'.");
+            return finalFallbackPath;
+        }
+
         private static string CombineRootPath(string rootDir, string fileName)
         {
             return string.IsNullOrWhiteSpace(rootDir)
@@ -414,6 +452,32 @@ namespace RimChat.Config
             }
 
             return "RimChat_VersionLogEmpty".Translate(path);
+        }
+
+        internal string GetHelpDisplayContentForLanguage(string languageFolder)
+        {
+            string path = ResolveLocalizedDocumentPath(
+                languageFolder,
+                BuildHelpCandidates,
+                HelpFileEnglish,
+                "help");
+            string content = ReadVersionLogContentFromPath(path, out string readError);
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                return content;
+            }
+
+            if (!string.IsNullOrWhiteSpace(readError))
+            {
+                return "RimChat_HelpReadFailed".Translate(path, readError);
+            }
+
+            if (!File.Exists(path))
+            {
+                return "RimChat_HelpMissing".Translate(path);
+            }
+
+            return "RimChat_HelpEmpty".Translate(path);
         }
 
         private static string ReadVersionLogContentFromPath(string filePath, out string readError)

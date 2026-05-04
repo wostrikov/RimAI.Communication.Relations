@@ -16,13 +16,15 @@ namespace RimChat.Persistence
             string playerPawnProfileBlock,
             string playerRoyaltySummaryBlock,
             string factionSettlementSummaryBlock,
+            string factionQuestStatusBlock,
             int builtTick,
             int memoryRevision,
             int worldEventRevision,
             int playerGoodwill,
             FactionRelationKind playerRelationKind,
             long promptFilesStampUtcTicks,
-            int settingsSignature)
+            int settingsSignature,
+            int questTrackingRevision)
         {
             FactionLoadId = factionLoadId ?? string.Empty;
             EnvironmentPromptBlock = environmentPromptBlock ?? string.Empty;
@@ -31,6 +33,7 @@ namespace RimChat.Persistence
             PlayerPawnProfileBlock = playerPawnProfileBlock ?? string.Empty;
             PlayerRoyaltySummaryBlock = playerRoyaltySummaryBlock ?? string.Empty;
             FactionSettlementSummaryBlock = factionSettlementSummaryBlock ?? string.Empty;
+            FactionQuestStatusBlock = factionQuestStatusBlock ?? string.Empty;
             BuiltTick = builtTick;
             MemoryRevision = memoryRevision;
             WorldEventRevision = worldEventRevision;
@@ -38,6 +41,7 @@ namespace RimChat.Persistence
             PlayerRelationKind = playerRelationKind;
             PromptFilesStampUtcTicks = promptFilesStampUtcTicks;
             SettingsSignature = settingsSignature;
+            QuestTrackingRevision = questTrackingRevision;
         }
 
         public string FactionLoadId { get; }
@@ -54,6 +58,8 @@ namespace RimChat.Persistence
 
         public string FactionSettlementSummaryBlock { get; }
 
+        public string FactionQuestStatusBlock { get; }
+
         public int BuiltTick { get; }
 
         public int MemoryRevision { get; }
@@ -67,5 +73,7 @@ namespace RimChat.Persistence
         public long PromptFilesStampUtcTicks { get; }
 
         public int SettingsSignature { get; }
+
+        public int QuestTrackingRevision { get; }
     }
 }

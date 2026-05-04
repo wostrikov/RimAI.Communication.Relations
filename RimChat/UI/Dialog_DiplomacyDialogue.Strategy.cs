@@ -305,26 +305,28 @@ namespace RimChat.UI
             int social = GetNegotiatorSocialLevel();
             int useLimit = GetStrategyUseLimitBySocial(social);
             int remaining = Math.Max(0, useLimit - session.strategyUsesConsumed);
+            string useLimitDisplay = FormatStrategyUseLimit(useLimit);
+            string remainingDisplay = FormatStrategyUseLimit(remaining);
             string statusText;
-            if (social < 5)
+            if (social < 3)
             {
                 statusText = "RimChat_StrategyNeedSocialHint".Translate(social);
             }
             else if (strategySuggestionRequestPending && remaining > 0)
             {
-                statusText = "RimChat_StrategyGeneratingHint".Translate(remaining, useLimit);
+                statusText = "RimChat_StrategyGeneratingHint".Translate(remainingDisplay, useLimitDisplay);
             }
             else if (remaining <= 0)
             {
-                statusText = "RimChat_StrategyUsesExhaustedHint".Translate(useLimit);
+                statusText = "RimChat_StrategyUsesExhaustedHint".Translate(useLimitDisplay);
             }
             else if (session.pendingStrategySuggestions != null && session.pendingStrategySuggestions.Count == StrategySuggestionRequiredCount)
             {
-                statusText = "RimChat_StrategyReadyHint".Translate(remaining, useLimit);
+                statusText = "RimChat_StrategyReadyHint".Translate(remainingDisplay, useLimitDisplay);
             }
             else
             {
-                statusText = "RimChat_StrategyRemainingHint".Translate(remaining, useLimit);
+                statusText = "RimChat_StrategyRemainingHint".Translate(remainingDisplay, useLimitDisplay);
             }
 
             string toggleText = IsStrategyUiEnabled()
@@ -491,7 +493,7 @@ namespace RimChat.UI
 
             int social = GetNegotiatorSocialLevel();
             int useLimit = GetStrategyUseLimitBySocial(social);
-            return social >= 5 && currentSession.strategyUsesConsumed < useLimit;
+            return social >= 3 && currentSession.strategyUsesConsumed < useLimit;
         }
 
         private int GetNegotiatorSocialLevel()
@@ -501,22 +503,22 @@ namespace RimChat.UI
 
         private int GetStrategyUseLimitBySocial(int socialLevel)
         {
-            if (socialLevel < 5)
+            if (socialLevel < 3)
             {
                 return 0;
             }
 
-            if (socialLevel >= 15)
+            if (socialLevel >= 20)
             {
-                return 3;
+                return int.MaxValue;
             }
 
-            if (socialLevel >= 10)
-            {
-                return 2;
-            }
+            return socialLevel / 2;
+        }
 
-            return 1;
+        private static string FormatStrategyUseLimit(int useLimit)
+        {
+            return useLimit >= 999 ? "∞" : useLimit.ToString();
         }
 
         private void TryRequestStrategySuggestionsFromLLM(FactionDialogueSession currentSession, Faction currentFaction)
@@ -1021,7 +1023,7 @@ namespace RimChat.UI
             sb.AppendLine("PLAYER-SIDE FACT PACK (use these IDs in reason):");
             sb.AppendLine($"[F1] DiplomaticState goodwill_to_current_counterpart={goodwill}, relation_kind={relationKind}");
             sb.AppendLine($"[F2] NegotiatorSocial={social}, Trait={trait}");
-            sb.AppendLine($"[F3] StrategyUses remaining={remaining}/{useLimit}");
+            sb.AppendLine($"[F3] StrategyUses remaining={FormatStrategyUseLimit(remaining)}/{FormatStrategyUseLimit(useLimit)}");
             sb.AppendLine($"[F4] ColonyWealth={wealth:F0}, Tier={wealthTier}");
             sb.AppendLine($"[F5] RecentPlayerAggressiveTurns(last4)={aggressiveCount}");
             sb.AppendLine($"[F6] Map={mapLabel}, Season={season}, Weather={weather}, TempC={outdoorTemp:F0}");
@@ -1207,7 +1209,7 @@ namespace RimChat.UI
         {
             var list = new List<string>();
             int social = GetNegotiatorSocialLevel();
-            if (social >= 5)
+            if (social >= 3)
             {
                 list.Add("RimChat_StrategyBasisSocial".Translate());
             }
@@ -1333,7 +1335,7 @@ namespace RimChat.UI
             int social = GetNegotiatorSocialLevel();
             int useLimit = GetStrategyUseLimitBySocial(social);
             int remaining = Math.Max(0, useLimit - session.strategyUsesConsumed);
-            sb.AppendLine($"Strategy Ability: social={social}, max_uses={useLimit}, remaining_uses={remaining}");
+            sb.AppendLine($"Strategy Ability: social={social}, max_uses={FormatStrategyUseLimit(useLimit)}, remaining_uses={FormatStrategyUseLimit(remaining)}");
             sb.AppendLine("If remaining_uses <= 0, do not include strategy_suggestions.");
             sb.AppendLine("If remaining_uses > 0, prefer compact, attribute-grounded strategy suggestions.");
         }

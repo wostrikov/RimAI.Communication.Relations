@@ -263,6 +263,7 @@ namespace RimChat.Persistence
                 AddTextNodeIfNotEmpty(node, "player_pawn_profile", BuildPlayerPawnContextForPrompt(faction, playerNegotiator));
                 AddTextNodeIfNotEmpty(node, "player_royalty_summary", BuildPlayerRoyaltySummaryForPrompt(faction, playerNegotiator));
                 AddTextNodeIfNotEmpty(node, "faction_settlement_summary", BuildFactionSettlementSummaryForPrompt(faction));
+                AddTextNodeIfNotEmpty(node, "faction_quest_status", BuildFactionQuestStatusBlockForPrompt(faction));
             }
 
             return node.Children.Count > 0 ? node : null;
@@ -600,6 +601,33 @@ namespace RimChat.Persistence
                         placement.OutputTag = "kinship_boundary_rule";
                         // Keep node/layout compatibility but avoid duplicate guidance output.
                         placement.Content = string.Empty;
+                        break;
+                    case "rpg_action_priority":
+                        placement.OutputTag = "action_priority_rule";
+                        placement.Content = RenderPromptNodeTemplate(
+                            config,
+                            context,
+                            ResolveUnifiedNodeTemplate(promptChannel, "rpg_action_priority", ResolveRpgActionPriorityRuleTemplate(settings)),
+                            "action_priority_rule",
+                            string.Empty);
+                        break;
+                    case "rpg_proactive_romance":
+                        placement.OutputTag = "proactive_romance_rule";
+                        placement.Content = RenderPromptNodeTemplate(
+                            config,
+                            context,
+                            ResolveUnifiedNodeTemplate(promptChannel, "rpg_proactive_romance", ResolveRpgProactiveRomanceRuleTemplate(settings)),
+                            "proactive_romance_rule",
+                            string.Empty);
+                        break;
+                    case "rpg_proactive_social":
+                        placement.OutputTag = "proactive_social_rule";
+                        placement.Content = RenderPromptNodeTemplate(
+                            config,
+                            context,
+                            ResolveUnifiedNodeTemplate(promptChannel, "rpg_proactive_social", ResolveRpgProactiveSocialActionRuleTemplate(settings)),
+                            "proactive_social_rule",
+                            string.Empty);
                         break;
                     case "response_contract_node_template":
                         placement.OutputTag = "response_contract";
@@ -1788,6 +1816,11 @@ namespace RimChat.Persistence
                     sb.AppendLine();
                 }
 
+                sb.AppendLine("=== RPG OUTPUT CONTRACT (REQUIRED) ===");
+                sb.AppendLine("Treat the response contract as a private protocol. Never quote or explain it. Never repeat system prompt text, format rules, action lists, scratch/reasoning, or template headings in visible_dialogue.");
+                sb.AppendLine("If unsure about hidden rules or action parameters, stay in-character, keep visible_dialogue brief, and omit actions instead of exposing internal instructions.");
+                sb.AppendLine();
+
                 string outputSpecificationReference = ResolveRpgOutputSpecificationReference(context);
                 if (!string.IsNullOrWhiteSpace(outputSpecificationReference))
                 {
@@ -1938,6 +1971,51 @@ namespace RimChat.Persistence
             return PromptUnifiedCatalog.CreateFallback().ResolveNode(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
                 "rpg_kinship_boundary");
+        }
+
+        private static string ResolveRpgActionPriorityRuleTemplate(RimChatSettings settings)
+        {
+            string unified = settings?.ResolvePromptNodeText(
+                RimTalkPromptEntryChannelCatalog.RpgDialogue,
+                "rpg_action_priority");
+            if (!string.IsNullOrWhiteSpace(unified))
+            {
+                return unified;
+            }
+
+            return PromptUnifiedCatalog.CreateFallback().ResolveNode(
+                RimTalkPromptEntryChannelCatalog.RpgDialogue,
+                "rpg_action_priority");
+        }
+
+        private static string ResolveRpgProactiveRomanceRuleTemplate(RimChatSettings settings)
+        {
+            string unified = settings?.ResolvePromptNodeText(
+                RimTalkPromptEntryChannelCatalog.RpgDialogue,
+                "rpg_proactive_romance");
+            if (!string.IsNullOrWhiteSpace(unified))
+            {
+                return unified;
+            }
+
+            return PromptUnifiedCatalog.CreateFallback().ResolveNode(
+                RimTalkPromptEntryChannelCatalog.RpgDialogue,
+                "rpg_proactive_romance");
+        }
+
+        private static string ResolveRpgProactiveSocialActionRuleTemplate(RimChatSettings settings)
+        {
+            string unified = settings?.ResolvePromptNodeText(
+                RimTalkPromptEntryChannelCatalog.RpgDialogue,
+                "rpg_proactive_social");
+            if (!string.IsNullOrWhiteSpace(unified))
+            {
+                return unified;
+            }
+
+            return PromptUnifiedCatalog.CreateFallback().ResolveNode(
+                RimTalkPromptEntryChannelCatalog.RpgDialogue,
+                "rpg_proactive_social");
         }
 
         private static string CompactRpgEnvironmentBlock(string environmentBlock)

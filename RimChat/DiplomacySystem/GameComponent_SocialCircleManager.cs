@@ -1,5 +1,6 @@
 using RimChat.Core;
 using RimChat.Memory;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -42,10 +43,12 @@ namespace RimChat.DiplomacySystem
                 return;
 
             if (currentTick % 60 == 0)
-                dm.ProcessDeferredSocialNewsSeeds(currentTick);
+                using (PerfScope.Measure("SocialCircle.DeferredSeeds"))
+                    dm.ProcessDeferredSocialNewsSeeds(currentTick);
 
             if (currentTick % 2000 == 0)
-                dm.ProcessSocialCircleTick();
+                using (PerfScope.Measure("SocialCircle.Tick"))
+                    dm.ProcessSocialCircleTick();
         }
     }
 }

@@ -8,6 +8,8 @@ using RimChat.DiplomacySystem;
 using RimChat.Dialogue;
 using RimChat.Memory;
 using RimChat.Persistence;
+using RimChat.Util;
+using RimChat.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -56,6 +58,7 @@ namespace RimChat.NpcDialogue
         private readonly HashSet<Faction> factionsInQueue = new HashSet<Faction>();
         private readonly Queue<int> clickTicks = new Queue<int>();
         private readonly HashSet<Faction> activeCandidateFactions = new HashSet<Faction>();
+        private readonly List<Faction> _reusableCandidateResults = new List<Faction>();
         private readonly Dictionary<Faction, int> candidateTouchTicks = new Dictionary<Faction, int>();
         private readonly List<int> globalDeliveryTicks = new List<int>();
         private int globalDeliveryOldestInWindow;
@@ -144,17 +147,20 @@ namespace RimChat.NpcDialogue
 
             if (currentTick % IncomingDrainInterval == 0)
             {
-                DrainIncomingTriggers(currentTick);
+                using (PerfScope.Measure("NpcPush.Drain"))
+                    DrainIncomingTriggers(currentTick);
             }
 
             if (currentTick % QueueProcessInterval == 0)
             {
-                ProcessQueuedTriggers(currentTick);
+                using (PerfScope.Measure("NpcPush.QueueProcess"))
+                    ProcessQueuedTriggers(currentTick);
             }
 
             if (currentTick % RegularEvaluationInterval == 0)
             {
-                EvaluateRegularTriggers(currentTick);
+                using (PerfScope.Measure("NpcPush.EvaluateRegular"))
+                    EvaluateRegularTriggers(currentTick);
             }
         }
 
@@ -1148,63 +1154,20 @@ namespace RimChat.NpcDialogue
                 return false;
             }
 
-            if (settings.EnableBusyByDrafted && IsBusyByDrafted())
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            PlayerGameStateCache.Instance.EnsureFresh(currentTick);
+
+            if (settings.EnableBusyByDrafted && PlayerGameStateCache.Instance.HasDrafted)
             {
                 return true;
             }
 
-            if (settings.EnableBusyByHostiles && IsBusyByHostiles())
+            if (settings.EnableBusyByHostiles && PlayerGameStateCache.Instance.HasHostiles)
             {
                 return true;
             }
 
             return settings.EnableBusyByClickRate && clickTicks.Count >= ClickBusyThreshold;
-        }
-
-        private bool IsBusyByDrafted()
-        {
-            if (Find.Maps == null)
-            {
-                return false;
-            }
-
-            foreach (Map map in Find.Maps)
-            {
-                if (map?.mapPawns?.FreeColonistsSpawned == null)
-                {
-                    continue;
-                }
-
-                if (map.mapPawns.FreeColonistsSpawned.Any(p => p != null && p.Drafted))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool IsBusyByHostiles()
-        {
-            if (Find.Maps == null)
-            {
-                return false;
-            }
-
-            foreach (Map map in Find.Maps)
-            {
-                if (map == null || !map.IsPlayerHome || map.mapPawns?.AllPawnsSpawned == null)
-                {
-                    continue;
-                }
-
-                if (map.mapPawns.AllPawnsSpawned.Any(p => p != null && p.HostileTo(Faction.OfPlayer)))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void TrackClickSignal(int currentTick)
@@ -1236,7 +1199,7 @@ namespace RimChat.NpcDialogue
         private List<Faction> GetActiveCandidateFactions(int currentTick)
         {
             MaintainCandidateCache(currentTick);
-            var results = new List<Faction>(activeCandidateFactions.Count);
+            _reusableCandidateResults.Clear();
             foreach (Faction faction in activeCandidateFactions)
             {
                 if (!IsValidTargetFaction(faction))
@@ -1246,19 +1209,22 @@ namespace RimChat.NpcDialogue
 
                 if (IsCandidateStillActive(faction, currentTick))
                 {
-                    results.Add(faction);
+                    _reusableCandidateResults.Add(faction);
                 }
             }
 
-            if (results.Count > MaxCandidateFactions)
+            if (_reusableCandidateResults.Count > MaxCandidateFactions)
             {
-                results = results
-                    .OrderByDescending(f => candidateTouchTicks.TryGetValue(f, out int t) ? t : 0)
-                    .Take(MaxCandidateFactions)
-                    .ToList();
+                _reusableCandidateResults.Sort((a, b) =>
+                {
+                    int ta = candidateTouchTicks.TryGetValue(a, out int va) ? va : 0;
+                    int tb = candidateTouchTicks.TryGetValue(b, out int vb) ? vb : 0;
+                    return tb.CompareTo(ta);
+                });
+                _reusableCandidateResults.RemoveRange(MaxCandidateFactions, _reusableCandidateResults.Count - MaxCandidateFactions);
             }
 
-            return results;
+            return _reusableCandidateResults;
         }
 
         private FactionNpcPushState GetOrCreateState(Faction faction)

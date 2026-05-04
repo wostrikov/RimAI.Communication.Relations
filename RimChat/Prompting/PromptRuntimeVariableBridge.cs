@@ -9,6 +9,7 @@ using HarmonyLib;
 using RimChat.Core;
 using RimChat.Memory;
 using RimChat.Persistence;
+using RimChat.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -691,7 +692,7 @@ namespace RimChat.Prompting
             if (map != null)
             {
                 int ticks = Find.TickManager?.TicksGame ?? 0;
-                float longitude = Find.WorldGrid == null ? 0f : Find.WorldGrid.LongLatOf(map.Tile).x;
+                float longitude = WorldTileGuard.IsValidTile(map.Tile) ? Find.WorldGrid.LongLatOf(map.Tile).x : 0f;
                 parts.Add(
                     $"Time: {GenDate.HourOfDay(ticks, longitude)}h, day {GenDate.DayOfQuadrum(ticks, longitude) + 1}, " +
                     $"{GenDate.Quadrum(ticks, longitude).Label()}, year {GenDate.Year(ticks, longitude)}.");

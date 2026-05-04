@@ -24,6 +24,9 @@ namespace RimChat.Config
         public string TurnObjectiveTemplate;
         public string OpeningObjectiveTemplate;
         public string TopicShiftRuleTemplate;
+        public string ActionPriorityRuleTemplate;
+        public string ProactiveRomanceRuleTemplate;
+        public string ProactiveSocialActionRuleTemplate;
         public string ApiLimitsNodeTemplate;
         public string QuestGuidanceNodeTemplate;
         public string ResponseContractNodeTemplate;
@@ -46,6 +49,9 @@ namespace RimChat.Config
             TurnObjectiveTemplate = string.Empty;
             OpeningObjectiveTemplate = string.Empty;
             TopicShiftRuleTemplate = string.Empty;
+            ActionPriorityRuleTemplate = string.Empty;
+            ProactiveRomanceRuleTemplate = string.Empty;
+            ProactiveSocialActionRuleTemplate = string.Empty;
             ApiLimitsNodeTemplate = PromptTextConstants.ApiLimitsNodeLiteralDefault;
             QuestGuidanceNodeTemplate = PromptTextConstants.QuestGuidanceNodeLiteralDefault;
             ResponseContractNodeTemplate = PromptTextConstants.ResponseContractNodeLiteralDefault;
@@ -69,6 +75,9 @@ namespace RimChat.Config
             Scribe_Values.Look(ref TurnObjectiveTemplate, "turnObjectiveTemplate", string.Empty);
             Scribe_Values.Look(ref OpeningObjectiveTemplate, "openingObjectiveTemplate", string.Empty);
             Scribe_Values.Look(ref TopicShiftRuleTemplate, "topicShiftRuleTemplate", string.Empty);
+            Scribe_Values.Look(ref ActionPriorityRuleTemplate, "actionPriorityRuleTemplate", string.Empty);
+            Scribe_Values.Look(ref ProactiveRomanceRuleTemplate, "proactiveRomanceRuleTemplate", string.Empty);
+            Scribe_Values.Look(ref ProactiveSocialActionRuleTemplate, "proactiveSocialActionRuleTemplate", string.Empty);
             Scribe_Values.Look(ref ApiLimitsNodeTemplate, "apiLimitsNodeTemplate", string.Empty);
             Scribe_Values.Look(ref QuestGuidanceNodeTemplate, "questGuidanceNodeTemplate", string.Empty);
             Scribe_Values.Look(ref ResponseContractNodeTemplate, "responseContractNodeTemplate", string.Empty);
@@ -94,6 +103,9 @@ namespace RimChat.Config
                 TurnObjectiveTemplate = TurnObjectiveTemplate,
                 OpeningObjectiveTemplate = OpeningObjectiveTemplate,
                 TopicShiftRuleTemplate = TopicShiftRuleTemplate,
+                ActionPriorityRuleTemplate = ActionPriorityRuleTemplate,
+                ProactiveRomanceRuleTemplate = ProactiveRomanceRuleTemplate,
+                ProactiveSocialActionRuleTemplate = ProactiveSocialActionRuleTemplate,
                 ApiLimitsNodeTemplate = ApiLimitsNodeTemplate,
                 QuestGuidanceNodeTemplate = QuestGuidanceNodeTemplate,
                 ResponseContractNodeTemplate = ResponseContractNodeTemplate,

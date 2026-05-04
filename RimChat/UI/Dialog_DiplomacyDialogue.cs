@@ -661,11 +661,14 @@ namespace RimChat.UI
         private void DrawVersionLine(Rect inRect, float centerX, float factionTitleWidth)
         {
             string versionText = GetDialogueHeaderVersionText();
+            string helpLabel = "RimChat_DiplomacyHelpButton".Translate();
             Text.Font = GameFont.Tiny;
             GUI.color = new Color(0.72f, 0.86f, 0.96f);
             float versionWidth = Text.CalcSize(versionText).x;
+            float helpWidth = Text.CalcSize(helpLabel).x;
             float closeButtonX = inRect.xMax - (LayoutCloseButtonSize + 5f);
-            float versionX = closeButtonX - versionWidth - 14f;
+            float helpX = closeButtonX - helpWidth - 10f;
+            float versionX = helpX - versionWidth - 16f;
             Rect versionRect = new Rect(versionX, inRect.y + LayoutTitleVersionLineTopPadding, versionWidth + 10f, LayoutTitleVersionLineHeight);
             Widgets.Label(versionRect, versionText);
             TooltipHandler.TipRegion(versionRect, "RimChat_DiplomacyVersionTooltip".Translate());
@@ -673,6 +676,15 @@ namespace RimChat.UI
             {
                 OpenVersionLogLanguageMenu();
             }
+
+            Rect helpRect = new Rect(helpX, inRect.y + LayoutTitleVersionLineTopPadding, helpWidth + 8f, LayoutTitleVersionLineHeight);
+            GUI.color = new Color(0.72f, 0.86f, 0.96f);
+            Widgets.Label(helpRect, helpLabel);
+            if (Widgets.ButtonInvisible(helpRect))
+            {
+                OpenHelpLanguageMenu();
+            }
+            TooltipHandler.TipRegion(helpRect, "RimChat_DiplomacyHelpTooltip".Translate());
 
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
@@ -708,6 +720,39 @@ namespace RimChat.UI
         private void OpenEnglishVersionLog()
         {
             OpenVersionLogForLanguage("English", "RimChat_VersionLogLanguageEnglish");
+        }
+
+        private void OpenHelpLanguageMenu()
+        {
+            var options = new List<FloatMenuOption>
+            {
+                new FloatMenuOption("RimChat_VersionLogLanguageChinese".Translate(), OpenChineseHelp),
+                new FloatMenuOption("RimChat_VersionLogLanguageEnglish".Translate(), OpenEnglishHelp)
+            };
+            Find.WindowStack.Add(new FloatMenu(options));
+        }
+
+        private void OpenChineseHelp()
+        {
+            OpenHelpForLanguage("ChineseSimplified", "RimChat_VersionLogLanguageChinese");
+        }
+
+        private void OpenEnglishHelp()
+        {
+            OpenHelpForLanguage("English", "RimChat_VersionLogLanguageEnglish");
+        }
+
+        private void OpenHelpForLanguage(string languageFolder, string languageKey)
+        {
+            var settings = RimChatMod.Instance?.InstanceSettings;
+            if (settings == null)
+            {
+                return;
+            }
+
+            string title = "RimChat_HelpWindowTitleByLanguage".Translate(languageKey.Translate());
+            string content = settings.GetHelpDisplayContentForLanguage(languageFolder);
+            Find.WindowStack.Add(new Dialog_VersionLogViewer(title, content));
         }
 
         private void OpenVersionLogForLanguage(string languageFolder, string languageKey)
@@ -1622,15 +1667,18 @@ namespace RimChat.UI
             GUI.DrawTexture(new Rect(rect.x + r, rect.y, rect.width - r * 2f, rect.height), WhiteTexture);
             GUI.DrawTexture(new Rect(rect.x, rect.y + r, rect.width, rect.height - r * 2f), WhiteTexture);
 
+            // 左侧圆角沿用原始坐标，右侧圆角单独做像素对齐，修复 1.25x 缩放下稳定右移 1px 的问题。
+            float rightCornerX = Mathf.Floor(rect.x + rect.width - r);
+
             // 使用高清抗锯齿圆角纹理进行圆滑边角绘制 (Unity GUI texCoords 中 0,0 为左下角)
             // 左上角
             GUI.DrawTextureWithTexCoords(new Rect(rect.x, rect.y, r, r), CircleTexture, new Rect(0f, 0.5f, 0.5f, 0.5f));
             // 右上角
-            GUI.DrawTextureWithTexCoords(new Rect(rect.xMax - r, rect.y, r, r), CircleTexture, new Rect(0.5f, 0.5f, 0.5f, 0.5f));
+            GUI.DrawTextureWithTexCoords(new Rect(rightCornerX, rect.y, r, r), CircleTexture, new Rect(0.5f, 0.5f, 0.5f, 0.5f));
             // 左下角
             GUI.DrawTextureWithTexCoords(new Rect(rect.x, rect.yMax - r, r, r), CircleTexture, new Rect(0f, 0f, 0.5f, 0.5f));
             // 右下角
-            GUI.DrawTextureWithTexCoords(new Rect(rect.xMax - r, rect.yMax - r, r, r), CircleTexture, new Rect(0.5f, 0f, 0.5f, 0.5f));
+            GUI.DrawTextureWithTexCoords(new Rect(rightCornerX, rect.yMax - r, r, r), CircleTexture, new Rect(0.5f, 0f, 0.5f, 0.5f));
 
             GUI.color = Color.white;
         }
@@ -2994,6 +3042,9 @@ namespace RimChat.UI
             string pendingReleaseJson = BuildPendingReleasePrisonerJsonList(pendingReleaseSnapshots);
             referenceBlock =
                 "[RansomState]\n" +
+                "Note: This is background information about ongoing ransom operations. " +
+                "Only reference this data when the conversation topic involves prisoners or ransom. " +
+                "Do not proactively mention ransom status if the current topic is unrelated.\n" +
                 $"current_request_target_pawn_load_id: {Math.Max(0, currentRequestTargetPawnLoadId)}\n" +
                 $"current_request_paid: {ToLowerBool(currentRequestPaid)}\n" +
                 $"has_unpaid_ransom_request: {ToLowerBool(hasUnpaidRansomRequest)}\n" +
@@ -3934,6 +3985,18 @@ namespace RimChat.UI
                         }
                         continue;
                     }
+                }
+
+                if (TryHandleSendGiftActionWithConfirmation(action, currentSession, currentFaction, out ActionExecutionOutcome sendGiftOutcome))
+                {
+                    outcomes.Add(sendGiftOutcome);
+                    continue;
+                }
+
+                if (TryHandleMakePeaceActionWithConfirmation(action, currentSession, currentFaction, out ActionExecutionOutcome makePeaceOutcome))
+                {
+                    outcomes.Add(makePeaceOutcome);
+                    continue;
                 }
 
                 if (TryHandleRequestInfoActionForPrisoner(action, currentSession, currentFaction, out ActionExecutionOutcome requestInfoOutcome))

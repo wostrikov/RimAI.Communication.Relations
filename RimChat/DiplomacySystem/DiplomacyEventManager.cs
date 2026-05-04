@@ -514,7 +514,8 @@ namespace RimChat.DiplomacySystem
             {
                 return type;
             }
-            return CaravanType.General;
+
+            throw new ArgumentException($"Invalid CaravanType: {typeStr}", nameof(typeStr));
         }
 
         public static AidType ParseAidType(string typeStr)

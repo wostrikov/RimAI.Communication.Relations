@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 using Verse.AI.Group;
@@ -38,14 +39,18 @@ namespace RimChat.DiplomacySystem
             Instance = this;
         }
 
+        private const int DelayedEventInterval = 250;
+        private const int DelayedEventOffset = 120;
+
         public override void GameComponentTick()
         {
             int currentTick = Find.TickManager?.TicksGame ?? 0;
-            if (currentTick <= 0)
+            if (currentTick <= DelayedEventOffset)
                 return;
 
-            if (currentTick % 250 == 0)
-                GameComponent_DiplomacyManager.Instance?.ProcessDelayedEvents();
+            if ((currentTick - DelayedEventOffset) % DelayedEventInterval == 0)
+                using (PerfScope.Measure("DelayedEvents.Process"))
+                    GameComponent_DiplomacyManager.Instance?.ProcessDelayedEvents();
         }
 
         public bool HasCaravanDispatchedNow(Faction faction)

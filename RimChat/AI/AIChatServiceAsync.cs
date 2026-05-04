@@ -859,6 +859,7 @@ namespace RimChat.AI
                             string parsedResponse = parseResult.Content;
                             bool bypassDialogueGuardsForSocialNews = debugSource == AIRequestDebugSource.SocialNews;
                             DialogueResponseEnvelope parsedEnvelope = null;
+                            bool useStableRpgFallback = usageChannel == DialogueUsageChannel.Rpg;
 
                             if (ShouldUseStructuredDialogueEnvelope(debugSource, usageChannel))
                             {
@@ -879,8 +880,13 @@ namespace RimChat.AI
                                 {
                                     string envelopeFailureReason = parsedEnvelope.FailureReason;
                                     string rawPassthrough = parsedResponse ?? string.Empty;
+                                    string safeVisible = useStableRpgFallback
+                                        ? ModelOutputSanitizer.TryExtractSafeVisibleDialogue(rawPassthrough)
+                                        : string.Empty;
                                     parsedEnvelope = null;
-                                    parsedResponse = rawPassthrough;
+                                    parsedResponse = useStableRpgFallback && !string.IsNullOrWhiteSpace(safeVisible)
+                                        ? safeVisible
+                                        : rawPassthrough;
                                     string responsePreview = BuildResponsePreviewForLog(rawPassthrough, 280);
                                     Log.Warning($"[RimChat] Dialogue envelope raw passthrough used after retry: reason={envelopeFailureReason}, response_preview={responsePreview}");
                                 }
@@ -906,6 +912,15 @@ namespace RimChat.AI
 
                                 if (!guardResult.IsValid)
                                 {
+                                    if (useStableRpgFallback)
+                                    {
+                                        string safeVisible = ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedResponse);
+                                        parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
+                                            ? safeVisible
+                                            : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
+                                        parsedEnvelope = null;
+                                    }
+
                                     Log.Warning($"[RimChat] Immersion guard failed after retry, outputting raw response: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}");
                                 }
                                 else
@@ -941,6 +956,15 @@ namespace RimChat.AI
 
                                 if (!integrityResult.IsValid)
                                 {
+                                    if (useStableRpgFallback)
+                                    {
+                                        string safeVisible = ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedResponse);
+                                        parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
+                                            ? safeVisible
+                                            : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
+                                        parsedEnvelope = null;
+                                    }
+
                                     Log.Warning($"[RimChat] Text integrity guard failed after retry, outputting raw response: reason={integrityResult.ReasonTag}");
                                 }
                                 else
@@ -1028,6 +1052,13 @@ namespace RimChat.AI
                                 {
                                     contractValidationStatus = "failed_after_retry";
                                     contractFailureReason = RpgResponseContractGuard.BuildViolationTag(contractResult.Violation);
+                                    string safeVisible = parsedEnvelope != null
+                                        ? ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedEnvelope.VisibleDialogue)
+                                        : ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedResponse);
+                                    parsedEnvelope = null;
+                                    parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
+                                        ? safeVisible
+                                        : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
                                     Log.Warning($"[RimChat] RPG contract guard failed after retry, outputting raw response: reason={contractFailureReason}");
                                 }
                                 else

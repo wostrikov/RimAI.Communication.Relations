@@ -367,6 +367,7 @@ namespace RimChat.DiplomacySystem
                 return false;
 
             string template = ResolveRimTalkPersonaCopyTemplateOrDefaultCached();
+            bool anySynced = false;
             for (int i = 0; i < targets.Count; i++)
             {
                 Pawn candidate = targets[i];
@@ -378,11 +379,11 @@ namespace RimChat.DiplomacySystem
 
                 if (TrySyncPawnPersonaFromRimTalk(candidate, template))
                 {
-                    return true;
+                    anySynced = true;
                 }
             }
 
-            return false;
+            return anySynced;
         }
 
         private bool TryFindMissingPersonaPawn(out Pawn pawn)

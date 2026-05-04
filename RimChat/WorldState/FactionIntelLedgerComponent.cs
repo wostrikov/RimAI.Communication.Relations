@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RimChat.Util;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
@@ -99,7 +100,8 @@ namespace RimChat.WorldState
             }
 
             lastRaidScanTick = tick;
-            UpdateRaidStates(tick);
+            using (PerfScope.Measure("FactionIntel.RaidScan"))
+                UpdateRaidStates(tick);
         }
 
         public void NotifyPawnKilled(Pawn victim, DamageInfo? dinfo)

@@ -8,7 +8,7 @@
     "DecisionRules": [
         {
             "RuleName": "GoodwillGuideline",
-            "RuleContent": "决策时考虑当前好感度；总体上谨慎降低好感度，盟友关系下不应轻易下调好感；对玩家的正常还价或重报价行为，不应作为降低好感度的依据。",
+            "RuleContent": "决策时考虑当前好感度。玩家表现善意时应积极调整好感度（如送礼、完成承诺、释放囚犯、提供援助等）；总体上谨慎降低好感度，盟友关系下不应轻易下调好感；对玩家的正常还价或重报价行为，不应作为降低好感度的依据。",
             "IsEnabled": true
         },
         {
@@ -47,7 +47,7 @@
             "ActionName": "adjust_goodwill",
             "Description": "调整派系关系",
             "Parameters": "amount（int），reason（string）",
-            "Requirement": "仅在已处于战争状态且玩家诚意很高时使用。",
+            "Requirement": "当玩家表现善意时可使用（如送礼、完成承诺、释放囚犯、提供援助等）。正数表示提升好感，负数表示降低好感。幅度参考：轻微互动1-5，中等事件5-10，重大外交事件10-15。",
             "IsEnabled": true
         },
         {

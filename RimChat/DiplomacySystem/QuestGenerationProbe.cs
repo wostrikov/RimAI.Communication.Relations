@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -319,13 +320,15 @@ namespace RimChat.DiplomacySystem
 
         private static bool HasFactionSettlement(Faction faction, int fromTile)
         {
-            if (faction == null || Find.WorldObjects?.Settlements == null)
+            if (faction == null || Find.WorldObjects?.Settlements == null
+                || !WorldTileGuard.IsValidTile(fromTile))
             {
                 return false;
             }
 
             return Find.WorldObjects.Settlements
-                .Where(s => s != null && s.Faction == faction)
+                .Where(s => s != null && s.Faction == faction
+                             && WorldTileGuard.IsValidTile(s.Tile))
                 .OrderBy(s => Find.WorldGrid.TraversalDistanceBetween(fromTile, s.Tile))
                 .Any();
         }

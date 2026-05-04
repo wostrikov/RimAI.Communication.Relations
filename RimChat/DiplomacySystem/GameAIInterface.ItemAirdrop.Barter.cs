@@ -603,6 +603,37 @@ namespace RimChat.DiplomacySystem
                 return parseResult;
             }
 
+            return BuildPaymentPlanFromRequestedLines(
+                requestedLines,
+                map,
+                faction,
+                playerNegotiator,
+                out paymentLines,
+                out deductionPlan,
+                out derivedBudgetSilver,
+                out paymentTotalSilver);
+        }
+
+        internal APIResult BuildPaymentPlanFromRequestedLines(
+            List<ItemAirdropPaymentRequestLine> requestedLines,
+            Map map,
+            Faction faction,
+            Pawn playerNegotiator,
+            out List<ItemAirdropPreparedPaymentLine> paymentLines,
+            out List<ItemAirdropDeductionPlanLine> deductionPlan,
+            out int derivedBudgetSilver,
+            out int paymentTotalSilver)
+        {
+            paymentLines = new List<ItemAirdropPreparedPaymentLine>();
+            deductionPlan = new List<ItemAirdropDeductionPlanLine>();
+            derivedBudgetSilver = 0;
+            paymentTotalSilver = 0;
+
+            if (requestedLines == null || requestedLines.Count == 0)
+            {
+                return BuildPaymentFailure("payment_items_missing", "payment_items must include at least one item.");
+            }
+
             Log.Message($"[RimChat][PaymentPlan] Parsed {requestedLines.Count} payment_items: {string.Join(", ", requestedLines.Select(l => $"{l.ItemText}x{l.Count}"))}");
 
             List<Thing> beaconThings = CollectBeaconTradeableThings(map);
@@ -878,7 +909,7 @@ namespace RimChat.DiplomacySystem
             return APIResult.SuccessResult("Payment def resolved.");
         }
 
-        private static List<Thing> CollectBeaconTradeableThings(Map map)
+        internal static List<Thing> CollectBeaconTradeableThingsShared(Map map)
         {
             var result = new List<Thing>();
             if (map == null)
@@ -919,7 +950,7 @@ namespace RimChat.DiplomacySystem
                 for (int i = 0; i < thingsAt.Count; i++)
                 {
                     Thing thing = thingsAt[i];
-                    if (!IsValidBeaconPaymentThing(thing) || !seenThingIds.Add(thing.thingIDNumber))
+                    if (!IsValidBeaconPaymentThingShared(thing) || !seenThingIds.Add(thing.thingIDNumber))
                     {
                         continue;
                     }
@@ -931,7 +962,7 @@ namespace RimChat.DiplomacySystem
             return result;
         }
 
-        private static bool IsValidBeaconPaymentThing(Thing thing)
+        internal static bool IsValidBeaconPaymentThingShared(Thing thing)
         {
             return thing != null &&
                    thing.Spawned &&
@@ -942,6 +973,16 @@ namespace RimChat.DiplomacySystem
                    !thing.def.IsCorpse &&
                    TradeUtility.EverPlayerSellable(thing.def) &&
                    !thing.IsForbidden(Faction.OfPlayer);
+        }
+
+        private static List<Thing> CollectBeaconTradeableThings(Map map)
+        {
+            return CollectBeaconTradeableThingsShared(map);
+        }
+
+        private static bool IsValidBeaconPaymentThing(Thing thing)
+        {
+            return IsValidBeaconPaymentThingShared(thing);
         }
 
         private APIResult ValidateDeductionPlan(
@@ -1070,6 +1111,31 @@ namespace RimChat.DiplomacySystem
         public string PaymentPriceSemantic { get; set; } = "market_value_x0.6";
         public int MapUniqueId { get; set; }
         public SpecialItemType? SpecialItemType { get; set; }
+        public List<ItemAirdropPreparedPaymentLine> PaymentLines { get; set; } = new List<ItemAirdropPreparedPaymentLine>();
+        public List<ItemAirdropDeductionPlanLine> DeductionPlan { get; set; } = new List<ItemAirdropDeductionPlanLine>();
+        public Dictionary<string, object> ParametersSnapshot { get; set; } = new Dictionary<string, object>();
+    }
+
+    public sealed class PreparedMakePeacePaymentData
+    {
+        public string FactionName { get; set; }
+        public string FactionDefName { get; set; }
+        public int PeaceCostSilver { get; set; }
+        public int PaymentTotalSilver { get; set; }
+        public int MapUniqueId { get; set; }
+        public List<ItemAirdropPreparedPaymentLine> PaymentLines { get; set; } = new List<ItemAirdropPreparedPaymentLine>();
+        public List<ItemAirdropDeductionPlanLine> DeductionPlan { get; set; } = new List<ItemAirdropDeductionPlanLine>();
+        public Dictionary<string, object> ParametersSnapshot { get; set; } = new Dictionary<string, object>();
+    }
+
+    public sealed class PreparedSendGiftData
+    {
+        public string FactionName { get; set; }
+        public string FactionDefName { get; set; }
+        public int SilverAmount { get; set; }
+        public int GoodwillGain { get; set; }
+        public int PaymentTotalSilver { get; set; }
+        public int MapUniqueId { get; set; }
         public List<ItemAirdropPreparedPaymentLine> PaymentLines { get; set; } = new List<ItemAirdropPreparedPaymentLine>();
         public List<ItemAirdropDeductionPlanLine> DeductionPlan { get; set; } = new List<ItemAirdropDeductionPlanLine>();
         public Dictionary<string, object> ParametersSnapshot { get; set; } = new Dictionary<string, object>();

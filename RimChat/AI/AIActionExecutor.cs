@@ -439,30 +439,26 @@ namespace RimChat.AI
  ///</summary>
         private ActionResult ExecuteSendGift(AIAction action)
         {
-            // Get参数
             int silver = ReadIntParameterOrDefault(action.Parameters, "silver", 500);
             int goodwillGain = ReadIntParameterOrDefault(action.Parameters, "goodwill_gain", 5);
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "SendGift");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"SendGift is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行
-            var result = gameInterface.SendGift(faction, silver, goodwillGain);
+            if (silver <= 0)
+            {
+                return ActionResult.Failure("send_gift requires silver greater than 0 and player confirmation in diplomacy dialogue.");
+            }
 
-            if (result.Success)
+            if (goodwillGain < 0)
             {
-                string detail = $"{silver} {"RimChat_Silver".Translate()}";
-                DiplomacySystem.DiplomacyNotificationManager.SendAIActionNotification(faction, DiplomacySystem.AIActionType.SendGift, detail);
-                return ActionResult.Success(result.Message, result.Data);
+                return ActionResult.Failure("send_gift goodwill_gain must be non-negative.");
             }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
+
+            return ActionResult.Failure("send_gift must be handled by diplomacy dialogue confirmation pipeline.");
         }
 
         /// <summary>/// 执行request援助
@@ -566,18 +562,12 @@ namespace RimChat.AI
                 return ActionResult.Failure($"MakePeace is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行
-            var result = gameInterface.MakePeace(faction, peaceCost);
+            if (peaceCost <= 0)
+            {
+                return ActionResult.Failure("make_peace requires a positive cost and player confirmation in diplomacy dialogue.");
+            }
 
-            if (result.Success)
-            {
-                DiplomacySystem.DiplomacyNotificationManager.SendAIActionNotification(faction, DiplomacySystem.AIActionType.MakePeace, peaceCost > 0 ? $"{peaceCost} {"RimChat_Silver".Translate()}" : "");
-                return ActionResult.Success(result.Message, result.Data);
-            }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
+            return ActionResult.Failure("make_peace must be handled by diplomacy dialogue confirmation pipeline.");
         }
 
         /// <summary>/// 执行request商队

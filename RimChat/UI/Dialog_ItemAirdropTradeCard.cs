@@ -215,61 +215,12 @@ namespace RimChat.UI
 
         private static List<Thing> CollectBeaconTradeableThings(Map map)
         {
-            var result = new List<Thing>();
-            List<Building_OrbitalTradeBeacon> beacons = Building_OrbitalTradeBeacon.AllPowered(map)?.ToList();
-            if (beacons == null || beacons.Count == 0)
-            {
-                return result;
-            }
-
-            var cells = new HashSet<IntVec3>();
-            foreach (Building_OrbitalTradeBeacon beacon in beacons)
-            {
-                if (beacon == null || !beacon.Spawned || beacon.Map != map)
-                {
-                    continue;
-                }
-
-                foreach (IntVec3 cell in beacon.TradeableCells)
-                {
-                    cells.Add(cell);
-                }
-            }
-
-            var seenThingIds = new HashSet<int>();
-            foreach (IntVec3 cell in cells)
-            {
-                List<Thing> thingsAt = map.thingGrid?.ThingsListAt(cell);
-                if (thingsAt == null)
-                {
-                    continue;
-                }
-
-                foreach (Thing thing in thingsAt)
-                {
-                    if (!IsValidBeaconPaymentThing(thing) || !seenThingIds.Add(thing.thingIDNumber))
-                    {
-                        continue;
-                    }
-
-                    result.Add(thing);
-                }
-            }
-
-            return result;
+            return GameAIInterface.CollectBeaconTradeableThingsShared(map);
         }
 
         private static bool IsValidBeaconPaymentThing(Thing thing)
         {
-            return thing != null &&
-                   thing.Spawned &&
-                   !thing.Destroyed &&
-                   thing.stackCount > 0 &&
-                   thing.def != null &&
-                   thing.def.category == ThingCategory.Item &&
-                   !thing.def.IsCorpse &&
-                   TradeUtility.EverPlayerSellable(thing.def) &&
-                   !thing.IsForbidden(Faction.OfPlayer);
+            return GameAIInterface.IsValidBeaconPaymentThingShared(thing);
         }
 
         public override void DoWindowContents(Rect inRect)

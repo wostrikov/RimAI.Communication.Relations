@@ -1,3 +1,30 @@
+1.1.8
+- [Fix] Systematic tile out-of-range crash fix for mid-save join: added WorldTileGuard shared validator covering all 12 LongLatOf/ApproxDistanceInTiles/TraversalDistanceBetween call sites
+- [Fix] SnapshotCache build failure retry now uses exponential backoff (250→500→...→60000 ticks), preventing log spam from permanently invalid tiles
+
+1.1.7
+- [Perf] Fix periodic lag root cause: DiplomacyPromptSnapshotCache switched to lazy building, Tick() no longer proactively warms up/rebuilds snapshots; builds one faction on-demand only when opening diplomacy dialogue
+- [Perf] SnapshotCache removes WorldEventRevision check: world events no longer invalidate all faction snapshots
+- [Perf] Added PerfScope diagnostic tool: operations exceeding 2ms log [RimChatPerf] output
+
+1.1.6
+- [Perf] Fix periodic lag: CommsConsolePatch per-tick allocation replaced with early return + reusable list
+- [Perf] Fix periodic lag: stagger 250-tick GameComponent scheduling to avoid simultaneous spikes
+- [Perf] Fix periodic lag: PromptFileStampCache validity raised from 250 to 1500 ticks, added FileSystemWatcher for instant invalidation
+- [Perf] Fix periodic lag: DiplomacyPromptSnapshotCache now uses stale-while-revalidate instead of full cache clear cascade
+- [Perf] Fix periodic lag: new PlayerGameStateCache consolidates hostile/drafted/hive/faction scans, eliminating 6 duplicate pawn scans
+- [Perf] Fix periodic lag: NpcDialoguePushManager candidate list switched to reusable pattern
+- [Fix] Fix rpg_archive_compression infinite retry loop: default text contained "JSON" which always failed self-validation, and failure path did not mark SummaryState so cooldown never engaged
+- [Fix] Fix AI agreeing to romance in dialogue text but not calling RomanceAttempt action: changed "should call in next reply" to "must call in current reply"
+- [Prompt] ProactiveRomanceRuleTemplate now includes guidance for proactive romantic behavior in subsequent dialogues after relationship is confirmed
+
+1.1.5
+- [Fix] The send_gift action now uses an airdrop-style confirmation flow; on confirm it truly deducts silver and increases goodwill.
+- [Fix] make_peace now opens a player confirmation dialog first; on confirm it deducts silver and only then formally makes peace.
+- [Fix] request_caravan now explicitly injects the valid caravan type list (General/BulkGoods/CombatSupplier/Exotic/Slaver), and invalid values now fail fast.
+- [Balance] Strategy opportunities now granted every 3 Social levels (+1 use), unlock threshold lowered from 5 to 3.
+- [Docs] help.md / help_en.md fully synchronized and the diplomacy action reference was completed.
+
 1.1.4
 - [Compat] Added ExpandMemory Common Knowledge integration: reflectively invokes keyword matching API to inject relevant knowledge into prompts based on player messages
 - [Fix] Airdrop trade pricing unified: Async/Barter/Session/UI PaymentPriceSemantic now all use `ResolveOfferPriceSemantic` authority method

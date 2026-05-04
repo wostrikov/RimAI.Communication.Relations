@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimChat.Core;
 using RimChat.Dialogue;
+using RimChat.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -38,31 +39,10 @@ namespace RimChat.PawnRpgPush
             }
         }
 
-        private List<Faction> GetActiveCandidateFactionsOnPlayerMaps()
+        private IReadOnlyCollection<Faction> GetActiveCandidateFactionsOnPlayerMaps(int currentTick)
         {
-            var factions = new HashSet<Faction>();
-            if (Find.Maps == null)
-            {
-                return factions.ToList();
-            }
-
-            foreach (Map map in Find.Maps)
-            {
-                if (map?.mapPawns?.AllPawnsSpawned == null || !map.IsPlayerHome)
-                {
-                    continue;
-                }
-
-                foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
-                {
-                    if (IsEligibleNpcPawn(pawn) && IsValidTargetFaction(pawn.Faction))
-                    {
-                        factions.Add(pawn.Faction);
-                    }
-                }
-            }
-
-            return factions.ToList();
+            PlayerGameStateCache.Instance.EnsureFresh(currentTick);
+            return PlayerGameStateCache.Instance.ActiveFactionsOnPlayerMaps;
         }
 
         private bool IsEligibleNpcPawn(Pawn pawn)
@@ -287,88 +267,20 @@ namespace RimChat.PawnRpgPush
                 return false;
             }
 
-            if (settings.EnableBusyByDrafted && IsBusyByDrafted())
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            PlayerGameStateCache.Instance.EnsureFresh(currentTick);
+
+            if (settings.EnableBusyByDrafted && PlayerGameStateCache.Instance.HasDrafted)
             {
                 return true;
             }
 
-            if (settings.EnableBusyByHostiles && IsBusyByHostiles())
+            if (settings.EnableBusyByHostiles && PlayerGameStateCache.Instance.HasHostiles)
             {
                 return true;
             }
 
             return settings.EnableBusyByClickRate && clickTicks.Count >= ClickBusyThreshold;
-        }
-
-        private bool IsBusyByDrafted()
-        {
-            if (Find.Maps == null)
-            {
-                return false;
-            }
-
-            foreach (Map map in Find.Maps)
-            {
-                if (map?.mapPawns?.FreeColonistsSpawned == null)
-                {
-                    continue;
-                }
-
-                if (map.mapPawns.FreeColonistsSpawned.Any(p => p != null && p.Drafted))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool IsBusyByHostiles()
-        {
-            if (Find.Maps == null)
-            {
-                return false;
-            }
-
-            foreach (Map map in Find.Maps)
-            {
-                if (map == null || !map.IsPlayerHome || map.mapPawns?.AllPawnsSpawned == null)
-                {
-                    continue;
-                }
-
-                if (map.mapPawns.AllPawnsSpawned.Any(p => p != null && p.HostileTo(Faction.OfPlayer)))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool HasNearbyHiveThreat()
-        {
-            ThingDef hiveDef = DefDatabase<ThingDef>.GetNamedSilentFail("Hive");
-            if (hiveDef == null || Find.Maps == null)
-            {
-                return false;
-            }
-
-            foreach (Map map in Find.Maps)
-            {
-                if (map == null || !map.IsPlayerHome || map.listerThings == null)
-                {
-                    continue;
-                }
-
-                List<Thing> hives = map.listerThings.ThingsOfDef(hiveDef);
-                if (hives != null && hives.Count > 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void TrackClickSignal(int currentTick)

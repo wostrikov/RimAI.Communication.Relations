@@ -603,7 +603,6 @@ namespace RimChat.DiplomacySystem
             if (goodwillGain > settings.MaxGiftGoodwillGain)
                 return APIResult.FailureResult($"Goodwill gain {goodwillGain} exceeds maximum {settings.MaxGiftGoodwillGain}");
 
-            // 执行礼物发送 (模拟)
             faction.TryAffectGoodwillWith(Faction.OfPlayer, goodwillGain, false, true, null);
 
             RecordAPICall("SendGift", true, $"faction={faction.Name}, silver={silverAmount}, goodwillGain={goodwillGain}");
@@ -613,6 +612,160 @@ namespace RimChat.DiplomacySystem
                 $"Gift of {silverAmount} silver sent to {faction.Name}, gained {goodwillGain} goodwill",
                 new { SilverAmount = silverAmount, GoodwillGain = goodwillGain }
             );
+        }
+
+        public APIResult PrepareSendGiftPayment(Faction faction, int silverAmount, int goodwillGain, Pawn playerNegotiator)
+        {
+            if (RimChatMod.Instance?.InstanceSettings == null)
+            {
+                return APIResult.FailureResult("Settings not initialized");
+            }
+
+            if (faction == null)
+            {
+                return APIResult.FailureResult("Faction cannot be null");
+            }
+
+            if (playerNegotiator?.Map == null)
+            {
+                return BuildPaymentFailure("player_negotiator_required", "Preparing send_gift requires a valid player negotiator on a map.");
+            }
+
+            int remainingCooldown = GetRemainingCooldownSeconds(faction, "SendGift");
+            if (remainingCooldown > 0)
+            {
+                return APIResult.FailureResult($"Method SendGift is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
+            }
+
+            int normalizedSilverAmount = Math.Max(0, silverAmount);
+            int normalizedGoodwillGain = Math.Max(0, goodwillGain);
+            if (normalizedSilverAmount <= 0)
+            {
+                return BuildPaymentFailure("gift_silver_invalid", "send_gift requires silver greater than 0.");
+            }
+
+            RimChatSettings settings = RimChatMod.Instance.InstanceSettings;
+            if (normalizedSilverAmount > settings.MaxGiftSilverAmount)
+            {
+                return APIResult.FailureResult($"Gift amount {normalizedSilverAmount} exceeds maximum {settings.MaxGiftSilverAmount}");
+            }
+
+            if (normalizedGoodwillGain > settings.MaxGiftGoodwillGain)
+            {
+                return APIResult.FailureResult($"Goodwill gain {normalizedGoodwillGain} exceeds maximum {settings.MaxGiftGoodwillGain}");
+            }
+
+            var requestedLines = new List<ItemAirdropPaymentRequestLine>
+            {
+                new ItemAirdropPaymentRequestLine
+                {
+                    ItemText = ThingDefOf.Silver.defName,
+                    Count = normalizedSilverAmount
+                }
+            };
+
+            APIResult paymentPlanResult = BuildPaymentPlanFromRequestedLines(
+                requestedLines,
+                playerNegotiator.Map,
+                faction,
+                playerNegotiator,
+                out List<ItemAirdropPreparedPaymentLine> paymentLines,
+                out List<ItemAirdropDeductionPlanLine> deductionPlan,
+                out int derivedBudgetSilver,
+                out int paymentTotalSilver);
+            if (!paymentPlanResult.Success)
+            {
+                return paymentPlanResult;
+            }
+
+            var preparedData = new PreparedSendGiftData
+            {
+                FactionName = faction.Name,
+                FactionDefName = faction.def?.defName ?? string.Empty,
+                SilverAmount = normalizedSilverAmount,
+                GoodwillGain = normalizedGoodwillGain,
+                PaymentTotalSilver = paymentTotalSilver,
+                MapUniqueId = playerNegotiator.Map.uniqueID,
+                PaymentLines = paymentLines,
+                DeductionPlan = deductionPlan,
+                ParametersSnapshot = new Dictionary<string, object>
+                {
+                    ["silver"] = normalizedSilverAmount,
+                    ["goodwill_gain"] = normalizedGoodwillGain,
+                    ["derived_budget_silver"] = derivedBudgetSilver
+                }
+            };
+
+            return APIResult.SuccessResult("Gift payment prepared.", preparedData);
+        }
+
+        public APIResult CommitPreparedSendGift(Faction faction, PreparedSendGiftData preparedData)
+        {
+            if (faction == null)
+            {
+                return APIResult.FailureResult("Faction cannot be null.");
+            }
+
+            if (preparedData == null)
+            {
+                return APIResult.FailureResult("Missing prepared send_gift payload.");
+            }
+
+            Map map = Find.Maps?.FirstOrDefault(m => m != null && m.uniqueID == preparedData.MapUniqueId);
+            if (map == null)
+            {
+                return BuildPaymentFailure("map_unavailable", "Prepared send_gift map is no longer available.");
+            }
+
+            APIResult validation = ValidateDeductionPlan(map, preparedData.DeductionPlan, out List<ThingDeductionReservation> reservations);
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            ApplyDeductionReservations(reservations);
+
+            if (!TryFindAirdropCell(map, out IntVec3 dropCell))
+            {
+                return BuildPaymentFailure("dropcell_not_found", "No legal drop cell found near colony center for send_gift.");
+            }
+
+            List<Thing> stacks = BuildStacks(ThingDefOf.Silver, preparedData.SilverAmount, RimChatMod.Instance?.InstanceSettings?.ItemAirdropMaxStacksPerDrop ?? 8);
+            if (stacks.Count == 0)
+            {
+                return BuildPaymentFailure("stack_build_failed", "Could not create silver stacks for send_gift.");
+            }
+
+            DropPodUtility.DropThingsNear(
+                dropCell,
+                map,
+                stacks,
+                110,
+                canInstaDropDuringInit: false,
+                leaveSlag: false,
+                canRoofPunch: false);
+
+            APIResult giftResult = SendGift(faction, preparedData.SilverAmount, preparedData.GoodwillGain);
+            if (!giftResult.Success)
+            {
+                return giftResult;
+            }
+
+            RecordAPICall(
+                "CommitPreparedSendGift",
+                true,
+                $"faction={faction.Name}, silver={preparedData.SilverAmount}, goodwillGain={preparedData.GoodwillGain}, payment={preparedData.PaymentTotalSilver}, drop={dropCell}");
+
+            return APIResult.SuccessResult(
+                $"Gift payment committed with {faction.Name}",
+                new
+                {
+                    Faction = faction.Name,
+                    SilverAmount = preparedData.SilverAmount,
+                    GoodwillGain = preparedData.GoodwillGain,
+                    PaymentTotalSilver = preparedData.PaymentTotalSilver,
+                    DropCell = dropCell.ToString()
+                });
         }
 
         /// <summary>/// requestfaction援助
@@ -790,6 +943,133 @@ namespace RimChat.DiplomacySystem
                 $"Peace made with {faction.Name}",
                 new { Faction = faction.Name, Cost = peaceCost }
             );
+        }
+
+        public APIResult PrepareMakePeacePayment(Faction faction, int peaceCost, Pawn playerNegotiator)
+        {
+            if (RimChatMod.Instance?.InstanceSettings == null)
+            {
+                return APIResult.FailureResult("Settings not initialized");
+            }
+
+            if (faction == null)
+            {
+                return APIResult.FailureResult("Faction cannot be null");
+            }
+
+            if (playerNegotiator?.Map == null)
+            {
+                return BuildPaymentFailure("player_negotiator_required", "Preparing peace payment requires a valid player negotiator on a map.");
+            }
+
+            if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
+            {
+                return APIResult.FailureResult("Not at war with this faction");
+            }
+
+            int remainingCooldown = GetRemainingCooldownSeconds(faction, "MakePeace");
+            if (remainingCooldown > 0)
+            {
+                return APIResult.FailureResult($"Method MakePeace is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
+            }
+
+            int normalizedPeaceCost = Math.Max(0, peaceCost);
+            if (normalizedPeaceCost <= 0)
+            {
+                return BuildPaymentFailure("peace_cost_invalid", "Peace cost must be greater than 0 to prepare a paid peace treaty.");
+            }
+
+            if (normalizedPeaceCost > RimChatMod.Instance.InstanceSettings.MaxPeaceCost)
+            {
+                return APIResult.FailureResult($"Peace cost {normalizedPeaceCost} exceeds maximum {RimChatMod.Instance.InstanceSettings.MaxPeaceCost}");
+            }
+
+            var requestedLines = new List<ItemAirdropPaymentRequestLine>
+            {
+                new ItemAirdropPaymentRequestLine
+                {
+                    ItemText = ThingDefOf.Silver.defName,
+                    Count = normalizedPeaceCost
+                }
+            };
+
+            APIResult paymentPlanResult = BuildPaymentPlanFromRequestedLines(
+                requestedLines,
+                playerNegotiator.Map,
+                faction,
+                playerNegotiator,
+                out List<ItemAirdropPreparedPaymentLine> paymentLines,
+                out List<ItemAirdropDeductionPlanLine> deductionPlan,
+                out int derivedBudgetSilver,
+                out int paymentTotalSilver);
+            if (!paymentPlanResult.Success)
+            {
+                return paymentPlanResult;
+            }
+
+            var preparedData = new PreparedMakePeacePaymentData
+            {
+                FactionName = faction.Name,
+                FactionDefName = faction.def?.defName ?? string.Empty,
+                PeaceCostSilver = normalizedPeaceCost,
+                PaymentTotalSilver = paymentTotalSilver,
+                MapUniqueId = playerNegotiator.Map.uniqueID,
+                PaymentLines = paymentLines,
+                DeductionPlan = deductionPlan,
+                ParametersSnapshot = new Dictionary<string, object>
+                {
+                    ["cost"] = normalizedPeaceCost,
+                    ["derived_budget_silver"] = derivedBudgetSilver
+                }
+            };
+
+            return APIResult.SuccessResult("Peace payment prepared.", preparedData);
+        }
+
+        public APIResult CommitPreparedMakePeace(Faction faction, PreparedMakePeacePaymentData preparedData)
+        {
+            if (faction == null)
+            {
+                return APIResult.FailureResult("Faction cannot be null.");
+            }
+
+            if (preparedData == null)
+            {
+                return APIResult.FailureResult("Missing prepared peace payment payload.");
+            }
+
+            Map map = Find.Maps?.FirstOrDefault(m => m != null && m.uniqueID == preparedData.MapUniqueId);
+            if (map == null)
+            {
+                return BuildPaymentFailure("map_unavailable", "Prepared peace payment map is no longer available.");
+            }
+
+            APIResult validation = ValidateDeductionPlan(map, preparedData.DeductionPlan, out List<ThingDeductionReservation> reservations);
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            ApplyDeductionReservations(reservations);
+            APIResult peaceResult = MakePeace(faction, preparedData.PeaceCostSilver);
+            if (!peaceResult.Success)
+            {
+                return peaceResult;
+            }
+
+            RecordAPICall(
+                "CommitPreparedMakePeace",
+                true,
+                $"faction={faction.Name}, cost={preparedData.PeaceCostSilver}, payment={preparedData.PaymentTotalSilver}");
+
+            return APIResult.SuccessResult(
+                $"Peace payment committed with {faction.Name}",
+                new
+                {
+                    Faction = faction.Name,
+                    Cost = preparedData.PeaceCostSilver,
+                    PaymentTotalSilver = preparedData.PaymentTotalSilver
+                });
         }
 
         #endregion
@@ -1095,13 +1375,24 @@ namespace RimChat.DiplomacySystem
                 MapCount = maps.Count,
                 TotalColonists = maps.Sum(m => m.mapPawns.FreeColonists.Count()),
                 TotalWealth = maps.Sum(m => m.wealthWatcher.WealthTotal),
-                GameDate = GenDate.DateFullStringAt(Find.TickManager.TicksAbs, Find.WorldGrid.LongLatOf(Find.AnyPlayerHomeMap.Tile)),
+                GameDate = BuildGameDateText(),
                 ThreatLevel = maps.Any() ? StorytellerUtility.DefaultThreatPointsNow(Find.AnyPlayerHomeMap) : 0
             };
 
             RecordAPICall("GetColonyStatus", true, "");
 
             return APIResult.SuccessResult("Colony status retrieved", status);
+        }
+
+        private static string BuildGameDateText()
+        {
+            int absTicks = Find.TickManager?.TicksAbs ?? 0;
+            int tile = Find.AnyPlayerHomeMap?.Tile ?? -1;
+            if (!WorldTileGuard.IsValidTile(tile))
+            {
+                return "Unknown";
+            }
+            return GenDate.DateFullStringAt(absTicks, Find.WorldGrid.LongLatOf(tile));
         }
 
         /// <summary>/// 触发specificevent (Incident)

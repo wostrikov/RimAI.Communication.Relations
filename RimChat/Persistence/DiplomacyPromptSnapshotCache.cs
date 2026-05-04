@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using RimChat.Core;
 using RimChat.Memory;
+using RimChat.DiplomacySystem;
+using RimChat.Util;
 using RimChat.WorldState;
 using RimWorld;
 using Verse;
@@ -23,9 +25,12 @@ namespace RimChat.Persistence
             public bool NeedsRefresh;
             public int NeedsRefreshSinceTick;
             public int LastValidatedTick;
+            public int ConsecutiveFailureCount;
+            public bool IsBuilding;
         }
 
         private const int RetryDelayTicks = 250;
+        private const int MaxRetryDelayTicks = 60000;
         private const int ValidationThrottleTicks = 150;
         private const int RefreshGracePeriodTicks = 1500;
 
@@ -35,7 +40,6 @@ namespace RimChat.Persistence
         private readonly HashSet<string> queuedFactionIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly PromptFileStampCache _fileStampCache = new PromptFileStampCache();
 
-        private int lastObservedWorldEventRevision = -1;
         private long lastObservedPromptFilesStamp = -1;
         private int lastObservedSettingsSignature = int.MinValue;
 
@@ -52,7 +56,6 @@ namespace RimChat.Persistence
             warmupQueue.Clear();
             queuedFactionIds.Clear();
             cacheEntries.Clear();
-            lastObservedWorldEventRevision = ResolveWorldEventRevision();
             lastObservedPromptFilesStamp = _fileStampCache.GetStamp(Find.TickManager?.TicksGame ?? 0);
             lastObservedSettingsSignature = ComputeSettingsSignature();
             int currentTick = Find.TickManager?.TicksGame ?? 0;
@@ -75,22 +78,22 @@ namespace RimChat.Persistence
                 return false;
             }
 
-            if (!cacheEntries.TryGetValue(factionId, out CacheEntry entry))
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+
+            if (!cacheEntries.TryGetValue(factionId, out CacheEntry entry) || entry.Snapshot == null)
             {
-                RequestWarmup(faction, "cache_miss");
-                return false;
+                TryBuildSnapshot(faction, currentTick);
+                if (!cacheEntries.TryGetValue(factionId, out entry) || entry.Snapshot == null)
+                    return false;
             }
 
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            if (entry.Snapshot == null || !ValidateSnapshot(faction, entry, currentTick))
+            if (!entry.NeedsRefresh)
             {
-                cacheEntries.Remove(factionId);
-                RequestWarmup(faction, "stale_snapshot");
-                return false;
+                ValidateSnapshot(faction, entry, currentTick);
             }
 
             snapshot = entry.Snapshot;
-            return true;
+            return snapshot != null;
         }
 
         public void Invalidate(Faction faction = null, string reason = "manual")
@@ -133,36 +136,8 @@ namespace RimChat.Persistence
 
         public void Tick(int currentTick, int maxBuildsPerTick = 1)
         {
-            if (currentTick <= 0)
-            {
-                return;
-            }
-
-            RefreshGlobalInvalidationSignals();
-            int budget = Math.Max(1, maxBuildsPerTick);
-
-            var refreshTargets = cacheEntries
-                .Where(kvp => kvp.Value.NeedsRefresh && kvp.Value.NextRetryTick <= currentTick)
-                .Select(kvp => FindFactionByLoadId(kvp.Key))
-                .Where(f => f != null)
-                .Take(budget)
-                .ToList();
-
-            foreach (Faction faction in refreshTargets)
-            {
-                TryBuildSnapshot(faction, currentTick);
-                budget--;
-            }
-
-            for (int i = 0; i < budget; i++)
-            {
-                if (!TryDequeueNextBuildTarget(currentTick, out Faction faction))
-                {
-                    break;
-                }
-
-                TryBuildSnapshot(faction, currentTick);
-            }
+            // No proactive building — snapshots are built lazily on first access.
+            // This avoids blocking the main thread with 100-988ms BuildRuntimeSnapshotForFaction calls.
         }
 
         private static Faction FindFactionByLoadId(string factionId)
@@ -209,16 +184,13 @@ namespace RimChat.Persistence
         private void RefreshGlobalInvalidationSignals()
         {
             int currentTick = Find.TickManager?.TicksGame ?? 0;
-            int worldEventRevision = ResolveWorldEventRevision();
             long promptStamp = _fileStampCache.GetStamp(currentTick);
             int settingsSignature = ComputeSettingsSignature();
 
             bool changed = false;
-            changed |= lastObservedWorldEventRevision >= 0 && worldEventRevision != lastObservedWorldEventRevision;
             changed |= lastObservedPromptFilesStamp >= 0 && promptStamp != lastObservedPromptFilesStamp;
             changed |= lastObservedSettingsSignature != int.MinValue && settingsSignature != lastObservedSettingsSignature;
 
-            lastObservedWorldEventRevision = worldEventRevision;
             lastObservedPromptFilesStamp = promptStamp;
             lastObservedSettingsSignature = settingsSignature;
 
@@ -227,10 +199,21 @@ namespace RimChat.Persistence
                 return;
             }
 
-            cacheEntries.Clear();
-            warmupQueue.Clear();
-            queuedFactionIds.Clear();
+            MarkAllEntriesForRefresh(currentTick);
             QueueAllCandidateFactions();
+        }
+
+        private void MarkAllEntriesForRefresh(int currentTick)
+        {
+            foreach (var kvp in cacheEntries)
+            {
+                CacheEntry entry = kvp.Value;
+                if (entry.Snapshot != null && !entry.NeedsRefresh)
+                {
+                    entry.NeedsRefresh = true;
+                    entry.NeedsRefreshSinceTick = currentTick;
+                }
+            }
         }
 
         private bool TryDequeueNextBuildTarget(int currentTick, out Faction faction)
@@ -265,6 +248,16 @@ namespace RimChat.Persistence
             return false;
         }
 
+        private static int ComputeBackoffDelay(int consecutiveFailures)
+        {
+            int delay = RetryDelayTicks;
+            for (int i = 1; i < consecutiveFailures && delay < MaxRetryDelayTicks; i++)
+            {
+                delay *= 2;
+            }
+            return Math.Min(delay, MaxRetryDelayTicks);
+        }
+
         private void TryBuildSnapshot(Faction faction, int currentTick)
         {
             string factionId = faction.GetUniqueLoadID() ?? string.Empty;
@@ -279,7 +272,9 @@ namespace RimChat.Persistence
                 int worldEventRevision = ResolveWorldEventRevision();
                 long promptStamp = _fileStampCache.GetStamp(currentTick);
                 int settingsSignature = ComputeSettingsSignature();
-                var snapshot = PromptPersistenceService.Instance.BuildRuntimeSnapshotForFaction(
+                DiplomacyPromptRuntimeSnapshot snapshot;
+                using (PerfScope.Measure($"SnapshotCache.BuildSnapshot:{faction.Name}"))
+                    snapshot = PromptPersistenceService.Instance.BuildRuntimeSnapshotForFaction(
                     faction,
                     null,
                     currentTick,
@@ -289,10 +284,14 @@ namespace RimChat.Persistence
                     settingsSignature);
                 if (snapshot == null)
                 {
+                    int prevFailures = cacheEntries.TryGetValue(factionId, out CacheEntry prev)
+                        ? prev.ConsecutiveFailureCount
+                        : 0;
                     cacheEntries[factionId] = new CacheEntry
                     {
                         Snapshot = null,
-                        NextRetryTick = currentTick + RetryDelayTicks
+                        NextRetryTick = currentTick + ComputeBackoffDelay(prevFailures + 1),
+                        ConsecutiveFailureCount = prevFailures + 1
                     };
                     return;
                 }
@@ -308,12 +307,17 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
+                int prevFailures = cacheEntries.TryGetValue(factionId, out CacheEntry prev)
+                    ? prev.ConsecutiveFailureCount
+                    : 0;
+                int newCount = prevFailures + 1;
                 cacheEntries[factionId] = new CacheEntry
                 {
                     Snapshot = null,
-                    NextRetryTick = currentTick + RetryDelayTicks
+                    NextRetryTick = currentTick + ComputeBackoffDelay(newCount),
+                    ConsecutiveFailureCount = newCount
                 };
-                Log.Warning($"[RimChat] Prompt snapshot warmup failed for {faction?.Name ?? "Unknown"}: {ex.Message}");
+                Log.Warning($"[RimChat] Prompt snapshot warmup failed for {faction?.Name ?? "Unknown"} (attempt {newCount}): {ex.Message}");
             }
         }
 
@@ -344,10 +348,10 @@ namespace RimChat.Persistence
             entry.LastValidatedTick = currentTick;
 
             bool l2Changed = snapshot.PlayerGoodwill != faction.PlayerGoodwill
-                          || snapshot.MemoryRevision != LeaderMemoryManager.Instance.GetFactionMemoryRevision(faction);
+                          || snapshot.MemoryRevision != LeaderMemoryManager.Instance.GetFactionMemoryRevision(faction)
+                          || snapshot.QuestTrackingRevision != GameAIInterface.Instance.QuestTrackingRevision;
 
-            bool l3Changed = snapshot.WorldEventRevision != ResolveWorldEventRevision()
-                          || snapshot.PromptFilesStampUtcTicks != _fileStampCache.GetStamp(currentTick)
+            bool l3Changed = snapshot.PromptFilesStampUtcTicks != _fileStampCache.GetStamp(currentTick)
                           || snapshot.SettingsSignature != ComputeSettingsSignature();
 
             if (l2Changed || l3Changed)
@@ -357,6 +361,8 @@ namespace RimChat.Persistence
                 {
                     entry.NeedsRefreshSinceTick = currentTick;
                 }
+
+                Log.Warning($"[RimChatPerf] Snapshot.ValidateStale:{faction.Name} l2={l2Changed} l3={l3Changed} goodwill={snapshot.PlayerGoodwill}!={faction.PlayerGoodwill} memRev={snapshot.MemoryRevision}!={LeaderMemoryManager.Instance.GetFactionMemoryRevision(faction)} questRev={snapshot.QuestTrackingRevision}!={GameAIInterface.Instance.QuestTrackingRevision} stamp={snapshot.PromptFilesStampUtcTicks}!={_fileStampCache.GetStamp(currentTick)} sig={snapshot.SettingsSignature}!={ComputeSettingsSignature()}");
 
                 if (currentTick - entry.NeedsRefreshSinceTick > RefreshGracePeriodTicks)
                 {

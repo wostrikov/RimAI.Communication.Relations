@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using RimChat.Config;
 using RimChat.Persistence;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -18,7 +19,7 @@ namespace RimChat.WorldState
         private const int LetterScanInterval = 250;
         private const int RaidScanInterval = 250;
         private const int LetterScanOffsetTicks = 0;
-        private const int RaidScanOffsetTicks = 0;
+        private const int RaidScanOffsetTicks = 40;
         private const int MaxLettersPerScanPass = 24;
         private const int OldEventAgeThresholdTicks = 60000 * 60 * 24;
         private const int MaxCompressedSummaryLength = 100;
@@ -140,13 +141,15 @@ namespace RimChat.WorldState
             if (ShouldRunScheduledTask(tick, lastLetterScanTick, LetterScanInterval, LetterScanOffsetTicks))
             {
                 lastLetterScanTick = tick;
-                PollLetterStackEvents(tick);
+                using (PerfScope.Measure("WorldLedger.LetterScan"))
+                    PollLetterStackEvents(tick);
             }
 
             if (ShouldRunScheduledTask(tick, lastRaidScanTick, RaidScanInterval, RaidScanOffsetTicks))
             {
                 lastRaidScanTick = tick;
-                UpdateRaidBattleStates(tick);
+                using (PerfScope.Measure("WorldLedger.RaidScan"))
+                    UpdateRaidBattleStates(tick);
             }
         }
 

@@ -8,6 +8,7 @@ using RimChat.Core;
 using RimChat.DiplomacySystem;
 using RimChat.Memory;
 using RimChat.Prompting;
+using RimChat.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -544,7 +545,7 @@ namespace RimChat.Persistence
         private Vector2 GetLongLat(DialogueScenarioContext context)
         {
             Map map = ResolveEnvironmentMap(context);
-            if (map == null || Find.WorldGrid == null)
+            if (map == null || !WorldTileGuard.IsValidTile(map.Tile))
             {
                 return Vector2.zero;
             }
@@ -674,7 +675,7 @@ namespace RimChat.Persistence
             int wealth = (int)homeMaps.Sum(map => map.wealthWatcher?.WealthTotal ?? 0f);
             string colonyName = Faction.OfPlayer?.Name ?? "Player Colony";
             int absTicks = Find.TickManager?.TicksAbs ?? 0;
-            Vector2 longLat = Find.WorldGrid != null ? Find.WorldGrid.LongLatOf(homeMaps[0].Tile) : Vector2.zero;
+            Vector2 longLat = WorldTileGuard.IsValidTile(homeMaps[0].Tile) ? Find.WorldGrid.LongLatOf(homeMaps[0].Tile) : Vector2.zero;
             string dateText = GenDate.DateFullStringAt(absTicks, longLat);
             return $"Colony: {colonyName}\nHomeMaps: {homeMaps.Count}\nColonists: {colonists}\nTotalWealth: {wealth}\nDate: {dateText}";
         }

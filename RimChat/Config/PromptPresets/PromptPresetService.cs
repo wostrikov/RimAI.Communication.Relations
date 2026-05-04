@@ -1147,6 +1147,8 @@ namespace RimChat.Config
             {
                 "rpg_relationship_profile",
                 "rpg_kinship_boundary",
+                "rpg_action_priority",
+                "rpg_proactive_romance",
                 "rpg_role_setting_fallback"
             };
 

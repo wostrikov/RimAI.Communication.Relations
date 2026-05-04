@@ -2,19 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using RimChat.Config;
+using RimChat.Util;
+using Verse;
 
 namespace RimChat.Persistence
 {
     /// <summary>
     /// Responsibility: cache prompt file last-write timestamps to avoid per-tick disk IO.
+    /// Uses FileSystemWatcher for instant invalidation + periodic polling as fallback.
     /// </summary>
-    public sealed class PromptFileStampCache
+    public sealed class PromptFileStampCache : IDisposable
     {
-        private const int CacheValidityTicks = 250; // ~5 seconds at 60fps
+        private const int CacheValidityTicks = 1500; // ~25 seconds at 60fps
 
         private long cachedStamp = -1;
         private int cachedAtTick = -1;
         private readonly object syncRoot = new object();
+        private FileSystemWatcher watcher;
+
+        public PromptFileStampCache()
+        {
+            TryInitializeWatcher();
+        }
 
         public long GetStamp(int currentTick)
         {
@@ -25,7 +34,8 @@ namespace RimChat.Persistence
                     return cachedStamp;
                 }
 
-                cachedStamp = ComputePromptFilesStampUtcTicks();
+                using (PerfScope.Measure("PromptFileStamp.Compute"))
+                    cachedStamp = ComputePromptFilesStampUtcTicks();
                 cachedAtTick = currentTick;
                 return cachedStamp;
             }
@@ -51,6 +61,63 @@ namespace RimChat.Persistence
             {
                 cachedAtTick = -1;
             }
+        }
+
+        public void Dispose()
+        {
+            if (watcher != null)
+            {
+                watcher.EnableRaisingEvents = false;
+                watcher.Dispose();
+                watcher = null;
+            }
+        }
+
+        private void TryInitializeWatcher()
+        {
+            try
+            {
+                string promptDir = ResolvePromptDirectory();
+                if (string.IsNullOrWhiteSpace(promptDir) || !Directory.Exists(promptDir))
+                {
+                    return;
+                }
+
+                watcher = new FileSystemWatcher(promptDir)
+                {
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
+                    IncludeSubdirectories = true,
+                    EnableRaisingEvents = true
+                };
+
+                watcher.Changed += OnPromptFileChanged;
+                watcher.Created += OnPromptFileChanged;
+                watcher.Deleted += OnPromptFileChanged;
+                watcher.Renamed += OnPromptFileChanged;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimChat] PromptFileStampCache: FileSystemWatcher init failed, falling back to polling. {ex.Message}");
+                watcher = null;
+            }
+        }
+
+        private void OnPromptFileChanged(object sender, FileSystemEventArgs e)
+        {
+            Invalidate();
+        }
+
+        private static string ResolvePromptDirectory()
+        {
+            string samplePath = PromptDomainFileCatalog.GetDefaultPath(
+                PromptDomainFileCatalog.SystemPromptDefaultFileName);
+            string dir = Path.GetDirectoryName(samplePath);
+            if (!string.IsNullOrWhiteSpace(dir))
+            {
+                dir = Path.GetDirectoryName(dir); // go up from Default/ to Prompt/
+            }
+
+            return dir;
         }
 
         private static long ComputePromptFilesStampUtcTicks()

@@ -143,6 +143,7 @@ namespace RimChat.Persistence
             }
 
             SystemPromptConfig config = LoadConfigReadOnly() ?? CreateDefaultConfig();
+            GameAIInterface.Instance.RefreshQuestTrackingState();
             DialogueScenarioContext context = DialogueScenarioContext.CreateDiplomacy(
                 faction,
                 false,
@@ -153,6 +154,7 @@ namespace RimChat.Persistence
             string playerPawnProfileBlock = BuildPlayerPawnContextForPrompt(faction, preferredNegotiator);
             string playerRoyaltySummaryBlock = BuildPlayerRoyaltySummaryForPrompt(faction, preferredNegotiator);
             string factionSettlementSummaryBlock = BuildFactionSettlementSummaryForPrompt(faction);
+            string factionQuestStatusBlock = BuildFactionQuestStatusBlockForPrompt(faction);
 
             return new DiplomacyPromptRuntimeSnapshot(
                 faction.GetUniqueLoadID(),
@@ -162,13 +164,15 @@ namespace RimChat.Persistence
                 playerPawnProfileBlock,
                 playerRoyaltySummaryBlock,
                 factionSettlementSummaryBlock,
+                factionQuestStatusBlock,
                 builtTick,
                 memoryRevision,
                 worldEventRevision,
                 faction.PlayerGoodwill,
                 faction.RelationKindWith(Faction.OfPlayer),
                 promptFilesStampUtcTicks,
-                settingsSignature);
+                settingsSignature,
+                GameAIInterface.Instance.QuestTrackingRevision);
         }
 
         /// <summary>/// Promptfoldername
@@ -1594,6 +1598,10 @@ namespace RimChat.Persistence
         private string BuildLocalDateText(Map map)
         {
             int absTicks = Find.TickManager?.TicksAbs ?? 0;
+            if (!WorldTileGuard.IsValidTile(map?.Tile ?? -1))
+            {
+                return $"Unknown Date, Year {GenDate.Year(absTicks, 0f) + 1}";
+            }
             Vector2 longLat = Find.WorldGrid.LongLatOf(map.Tile);
             int dayOfQuadrum = GenDate.DayOfQuadrum(absTicks, longLat.x) + 1;
             string quadrum = GenDate.Quadrum(absTicks, longLat.x).Label();
@@ -4075,7 +4083,7 @@ namespace RimChat.Persistence
             IEnumerable<WorldObject> orderedBases = OrderFactionBasesByDistance(bases, homeMap);
             WorldObject nearest = null;
 
-            if (homeMap != null && Find.WorldGrid != null)
+            if (homeMap != null && WorldTileGuard.IsValidTile(homeMap.Tile))
             {
                 nearest = orderedBases.FirstOrDefault();
                 if (nearest != null)
@@ -4090,6 +4098,120 @@ namespace RimChat.Persistence
             sb.AppendLine($"AllSettlements: {names}");
             sb.AppendLine("SettlementActionGuidance: settlement-backed actions are allowed only when this summary indicates viable settlement presence.");
             return ClampPromptBlock(sb.ToString(), maxChars);
+        }
+
+        internal string BuildFactionQuestStatusBlockForPrompt(Faction faction, int maxChars = 1600)
+        {
+            if (TryGetScopedRuntimeSnapshotForFaction(faction, out DiplomacyPromptRuntimeSnapshot snapshot))
+            {
+                return snapshot.FactionQuestStatusBlock ?? string.Empty;
+            }
+
+            if (faction == null)
+            {
+                return string.Empty;
+            }
+
+            GameAIInterface.Instance.RefreshQuestTrackingState();
+            var sb = new StringBuilder();
+            AppendFactionQuestStatus(sb, faction);
+            return ClampPromptBlock(sb.ToString(), maxChars);
+        }
+
+        private void AppendFactionQuestStatus(StringBuilder sb, Faction faction)
+        {
+            if (sb == null || faction == null)
+            {
+                return;
+            }
+
+            FactionQuestAvailabilityReport report = ApiActionEligibilityService.Instance.GetFactionQuestAvailabilityReport(faction, null);
+            List<string> availableQuestNames = report?.AllowedQuestDefs?
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new List<string>();
+
+            List<Quest> ongoingQuests = (Find.QuestManager?.QuestsListForReading ?? new List<Quest>())
+                .Where(quest => quest != null && quest.State == QuestState.Ongoing)
+                .Where(quest => quest.InvolvedFactions != null && quest.InvolvedFactions.Contains(faction))
+                .OrderByDescending(quest => quest.id)
+                .ToList();
+
+            RimChatFactionQuestCompletionRecord latestCompletion = GameAIInterface.Instance.GetLatestCompletedQuestForFaction(faction);
+            sb.AppendLine("=== FACTION QUEST STATUS ===");
+            sb.AppendLine($"Faction: {faction.Name}");
+            sb.AppendLine($"AvailableTasks: {(availableQuestNames.Count == 0 ? "none" : string.Join(", ", availableQuestNames))}");
+
+            if (ongoingQuests.Count == 0)
+            {
+                sb.AppendLine("OngoingTasks: none");
+            }
+            else
+            {
+                sb.AppendLine("OngoingTasks:");
+                foreach (Quest quest in ongoingQuests.Take(6))
+                {
+                    string questName = ResolveQuestPromptName(quest);
+                    string questDescription = ResolveQuestPromptDescription(quest);
+                    sb.AppendLine($"- {questName}: {questDescription}");
+                }
+            }
+
+            if (latestCompletion == null)
+            {
+                sb.AppendLine("LatestFinishedTask: none");
+                return;
+            }
+
+            sb.AppendLine("LatestFinishedTask:");
+            sb.AppendLine($"- Name: {NormalizePromptInlineText(latestCompletion.QuestName, latestCompletion.QuestDefName)}");
+            sb.AppendLine($"- Detail: {NormalizePromptInlineText(latestCompletion.QuestDescription, "none")}");
+            sb.AppendLine($"- Time: {FormatQuestTickForPrompt(latestCompletion.EndedTick)}");
+            sb.AppendLine($"- Result: {(latestCompletion.Succeeded ? "success" : "failure")}");
+        }
+
+        private static string ResolveQuestPromptName(Quest quest)
+        {
+            if (!string.IsNullOrWhiteSpace(quest?.name))
+            {
+                return quest.name.Trim();
+            }
+
+            string rootTypeName = quest?.root?.GetType().Name;
+            if (!string.IsNullOrWhiteSpace(rootTypeName))
+            {
+                return rootTypeName.Trim();
+            }
+
+            return "UnknownQuest";
+        }
+
+        private static string ResolveQuestPromptDescription(Quest quest)
+        {
+            string description = quest?.description ?? string.Empty;
+            return NormalizePromptInlineText(description, "none");
+        }
+
+        private static string NormalizePromptInlineText(string value, string fallback)
+        {
+            string normalized = (value ?? string.Empty).Replace("\r", " ").Replace("\n", " ").Trim();
+            return string.IsNullOrWhiteSpace(normalized) ? fallback : normalized;
+        }
+
+        private static string FormatQuestTickForPrompt(int gameTick)
+        {
+            if (gameTick <= 0)
+            {
+                return "unknown";
+            }
+
+            int ticksAbs = Find.TickManager?.TicksAbs ?? gameTick;
+            int homeTile = Find.AnyPlayerHomeMap?.Tile ?? -1;
+            if (!WorldTileGuard.IsValidTile(homeTile))
+            {
+                return $"Year {GenDate.Year(ticksAbs, 0f) + 1}";
+            }
+            return GenDate.DateFullStringAt(ticksAbs, Find.WorldGrid.LongLatOf(homeTile));
         }
 
         private static List<WorldObject> GetFactionBaseWorldObjects(Faction faction)
@@ -4114,7 +4236,8 @@ namespace RimChat.Persistence
 
             foreach (WorldObject obj in allObjects)
             {
-                if (obj == null || obj.Destroyed || obj.Faction != faction)
+                if (obj == null || obj.Destroyed || obj.Faction != faction
+                    || !WorldTileGuard.IsValidTile(obj.Tile))
                 {
                     continue;
                 }
@@ -4159,7 +4282,7 @@ namespace RimChat.Persistence
                 return Enumerable.Empty<WorldObject>();
             }
 
-            bool hasDistance = homeMap != null && Find.WorldGrid != null;
+            bool hasDistance = homeMap != null && WorldTileGuard.IsValidTile(homeMap.Tile);
             if (!hasDistance)
             {
                 return bases
@@ -5733,6 +5856,14 @@ namespace RimChat.Persistence
             changed |= AssignIfMissing(ref target.DecisionPolicyTemplate, templateDefaults.DecisionPolicyTemplate);
             changed |= AssignIfMissing(ref target.TurnObjectiveTemplate, templateDefaults.TurnObjectiveTemplate);
             changed |= AssignIfMissing(ref target.TopicShiftRuleTemplate, templateDefaults.TopicShiftRuleTemplate);
+            changed |= AssignIfMissing(ref target.RpgRoleSettingTemplate, templateDefaults.RpgRoleSettingTemplate);
+            changed |= AssignIfMissing(ref target.RpgCompactFormatConstraintTemplate, templateDefaults.RpgCompactFormatConstraintTemplate);
+            changed |= AssignIfMissing(ref target.RpgActionReliabilityRuleTemplate, templateDefaults.RpgActionReliabilityRuleTemplate);
+            changed |= AssignIfMissing(ref target.OpeningObjectiveTemplate, templateDefaults.OpeningObjectiveTemplate);
+            changed |= AssignIfMissing(ref target.ActionPriorityRuleTemplate, templateDefaults.ActionPriorityRuleTemplate);
+            changed |= AssignIfMissing(ref target.ProactiveRomanceRuleTemplate, templateDefaults.ProactiveRomanceRuleTemplate);
+            changed |= AssignIfMissing(ref target.ProactiveSocialActionRuleTemplate, templateDefaults.ProactiveSocialActionRuleTemplate);
+            changed |= ForceRefreshRpgPromptTemplates(target);
             changed |= AssignIfMissing(ref target.ApiLimitsNodeTemplate, templateDefaults.ApiLimitsNodeTemplate);
             changed |= AssignIfMissing(ref target.QuestGuidanceNodeTemplate, templateDefaults.QuestGuidanceNodeTemplate);
             changed |= AssignIfMissing(ref target.ResponseContractNodeTemplate, templateDefaults.ResponseContractNodeTemplate);
@@ -5742,6 +5873,45 @@ namespace RimChat.Persistence
             if (changed)
             {
                 Log.Message("[RimChat] Migrating config: Filled missing PromptTemplates fields from default template file.");
+            }
+
+            return changed;
+        }
+
+        private static bool ForceRefreshRpgPromptTemplates(PromptTemplateTextConfig target)
+        {
+            if (target == null)
+            {
+                return false;
+            }
+
+            RpgPromptDefaultsConfig rpgDefaults = RpgPromptDefaultsProvider.GetDefaults()
+                ?? RpgPromptDefaultsConfig.CreateFallback();
+            if (rpgDefaults == null)
+            {
+                return false;
+            }
+
+            bool changed = false;
+            string newActionPriority = rpgDefaults.ActionPriorityRuleTemplate;
+            if (!string.IsNullOrWhiteSpace(newActionPriority) && newActionPriority != target.ActionPriorityRuleTemplate)
+            {
+                target.ActionPriorityRuleTemplate = newActionPriority;
+                changed = true;
+            }
+
+            string newProactiveRomance = rpgDefaults.ProactiveRomanceRuleTemplate;
+            if (!string.IsNullOrWhiteSpace(newProactiveRomance) && newProactiveRomance != target.ProactiveRomanceRuleTemplate)
+            {
+                target.ProactiveRomanceRuleTemplate = newProactiveRomance;
+                changed = true;
+            }
+
+            string newProactiveSocial = rpgDefaults.ProactiveSocialActionRuleTemplate;
+            if (!string.IsNullOrWhiteSpace(newProactiveSocial) && newProactiveSocial != target.ProactiveSocialActionRuleTemplate)
+            {
+                target.ProactiveSocialActionRuleTemplate = newProactiveSocial;
+                changed = true;
             }
 
             return changed;
@@ -5975,7 +6145,7 @@ namespace RimChat.Persistence
                 "- need 字段必须忠实反映玩家需求：若玩家消息中包含明确数量（如“1000原木”“50个钢铁”），need 必须携带该数量（格式：数字+物品名），禁止忽略玩家指定的数量。",
                 "- payment_items 格式：数组，每项必须同时含 item（string）和 count（正整数）。示例：[{\"item\":\"Silver\",\"count\":220}]。缺失 item 或 count 将导致动作执行失败。",
                 "- 若玩家准确命中你掌握的交易事实（库存、价格区间、需求），可在不违背成本底线时考虑让步并打折。",
-                "- 商队硬约束：request_caravan 派出的商队所携带的物资由派系交易清单决定，你无法指定、修改或承诺商队携带的具体物资。玩家也无法通过商队请求指定物资交易。当玩家要求特定物资时，必须引导其改用 request_item_airdrop（空投可指定物资）。",
+                "- 商队硬约束：request_caravan 派出的商队所携带的物资由派系交易清单决定，你无法指定、修改或承诺商队携带的具体物资。玩家也无法通过商队请求指定物资交易。当玩家要求特定物资时，必须引导其改用 request_item_airdrop（空投可指定物资）。request_caravan 的合法类型只有 General / BulkGoods / CombatSupplier / Exotic / Slaver；必须使用这些精确值之一，不能自造值。",
                 "- 轨道商硬约束：轨道商不具备地面定居点履约能力，禁止承诺“带着指定物资进入我们的据点/定居点完成订单”。若玩家提出这类需求，只能解释限制并引导改走 request_item_airdrop。",
                 "- 通信语境硬约束：当前是通信终端在线聊天，不是线下会面；禁止写“我已到场/当面处理/带人离开”。",
                 "- 赎金语义约束：仅在缺少有效 target_pawn_load_id 时使用 request_info(info_type=prisoner)；目标已明确时可直接 pay_prisoner_ransom。",
@@ -6065,7 +6235,7 @@ namespace RimChat.Persistence
                 case "make_peace":
                     return "cost?";
                 case "request_caravan":
-                    return "goods?";
+                    return "type?(General/BulkGoods/CombatSupplier/Exotic/Slaver)";
                 case "request_visitor":
                     return string.Empty;
                 case "request_raid":

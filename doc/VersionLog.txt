@@ -1,3 +1,30 @@
+1.1.8
+- [修复] 系统性修复中途加入存档时 tile 越界崩溃：新增 WorldTileGuard 统一校验 WorldGrid 调用前的 tile 有效性，覆盖 12 处 LongLatOf/ApproxDistanceInTiles/TraversalDistanceBetween 调用点
+- [修复] SnapshotCache 构建失败改为指数退避重试(250→500→...→60000 tick)，避免永久性坏 tile 导致日志刷屏
+
+1.1.7
+- [性能] 修复周期性卡顿根因：DiplomacyPromptSnapshotCache 改为懒构建策略，Tick() 不再主动预热/重建快照，仅在打开外交对话时按需构建单个派系
+- [性能] SnapshotCache 移除 WorldEventRevision 检查：世界事件变化不再使所有派系快照失效
+- [性能] 添加 PerfScope 性能诊断工具，超过 2ms 的操作输出 [RimChatPerf] 日志
+
+1.1.6
+- [性能] 修复周期性卡顿：CommsConsolePatch 每 tick 分配改为 early return + 复用列表
+- [性能] 修复周期性卡顿：250-tick 组件调度错峰，避免多个 GameComponent 同时触发
+- [性能] 修复周期性卡顿：PromptFileStampCache 缓存有效期从 250 tick 提升至 1500 tick，添加 FileSystemWatcher 即时失效
+- [性能] 修复周期性卡顿：DiplomacyPromptSnapshotCache 改为 stale-while-revalidate 策略，不再全量清除缓存导致级联重建
+- [性能] 修复周期性卡顿：新增 PlayerGameStateCache 统一缓存敌对/征召/蜂巢/候选派系状态，消除 6 处重复 Pawn 扫描
+- [性能] 修复周期性卡顿：NpcDialoguePushManager 候选列表改为复用模式
+- [修复] 修复 rpg_archive_compression 无限循环重试：默认文本含 "JSON" 导致永远无法通过自验证，且失败时不标记 SummaryState 导致冷却机制失效
+- [修复] 修复 AI 在对话中同意恋爱但不调用 RomanceAttempt action 的问题：将"应在下一轮调用"改为"必须在当前回复中调用"
+- [提示词] ProactiveRomanceRuleTemplate 增加已确认关系后的主动浪漫行为引导
+
+1.1.5
+- [修复] 送礼动作 send_gift 现在会走空投式确认链路，确认后真实扣除银币并提升好感
+- [修复] 议和动作 make_peace 现在会先弹玩家确认框，确认后真实扣银再正式议和
+- [修复] request_caravan 现在显式注入合法类型列表（General/BulkGoods/CombatSupplier/Exotic/Slaver），非法值改为 fail-fast
+- [平衡] 策略机会改为每3级社交获得1次，最低解锁等级从5降至3
+- [文档] help.md / help_en.md 全量同步翻译并补齐外交动作说明
+
 1.1.4
 - [兼容] 新增 ExpandMemory 常识库兼容：通过反射调用 ExpandMemory 的关键词匹配 API，根据玩家消息自动注入相关常识到提示词
 - [修复] 空投交易定价口径统一：Async/Barter/Session/UI 四处 PaymentPriceSemantic 统一使用 `ResolveOfferPriceSemantic` 权威方法

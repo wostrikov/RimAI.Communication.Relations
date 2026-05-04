@@ -189,6 +189,10 @@ if (Test-Path $destRoot) {
     $emptyDir = Join-Path $env:TEMP "RimChat_EmptyDir"
     New-Item -ItemType Directory -Path $emptyDir -Force | Out-Null
     robocopy $emptyDir $destRoot /MIR /NJH /NJS /NDL /NC /NS /NP | Out-Null
+    $robocopyExitCode = $LASTEXITCODE
+    if ($robocopyExitCode -ge 8) {
+        throw "robocopy mirror failed with exit code $robocopyExitCode"
+    }
     Remove-Item -Path $emptyDir -Force -ErrorAction SilentlyContinue | Out-Null
     Remove-Item -Path $destRoot -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 }
@@ -206,13 +210,19 @@ if (Test-Path "$sourceRoot\1.6") {
     Copy-Item "$sourceRoot\1.6" "$destRoot" -Recurse -Force
 }
 
-# Copy VersionLog files
-Write-Info "Copying VersionLog files..."
+# Copy VersionLog and help files
+Write-Info "Copying VersionLog and help files..."
 if (Test-Path "$sourceRoot\doc\VersionLog.txt") {
     Copy-Item "$sourceRoot\doc\VersionLog.txt" "$destRoot\VersionLog.txt" -Force
 }
 if (Test-Path "$sourceRoot\doc\VersionLog_en.txt") {
     Copy-Item "$sourceRoot\doc\VersionLog_en.txt" "$destRoot\VersionLog_en.txt" -Force
+}
+if (Test-Path "$sourceRoot\doc\help.md") {
+    Copy-Item "$sourceRoot\doc\help.md" "$destRoot\help.md" -Force
+}
+if (Test-Path "$sourceRoot\doc\help_en.md") {
+    Copy-Item "$sourceRoot\doc\help_en.md" "$destRoot\help_en.md" -Force
 }
 
 # Copy README
@@ -225,6 +235,11 @@ Write-Info "Copying Prompt folder..."
 if (Test-Path "$sourceRoot\Prompt") {
     # Use robocopy to avoid copying Windows reserved device names like 'nul'
     robocopy "$sourceRoot\Prompt" "$destRoot\Prompt" /MIR /XF nul /NJH /NJS /NDL /NC /NS /NP | Out-Null
+    $robocopyPromptExitCode = $LASTEXITCODE
+    if ($robocopyPromptExitCode -ge 8) {
+        throw "robocopy prompt mirror failed with exit code $robocopyPromptExitCode"
+    }
+    $global:LASTEXITCODE = 0
 }
 
 # Always start from a clean custom prompt folder to avoid stale prompt overlays.
@@ -268,3 +283,4 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host "Build and deploy complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
+exit 0

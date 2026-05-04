@@ -102,7 +102,13 @@
     <RimChat_DiplomacyVersionTooltip>功能：打开版本日志语言选择菜单。作用域：仅外交界面标题栏。</RimChat_DiplomacyVersionTooltip>
     <RimChat_VersionLogLanguageChinese>中文</RimChat_VersionLogLanguageChinese>
     <RimChat_VersionLogLanguageEnglish>英文</RimChat_VersionLogLanguageEnglish>
-    <RimChat_VersionLogWindowTitleByLanguage>版本日志 - {0}</RimChat_VersionLogWindowTitleByLanguage>
+    <RimChat_DiplomacyHelpButton>帮助</RimChat_DiplomacyHelpButton>
+    <RimChat_DiplomacyHelpTooltip>功能：打开帮助文档。作用域：仅外交界面标题栏。</RimChat_DiplomacyHelpTooltip>
+    <RimChat_HelpWindowTitle>帮助</RimChat_HelpWindowTitle>
+    <RimChat_HelpWindowTitleByLanguage>帮助 - {0}</RimChat_HelpWindowTitleByLanguage>
+    <RimChat_HelpReadFailed>读取帮助文件失败: {0} ({1})</RimChat_HelpReadFailed>
+    <RimChat_HelpMissing>未找到帮助文件: {0}</RimChat_HelpMissing>
+    <RimChat_HelpEmpty>帮助文件为空: {0}</RimChat_HelpEmpty>
     <RimChat_APIGitHubButton>GitHub</RimChat_APIGitHubButton>
     <RimChat_APIGitHubButtonTooltip>功能：打开 RimChat GitHub 仓库页面。作用域：外部浏览器跳转。</RimChat_APIGitHubButtonTooltip>
     <RimChat_VersionLogWindowTitle>版本日志</RimChat_VersionLogWindowTitle>
@@ -1047,7 +1053,7 @@ ID：{5}
     <RimChat_ReinitiateCooldownHint>可在 {0} 小时后重新发起。</RimChat_ReinitiateCooldownHint>
     <RimChat_StrategyFallbackLabel>策略建议</RimChat_StrategyFallbackLabel>
     <RimChat_StrategyFallbackBasis>综合判断</RimChat_StrategyFallbackBasis>
-    <RimChat_StrategyNeedSocialHint>策略功能需社交≥5（当前 {0}）</RimChat_StrategyNeedSocialHint>
+    <RimChat_StrategyNeedSocialHint>策略功能需社交≥3（当前 {0}），每2级+1次，20级无限次</RimChat_StrategyNeedSocialHint>
     <RimChat_StrategyGeneratingHint>正在生成策略...（剩余 {0}/{1}）</RimChat_StrategyGeneratingHint>
     <RimChat_StrategyUsesExhaustedHint>本会话策略次数已用尽（上限 {0}）</RimChat_StrategyUsesExhaustedHint>
     <RimChat_StrategyRemainingHint>策略可用次数：{0}/{1}</RimChat_StrategyRemainingHint>
@@ -1358,6 +1364,30 @@ ID：{5}
     <RimChat_AllPromptsReset>所有提示词已重置为默认</RimChat_AllPromptsReset>
     <RimChat_EditSystemPrompt>编辑系统提示词</RimChat_EditSystemPrompt>
     <RimChat_EditDialoguePrompt>编辑对话提示词</RimChat_EditDialoguePrompt>
+    <RimChat_MakePeaceAwaitingConfirmSystem>议和条约已准备，等待玩家确认付款。</RimChat_MakePeaceAwaitingConfirmSystem>
+    <RimChat_MakePeaceConfirmTitle>确认议和付款</RimChat_MakePeaceConfirmTitle>
+    <RimChat_MakePeaceConfirmBody>{0} 提议与你议和。
+确认后将从可交易库存/轨道信标中扣除 {1} 白银。
+付款来源：{2}
+确认后才会正式议和。</RimChat_MakePeaceConfirmBody>
+    <RimChat_MakePeaceConfirmAccept>确认付款并议和</RimChat_MakePeaceConfirmAccept>
+    <RimChat_MakePeaceConfirmCancel>取消</RimChat_MakePeaceConfirmCancel>
+    <RimChat_MakePeaceCancelledSystem>你取消了与 {0} 的议和付款，本次不会扣银，也不会改变关系。</RimChat_MakePeaceCancelledSystem>
+    <RimChat_MakePeaceConfirmedSystem>已向 {0} 支付 {1} 白银并正式议和。</RimChat_MakePeaceConfirmedSystem>
+    <RimChat_MakePeaceCommitFailedSystem>议和付款执行失败，请检查库存/信标状态后重试。</RimChat_MakePeaceCommitFailedSystem>
+    <RimChat_MakePeaceConfirmCostInvalidSystem>make_peace 需要有效且大于 0 的 cost 才能进入确认付款流程。</RimChat_MakePeaceConfirmCostInvalidSystem>
+    <RimChat_SendGiftAwaitingConfirmSystem>送礼已准备，等待玩家确认付款。</RimChat_SendGiftAwaitingConfirmSystem>
+    <RimChat_SendGiftConfirmTitle>确认赠礼付款</RimChat_SendGiftConfirmTitle>
+    <RimChat_SendGiftConfirmBody>{0} 想向你赠送礼物。
+确认后将从可交易库存/轨道信标中扣除 {1} 白银，并向对方发送银币礼物。
+预计关系收益：{2} 好感。
+付款来源：{3}</RimChat_SendGiftConfirmBody>
+    <RimChat_SendGiftConfirmAccept>确认付款并送礼</RimChat_SendGiftConfirmAccept>
+    <RimChat_SendGiftConfirmCancel>取消</RimChat_SendGiftConfirmCancel>
+    <RimChat_SendGiftCancelledSystem>你取消了向 {0} 的赠礼付款，本次不会扣银，也不会提升关系。</RimChat_SendGiftCancelledSystem>
+    <RimChat_SendGiftConfirmedSystem>已向 {0} 发送 {1} 白银礼物，并获得 {2} 好感。</RimChat_SendGiftConfirmedSystem>
+    <RimChat_SendGiftCommitFailedSystem>赠礼执行失败，请检查库存/信标状态后重试。</RimChat_SendGiftCommitFailedSystem>
+    <RimChat_SendGiftConfirmSilverInvalidSystem>send_gift 需要有效且大于 0 的 silver 才能进入确认付款流程。</RimChat_SendGiftConfirmSilverInvalidSystem>
 
     <!-- RPG 对话设置 -->
     <RimChat_RPGDialogueSettings>RPG 对话设置</RimChat_RPGDialogueSettings>
@@ -2210,6 +2240,8 @@ ID：{5}
     <RimChat_PromptTemplateTurnObjectiveLabel>回合目标模板</RimChat_PromptTemplateTurnObjectiveLabel>
     <RimChat_PromptTemplateOpeningObjectiveLabel>开场目标模板</RimChat_PromptTemplateOpeningObjectiveLabel>
     <RimChat_PromptTemplateTopicShiftRuleLabel>转题规则模板</RimChat_PromptTemplateTopicShiftRuleLabel>
+    <RimChat_PromptTemplateActionPriorityRuleLabel>动作优先级规则模板</RimChat_PromptTemplateActionPriorityRuleLabel>
+    <RimChat_PromptTemplateProactiveRomanceRuleLabel>主动浪漫行为规则模板</RimChat_PromptTemplateProactiveRomanceRuleLabel>
     <RimChat_PromptTemplateApiLimitsNodeLabel>API 限制节点模板</RimChat_PromptTemplateApiLimitsNodeLabel>
     <RimChat_PromptTemplateQuestGuidanceNodeLabel>任务引导节点模板</RimChat_PromptTemplateQuestGuidanceNodeLabel>
     <RimChat_PromptTemplateResponseContractNodeLabel>响应契约节点模板</RimChat_PromptTemplateResponseContractNodeLabel>
@@ -2306,6 +2338,8 @@ ID：{5}
     <RimChat_ApiDebugColumnHttp>HTTP</RimChat_ApiDebugColumnHttp>
     <RimChat_ApiDebugDetailTitle>详情</RimChat_ApiDebugDetailTitle>
     <RimChat_ApiDebugNoSelection>请选择一条记录查看完整收发内容。</RimChat_ApiDebugNoSelection>
+    <RimChat_ApiDebugDetailSearchSummary>关键词“{0}”共匹配 {1} 处：</RimChat_ApiDebugDetailSearchSummary>
+    <RimChat_ApiDebugDetailSearchNoMatch>未在当前详情中找到关键词：{0}</RimChat_ApiDebugDetailSearchNoMatch>
     <RimChat_ApiDebugErrorLabel>错误</RimChat_ApiDebugErrorLabel>
     <RimChat_ApiDebugRequestLabel>完整请求</RimChat_ApiDebugRequestLabel>
     <RimChat_ApiDebugResponseLabel>完整响应</RimChat_ApiDebugResponseLabel>
@@ -2485,6 +2519,8 @@ ID：{5}
     <RimChat_PromptNode_RpgRoleFallback>RPG角色兜底</RimChat_PromptNode_RpgRoleFallback>
     <RimChat_PromptNode_RpgRelationshipProfile>RPG关系画像</RimChat_PromptNode_RpgRelationshipProfile>
     <RimChat_PromptNode_RpgKinshipBoundary>RPG亲属边界</RimChat_PromptNode_RpgKinshipBoundary>
+    <RimChat_PromptNode_RpgActionPriority>RPG动作优先级</RimChat_PromptNode_RpgActionPriority>
+    <RimChat_PromptNode_RpgProactiveRomance>RPG主动浪漫</RimChat_PromptNode_RpgProactiveRomance>
     <RimChat_PromptNode_DiplomacyStateOverride>外交状态覆盖</RimChat_PromptNode_DiplomacyStateOverride>
     <RimChat_PromptNode_DiplomacyAliveFeeling>外交活人感</RimChat_PromptNode_DiplomacyAliveFeeling>
     <RimChat_PromptNode_RpgBodyEmotionOverride>RPG身体情绪覆盖</RimChat_PromptNode_RpgBodyEmotionOverride>

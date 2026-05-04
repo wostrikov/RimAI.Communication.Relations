@@ -508,17 +508,20 @@ namespace RimChat.DiplomacySystem
 
             if (currentTick % 60 == 0)
             {
-                DiplomacyPromptSnapshotCache.Instance.Tick(currentTick, maxBuildsPerTick: 1);
+                using (PerfScope.Measure("DiplomacyMgr.SnapshotCacheTick"))
+                    DiplomacyPromptSnapshotCache.Instance.Tick(currentTick, maxBuildsPerTick: 1);
             }
 
             if (currentTick % 2000 == 0)
             {
-                ProcessAIDecisions();
+                using (PerfScope.Measure("DiplomacyMgr.AIDecisions"))
+                    ProcessAIDecisions();
             }
 
             if (currentTick - lastPeriodicSnapshotTick >= PeriodicSnapshotIntervalTicks)
             {
-                ProcessPeriodicDiplomacySnapshots();
+                using (PerfScope.Measure("DiplomacyMgr.PeriodicSnapshot"))
+                    ProcessPeriodicDiplomacySnapshots();
                 lastPeriodicSnapshotTick = currentTick;
             }
 

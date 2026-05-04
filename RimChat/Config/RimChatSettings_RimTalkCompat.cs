@@ -40,7 +40,7 @@ namespace RimChat.Config
         private const string RpgArchiveCompressionSystemRulesText =
             "RPG 归档压缩模式：你是离线归档压缩器。仅基于提供的会话文本提取事实，不增删事件，不重写因果，不加入角色扮演语气。";
         private const string RpgArchiveCompressionOutputSpecificationText =
-            "输出规范：仅输出单句纯文本摘要。禁止 JSON、列表、换行、额外说明或引号包裹。";
+            "输出规范：仅输出单句纯文本摘要。禁止结构化数据、列表、换行、额外说明或引号包裹。";
         private static readonly string[] RpgArchiveCompressionRequiredSectionIds =
         {
             "system_rules",
@@ -518,6 +518,10 @@ You may reference RimTalk variables/plugins directly in this section.";
             CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.ProactiveRpgDialogue, "rpg_relationship_profile", legacy.RelationshipProfileTemplate);
             CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.RpgDialogue, "rpg_kinship_boundary", legacy.KinshipBoundaryRuleTemplate);
             CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.ProactiveRpgDialogue, "rpg_kinship_boundary", legacy.KinshipBoundaryRuleTemplate);
+            CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.RpgDialogue, "rpg_action_priority", legacy.ActionPriorityRuleTemplate);
+            CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.ProactiveRpgDialogue, "rpg_action_priority", legacy.ActionPriorityRuleTemplate);
+            CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.RpgDialogue, "rpg_proactive_romance", legacy.ProactiveRomanceRuleTemplate);
+            CopyNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.ProactiveRpgDialogue, "rpg_proactive_romance", legacy.ProactiveRomanceRuleTemplate);
         }
 
         private static void CopyLegacySectionsToUnifiedCatalog(

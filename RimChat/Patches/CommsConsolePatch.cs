@@ -8,6 +8,7 @@ using Verse;
 using Verse.AI;
 using RimChat.Core;
 using RimChat.Dialogue;
+using RimChat.Util;
 using RimChat.UI;
 
 namespace RimChat.Patches
@@ -397,6 +398,7 @@ namespace RimChat.Patches
 
         private readonly Dictionary<string, PendingCommsOpenRequest> pendingCallbacks =
             new Dictionary<string, PendingCommsOpenRequest>(StringComparer.Ordinal);
+        private readonly List<string> _reusableRemoveList = new List<string>();
         private const int PendingRequestTimeoutTicks = 2500;
         private const int FailureLogCooldownTicks = 120;
 
@@ -430,9 +432,11 @@ namespace RimChat.Patches
         public override void MapComponentTick()
         {
             base.MapComponentTick();
-            
+            if (pendingCallbacks.Count == 0) return;
+
+            using var _ = PerfScope.Measure("CommsConsole.MapTick");
             int currentTick = Find.TickManager?.TicksGame ?? 0;
-            var toRemove = new List<string>();
+            _reusableRemoveList.Clear();
             foreach (var kvp in pendingCallbacks)
             {
                 PendingCommsOpenRequest request = kvp.Value;
@@ -440,7 +444,7 @@ namespace RimChat.Patches
                 {
                     if (IsRequestExpired(request, currentTick))
                     {
-                        toRemove.Add(kvp.Key);
+                        _reusableRemoveList.Add(kvp.Key);
                     }
                     continue;
                 }
@@ -449,7 +453,7 @@ namespace RimChat.Patches
                 {
                     if (IsRequestExpired(request, currentTick))
                     {
-                        toRemove.Add(kvp.Key);
+                        _reusableRemoveList.Add(kvp.Key);
                     }
 
                     continue;
@@ -464,12 +468,12 @@ namespace RimChat.Patches
                     if (opened)
                     {
                         pawn.jobs.EndCurrentJob(JobCondition.InterruptForced);
-                        toRemove.Add(kvp.Key);
+                        _reusableRemoveList.Add(kvp.Key);
                     }
                     else if (TryOpenDiplomacyDirectFallback(faction, pawn, "comms_callback", reason))
                     {
                         pawn.jobs.EndCurrentJob(JobCondition.InterruptForced);
-                        toRemove.Add(kvp.Key);
+                        _reusableRemoveList.Add(kvp.Key);
                     }
                     else if (ShouldLogFailure(request, currentTick))
                     {
@@ -479,7 +483,7 @@ namespace RimChat.Patches
                 }
             }
             
-            foreach (string pawnId in toRemove)
+            foreach (string pawnId in _reusableRemoveList)
             {
                 pendingCallbacks.Remove(pawnId);
             }

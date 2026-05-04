@@ -5,6 +5,8 @@ using RimChat.AI;
 using RimChat.Config;
 using RimChat.Core;
 using RimChat.NpcDialogue;
+using RimChat.Util;
+using RimChat.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -132,22 +134,26 @@ namespace RimChat.PawnRpgPush
 
             if (currentTick % IncomingDrainInterval == 0)
             {
-                DrainIncomingTriggers(currentTick);
+                using (PerfScope.Measure("RpgPush.Drain"))
+                    DrainIncomingTriggers(currentTick);
             }
 
             if (currentTick % QueueProcessInterval == 0)
             {
-                ProcessQueuedTriggers(currentTick);
+                using (PerfScope.Measure("RpgPush.QueueProcess"))
+                    ProcessQueuedTriggers(currentTick);
             }
 
             if (currentTick % ThreatScanInterval == 0)
             {
-                EvaluateThreatTriggers(currentTick);
+                using (PerfScope.Measure("RpgPush.EvaluateThreat"))
+                    EvaluateThreatTriggers(currentTick);
             }
 
             if (currentTick % RegularEvaluationInterval == 0)
             {
-                EvaluateRegularTriggers(currentTick);
+                using (PerfScope.Measure("RpgPush.EvaluateRegular"))
+                    EvaluateRegularTriggers(currentTick);
             }
         }
 
@@ -244,7 +250,7 @@ namespace RimChat.PawnRpgPush
                 return false;
             }
 
-            List<Faction> factions = GetActiveCandidateFactionsOnPlayerMaps();
+            IReadOnlyCollection<Faction> factions = GetActiveCandidateFactionsOnPlayerMaps(now);
             if (factions.Count == 0)
             {
                 return false;
@@ -529,7 +535,7 @@ namespace RimChat.PawnRpgPush
         {
             CleanupQuestTriggerCache(currentTick);
             float chance = GetRegularTriggerChance(RimChatMod.Instance?.InstanceSettings?.NpcPushFrequencyMode ?? NpcPushFrequencyMode.Low);
-            foreach (Faction faction in GetActiveCandidateFactionsOnPlayerMaps())
+            foreach (Faction faction in GetActiveCandidateFactionsOnPlayerMaps(currentTick))
             {
                 if (IsFactionPending(faction))
                 {
@@ -569,10 +575,11 @@ namespace RimChat.PawnRpgPush
 
         private void EvaluateThreatTriggers(int currentTick)
         {
-            bool hasHostiles = IsBusyByHostiles();
-            bool hasHive = HasNearbyHiveThreat();
+            PlayerGameStateCache.Instance.EnsureFresh(currentTick);
+            bool hasHostiles = PlayerGameStateCache.Instance.HasHostiles;
+            bool hasHive = PlayerGameStateCache.Instance.HasHiveThreat;
             bool hasThreat = hasHostiles || hasHive;
-            foreach (Faction faction in GetActiveCandidateFactionsOnPlayerMaps())
+            foreach (Faction faction in GetActiveCandidateFactionsOnPlayerMaps(currentTick))
             {
                 PawnRpgThreatState state = GetOrCreateThreatState(faction);
                 if (!hasThreat)

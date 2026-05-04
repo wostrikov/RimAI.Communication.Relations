@@ -51,12 +51,28 @@ namespace RimChat.UI
             "我会去做", "我可以帮你", "我来处理", "交给我", "我会负责"
         };
 
+        private static readonly string[] RomanceAgreementHints =
+        {
+            "i'd love to", "yes i will", "i agree", "i accept", "let's be together",
+            "i want to be with you", "i feel the same", "i love you too",
+            "我愿意", "好的", "我同意", "我接受", "让我们在一起",
+            "我想和你在一起", "我也爱你", "我也喜欢你"
+        };
+
+        private static readonly string[] ProposalAgreementHints =
+        {
+            "yes i'll marry you", "i do", "let's get married", "i accept your proposal",
+            "我愿意嫁给你", "我愿意娶你", "我们结婚吧", "我接受你的求婚"
+        };
+
         private enum IntentActionCategory
         {
             NeutralInfo = 0,
             CollaborationCommitment = 1,
             SoftEnding = 2,
-            StrongReject = 3
+            StrongReject = 3,
+            RomanceAgreement = 4,
+            ProposalAgreement = 5
         }
 
         private bool ExecuteTryGainMemory(LLMRpgApiResponse.ApiAction action)
@@ -250,6 +266,10 @@ namespace RimChat.UI
                     }
 
                     return TryMapCollaborationToAction(apiResponse, rounds, policy);
+                case IntentActionCategory.RomanceAgreement:
+                    return TryMapRomanceAgreementToAction(apiResponse);
+                case IntentActionCategory.ProposalAgreement:
+                    return TryMapProposalAgreementToAction(apiResponse);
                 default:
                     return false;
             }
@@ -266,6 +286,16 @@ namespace RimChat.UI
             if (ShouldUseNormalExitFallback(text))
             {
                 return IntentActionCategory.SoftEnding;
+            }
+
+            if (ContainsAnyPhrase(text, ProposalAgreementHints))
+            {
+                return IntentActionCategory.ProposalAgreement;
+            }
+
+            if (ContainsAnyPhrase(text, RomanceAgreementHints))
+            {
+                return IntentActionCategory.RomanceAgreement;
             }
 
             return ContainsAnyPhrase(text, CollaborationHints)
@@ -329,6 +359,36 @@ namespace RimChat.UI
                 reason = "intent_map_collaboration"
             });
             autoMemoryFallbackConsumed = true;
+            return true;
+        }
+
+        private bool TryMapRomanceAgreementToAction(LLMRpgApiResponse apiResponse)
+        {
+            if (HasRpgAction(apiResponse, "RomanceAttempt") || HasRpgAction(apiResponse, "MarriageProposal"))
+            {
+                return false;
+            }
+
+            apiResponse.Actions.Add(new LLMRpgApiResponse.ApiAction
+            {
+                action = "RomanceAttempt",
+                reason = "intent_map_romance_agreement"
+            });
+            return true;
+        }
+
+        private bool TryMapProposalAgreementToAction(LLMRpgApiResponse apiResponse)
+        {
+            if (HasRpgAction(apiResponse, "MarriageProposal"))
+            {
+                return false;
+            }
+
+            apiResponse.Actions.Add(new LLMRpgApiResponse.ApiAction
+            {
+                action = "MarriageProposal",
+                reason = "intent_map_proposal_agreement"
+            });
             return true;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
+using RimChat.Util;
 using UnityEngine;
 using Verse;
 
@@ -96,10 +97,12 @@ namespace RimChat.DiplomacySystem
                 }
             }
 
-            if (!slate.Exists("settlement") && faction != null && Find.WorldObjects?.Settlements != null)
+            if (!slate.Exists("settlement") && faction != null && Find.WorldObjects?.Settlements != null
+                && WorldTileGuard.IsValidTile(playerMap.Tile))
             {
                 Settlement settlement = Find.WorldObjects.Settlements
-                    .Where(s => s != null && s.Faction == faction)
+                    .Where(s => s != null && s.Faction == faction
+                                 && WorldTileGuard.IsValidTile(s.Tile))
                     .OrderBy(s => Find.WorldGrid.TraversalDistanceBetween(playerMap.Tile, s.Tile))
                     .FirstOrDefault();
                 if (settlement != null)

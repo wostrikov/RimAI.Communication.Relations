@@ -21,6 +21,10 @@ namespace RimChat.AI
             @"<\s*/\s*(?:think|thinking)\s*>",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+        private static readonly Regex PromptLeakageRegex = new Regex(
+            @"(?i)(system\s*prompt|prompt\s*template|response\s*contract|available\s+npc\s+actions|format\s*constraint|output\s*specification|api\s*contract|trygainmemory|thought\s*chain|reasoning|scratch>|<scratch|```json|```)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         public static string StripReasoningTags(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -32,6 +36,39 @@ namespace RimChat.AI
             sanitized = RemoveDanglingOpenThinkBlock(sanitized);
             sanitized = CloseThinkTagRegex.Replace(sanitized, " ");
             return sanitized;
+        }
+
+        public static bool ContainsPromptLeakageMarkers(string text)
+        {
+            return !string.IsNullOrWhiteSpace(text) && PromptLeakageRegex.IsMatch(text);
+        }
+
+        public static string TryExtractSafeVisibleDialogue(string rawOutput)
+        {
+            string sanitized = StripReasoningTags(rawOutput).Trim();
+            if (string.IsNullOrWhiteSpace(sanitized))
+            {
+                return string.Empty;
+            }
+
+            SplitVisibleAndTrailingActions(sanitized, out string visible, out _);
+            string candidate = (visible ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                return string.Empty;
+            }
+
+            if (ContainsPromptLeakageMarkers(candidate))
+            {
+                return string.Empty;
+            }
+
+            if (candidate.StartsWith("{", StringComparison.Ordinal) || candidate.StartsWith("```", StringComparison.Ordinal))
+            {
+                return string.Empty;
+            }
+
+            return candidate;
         }
 
         public static void SplitVisibleAndTrailingActions(

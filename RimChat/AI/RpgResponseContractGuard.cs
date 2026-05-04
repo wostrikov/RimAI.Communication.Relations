@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 
 namespace RimChat.AI
@@ -8,7 +7,8 @@ namespace RimChat.AI
         None = 0,
         MissingVisibleDialogue = 1,
         PlaceholderActionPayload = 2,
-        MultilineVisibleDialogue = 3
+        MultilineVisibleDialogue = 3,
+        PromptLeakage = 4
     }
 
     internal sealed class RpgResponseContractCheckResult
@@ -65,6 +65,13 @@ namespace RimChat.AI
                 return result;
             }
 
+            if (ModelOutputSanitizer.ContainsPromptLeakageMarkers(normalizedVisible))
+            {
+                result.IsValid = false;
+                result.Violation = RpgResponseContractViolation.PromptLeakage;
+                return result;
+            }
+
             string source = normalizedTrailing.Length > 0 ? normalizedTrailing : placeholderSource ?? string.Empty;
             if (PlaceholderTokenRegex.IsMatch(source))
             {
@@ -83,6 +90,7 @@ namespace RimChat.AI
                 RpgResponseContractViolation.MissingVisibleDialogue => "missing_visible_dialogue",
                 RpgResponseContractViolation.PlaceholderActionPayload => "placeholder_action_payload",
                 RpgResponseContractViolation.MultilineVisibleDialogue => "multiline_visible_dialogue",
+                RpgResponseContractViolation.PromptLeakage => "prompt_leakage",
                 _ => "none"
             };
         }

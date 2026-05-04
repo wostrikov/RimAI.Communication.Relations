@@ -624,6 +624,8 @@ namespace RimChat.Config
                 TopicShiftRuleTemplate = existing?.TopicShiftRuleTemplate ?? string.Empty,
                 RelationshipProfileTemplate = existing?.RelationshipProfileTemplate ?? string.Empty,
                 KinshipBoundaryRuleTemplate = existing?.KinshipBoundaryRuleTemplate ?? string.Empty,
+                ActionPriorityRuleTemplate = existing?.ActionPriorityRuleTemplate ?? string.Empty,
+                ProactiveRomanceRuleTemplate = existing?.ProactiveRomanceRuleTemplate ?? string.Empty,
                 PersonaBootstrapSystemPrompt = existing?.PersonaBootstrapSystemPrompt ?? string.Empty,
                 PersonaBootstrapUserPromptTemplate = existing?.PersonaBootstrapUserPromptTemplate ?? string.Empty,
                 PersonaBootstrapOutputTemplate = existing?.PersonaBootstrapOutputTemplate ?? string.Empty,

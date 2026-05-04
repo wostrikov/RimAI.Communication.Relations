@@ -12,7 +12,6 @@ namespace RimChat.UI
     /// </summary>
     public class Dialog_VersionLogViewer : Window
     {
-        private const float VersionHeaderHeight = 28f;
         private const float VersionBlockGap = 10f;
         private const float PageContentPadding = 8f;
         private const int MinLinesPerOverflowChunk = 8;
@@ -55,11 +54,12 @@ namespace RimChat.UI
             Widgets.DrawMenuSection(bodyRect);
             Rect viewportRect = bodyRect.ContractedBy(6f);
             string pageContent = GetCurrentPageContent();
+            string renderedContent = RenderMarkdown(pageContent);
             float contentWidth = Mathf.Max(100f, viewportRect.width - 16f);
-            float contentHeight = Mathf.Max(viewportRect.height, Text.CalcHeight(pageContent, contentWidth) + 8f);
+            float contentHeight = Mathf.Max(viewportRect.height, MeasureRenderedHeight(renderedContent, contentWidth) + 8f);
             Rect viewRect = new Rect(0f, 0f, contentWidth, contentHeight);
             Widgets.BeginScrollView(viewportRect, ref scrollPosition, viewRect);
-            Widgets.Label(new Rect(0f, 0f, viewRect.width, viewRect.height), pageContent);
+            Widgets.Label(new Rect(0f, 0f, viewRect.width, viewRect.height), renderedContent);
             Widgets.EndScrollView();
         }
 
@@ -239,8 +239,119 @@ namespace RimChat.UI
         private float MeasureBlockHeight(string blockText, float width)
         {
             Text.Font = GameFont.Small;
-            float textHeight = Text.CalcHeight(blockText ?? string.Empty, Mathf.Max(100f, width - PageContentPadding * 2f));
+            string rendered = RenderMarkdown(blockText ?? string.Empty);
+            float textHeight = MeasureRenderedHeight(rendered, Mathf.Max(100f, width - PageContentPadding * 2f));
             return textHeight + PageContentPadding * 2f;
+        }
+
+        private static float MeasureRenderedHeight(string renderedText, float width)
+        {
+            if (string.IsNullOrWhiteSpace(renderedText))
+            {
+                return Text.LineHeight;
+            }
+
+            string[] lines = renderedText.Replace("\r", string.Empty).Split('\n');
+            float total = 0f;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i] ?? string.Empty;
+                total += Text.CalcHeight(line, width);
+            }
+
+            return Mathf.Max(total, Text.LineHeight);
+        }
+
+        private static string RenderMarkdown(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            string normalized = text.Replace("\r", string.Empty);
+            string[] lines = normalized.Split('\n');
+            var sb = new StringBuilder(normalized.Length + 128);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i] ?? string.Empty;
+                sb.AppendLine(RenderMarkdownLine(line));
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        private static string RenderMarkdownLine(string line)
+        {
+            string value = line ?? string.Empty;
+            string trimmed = value.TrimStart();
+            if (trimmed.StartsWith("### ", StringComparison.Ordinal))
+            {
+                return "<b>" + ApplyInlineMarkdown(trimmed.Substring(4).Trim()) + "</b>";
+            }
+
+            if (trimmed.StartsWith("## ", StringComparison.Ordinal))
+            {
+                return "<b>" + ApplyInlineMarkdown(trimmed.Substring(3).Trim()) + "</b>";
+            }
+
+            if (trimmed.StartsWith("# ", StringComparison.Ordinal))
+            {
+                return "<b>" + ApplyInlineMarkdown(trimmed.Substring(2).Trim()) + "</b>";
+            }
+
+            if (trimmed.StartsWith("- ", StringComparison.Ordinal))
+            {
+                return "• " + ApplyInlineMarkdown(trimmed.Substring(2));
+            }
+
+            return ApplyInlineMarkdown(value);
+        }
+
+        private static string ApplyInlineMarkdown(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            string value = text;
+            while (TryReplaceDelimited(value, "**", "<b>", "</b>", out string replacedBold))
+            {
+                value = replacedBold;
+            }
+
+            while (TryReplaceDelimited(value, "`", "<color=#B7D5FF>", "</color>", out string replacedCode))
+            {
+                value = replacedCode;
+            }
+
+            return value;
+        }
+
+        private static bool TryReplaceDelimited(string text, string delimiter, string openTag, string closeTag, out string replaced)
+        {
+            replaced = text ?? string.Empty;
+            if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(delimiter))
+            {
+                return false;
+            }
+
+            int start = text.IndexOf(delimiter, StringComparison.Ordinal);
+            if (start < 0)
+            {
+                return false;
+            }
+
+            int end = text.IndexOf(delimiter, start + delimiter.Length, StringComparison.Ordinal);
+            if (end < 0)
+            {
+                return false;
+            }
+
+            string inner = text.Substring(start + delimiter.Length, end - start - delimiter.Length);
+            replaced = text.Substring(0, start) + openTag + inner + closeTag + text.Substring(end + delimiter.Length);
+            return true;
         }
 
         private static string BuildBlockFragment(string header, List<string> lines, int startIndex, int count)

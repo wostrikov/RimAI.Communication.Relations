@@ -408,7 +408,14 @@ namespace RimChat.UI
             float leftEdge = MessageSidePadding + MessageAvatarSize + MessageAvatarGap;
             float rightEdge = viewportWidth - MessageSidePadding - MessageAvatarSize - MessageAvatarGap;
             float maxX = Mathf.Max(leftEdge, rightEdge - bubbleWidth);
-            return IsPlayerVisualMessage(message) ? maxX : leftEdge;
+            if (!IsPlayerVisualMessage(message))
+            {
+                return leftEdge;
+            }
+
+            // 右对齐气泡在 1.25x 缩放下会落到半像素，导致右上/右下圆角采样整体右偏 1px。
+            // 这里只对右侧气泡做像素对齐，避免影响左侧 AI 气泡与整体高度布局。
+            return Mathf.Round(maxX);
         }
 
         private void TryLogBubbleLayoutOutOfTrackOnce(DialogueMessageData message, Rect bubbleRect, float viewportWidth)
