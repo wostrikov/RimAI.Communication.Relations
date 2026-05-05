@@ -30,7 +30,8 @@ namespace RimChat.DiplomacySystem
             int currentTick = Find.TickManager?.TicksGame ?? 0;
             string trimmedSummary = (summary ?? string.Empty).Trim();
             string trimmedIntent = (intentHint ?? string.Empty).Trim();
-            string publicClaim = BuildDialoguePublicClaim(trimmedSummary, trimmedIntent);
+            string publicClaim = TryBuildFactionDialoguePublicClaim(
+                sourceFaction, category, sentiment, trimmedSummary, trimmedIntent, targetFaction);
             if (string.IsNullOrWhiteSpace(publicClaim))
             {
                 return null;
@@ -162,23 +163,6 @@ namespace RimChat.DiplomacySystem
             }
 
             return facts;
-        }
-
-        private static string BuildDialoguePublicClaim(string summary, string intentHint)
-        {
-            string normalizedSummary = NormalizeDialogueClaimCandidate(summary);
-            if (IsConcreteDialogueFact(normalizedSummary))
-            {
-                return normalizedSummary;
-            }
-
-            string normalizedIntent = NormalizeDialogueClaimCandidate(intentHint);
-            if (IsConcreteDialogueFact(normalizedIntent))
-            {
-                return normalizedIntent;
-            }
-
-            return string.Empty;
         }
 
         private static bool TryBuildStructuredClaimFromIntent(

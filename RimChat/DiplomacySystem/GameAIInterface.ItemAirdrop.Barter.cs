@@ -24,7 +24,8 @@ namespace RimChat.DiplomacySystem
                     "player_negotiator_required",
                     "Preparing a barter airdrop requires a valid player negotiator on a map.",
                     faction,
-                    parameters);
+                    parameters,
+                    sendLetter: false);
             }
 
             return PrepareItemAirdropTradeForMap(faction, parameters, playerNegotiator.Map, true, playerNegotiator);
@@ -202,12 +203,12 @@ namespace RimChat.DiplomacySystem
 
             if (map == null)
             {
-                return FailFastAirdrop("no_home_map", "No player map available for item airdrop.", faction, parameters);
+                return FailFastAirdrop("no_home_map", "No player map available for item airdrop.", faction, parameters, sendLetter: false);
             }
 
             if (requirePlayerHome && !map.IsPlayerHome)
             {
-                return FailFastAirdrop("map_not_player_home", "Barter airdrop requires a player home map context.", faction, parameters);
+                return FailFastAirdrop("map_not_player_home", "Barter airdrop requires a player home map context.", faction, parameters, sendLetter: false);
             }
 
             bool hasNeed = TryReadRequiredStringParameter(
@@ -219,7 +220,7 @@ namespace RimChat.DiplomacySystem
             if (!hasNeed)
             {
                 string code = string.Equals(needType, "missing", StringComparison.Ordinal) ? "missing_need" : "need_type_invalid";
-                return FailFastAirdrop(code, "request_item_airdrop requires string parameter 'need'.", faction, parameters);
+                return FailFastAirdrop(code, "request_item_airdrop requires string parameter 'need'.", faction, parameters, sendLetter: false);
             }
 
             string scenario = NormalizeScenario(ReadString(parameters, "scenario"));
@@ -262,7 +263,8 @@ namespace RimChat.DiplomacySystem
                     $"Offer total {paymentTotalSilver} exceeds current trade limit {tradeRule.TradeLimitSilver}.",
                     faction,
                     parameters,
-                    $"goodwill={tradeRule.Goodwill},isMerchant={tradeRule.IsMerchantFaction},isAlly={tradeRule.IsAlly},limit={tradeRule.TradeLimitSilver}");
+                    $"goodwill={tradeRule.Goodwill},isMerchant={tradeRule.IsMerchantFaction},isAlly={tradeRule.IsAlly},limit={tradeRule.TradeLimitSilver}",
+                    sendLetter: false);
             }
 
             ItemAirdropIntent intent = ItemAirdropIntent.Create(need, constraints, scenario);
@@ -335,7 +337,8 @@ namespace RimChat.DiplomacySystem
                         "Could not classify request need. Try adding multiple CN/EN aliases in need/constraints.",
                         faction,
                         parameters,
-                        prepareSummary);
+                        prepareSummary,
+                        sendLetter: false);
                 }
 
                 return FailFastAirdrop(
@@ -343,7 +346,8 @@ namespace RimChat.DiplomacySystem
                     "No legal airdrop candidates were produced for this request.",
                     faction,
                     parameters,
-                    prepareSummary);
+                    prepareSummary,
+                    sendLetter: false);
             }
 
             if (ShouldRequireNeedClarification(intent, candidatePack))
@@ -369,7 +373,7 @@ namespace RimChat.DiplomacySystem
             if (!selectionResult.Success)
             {
                 string code = (selectionResult.Data as ItemAirdropResultData)?.FailureCode ?? "selection_failed";
-                return FailFastAirdrop(code, selectionResult.Message, faction, parameters);
+                return FailFastAirdrop(code, selectionResult.Message, faction, parameters, sendLetter: false);
             }
 
             if (selectionResult.Data is ItemAirdropPendingSelectionData pendingSelection)
@@ -379,7 +383,7 @@ namespace RimChat.DiplomacySystem
 
             if (!(selectionResult.Data is ItemAirdropSelection selection))
             {
-                return FailFastAirdrop("selection_invalid", "Selection result payload is invalid.", faction, parameters);
+                return FailFastAirdrop("selection_invalid", "Selection result payload is invalid.", faction, parameters, sendLetter: false);
             }
 
             RequestedCountExtraction requestedCount = ExtractRequestedCount(intent?.NeedText);
@@ -406,7 +410,8 @@ namespace RimChat.DiplomacySystem
                     (validationResult.Data as ItemAirdropResultData)?.FailureCode ?? "selection_invalid",
                     validationResult.Message,
                     faction,
-                    parameters);
+                    parameters,
+                    sendLetter: false);
             }
 
             SpecialItemType? barterSpecialType = null;
@@ -690,7 +695,7 @@ namespace RimChat.DiplomacySystem
                         Log.Message($"[RimChat][PaymentPlan] Payment item '{line.ItemText}' resolved globally to '{catalogResolvedRecord.DefName}' but is absent from beacon stock.");
                         return BuildPaymentFailure(
                             "payment_item_insufficient",
-                            $"No tradable beacon stock found for payment item '{line.ItemText}' ({catalogResolvedRecord.DefName}).");
+                            "RimChat_AirdropError_payment_item_no_beacon_stock".Translate(catalogResolvedRecord.Label).ToString());
                     }
 
                     Log.Message($"[RimChat][PaymentPlan] Failed to resolve payment item '{line.ItemText}' against beacon stock: {resolveResult.Message}");
@@ -702,7 +707,7 @@ namespace RimChat.DiplomacySystem
                     Log.Message($"[RimChat][PaymentPlan] No beacon stock for payment item '{resolvedRecord.DefName}' ({line.ItemText}). Available: {string.Join(", ", buckets.Keys)}");
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
-                        $"No tradable beacon stock found for payment item '{line.ItemText}' ({resolvedRecord.DefName}).");
+                        "RimChat_AirdropError_payment_item_no_beacon_stock".Translate(resolvedRecord.Label).ToString());
                 }
 
                 int availableCount = stockThings.Sum(thing => Math.Max(0, thing.stackCount));
@@ -711,7 +716,7 @@ namespace RimChat.DiplomacySystem
                     Log.Message($"[RimChat][PaymentPlan] Insufficient stock for '{resolvedRecord.DefName}': required={line.Count}, available={availableCount}");
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
-                        $"Insufficient stock for '{resolvedRecord.DefName}'. required={line.Count}, available={availableCount}.");
+                        "RimChat_AirdropError_payment_item_insufficient".Translate(resolvedRecord.Label, line.Count, availableCount).ToString());
                 }
 
                 float unitPrice = ResolveAirdropPaymentUnitPrice(
@@ -1013,7 +1018,7 @@ namespace RimChat.DiplomacySystem
                     string.Equals(item.ThingID, line.ThingId, StringComparison.Ordinal));
                 if (thing == null || thing.Destroyed || !thing.Spawned)
                 {
-                    return BuildPaymentFailure("payment_item_insufficient", $"Planned payment stack '{line.ThingId}' is missing.");
+                    return BuildPaymentFailure("payment_item_insufficient", "RimChat_AirdropError_payment_plan_missing".Translate().ToString());
                 }
 
                 if (!string.Equals(thing.def?.defName ?? string.Empty, line.DefName ?? string.Empty, StringComparison.OrdinalIgnoreCase))
@@ -1025,7 +1030,7 @@ namespace RimChat.DiplomacySystem
                 {
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
-                        $"Planned payment stack '{line.ThingId}' is insufficient. required={line.Count}, available={thing.stackCount}.");
+                        "RimChat_AirdropError_payment_plan_insufficient".Translate(line.Count, thing.stackCount).ToString());
                 }
 
                 reservations.Add(new ThingDeductionReservation

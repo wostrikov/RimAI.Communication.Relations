@@ -31,7 +31,8 @@ namespace RimChat.DiplomacySystem
                     "player_negotiator_required",
                     "Preparing a barter airdrop requires a valid player negotiator on a map.",
                     faction,
-                    parameters);
+                    parameters,
+                    sendLetter: false);
             }
 
             APIResult prepareResult = PrepareItemAirdropTradeForMap(faction, parameters, map, false, negotiator);
@@ -47,7 +48,7 @@ namespace RimChat.DiplomacySystem
 
             if (!(prepareResult.Data is ItemAirdropPreparedTradeData preparedTrade))
             {
-                return FailFastAirdrop("prepare_trade_failed", "Airdrop trade payload is missing.", faction, parameters);
+                return FailFastAirdrop("prepare_trade_failed", "Airdrop trade payload is missing.", faction, parameters, sendLetter: false);
             }
 
             return CommitPreparedItemAirdropTrade(faction, preparedTrade);
@@ -706,29 +707,19 @@ namespace RimChat.DiplomacySystem
 
         private static string BuildAirdropFailurePlayerMessage(string failureCode, params object[] detailArgs)
         {
-            string key = $"RimChat_AirdropError_{failureCode}";
-            string translated;
-            try
+            string detail = detailArgs.Length > 0 ? string.Join(" ", detailArgs) : string.Empty;
+            if (string.IsNullOrWhiteSpace(detail))
+                return "RimChat_ItemAirdropFailedBody".Translate(failureCode, "").ToString();
+
+            // Strip leading [code] prefix from detail — it already comes from BuildPaymentFailure
+            if (detail[0] == '[')
             {
-                translated = detailArgs.Length > 0
-                    ? key.Translate(detailArgs).ToString()
-                    : key.Translate().ToString();
-            }
-            catch
-            {
-                translated = key;
+                int closeBracket = detail.IndexOf("] ");
+                if (closeBracket > 0)
+                    detail = detail.Substring(closeBracket + 2).TrimStart();
             }
 
-            // If translation resolved to the key itself, the key is missing — fall back to generic format.
-            if (string.Equals(translated, key, StringComparison.Ordinal))
-            {
-                string detail = detailArgs.Length > 0 ? string.Join(", ", detailArgs) : string.Empty;
-                translated = string.IsNullOrWhiteSpace(detail)
-                    ? "RimChat_ItemAirdropFailedBody".Translate(failureCode, "").ToString()
-                    : "RimChat_ItemAirdropFailedBody".Translate(failureCode, detail).ToString();
-            }
-
-            return translated;
+            return "RimChat_ItemAirdropFailedBody".Translate(failureCode, detail).ToString();
         }
 
         private APIResult FailFastAirdrop(
@@ -736,7 +727,8 @@ namespace RimChat.DiplomacySystem
             string message,
             Faction faction,
             Dictionary<string, object> parameters,
-            string diagnostics = "")
+            string diagnostics = "",
+            bool sendLetter = true)
         {
             string details = string.IsNullOrWhiteSpace(diagnostics)
                 ? $"code={failureCode},msg={message}"
@@ -750,9 +742,12 @@ namespace RimChat.DiplomacySystem
 
             RecordAPICall("RequestItemAirdrop", false, auditText, message);
 
-            string playerTitle = "RimChat_ItemAirdropFailedTitle".Translate();
-            string playerBody = BuildAirdropFailurePlayerMessage(failureCode, message);
-            Find.LetterStack.ReceiveLetter(playerTitle, playerBody, LetterDefOf.NeutralEvent);
+            if (sendLetter)
+            {
+                string playerTitle = "RimChat_ItemAirdropFailedTitle".Translate();
+                string playerBody = BuildAirdropFailurePlayerMessage(failureCode, message);
+                Find.LetterStack.ReceiveLetter(playerTitle, playerBody, LetterDefOf.NeutralEvent);
+            }
             return APIResult.FailureResult($"[{failureCode}] {message}");
         }
 

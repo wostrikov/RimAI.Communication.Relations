@@ -1,3 +1,9 @@
+1.2.1
+- [Fix] Social circle invalid seed: CreateDialogueSeed now uses TryBuildFactionDialoguePublicClaim to handle short intents (Raid/Aid/Caravan); added Warning logs in TryQueueNewsSeed/EnqueueDeferredSocialNewsSeed
+- [Fix] Airdrop translation FormatException: BuildAirdropFailurePlayerMessage simplified to generic format, inner [code] prefix stripped to avoid double code tags
+- [Fix] Airdrop prepare-phase letter spam: FailFastAirdrop gains sendLetter param; AI-error failures suppressed (dialogue system message only), payment_item_insufficient still sends letter
+- [Fix] Airdrop failure messages were hardcoded English: 5 BuildPaymentFailure call sites now use translation keys RimChat_AirdropError_payment_*
+
 1.2.0
 - [Fix] Negotiated price truncated by market price: BoundNeed deals now relax budget constraint using implied negotiated price
 - [Fix] Mechlink black-market premium not applying: three-layer IsBlackMarketItem (None/Sellable); premium formula changed to 8000+BaseMarketValue×5; new MechlinkTradeability XML Patch

@@ -40,7 +40,7 @@ namespace RimChat.DiplomacySystem
                 MarkBoundNeedConflict(candidatePack, "bound_need_unresolved", diagnostics, false);
                 RegisterBoundNeedConflict(parameters, "bound_need_unresolved", message);
                 RecordAPICall("RequestItemAirdrop.BoundNeedReject", false, diagnostics, message);
-                return FailFastAirdrop("bound_need_unresolved", message, faction, parameters, diagnostics);
+                return FailFastAirdrop("bound_need_unresolved", message, faction, parameters, diagnostics, sendLetter: false);
             }
 
             if (intent != null &&
@@ -60,7 +60,7 @@ namespace RimChat.DiplomacySystem
                     MarkBoundNeedConflict(candidatePack, "bound_need_family_conflict", diagnostics, false);
                     RegisterBoundNeedConflict(parameters, "bound_need_family_conflict", message);
                     RecordAPICall("RequestItemAirdrop.BoundNeedReject", false, diagnostics, message);
-                    return FailFastAirdrop("bound_need_family_conflict", message, faction, parameters, diagnostics);
+                    return FailFastAirdrop("bound_need_family_conflict", message, faction, parameters, diagnostics, sendLetter: false);
                 }
 
                 string overrideMessage = "RimChat_ItemAirdropBoundNeedFamilyConflictOverrideAudit"

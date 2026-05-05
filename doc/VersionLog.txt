@@ -1,3 +1,9 @@
+1.2.1
+- [修复] 社交圈种子无效：CreateDialogueSeed改用TryBuildFactionDialoguePublicClaim处理短意图(Raid/Aid/Caravan)；TryQueueNewsSeed/EnqueueDeferredSocialNewsSeed添加无效种子Warning日志
+- [修复] 空投翻译FormatException：BuildAirdropFailurePlayerMessage简化为通用格式，剥离内层[code]前缀避免双层代码标签
+- [修复] 空投Prepare阶段频繁弹Letter：FailFastAirdrop新增sendLetter参数，AI错误类失败静默（仅对话系统消息），payment_item_insufficient仍弹Letter通知
+- [修复] 空投失败消息硬编码英文：5处BuildPaymentFailure改用翻译键RimChat_AirdropError_payment_*
+
 1.2.0
 - [修复] 谈判价格被市场价截断：BoundNeed协商交易放宽预算约束，使用协商隐含价而非市场价计算数量上限
 - [修复] Mechlink黑市溢价不生效：三层IsBlackMarketItem判定(None/Sellable)；黑市溢价改为8000+市值×5固定公式；新增MechlinkTradeability XML Patch

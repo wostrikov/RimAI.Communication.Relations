@@ -70,7 +70,8 @@ namespace RimChat.DiplomacySystem
                     "player_negotiator_required",
                     "Preparing a barter airdrop requires a valid player negotiator on a map.",
                     faction,
-                    parameters);
+                    parameters,
+                    sendLetter: false);
             }
 
             RimChatSettings settings = RimChatMod.Instance.InstanceSettings;
@@ -96,7 +97,8 @@ namespace RimChat.DiplomacySystem
                     "map_not_player_home",
                     "Barter airdrop requires a player home map context.",
                     faction,
-                    parameters);
+                    parameters,
+                    sendLetter: false);
             }
 
             bool hasNeed = TryReadRequiredStringParameter(
@@ -108,7 +110,7 @@ namespace RimChat.DiplomacySystem
             if (!hasNeed)
             {
                 string code = string.Equals(needType, "missing", StringComparison.Ordinal) ? "missing_need" : "need_type_invalid";
-                return FailFastAirdrop(code, "request_item_airdrop requires string parameter 'need'.", faction, parameters);
+                return FailFastAirdrop(code, "request_item_airdrop requires string parameter 'need'.", faction, parameters, sendLetter: false);
             }
 
             string scenario = NormalizeScenario(ReadString(parameters, "scenario"));
@@ -361,7 +363,8 @@ namespace RimChat.DiplomacySystem
                     "need_count_ambiguous",
                     "need contains multiple explicit counts; request_item_airdrop supports single-item count only.",
                     context.Faction,
-                    context.Parameters);
+                    context.Parameters,
+                    sendLetter: false);
             }
 
             if (ShouldRequireNeedClarification(context.Intent, context.CandidatePack))
@@ -401,7 +404,8 @@ namespace RimChat.DiplomacySystem
                         (forcedResult.Data as ItemAirdropResultData)?.FailureCode ?? "selection_invalid",
                         forcedResult.Message,
                         context.Faction,
-                        context.Parameters);
+                        context.Parameters,
+                        sendLetter: false);
                 }
 
                 if (context.HasBoundNeed)
@@ -469,7 +473,8 @@ namespace RimChat.DiplomacySystem
                     (validationResult.Data as ItemAirdropResultData)?.FailureCode ?? "selection_invalid",
                     validationResult.Message,
                     context.Faction,
-                    context.Parameters);
+                    context.Parameters,
+                    sendLetter: false);
             }
 
             var auditedSelection = new ItemAirdropSelection
@@ -612,7 +617,8 @@ namespace RimChat.DiplomacySystem
                     "Could not classify request need. Try adding multiple CN/EN aliases in need/constraints.",
                     context.Faction,
                     context.Parameters,
-                    prepareSummary);
+                    prepareSummary,
+                    sendLetter: false);
             }
 
             return FailFastAirdrop(
@@ -620,7 +626,8 @@ namespace RimChat.DiplomacySystem
                 "No legal airdrop candidates were produced for this request.",
                 context.Faction,
                 context.Parameters,
-                prepareSummary);
+                prepareSummary,
+                sendLetter: false);
         }
 
         private bool TryQueueAirdropAsyncRequest(

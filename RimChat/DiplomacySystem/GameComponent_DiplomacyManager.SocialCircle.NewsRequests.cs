@@ -153,6 +153,7 @@ namespace RimChat.DiplomacySystem
 
             if (seed == null || !seed.IsValid())
             {
+                Log.Warning($"[RimChat] Social news seed invalid. origin_type={seed?.OriginType}, origin_key={seed?.OriginKey ?? "null"}, facts_count={seed?.Facts?.Count ?? 0}, occurred_tick={seed?.OccurredTick ?? -1}");
                 failureReason = SocialPostEnqueueFailureReason.InvalidSeed;
                 return false;
             }
@@ -270,6 +271,7 @@ namespace RimChat.DiplomacySystem
         {
             if (seed == null || !seed.IsValid())
             {
+                Log.Warning($"[RimChat] Deferred social news seed dropped (invalid). origin_type={seed?.OriginType}, origin_key={seed?.OriginKey ?? "null"}");
                 return;
             }
 
