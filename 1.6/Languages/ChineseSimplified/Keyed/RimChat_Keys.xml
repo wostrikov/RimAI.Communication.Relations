@@ -915,6 +915,7 @@
     <RimChat_ItemAirdropPriceSemanticSell>卖价</RimChat_ItemAirdropPriceSemanticSell>
     <RimChat_ItemAirdropPriceSemanticDiscount>折扣价 (-60%)</RimChat_ItemAirdropPriceSemanticDiscount>
     <RimChat_ItemAirdropPriceSemanticScarce>稀缺价 (+100%)</RimChat_ItemAirdropPriceSemanticScarce>
+    <RimChat_ItemAirdropPriceSemanticBlackMarket>黑市</RimChat_ItemAirdropPriceSemanticBlackMarket>
     <RimChat_ItemAirdropCancelledSystem>你取消了本次空投交易。</RimChat_ItemAirdropCancelledSystem>
     <RimChat_ItemAirdropCommitFailedSystem>空投交易执行失败：{0}</RimChat_ItemAirdropCommitFailedSystem>
     <RimChat_ItemAirdropCommitSuccessSystem>空投交易已执行。</RimChat_ItemAirdropCommitSuccessSystem>
@@ -1053,7 +1054,7 @@ ID：{5}
     <RimChat_ReinitiateCooldownHint>可在 {0} 小时后重新发起。</RimChat_ReinitiateCooldownHint>
     <RimChat_StrategyFallbackLabel>策略建议</RimChat_StrategyFallbackLabel>
     <RimChat_StrategyFallbackBasis>综合判断</RimChat_StrategyFallbackBasis>
-    <RimChat_StrategyNeedSocialHint>策略功能需社交≥3（当前 {0}），每2级+1次，20级无限次</RimChat_StrategyNeedSocialHint>
+    <RimChat_StrategyNeedSocialHint>策略功能需社交≥3（当前 {0}）</RimChat_StrategyNeedSocialHint>
     <RimChat_StrategyGeneratingHint>正在生成策略...（剩余 {0}/{1}）</RimChat_StrategyGeneratingHint>
     <RimChat_StrategyUsesExhaustedHint>本会话策略次数已用尽（上限 {0}）</RimChat_StrategyUsesExhaustedHint>
     <RimChat_StrategyRemainingHint>策略可用次数：{0}/{1}</RimChat_StrategyRemainingHint>
@@ -2240,7 +2241,7 @@ ID：{5}
     <RimChat_PromptTemplateTurnObjectiveLabel>回合目标模板</RimChat_PromptTemplateTurnObjectiveLabel>
     <RimChat_PromptTemplateOpeningObjectiveLabel>开场目标模板</RimChat_PromptTemplateOpeningObjectiveLabel>
     <RimChat_PromptTemplateTopicShiftRuleLabel>转题规则模板</RimChat_PromptTemplateTopicShiftRuleLabel>
-    <RimChat_PromptTemplateActionPriorityRuleLabel>动作优先级规则模板</RimChat_PromptTemplateActionPriorityRuleLabel>
+
     <RimChat_PromptTemplateProactiveRomanceRuleLabel>主动浪漫行为规则模板</RimChat_PromptTemplateProactiveRomanceRuleLabel>
     <RimChat_PromptTemplateApiLimitsNodeLabel>API 限制节点模板</RimChat_PromptTemplateApiLimitsNodeLabel>
     <RimChat_PromptTemplateQuestGuidanceNodeLabel>任务引导节点模板</RimChat_PromptTemplateQuestGuidanceNodeLabel>
@@ -2519,7 +2520,7 @@ ID：{5}
     <RimChat_PromptNode_RpgRoleFallback>RPG角色兜底</RimChat_PromptNode_RpgRoleFallback>
     <RimChat_PromptNode_RpgRelationshipProfile>RPG关系画像</RimChat_PromptNode_RpgRelationshipProfile>
     <RimChat_PromptNode_RpgKinshipBoundary>RPG亲属边界</RimChat_PromptNode_RpgKinshipBoundary>
-    <RimChat_PromptNode_RpgActionPriority>RPG动作优先级</RimChat_PromptNode_RpgActionPriority>
+
     <RimChat_PromptNode_RpgProactiveRomance>RPG主动浪漫</RimChat_PromptNode_RpgProactiveRomance>
     <RimChat_PromptNode_DiplomacyStateOverride>外交状态覆盖</RimChat_PromptNode_DiplomacyStateOverride>
     <RimChat_PromptNode_DiplomacyAliveFeeling>外交活人感</RimChat_PromptNode_DiplomacyAliveFeeling>

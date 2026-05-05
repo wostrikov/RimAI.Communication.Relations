@@ -1279,6 +1279,7 @@
     <RimChat_ItemAirdropPriceSemanticSell>sell price</RimChat_ItemAirdropPriceSemanticSell>
     <RimChat_ItemAirdropPriceSemanticDiscount>discount price (-60%)</RimChat_ItemAirdropPriceSemanticDiscount>
     <RimChat_ItemAirdropPriceSemanticScarce>scarce price (+100%)</RimChat_ItemAirdropPriceSemanticScarce>
+    <RimChat_ItemAirdropPriceSemanticBlackMarket>black market</RimChat_ItemAirdropPriceSemanticBlackMarket>
     <RimChat_ItemAirdropCancelledSystem>You cancelled this airdrop trade.</RimChat_ItemAirdropCancelledSystem>
     <RimChat_ItemAirdropCommitFailedSystem>Airdrop trade execution failed: {0}</RimChat_ItemAirdropCommitFailedSystem>
     <RimChat_ItemAirdropCommitSuccessSystem>Airdrop trade executed.</RimChat_ItemAirdropCommitSuccessSystem>
@@ -1434,7 +1435,7 @@ Selected prisoners: {1}
     <RimChat_ReinitiateCooldownHint>Reinitiate available in {0} hours.</RimChat_ReinitiateCooldownHint>
     <RimChat_StrategyFallbackLabel>Strategy</RimChat_StrategyFallbackLabel>
     <RimChat_StrategyFallbackBasis>Composite</RimChat_StrategyFallbackBasis>
-    <RimChat_StrategyNeedSocialHint>Strategy unlock requires Social >= 3 (current {0}), +1 use per 2 levels, unlimited at 20</RimChat_StrategyNeedSocialHint>
+    <RimChat_StrategyNeedSocialHint>Strategy requires Social >= 3 (current {0})</RimChat_StrategyNeedSocialHint>
     <RimChat_StrategyGeneratingHint>Generating strategies... ({0}/{1} uses left)</RimChat_StrategyGeneratingHint>
     <RimChat_StrategyUsesExhaustedHint>Strategy uses exhausted this session (max {0})</RimChat_StrategyUsesExhaustedHint>
     <RimChat_StrategyRemainingHint>Strategy uses: {0}/{1}</RimChat_StrategyRemainingHint>
@@ -2121,7 +2122,7 @@ Selected prisoners: {1}
     <RimChat_PromptTemplateTurnObjectiveLabel>Turn objective template</RimChat_PromptTemplateTurnObjectiveLabel>
     <RimChat_PromptTemplateOpeningObjectiveLabel>Opening objective template</RimChat_PromptTemplateOpeningObjectiveLabel>
     <RimChat_PromptTemplateTopicShiftRuleLabel>Topic shift rule template</RimChat_PromptTemplateTopicShiftRuleLabel>
-    <RimChat_PromptTemplateActionPriorityRuleLabel>Action priority rule template</RimChat_PromptTemplateActionPriorityRuleLabel>
+
     <RimChat_PromptTemplateProactiveRomanceRuleLabel>Proactive romance rule template</RimChat_PromptTemplateProactiveRomanceRuleLabel>
     <RimChat_PromptTemplateApiLimitsNodeLabel>API limits node template</RimChat_PromptTemplateApiLimitsNodeLabel>
     <RimChat_PromptTemplateQuestGuidanceNodeLabel>Quest guidance node template</RimChat_PromptTemplateQuestGuidanceNodeLabel>
@@ -2428,7 +2429,7 @@ Selected prisoners: {1}
     <RimChat_PromptNode_RpgRoleFallback>RPG Role Fallback</RimChat_PromptNode_RpgRoleFallback>
     <RimChat_PromptNode_RpgRelationshipProfile>RPG Relationship Profile</RimChat_PromptNode_RpgRelationshipProfile>
     <RimChat_PromptNode_RpgKinshipBoundary>RPG Kinship Boundary</RimChat_PromptNode_RpgKinshipBoundary>
-    <RimChat_PromptNode_RpgActionPriority>RPG Action Priority</RimChat_PromptNode_RpgActionPriority>
+
     <RimChat_PromptNode_RpgProactiveRomance>RPG Proactive Romance</RimChat_PromptNode_RpgProactiveRomance>
     <RimChat_PromptNode_DiplomacyStateOverride>Diplomacy State Override</RimChat_PromptNode_DiplomacyStateOverride>
     <RimChat_PromptNode_DiplomacyAliveFeeling>Diplomacy Alive Feeling</RimChat_PromptNode_DiplomacyAliveFeeling>

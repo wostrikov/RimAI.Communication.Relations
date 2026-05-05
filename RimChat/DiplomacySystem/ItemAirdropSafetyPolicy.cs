@@ -106,7 +106,7 @@ namespace RimChat.DiplomacySystem
                 score -= 10;
             }
 
-            if (def.tradeability == Tradeability.None)
+            if (ItemAirdropTradePolicy.IsBlackMarketItem(def))
             {
                 score -= 40;
             }

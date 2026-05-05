@@ -1198,73 +1198,7 @@ namespace RimChat.UI
 
         private float DrawExpandedActions(Rect rect)
         {
-            float curY = 0f;
-            
-            // 皇权 DLC 动作
-            if (ModsConfig.RoyaltyActive && faction.def == FactionDefOf.Empire && negotiator != null && negotiator.royalty != null)
-            {
-                float height = DrawRoyaltyActions(new Rect(rect.x, rect.y + curY, rect.width, rect.height - curY));
-                curY += height;
-            }
-
-            return curY;
-        }
-
-        private float DrawRoyaltyActions(Rect rect)
-        {
-            if (negotiator.royalty == null) return 0f;
-
-            // 检查whether有可用许可 (包括冷却中的)
-            var permits = negotiator.royalty.AllFactionPermits.Where(p => p.Faction == faction).ToList();
-            if (!permits.Any()) return 0f;
-
-            float height = 40f; // 标题高度
-            
-            // 标题
-            Rect headerRect = new Rect(rect.x, rect.y, rect.width, 30f);
-            Widgets.DrawBoxSolid(headerRect, new Color(0.2f, 0.15f, 0.1f));
-            Text.Font = GameFont.Small;
-            GUI.color = new Color(1f, 0.8f, 0.4f);
-            Widgets.Label(new Rect(headerRect.x + 10f, headerRect.y + 5f, headerRect.width - 20f, 20f), "RimChat_RoyalActions".Translate());
-            GUI.color = Color.white;
-
-            // Contents区域
-            // 这里我们只提供一个button来打开原版的许可interface, 或者如果可以, 直接display通讯台specific的许可
-            // 考虑到通讯台的许可通常是 CallAid 之类的, 我们直接display这些
-            
-            float buttonHeight = 30f;
-            float buttonY = rect.y + 35f;
-            
-            foreach (var permit in permits)
-            {
-                // 只display可以通过通讯台使用的许可 (通常是 workerClass 为 RoyalTitlePermitWorker_CallAid 或类似的)
-                // 简单起见, 我们列出所有非被动许可
-                if (permit.Permit.workerClass != null)
-                {
-                    Rect btnRect = new Rect(rect.x, buttonY, rect.width, buttonHeight);
-                    
-                    bool onCooldown = permit.OnCooldown;
-                    string label = permit.Permit.LabelCap;
-                    if (onCooldown)
-                    {
-                        label += " (" + "RimChat_PermitCooldown".Translate() + ")";
-                    }
-                    else
-                    {
-                        label += " (" + "RimChat_UsePermit".Translate() + ")";
-                    }
-
-                    if (Widgets.ButtonText(btnRect, label, active: !onCooldown))
-                    {
-                        // 许可权通常需要目标select, 直接调用比较复杂. 提示玩家在正确位置使用.
-                        Messages.Message("RimChat_UsePermitHint".Translate(), MessageTypeDefOf.RejectInput, false);
-                    }
-                    buttonY += buttonHeight + 5f;
-                    height += buttonHeight + 5f;
-                }
-            }
-
-            return height + 5f;
+            return 0f;
         }
 
         private float DrawFactionQuests(Rect rect, Faction targetFaction)

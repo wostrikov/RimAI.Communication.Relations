@@ -5860,7 +5860,6 @@ namespace RimChat.Persistence
             changed |= AssignIfMissing(ref target.RpgCompactFormatConstraintTemplate, templateDefaults.RpgCompactFormatConstraintTemplate);
             changed |= AssignIfMissing(ref target.RpgActionReliabilityRuleTemplate, templateDefaults.RpgActionReliabilityRuleTemplate);
             changed |= AssignIfMissing(ref target.OpeningObjectiveTemplate, templateDefaults.OpeningObjectiveTemplate);
-            changed |= AssignIfMissing(ref target.ActionPriorityRuleTemplate, templateDefaults.ActionPriorityRuleTemplate);
             changed |= AssignIfMissing(ref target.ProactiveRomanceRuleTemplate, templateDefaults.ProactiveRomanceRuleTemplate);
             changed |= AssignIfMissing(ref target.ProactiveSocialActionRuleTemplate, templateDefaults.ProactiveSocialActionRuleTemplate);
             changed |= ForceRefreshRpgPromptTemplates(target);
@@ -5893,13 +5892,6 @@ namespace RimChat.Persistence
             }
 
             bool changed = false;
-            string newActionPriority = rpgDefaults.ActionPriorityRuleTemplate;
-            if (!string.IsNullOrWhiteSpace(newActionPriority) && newActionPriority != target.ActionPriorityRuleTemplate)
-            {
-                target.ActionPriorityRuleTemplate = newActionPriority;
-                changed = true;
-            }
-
             string newProactiveRomance = rpgDefaults.ProactiveRomanceRuleTemplate;
             if (!string.IsNullOrWhiteSpace(newProactiveRomance) && newProactiveRomance != target.ProactiveRomanceRuleTemplate)
             {

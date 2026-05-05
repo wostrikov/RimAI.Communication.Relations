@@ -1,3 +1,15 @@
+1.2.0
+- [修复] 谈判价格被市场价截断：BoundNeed协商交易放宽预算约束，使用协商隐含价而非市场价计算数量上限
+- [修复] Mechlink黑市溢价不生效：三层IsBlackMarketItem判定(None/Sellable)；黑市溢价改为8000+市值×5固定公式；新增MechlinkTradeability XML Patch
+- [修复] 袭击结束事件通知：AddRaidBattleReport中同步创建WorldEventRecord；倒地敌人不再阻止袭击结束检测
+- [新增] 科技等级惩罚：物品科技>殖民地最高科技时need倍率×1.6；GetColonyHighestTechLevel扫描已完成研究
+- [新增] 黑市标签独立：新增RimChat_ItemAirdropPriceSemanticBlackMarket翻译键，与稀缺价分离
+- [新增] 空投交易UI安全评分改用IsBlackMarketItem统一判定
+- [修复] 海外交界面帝国特权许可UI
+- [修复] 统计菜单搜索高亮富文本标签冲突
+- [重构] 移除ActionPriorityRuleTemplate(全链路15文件)及关键词兜底(RomanceAgreementHints/ProposalAgreementHints)
+- [调整] ExoticMisc need倍率3.0→5.0；策略提示文案移除公式描述
+
 1.1.8
 - [修复] 系统性修复中途加入存档时 tile 越界崩溃：新增 WorldTileGuard 统一校验 WorldGrid 调用前的 tile 有效性，覆盖 12 处 LongLatOf/ApproxDistanceInTiles/TraversalDistanceBetween 调用点
 - [修复] SnapshotCache 构建失败改为指数退避重试(250→500→...→60000 tick)，避免永久性坏 tile 导致日志刷屏

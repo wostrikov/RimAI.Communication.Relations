@@ -708,9 +708,17 @@ namespace RimChat.UI
                 return source;
             }
 
+            // Escape existing angle brackets in source text to prevent them from
+            // being interpreted as rich-text tags by Unity's GUI.TextArea parser,
+            // which would break the search highlight color rendering.
+            string safeSource = source
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;");
+
             string escapedQuery = Regex.Escape(normalizedQuery);
             return Regex.Replace(
-                source,
+                safeSource,
                 escapedQuery,
                 match => $"<color={DetailSearchHighlightColor}>{match.Value}</color>",
                 RegexOptions.IgnoreCase);

@@ -14,7 +14,6 @@ namespace RimChat.Config
             "DecisionPolicyTemplate",
             "TurnObjectiveTemplate",
             "TopicShiftRuleTemplate",
-            "ActionPriorityRuleTemplate",
             "ProactiveRomanceRuleTemplate",
             "ApiLimitsNodeTemplate",
             "QuestGuidanceNodeTemplate",
@@ -137,7 +136,6 @@ namespace RimChat.Config
                 "TurnObjectiveTemplate" => templates.TurnObjectiveTemplate ?? string.Empty,
                 "OpeningObjectiveTemplate" => templates.OpeningObjectiveTemplate ?? string.Empty,
                 "TopicShiftRuleTemplate" => templates.TopicShiftRuleTemplate ?? string.Empty,
-                "ActionPriorityRuleTemplate" => templates.ActionPriorityRuleTemplate ?? string.Empty,
                 "ProactiveRomanceRuleTemplate" => templates.ProactiveRomanceRuleTemplate ?? string.Empty,
                 "ApiLimitsNodeTemplate" => templates.ApiLimitsNodeTemplate ?? string.Empty,
                 "QuestGuidanceNodeTemplate" => templates.QuestGuidanceNodeTemplate ?? string.Empty,
@@ -184,9 +182,6 @@ namespace RimChat.Config
                 case "TopicShiftRuleTemplate":
                     templates.TopicShiftRuleTemplate = value;
                     break;
-                case "ActionPriorityRuleTemplate":
-                    templates.ActionPriorityRuleTemplate = value;
-                    break;
                 case "ProactiveRomanceRuleTemplate":
                     templates.ProactiveRomanceRuleTemplate = value;
                     break;
@@ -220,7 +215,6 @@ namespace RimChat.Config
                 "TurnObjectiveTemplate" => "RimChat_PromptTemplateTurnObjectiveLabel".Translate(),
                 "OpeningObjectiveTemplate" => "RimChat_PromptTemplateOpeningObjectiveLabel".Translate(),
                 "TopicShiftRuleTemplate" => "RimChat_PromptTemplateTopicShiftRuleLabel".Translate(),
-                "ActionPriorityRuleTemplate" => "RimChat_PromptTemplateActionPriorityRuleLabel".Translate(),
                 "ProactiveRomanceRuleTemplate" => "RimChat_PromptTemplateProactiveRomanceRuleLabel".Translate(),
                 "ApiLimitsNodeTemplate" => "RimChat_PromptTemplateApiLimitsNodeLabel".Translate(),
                 "QuestGuidanceNodeTemplate" => "RimChat_PromptTemplateQuestGuidanceNodeLabel".Translate(),

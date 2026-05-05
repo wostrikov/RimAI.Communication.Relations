@@ -247,7 +247,7 @@ namespace RimChat.WorldState
                 return;
             }
 
-            if (faction.HostileTo(Faction.OfPlayer))
+            if (faction.HostileTo(Faction.OfPlayer) && !pawn.Downed)
             {
                 mapState.HostileFactions.Add(faction);
             }

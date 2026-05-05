@@ -80,7 +80,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref ItemAirdropUntradeableLowValuePriceMultiplier, "ItemAirdropUntradeableLowValuePriceMultiplier", 15.0f);
             Scribe_Values.Look(ref ItemAirdropUntradeableMidValuePriceMultiplier, "ItemAirdropUntradeableMidValuePriceMultiplier", 8.0f);
             Scribe_Values.Look(ref ItemAirdropNeedPriceMultiplier, "ItemAirdropNeedPriceMultiplier", 1.6f);
-            Scribe_Values.Look(ref ItemAirdropExoticMiscNeedPriceMultiplier, "ItemAirdropExoticMiscNeedPriceMultiplier", 3.0f);
+            Scribe_Values.Look(ref ItemAirdropExoticMiscNeedPriceMultiplier, "ItemAirdropExoticMiscNeedPriceMultiplier", 5.0f);
             Scribe_Values.Look(ref ItemAirdropOfferPriceMultiplier, "ItemAirdropOfferPriceMultiplier", 0.6f);
             Scribe_Values.Look(ref ItemAirdropExoticMiscOfferPriceMultiplier, "ItemAirdropExoticMiscOfferPriceMultiplier", 0.9f);
             Scribe_Values.Look(ref ItemAirdropUntradeableOfferPriceMultiplier, "ItemAirdropUntradeableOfferPriceMultiplier", 1.0f);
@@ -1189,7 +1189,7 @@ namespace RimChat.Config
             ItemAirdropUntradeableLowValuePriceMultiplier = 15.0f;
             ItemAirdropUntradeableMidValuePriceMultiplier = 8.0f;
             ItemAirdropNeedPriceMultiplier = 1.6f;
-            ItemAirdropExoticMiscNeedPriceMultiplier = 3.0f;
+            ItemAirdropExoticMiscNeedPriceMultiplier = 5.0f;
             ItemAirdropOfferPriceMultiplier = 0.6f;
             ItemAirdropExoticMiscOfferPriceMultiplier = 0.9f;
             ItemAirdropUntradeableOfferPriceMultiplier = 1.0f;

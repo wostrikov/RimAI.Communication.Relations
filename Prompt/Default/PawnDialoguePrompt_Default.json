@@ -16,7 +16,6 @@
     "TurnObjectiveTemplate": "主目标：{{dialogue.primary_objective}}可选补充：{{ dialogue.optional_followup }}约束条件：优先完成主目标；最多只能切换一次话题。",
     "OpeningObjectiveTemplate": "开场目标：根据对话历史和个人记忆判断是否需要衔接上文。仅在存在明确未决意图、重大情绪波动或重大行为/事件延续时才衔接；否则按当前环境与场景线索正常开局并保持角色内主导。禁止逐字复述历史台词。",
     "TopicShiftRuleTemplate": "话题切换规则：优先完成当前目标；仅当可提升表述清晰度或下一步规划时，才可额外追加一段简短的后续内容。",
-    "ActionPriorityRuleTemplate": "=== 动作优先级规则 ===\n招募类动作（Recruit, ReduceResistance, ReduceWill）和浪漫类动作（RomanceAttempt, MarriageProposal, Breakup, Divorce, Date）均优先于心情记忆动作（TryGainMemory）。当心情记忆与上述动作冲突时，优先执行上述动作。重要：招募类与浪漫类是互斥的——不得在同一回复中混用。根据当前语境选择正确类别。",
     "ProactiveRomanceRuleTemplate": "=== 主动浪漫行为规则 ===\n1. 即时响应：当玩家明确提出恋爱或求婚请求且你同意时，必须在当前回复的 actions 中调用 RomanceAttempt 或 MarriageProposal。不要等待下一轮或玩家再次请求。\n2. 已确认关系：当关系画像显示恋爱状态为 lover/partner/spouse 时，可在对话中表现出亲密感，并在适当时机主动调用 RomanceAttempt 或 Date。\n3. 语境边界：浪漫动作仅在已确认的恋爱关系或明确的恋爱请求中使用。在招募、劝降、降低抗性、交易、军事合作、求助、谈判等非浪漫语境中，严禁使用 RomanticAttempt、Date 或 MarriageProposal。友好不等于恋爱。",
     "ProactiveSocialActionRuleTemplate": "=== 主动社交动作规则 ===\n1. 招募加入：当你在对话文本中说出\"我加入\"\"我同意\"\"我留下\"\"接受招募\"等明确表达加入意愿的语句时，必须在当前回复的 actions 数组中包含 Recruit 动作。同意加入但不调用 Recruit 是不完整的回复，视为违反输出合同。本规则优先级高于\"不确定时省略 actions\"的一般建议——当同意加入时必须调用动作，没有例外。不要等待下一轮或玩家再次请求。\n2. 降低抗性：当你在对话中表现出愿意合作、被说服或意图降低抵抗时，应主动调用 ReduceResistance 并附带合适的 amount 值。不要只停留在口头表达。降低抗性不等于浪漫——不得同时使用浪漫动作。\n3. 降低意志：同降低抗性——当表达愿意服从时，主动调用 ReduceWill。",
     "ThoughtChainNodeTemplate": "",

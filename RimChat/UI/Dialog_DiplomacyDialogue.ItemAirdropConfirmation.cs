@@ -703,8 +703,8 @@ namespace RimChat.UI
                 return "RimChat_ItemAirdropPriceSemanticScarce".Translate().ToString();
             if (lower.StartsWith("market_value") || lower.StartsWith("market_value_x"))
                 return "RimChat_ItemAirdropPriceSemanticMarket".Translate().ToString();
-            if (lower.StartsWith("untradeable_x") || lower.StartsWith("black_market"))
-                return "RimChat_ItemAirdropPriceSemanticScarce".Translate().ToString();
+            if (lower.StartsWith("untradeable_") || lower.StartsWith("black_market"))
+                return "RimChat_ItemAirdropPriceSemanticBlackMarket".Translate().ToString();
 
             return string.Empty;
         }

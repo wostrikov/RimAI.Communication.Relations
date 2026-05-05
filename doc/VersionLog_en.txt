@@ -1,3 +1,15 @@
+1.2.0
+- [Fix] Negotiated price truncated by market price: BoundNeed deals now relax budget constraint using implied negotiated price
+- [Fix] Mechlink black-market premium not applying: three-layer IsBlackMarketItem (None/Sellable); premium formula changed to 8000+BaseMarketValue×5; new MechlinkTradeability XML Patch
+- [Fix] Raid end event notification: WorldEventRecord now created in AddRaidBattleReport; downed enemies no longer block raid end detection
+- [New] Tech level penalty: need multiplier ×1.6 when item tech exceeds colony's highest researched tech; GetColonyHighestTechLevel scans completed research
+- [New] Black market label separated: new RimChat_ItemAirdropPriceSemanticBlackMarket key, distinct from scarce price
+- [New] Airdrop safety scoring unified under IsBlackMarketItem
+- [Fix] Removed empire permit UI from diplomacy interface
+- [Fix] Statistics menu search highlight rich-text tag conflict resolved
+- [Refactor] Removed ActionPriorityRuleTemplate (15 files full-stack) and keyword intent fallback (RomanceAgreementHints/ProposalAgreementHints)
+- [Tuning] ExoticMisc need multiplier 3.0→5.0; strategy hint text simplified
+
 1.1.8
 - [Fix] Systematic tile out-of-range crash fix for mid-save join: added WorldTileGuard shared validator covering all 12 LongLatOf/ApproxDistanceInTiles/TraversalDistanceBetween call sites
 - [Fix] SnapshotCache build failure retry now uses exponential backoff (250→500→...→60000 ticks), preventing log spam from permanently invalid tiles

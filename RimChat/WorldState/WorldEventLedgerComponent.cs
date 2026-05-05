@@ -430,6 +430,27 @@ namespace RimChat.WorldState
 
             raidBattleReports.Add(report);
             TrimRaidBattleReports();
+
+            string eventSummary =
+                $"袭击结束：{state.AttackerFactionName}对{state.MapLabel}的袭击已被击退。" +
+                $"敌方阵亡{state.AttackerDeaths}人，我方阵亡{state.DefenderDeaths}人，" +
+                $"{state.DefenderDownedPeak}人倒地。";
+
+            var eventRecord = new WorldEventRecord
+            {
+                OccurredTick = battleEndTick,
+                EventType = "raid_end",
+                IsPublic = true,
+                Summary = eventSummary,
+                SourceKey = $"raid_end_{state.MapId}_{state.AttackerFactionId}_{battleEndTick}",
+                KnownFactionIds = new List<string>
+                {
+                    state.AttackerFactionId,
+                    state.DefenderFactionId
+                }
+            };
+
+            AddWorldEventRecord(eventRecord);
         }
 
         private OngoingRaidBattleState ResolveBattleForKill(Map map, Faction victimFaction, Faction attackerFactionByDamage, int tick)

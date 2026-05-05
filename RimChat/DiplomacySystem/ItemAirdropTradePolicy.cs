@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using RimChat.Core;
 using RimWorld;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace RimChat.DiplomacySystem
     ///   Tier 1: Base price formula
     ///     Need side (player buys): BaseMarketValue × needMultiplier
     ///       Normal: ItemAirdropNeedPriceMultiplier (default 1.6)
-    ///       ExoticMisc: ItemAirdropExoticMiscNeedPriceMultiplier (default 3.0)
+    ///       ExoticMisc: ItemAirdropExoticMiscNeedPriceMultiplier (default 5.0)
     ///       Precious metal: 1.0 fixed
     ///     Offer side (player sells): BaseMarketValue × offerMultiplier
     ///       Normal: ItemAirdropOfferPriceMultiplier (default 0.6)
@@ -25,10 +26,9 @@ namespace RimChat.DiplomacySystem
     ///     Discount ×ItemAirdropSpecialItemDiscountMultiplier (default 0.4)
     ///     Scarce  ×ItemAirdropSpecialItemScarceMultiplier (default 2.0)
     ///
-    ///   Tier 3: Untradeable black-market premium (tiered by BaseMarketValue)
-    ///     &lt;500: ItemAirdropUntradeableLowValuePriceMultiplier (default 15.0)
-    ///     500~1000: ItemAirdropUntradeableMidValuePriceMultiplier (default 8.0)
-    ///     &gt;1000: ItemAirdropUntradeablePriceMultiplier (default 6.0)
+    ///   Tier 3: Black-market premium (fixed-base formula)
+    ///     BlackMarketBasePremium + BaseMarketValue × BlackMarketPerValueMultiplier
+    ///     Default: 8000 + BaseMarketValue × 5
     ///
     /// All multipliers are user-configurable in Settings → Mod Options → Aid Settings.
     /// </summary>
@@ -63,16 +63,24 @@ namespace RimChat.DiplomacySystem
             RimChatMod.Instance?.InstanceSettings?.ItemAirdropUntradeableMidValuePriceMultiplier
             ?? 8.0f;
 
+        private const float BlackMarketBasePremium = 8000f;
+        private const float BlackMarketPerValueMultiplier = 5.0f;
+        private const float TechLevelPenaltyMultiplier = 1.6f;
+
         /// <summary>
-        /// Resolve the tiered untradeable multiplier based on the item's BaseMarketValue.
+        /// Resolve the colony's highest researched tech level by scanning finished research projects.
         /// </summary>
-        private static float ResolveUntradeableTierMultiplier(float baseMarketValue)
+        private static TechLevel GetColonyHighestTechLevel()
         {
-            if (baseMarketValue >= UntradeableHighValueThreshold)
-                return UntradeableHighValuePriceMultiplier;
-            if (baseMarketValue >= UntradeableLowValueThreshold)
-                return UntradeableMidValuePriceMultiplier;
-            return UntradeableLowValuePriceMultiplier;
+            TechLevel max = TechLevel.Undefined;
+            List<ResearchProjectDef> projects = DefDatabase<ResearchProjectDef>.AllDefsListForReading;
+            if (projects == null) return max;
+            for (int i = 0; i < projects.Count; i++)
+            {
+                if (projects[i].IsFinished && projects[i].techLevel > max)
+                    max = projects[i].techLevel;
+            }
+            return max;
         }
 
         /// <summary>
@@ -87,7 +95,7 @@ namespace RimChat.DiplomacySystem
         /// </summary>
         internal static float ExoticMiscNeedPriceMultiplier =>
             RimChatMod.Instance?.InstanceSettings?.ItemAirdropExoticMiscNeedPriceMultiplier
-            ?? 3.0f;
+            ?? 5.0f;
 
         /// <summary>
         /// Active offer (sell/payment) price multiplier for standard items, read from user settings.
@@ -316,12 +324,22 @@ namespace RimChat.DiplomacySystem
 
         internal static float ResolveNeedPriceMultiplier(ThingDef def)
         {
+            float baseMultiplier;
             if (def?.tradeTags != null && def.tradeTags.Contains("ExoticMisc"))
             {
-                return ExoticMiscNeedPriceMultiplier;
+                baseMultiplier = ExoticMiscNeedPriceMultiplier;
+            }
+            else
+            {
+                baseMultiplier = NeedPriceMultiplier;
             }
 
-            return NeedPriceMultiplier;
+            if (def != null && def.techLevel > GetColonyHighestTechLevel())
+            {
+                baseMultiplier *= TechLevelPenaltyMultiplier;
+            }
+
+            return baseMultiplier;
         }
 
         private static bool TryResolveUnifiedPrice(
@@ -345,23 +363,31 @@ namespace RimChat.DiplomacySystem
         }
 
         /// <summary>
-        /// Tier-3 global modifier: if the item is Tradeability.None, apply black-market premium.
-        /// Uses tiered multipliers based on BaseMarketValue:
-        ///   &lt;500 → UntradeableLowValuePriceMultiplier (default 15.0)
-        ///   500~1000 → UntradeableMidValuePriceMultiplier (default 8.0)
-        ///   &gt;1000 → UntradeableHighValuePriceMultiplier (default 6.0)
+        /// Returns true if the item is not normally purchasable by the player in vanilla trade.
+        /// Covers Tradeability.None (can't trade at all) and Tradeability.Sellable
+        /// (player can sell but cannot buy — typical for body parts, implants, harvested organs).
+        /// This is the SINGLE SOURCE OF TRUTH for black-market eligibility.
+        /// All callers that previously checked tradeability == Tradeability.None must use this.
+        /// </summary>
+        internal static bool IsBlackMarketItem(ThingDef def)
+        {
+            if (def == null) return false;
+            return def.tradeability == Tradeability.None
+                || def.tradeability == Tradeability.Sellable;
+        }
+
+        /// <summary>
+        /// Tier-3 global modifier: if the item is a black-market item, apply fixed-base premium.
+        /// Formula: Max(unitPrice, BlackMarketBasePremium + BaseMarketValue × BlackMarketPerValueMultiplier)
+        /// Default: Max(unitPrice, 8000 + BaseMarketValue × 5)
         /// Call this method from ALL need-unit-price entry points — see class-level conventions.
         /// </summary>
         internal static void ApplyUntradeablePremium(ThingDef def, ref float unitPrice)
         {
-            if (def == null || def.tradeability != Tradeability.None) return;
+            if (!IsBlackMarketItem(def)) return;
 
             float basePrice = Math.Max(0.01f, def.BaseMarketValue);
-            float needMultiplier = IsPreciousMetalFixedPrice(def)
-                ? 1.0f
-                : ResolveNeedPriceMultiplier(def);
-            float tierMultiplier = ResolveUntradeableTierMultiplier(basePrice);
-            float untradeablePrice = basePrice * needMultiplier * tierMultiplier;
+            float untradeablePrice = BlackMarketBasePremium + basePrice * BlackMarketPerValueMultiplier;
             unitPrice = Math.Max(unitPrice, untradeablePrice);
         }
 
@@ -372,10 +398,9 @@ namespace RimChat.DiplomacySystem
         {
             if (def == null) return "market_value";
 
-            if (def.tradeability == Tradeability.None)
+            if (IsBlackMarketItem(def))
             {
-                float tierMult = ResolveUntradeableTierMultiplier(Math.Max(0.01f, def.BaseMarketValue));
-                return $"untradeable_x{tierMult:F1}";
+                return "untradeable_black_market";
             }
 
             if (faction != null &&
@@ -389,10 +414,8 @@ namespace RimChat.DiplomacySystem
             if (IsPreciousMetalFixedPrice(def))
                 return "market_value";
 
-            if (def.tradeTags != null && def.tradeTags.Contains("ExoticMisc"))
-                return $"market_value_x{ExoticMiscNeedPriceMultiplier:F1}";
-
-            return $"market_value_x{NeedPriceMultiplier:F1}";
+            float actualMultiplier = ResolveNeedPriceMultiplier(def);
+            return $"market_value_x{actualMultiplier:F1}";
         }
 
         internal static string ResolveOfferPriceSemantic(ThingDef def)

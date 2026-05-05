@@ -454,7 +454,6 @@ namespace RimChat.Config
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "turn_objective", templates.TurnObjectiveTemplate);
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "opening_objective", templates.OpeningObjectiveTemplate);
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "topic_shift_rule", templates.TopicShiftRuleTemplate);
-            SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_action_priority", templates.ActionPriorityRuleTemplate);
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_proactive_romance", templates.ProactiveRomanceRuleTemplate);
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_proactive_social", templates.ProactiveSocialActionRuleTemplate);
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "diplomacy_fallback_role", templates.DiplomacyFallbackRoleTemplate);
@@ -1379,9 +1378,8 @@ namespace RimChat.Config
                 case "rpg_role_setting_fallback": return 130;
                 case "rpg_relationship_profile": return 140;
                 case "rpg_kinship_boundary": return 150;
-                case "rpg_action_priority": return 151;
-                case "rpg_proactive_romance": return 152;
-                case "rpg_proactive_social": return 153;
+                case "rpg_proactive_romance": return 151;
+                case "rpg_proactive_social": return 152;
                 case "social_news_style": return 160;
                 case "social_news_json_contract": return 170;
                 case "social_news_fact": return 180;

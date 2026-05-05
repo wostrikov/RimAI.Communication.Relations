@@ -350,6 +350,22 @@ namespace RimChat.DiplomacySystem
 
             requestedOriginalCount = targetCount;
             ComputeLegalCountWindow(budget, selectedRecord, candidatePack, settings, out maxByBudget, out maxBySystem, out hardMax);
+
+            // Relax budget for bound-need (negotiated) items: use the lower of
+            // market price and implied negotiated price so the budget allows
+            // the agreed-upon quantity rather than capping at market rate.
+            if (candidatePack.BoundNeedInjectedIntoCandidates
+                && string.Equals(candidatePack.BoundNeedDefName, selectedRecord.DefName, StringComparison.OrdinalIgnoreCase)
+                && budget > 0
+                && targetCount > 0)
+            {
+                float marketPrice = candidatePack.ResolveUnitPrice(selectedRecord);
+                float negotiatedPrice = (float)budget / targetCount;
+                float effectivePrice = Math.Min(marketPrice, Math.Max(0.01f, negotiatedPrice));
+                maxByBudget = Mathf.FloorToInt(Math.Max(0, budget) / effectivePrice);
+                hardMax = Math.Max(0, Math.Min(maxByBudget, maxBySystem));
+            }
+
             if (hardMax <= 0)
             {
                 string message = $"Budget {budget} is too low for {selectedRecord.DefName}. maxByBudget={maxByBudget},maxBySystem={maxBySystem},hardMax={hardMax}.";

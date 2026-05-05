@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimChat.Memory;
+using RimChat.Util;
 using RimChat.WorldState;
 using RimWorld;
 using RimWorld.Planet;
@@ -978,8 +979,13 @@ namespace RimChat.DiplomacySystem
             }
 
             int homeTile = Find.AnyPlayerHomeMap?.Tile ?? -1;
+            if (!WorldTileGuard.IsValidTile(homeTile))
+            {
+                homeTile = -1;
+            }
             IEnumerable<Settlement> candidateSettlements = Find.WorldObjects?.Settlements?
-                .Where(settlement => settlement?.Faction == resolvedFaction && settlement.Tile >= 0)
+                .Where(settlement => settlement?.Faction == resolvedFaction
+                                     && WorldTileGuard.IsValidTile(settlement.Tile))
                 ?? Enumerable.Empty<Settlement>();
             List<Settlement> settlements = Enumerable.OrderBy<Settlement, int>(
                     candidateSettlements,

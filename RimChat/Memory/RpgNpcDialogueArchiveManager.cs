@@ -8,6 +8,7 @@ using System.Text;
 using RimChat.AI;
 using RimChat.Core;
 using RimChat.DiplomacySystem;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -1147,7 +1148,7 @@ namespace RimChat.Memory
         private static float ResolveLongitude(Pawn pawn)
         {
             Map map = pawn?.MapHeld ?? Find.CurrentMap;
-            if (map != null && map.Tile >= 0 && Find.WorldGrid != null)
+            if (map != null && WorldTileGuard.IsValidTile(map.Tile))
             {
                 return Find.WorldGrid.LongLatOf(map.Tile).x;
             }

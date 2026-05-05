@@ -454,10 +454,9 @@ namespace RimChat.UI
                 return "Market x" + suffix;
             }
 
-            if (semantic.StartsWith("untradeable_x", StringComparison.OrdinalIgnoreCase))
+            if (semantic.StartsWith("untradeable_", StringComparison.OrdinalIgnoreCase))
             {
-                string suffix = semantic.Substring("untradeable_x".Length);
-                return "Black Market x" + suffix;
+                return "RimChat_ItemAirdropPriceSemanticBlackMarket".Translate().ToString();
             }
 
             if (string.Equals(semantic, "player_buy", StringComparison.OrdinalIgnoreCase))

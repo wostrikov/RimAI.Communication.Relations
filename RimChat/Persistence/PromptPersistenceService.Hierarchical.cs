@@ -602,15 +602,6 @@ namespace RimChat.Persistence
                         // Keep node/layout compatibility but avoid duplicate guidance output.
                         placement.Content = string.Empty;
                         break;
-                    case "rpg_action_priority":
-                        placement.OutputTag = "action_priority_rule";
-                        placement.Content = RenderPromptNodeTemplate(
-                            config,
-                            context,
-                            ResolveUnifiedNodeTemplate(promptChannel, "rpg_action_priority", ResolveRpgActionPriorityRuleTemplate(settings)),
-                            "action_priority_rule",
-                            string.Empty);
-                        break;
                     case "rpg_proactive_romance":
                         placement.OutputTag = "proactive_romance_rule";
                         placement.Content = RenderPromptNodeTemplate(
@@ -1971,21 +1962,6 @@ namespace RimChat.Persistence
             return PromptUnifiedCatalog.CreateFallback().ResolveNode(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
                 "rpg_kinship_boundary");
-        }
-
-        private static string ResolveRpgActionPriorityRuleTemplate(RimChatSettings settings)
-        {
-            string unified = settings?.ResolvePromptNodeText(
-                RimTalkPromptEntryChannelCatalog.RpgDialogue,
-                "rpg_action_priority");
-            if (!string.IsNullOrWhiteSpace(unified))
-            {
-                return unified;
-            }
-
-            return PromptUnifiedCatalog.CreateFallback().ResolveNode(
-                RimTalkPromptEntryChannelCatalog.RpgDialogue,
-                "rpg_action_priority");
         }
 
         private static string ResolveRpgProactiveRomanceRuleTemplate(RimChatSettings settings)

@@ -43,8 +43,6 @@ namespace RimChat.Config
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_role_setting_fallback", "Roleplay as {{ pawn.target.name }} in the current RimWorld context.");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_relationship_profile", "=== RELATIONSHIP PROFILE (MANUAL RPG ONLY) ===\nKinship: {{ pawn.relation.kinship }}\nRomanceState: {{ pawn.relation.romance_state }}\nSocialSummary: {{ pawn.relation.social_summary }}{{ if dialogue.guidance != \"\" }}\nGuidance: {{ dialogue.guidance }}{{ end }}");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_kinship_boundary", "When kinship is {{ pawn.relation.kinship }}, keep family boundaries first.");
-            SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_action_priority",
-                "=== 动作优先级规则 ===\n招募类动作（Recruit, ReduceResistance, ReduceWill）和浪漫类动作（RomanceAttempt, MarriageProposal, Breakup, Divorce, Date）均优先于心情记忆动作（TryGainMemory）。当心情记忆与上述动作冲突时，优先执行上述动作。重要：招募类与浪漫类是互斥的——不得在同一回复中混用。根据当前语境选择正确类别。");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_proactive_romance",
                 "=== 主动浪漫行为规则 ===\n1. 即时响应：当玩家明确提出恋爱或求婚请求且你同意时，必须在当前回复的 actions 中调用 RomanceAttempt 或 MarriageProposal。不要等待下一轮或玩家再次请求。\n2. 已确认关系：当关系画像显示恋爱状态为 lover/partner/spouse 时，可在对话中表现出亲密感，并在适当时机主动调用 RomanceAttempt 或 Date。\n3. 语境边界：浪漫动作仅在已确认的恋爱关系或明确的恋爱请求中使用。在招募、劝降、降低抗性、交易、军事合作、求助、谈判等非浪漫语境中，严禁使用 RomanticAttempt、Date 或 MarriageProposal。友好不等于恋爱。");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_proactive_social",

@@ -32,7 +32,6 @@ namespace RimChat.Config
         public string TopicShiftRuleTemplate;
         public string RelationshipProfileTemplate;
         public string KinshipBoundaryRuleTemplate;
-        public string ActionPriorityRuleTemplate;
         public string ProactiveRomanceRuleTemplate;
         public string ProactiveSocialActionRuleTemplate;
         public string PersonaBootstrapSystemPrompt;
@@ -95,10 +94,6 @@ namespace RimChat.Config
                     "When kinship is {{ pawn.relation.kinship }}, keep family boundaries first. " +
                     "If kinship is yes, do not narratively escalate toward RomanceAttempt, Date, or MarriageProposal. " +
                     "Use respectful, caring, boundary-aware wording instead.",
-                ActionPriorityRuleTemplate =
-                    "=== ACTION PRIORITY RULE ===\n" +
-                    "Recruitment actions (Recruit, ReduceResistance, ReduceWill) and romance actions (RomanceAttempt, MarriageProposal, Breakup, Divorce, Date) both take priority over mood memory actions (TryGainMemory). " +
-                    "When mood memory conflicts with either category, prioritize the action. Important: recruitment and romance are MUTUALLY EXCLUSIVE — never mix them in the same reply. Choose the correct category based on context.",
                 ProactiveRomanceRuleTemplate =
                     "=== PROACTIVE ROMANCE RULE ===\n" +
                     "1. When the player clearly requests romance or marriage and you agree, you MUST call RomanceAttempt or MarriageProposal in the current reply. Do not wait for the next turn.\n" +
@@ -161,7 +156,6 @@ namespace RimChat.Config
             TopicShiftRuleTemplate = Coalesce(TopicShiftRuleTemplate, fallback.TopicShiftRuleTemplate);
             RelationshipProfileTemplate = Coalesce(RelationshipProfileTemplate, fallback.RelationshipProfileTemplate);
             KinshipBoundaryRuleTemplate = Coalesce(KinshipBoundaryRuleTemplate, fallback.KinshipBoundaryRuleTemplate);
-            ActionPriorityRuleTemplate = Coalesce(ActionPriorityRuleTemplate, fallback.ActionPriorityRuleTemplate);
             ProactiveRomanceRuleTemplate = Coalesce(ProactiveRomanceRuleTemplate, fallback.ProactiveRomanceRuleTemplate);
             ProactiveSocialActionRuleTemplate = Coalesce(ProactiveSocialActionRuleTemplate, fallback.ProactiveSocialActionRuleTemplate);
             PersonaBootstrapSystemPrompt = Coalesce(PersonaBootstrapSystemPrompt, fallback.PersonaBootstrapSystemPrompt);

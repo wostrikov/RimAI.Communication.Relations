@@ -32,7 +32,6 @@ namespace RimChat.Config
         public string TopicShiftRuleTemplate;
         public string RelationshipProfileTemplate;
         public string KinshipBoundaryRuleTemplate;
-        public string ActionPriorityRuleTemplate;
         public string ProactiveRomanceRuleTemplate;
         public string PersonaBootstrapSystemPrompt;
         public string PersonaBootstrapUserPromptTemplate;
@@ -191,7 +190,6 @@ namespace RimChat.Config
                 TopicShiftRuleTemplate = defaults?.TopicShiftRuleTemplate ?? string.Empty,
                 RelationshipProfileTemplate = defaults?.RelationshipProfileTemplate ?? string.Empty,
                 KinshipBoundaryRuleTemplate = defaults?.KinshipBoundaryRuleTemplate ?? string.Empty,
-                ActionPriorityRuleTemplate = defaults?.ActionPriorityRuleTemplate ?? string.Empty,
                 ProactiveRomanceRuleTemplate = defaults?.ProactiveRomanceRuleTemplate ?? string.Empty,
                 PersonaBootstrapSystemPrompt = defaults?.PersonaBootstrapSystemPrompt ?? string.Empty,
                 PersonaBootstrapUserPromptTemplate = defaults?.PersonaBootstrapUserPromptTemplate ?? string.Empty,
@@ -295,11 +293,6 @@ namespace RimChat.Config
             if (custom.KinshipBoundaryRuleTemplate != null)
             {
                 target.KinshipBoundaryRuleTemplate = custom.KinshipBoundaryRuleTemplate;
-            }
-
-            if (custom.ActionPriorityRuleTemplate != null)
-            {
-                target.ActionPriorityRuleTemplate = custom.ActionPriorityRuleTemplate;
             }
 
             if (custom.ProactiveRomanceRuleTemplate != null)

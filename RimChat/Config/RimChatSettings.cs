@@ -156,7 +156,7 @@ namespace RimChat.Config
         public float ItemAirdropUntradeableLowValuePriceMultiplier = 15.0f;
         public float ItemAirdropUntradeableMidValuePriceMultiplier = 8.0f;
         public float ItemAirdropNeedPriceMultiplier = 1.6f;
-        public float ItemAirdropExoticMiscNeedPriceMultiplier = 3.0f;
+        public float ItemAirdropExoticMiscNeedPriceMultiplier = 5.0f;
         public float ItemAirdropOfferPriceMultiplier = 0.6f;
         public float ItemAirdropExoticMiscOfferPriceMultiplier = 0.9f;
         public float ItemAirdropUntradeableOfferPriceMultiplier = 1.0f;
@@ -624,7 +624,6 @@ namespace RimChat.Config
                 TopicShiftRuleTemplate = existing?.TopicShiftRuleTemplate ?? string.Empty,
                 RelationshipProfileTemplate = existing?.RelationshipProfileTemplate ?? string.Empty,
                 KinshipBoundaryRuleTemplate = existing?.KinshipBoundaryRuleTemplate ?? string.Empty,
-                ActionPriorityRuleTemplate = existing?.ActionPriorityRuleTemplate ?? string.Empty,
                 ProactiveRomanceRuleTemplate = existing?.ProactiveRomanceRuleTemplate ?? string.Empty,
                 PersonaBootstrapSystemPrompt = existing?.PersonaBootstrapSystemPrompt ?? string.Empty,
                 PersonaBootstrapUserPromptTemplate = existing?.PersonaBootstrapUserPromptTemplate ?? string.Empty,
