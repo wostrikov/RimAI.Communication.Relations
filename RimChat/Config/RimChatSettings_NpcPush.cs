@@ -250,13 +250,16 @@ namespace RimChat.Config
         private void DrawDesignatedNegotiatorSelector(Listing_Standard listing)
         {
             string currentName = "RimChat_NegotiatorMode_None".Translate();
-            if (DesignatedNegotiatorThingId > 0)
+            if (DesignatedNegotiatorThingId > 0 && Current.ProgramState == ProgramState.Playing)
             {
-                Pawn current = PawnsFinder.AllMapsWorldAndTemporary_Alive
-                    .FirstOrDefault(p => p != null && p.thingIDNumber == DesignatedNegotiatorThingId);
-                if (current != null)
+                var pawns = PawnsFinder.AllMapsWorldAndTemporary_Alive;
+                if (pawns != null)
                 {
-                    currentName = GetNpcPushPawnDisplayName(current);
+                    Pawn current = pawns.FirstOrDefault(p => p != null && p.thingIDNumber == DesignatedNegotiatorThingId);
+                    if (current != null)
+                    {
+                        currentName = GetNpcPushPawnDisplayName(current);
+                    }
                 }
             }
 
