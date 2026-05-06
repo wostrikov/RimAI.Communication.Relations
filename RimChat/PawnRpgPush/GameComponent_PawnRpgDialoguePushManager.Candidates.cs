@@ -17,6 +17,9 @@ namespace RimChat.PawnRpgPush
  ///</summary>
     public partial class GameComponent_PawnRpgDialoguePushManager
     {
+        private static bool _loggedNoEligibleReceivers;
+        private static bool _loggedNoValidPair;
+
         private IEnumerable<Pawn> GetFactionNpcCandidates(Faction faction)
         {
             if (!IsValidTargetFaction(faction) || Find.Maps == null)
@@ -312,7 +315,7 @@ namespace RimChat.PawnRpgPush
                 return true;
             }
 
-            return IsPawnWorking(pawn);
+            return false;
         }
 
         private bool IsPawnWorking(Pawn pawn)
@@ -362,9 +365,9 @@ namespace RimChat.PawnRpgPush
         {
             return mode switch
             {
-                NpcPushFrequencyMode.High => 0.30f,
-                NpcPushFrequencyMode.Medium => 0.20f,
-                _ => 0.12f
+                NpcPushFrequencyMode.High => 0.15f,
+                NpcPushFrequencyMode.Medium => 0.10f,
+                _ => 0.06f
             };
         }
 
@@ -514,6 +517,11 @@ namespace RimChat.PawnRpgPush
                 return;
             }
 
+            if (lastHomeEventTriggerTick > 0 && currentTick - lastHomeEventTriggerTick < HomeEventCooldownTicks)
+            {
+                return;
+            }
+
             if (PlayerGameStateCache.Instance.EligibleColonistCount < 2)
             {
                 return;
@@ -544,6 +552,7 @@ namespace RimChat.PawnRpgPush
                 Severity = 1,
                 CreatedTick = currentTick
             };
+            lastHomeEventTriggerTick = currentTick;
             HandleTriggerContext(context, currentTick);
         }
 
@@ -560,7 +569,11 @@ namespace RimChat.PawnRpgPush
                 .ToList();
             if (receivers.Count == 0)
             {
-                Log.Warning("[RimChat] TryResolveColonistPair: No eligible receivers in protagonist list.");
+                if (!_loggedNoEligibleReceivers)
+                {
+                    Log.Message("[RimChat] TryResolveColonistPair: No eligible receivers in protagonist list (all busy or unavailable).");
+                    _loggedNoEligibleReceivers = true;
+                }
                 return false;
             }
 
@@ -615,7 +628,11 @@ namespace RimChat.PawnRpgPush
 
             if (bestReceiver == null || bestInitiator == null)
             {
-                Log.Warning($"[RimChat] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
+                if (!_loggedNoValidPair)
+                {
+                    Log.Message($"[RimChat] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
+                    _loggedNoValidPair = true;
+                }
                 return false;
             }
 

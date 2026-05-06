@@ -45,6 +45,11 @@ namespace RimChat.PawnRpgPush
         private const float LowMoodThreshold = 0.30f;
         private const int QuestDeadlineWindowTicks = TickPerDay;
         private const int QuestTriggerRepeatTicks = 15000;
+        private const int MessageDedupWindowTicks = 150000;
+        private const int RpgWindowMaxMessages = 1;
+        private const int RpgWindowTicks = 60000;
+        private const int HomeEventCooldownTicks = 150000;
+        private const int EventDedupWindowTicks = 75000;
 
         public static GameComponent_PawnRpgDialoguePushManager Instance;
 
@@ -57,6 +62,10 @@ namespace RimChat.PawnRpgPush
         private readonly Dictionary<string, PendingGenerationContext> pendingRequests = new Dictionary<string, PendingGenerationContext>();
         private readonly Queue<int> clickTicks = new Queue<int>();
         private readonly Dictionary<string, int> recentQuestTriggerTicks = new Dictionary<string, int>();
+        private Dictionary<string, int> recentMessageHashes = new Dictionary<string, int>();
+        private readonly List<int> rpgDeliveryTicks = new List<int>();
+        private Dictionary<string, int> recentEventDeliveries = new Dictionary<string, int>();
+        private int lastHomeEventTriggerTick = -1;
         private int lastColonyDeliveredTick = -ColonyDeliveryCooldownTicks;
         private int lastColonistPairDeliveredTick = -ColonyDeliveryCooldownTicks;
         private int lastMissingProtagonistLogTick = -MissingProtagonistLogIntervalTicks;
@@ -93,6 +102,13 @@ namespace RimChat.PawnRpgPush
                 Scribe_Collections.Look(ref proactiveProtagonists, "pawnRpgProactiveProtagonists", LookMode.Deep);
                 Scribe_Values.Look(ref lastColonyDeliveredTick, "pawnRpgLastColonyDeliveredTick", -ColonyDeliveryCooldownTicks);
                 Scribe_Values.Look(ref lastColonistPairDeliveredTick, "pawnRpgLastColonistPairDeliveredTick", -ColonyDeliveryCooldownTicks);
+                Scribe_Values.Look(ref lastHomeEventTriggerTick, "lastHomeEventTriggerTick", -1);
+                Scribe_Collections.Look(ref recentEventDeliveries, "recentEventDeliveries", LookMode.Value, LookMode.Value);
+                if (Scribe.mode == LoadSaveMode.Saving)
+                {
+                    CleanupExpiredMessageHashes(Find.TickManager?.TicksGame ?? 0);
+                }
+                Scribe_Collections.Look(ref recentMessageHashes, "recentMessageHashes", LookMode.Value, LookMode.Value);
             }
             catch (Exception ex)
             {
@@ -101,6 +117,8 @@ namespace RimChat.PawnRpgPush
                 threatStates ??= new List<PawnRpgThreatState>();
                 queuedTriggers ??= new List<QueuedPawnRpgTrigger>();
                 proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
+                recentMessageHashes ??= new Dictionary<string, int>();
+                recentEventDeliveries ??= new Dictionary<string, int>();
             }
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -109,6 +127,8 @@ namespace RimChat.PawnRpgPush
                 threatStates ??= new List<PawnRpgThreatState>();
                 queuedTriggers ??= new List<QueuedPawnRpgTrigger>();
                 proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
+                recentMessageHashes ??= new Dictionary<string, int>();
+                recentEventDeliveries ??= new Dictionary<string, int>();
                 CleanupInvalidState();
                 AutoSelectDefaultProtagonist();
             }
@@ -441,6 +461,60 @@ namespace RimChat.PawnRpgPush
             pendingRequests.Clear();
             clickTicks.Clear();
             recentQuestTriggerTicks.Clear();
+            recentMessageHashes.Clear();
+            rpgDeliveryTicks.Clear();
+            recentEventDeliveries.Clear();
+        }
+
+        private bool IsRpgDeliveryWindowFull(int currentTick)
+        {
+            for (int i = rpgDeliveryTicks.Count - 1; i >= 0; i--)
+            {
+                if (currentTick - rpgDeliveryTicks[i] > RpgWindowTicks)
+                    rpgDeliveryTicks.RemoveAt(i);
+            }
+            return rpgDeliveryTicks.Count >= RpgWindowMaxMessages;
+        }
+
+        private void RecordRpgDelivery(int currentTick)
+        {
+            rpgDeliveryTicks.Add(currentTick);
+        }
+
+        private void CleanupExpiredMessageHashes(int currentTick)
+        {
+            if (recentMessageHashes == null || recentMessageHashes.Count == 0) return;
+            var expired = recentMessageHashes
+                .Where(kv => currentTick - kv.Value > MessageDedupWindowTicks)
+                .Select(kv => kv.Key)
+                .ToList();
+            foreach (string key in expired)
+            {
+                recentMessageHashes.Remove(key);
+            }
+        }
+
+        private static string ComputeContentHash(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            string normalized = text.Trim().ToLowerInvariant();
+            // Collapse multiple whitespace into single space
+            var sb = new System.Text.StringBuilder(normalized.Length);
+            bool lastWasSpace = false;
+            foreach (char c in normalized)
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    if (!lastWasSpace) sb.Append(' ');
+                    lastWasSpace = true;
+                }
+                else
+                {
+                    sb.Append(c);
+                    lastWasSpace = false;
+                }
+            }
+            return sb.ToString().GetHashCode().ToString();
         }
 
         private void EnqueueIncoming(PawnRpgTriggerContext context)
@@ -557,6 +631,10 @@ namespace RimChat.PawnRpgPush
         private void EvaluateRegularTriggers(int currentTick)
         {
             CleanupQuestTriggerCache(currentTick);
+            if (IsRpgDeliveryWindowFull(currentTick))
+            {
+                return;
+            }
             float chance = GetRegularTriggerChance(RimChatMod.Instance?.InstanceSettings?.NpcPushFrequencyMode ?? NpcPushFrequencyMode.Low);
             foreach (Faction faction in GetActiveCandidateFactionsOnPlayerMaps(currentTick))
             {
@@ -916,9 +994,9 @@ namespace RimChat.PawnRpgPush
         {
             return mode switch
             {
-                NpcPushFrequencyMode.High => 0.30f,
-                NpcPushFrequencyMode.Medium => 0.20f,
-                _ => 0.12f
+                NpcPushFrequencyMode.High => 0.15f,
+                NpcPushFrequencyMode.Medium => 0.10f,
+                _ => 0.06f
             };
         }
     }

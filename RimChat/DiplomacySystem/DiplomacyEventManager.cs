@@ -6,6 +6,8 @@ using Verse;
 using Verse.AI.Group;
 using RimChat.Config;
 using RimChat.Core;
+using RimChat.Util;
+using UnityEngine;
 
 namespace RimChat.DiplomacySystem
 {
@@ -44,6 +46,12 @@ namespace RimChat.DiplomacySystem
                     return false;
                 }
 
+                if (!TryFindNearestFactionSettlement(faction, map.Tile, out _))
+                {
+                    Log.Warning($"[RimChat] Caravan trigger skipped: {faction.Name} has no reachable settlement.");
+                    return false;
+                }
+
                 IncidentParms parms = new IncidentParms();
                 parms.target = map;
                 parms.faction = faction;
@@ -53,8 +61,15 @@ namespace RimChat.DiplomacySystem
                 {
                     parms.traderKind = traderKind;
                 }
+                else
+                {
+                    Log.Warning($"[RimChat] No trader kind found for {faction.Name} type={caravanType}; TryExecute will use faction default.");
+                }
 
                 IncidentDef incidentDef = IncidentDefOf.TraderCaravanArrival;
+                bool canFire = incidentDef.Worker.CanFireNow(parms);
+                Log.Message($"[RimChat] Caravan pre-check: faction={faction.Name}, type={caravanType}, traderKind={traderKind?.defName ?? "null"}, canFireNow={canFire}, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
+
                 bool success = incidentDef.Worker.TryExecute(parms);
 
                 if (success)
@@ -63,7 +78,7 @@ namespace RimChat.DiplomacySystem
                 }
                 else
                 {
-                    Log.Warning($"[RimChat] Failed to trigger {caravanType} caravan from {faction.Name}");
+                    Log.Warning($"[RimChat] Failed to trigger {caravanType} caravan from {faction.Name} (canFireNow was {canFire})");
                 }
 
                 return success;
@@ -527,11 +542,36 @@ namespace RimChat.DiplomacySystem
             return AidType.Military;
         }
 
+        private static bool TryFindNearestFactionSettlement(Faction faction, int fromTile, out int distanceTiles)
+        {
+            distanceTiles = 0;
+            if (faction == null || !WorldTileGuard.IsValidTile(fromTile)) return false;
+
+            var settlements = Find.WorldObjects?.Settlements?
+                .Where(s => s != null && s.Faction == faction && WorldTileGuard.IsValidTile(s.Tile))
+                .ToList();
+
+            if (settlements == null || settlements.Count == 0) return false;
+
+            distanceTiles = settlements
+                .Min(s => Find.WorldGrid.TraversalDistanceBetween(fromTile, s.Tile));
+            return true;
+        }
+
         public static int CalculateDelayTicks(Faction faction, bool isAid = false)
         {
-            int baseTicks = isAid 
+            int baseTicks = isAid
                 ? (RimChatMod.Instance?.InstanceSettings?.AidDelayBaseTicks ?? 90000)
                 : (RimChatMod.Instance?.InstanceSettings?.CaravanDelayBaseTicks ?? 135000);
+
+            int homeTile = Find.AnyPlayerHomeMap?.Tile ?? -1;
+            int distanceTiles = 0;
+            if (!isAid && WorldTileGuard.IsValidTile(homeTile))
+            {
+                if (TryFindNearestFactionSettlement(faction, homeTile, out int dist))
+                    distanceTiles = dist;
+            }
+            int distanceTicks = Math.Max(0, distanceTiles - 5) * 3000;
 
             float modifier = 1.0f;
             int goodwill = faction.PlayerGoodwill;
@@ -550,7 +590,8 @@ namespace RimChat.DiplomacySystem
                 modifier = 1.5f;
             }
 
-            int delayTicks = (int)(baseTicks * modifier);
+            float randomFactor = Rand.Range(0.8f, 1.2f);
+            int delayTicks = (int)((baseTicks + distanceTicks) * modifier * randomFactor);
             return delayTicks;
         }
 
@@ -558,6 +599,13 @@ namespace RimChat.DiplomacySystem
         {
             try
             {
+                int homeTile = Find.AnyPlayerHomeMap?.Tile ?? -1;
+                if (!TryFindNearestFactionSettlement(faction, homeTile, out int distanceTiles))
+                {
+                    Log.Warning($"[RimChat] Cannot schedule caravan from {faction.Name}: no valid settlement found.");
+                    return false;
+                }
+
                 int delayTicks = CalculateDelayTicks(faction, false);
                 int executeTick = Find.TickManager.TicksGame + delayTicks;
 
@@ -572,7 +620,7 @@ namespace RimChat.DiplomacySystem
                 string caravanTypeLabel = GetCaravanTypeLabel(caravanType);
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Caravan, caravanTypeLabel, delayDays);
 
-                Log.Message($"[RimChat] Scheduled delayed caravan from {faction.Name}, type={caravanType}, delay={delayDays:F1} days");
+                Log.Message($"[RimChat] Scheduled delayed caravan from {faction.Name}, type={caravanType}, delay={delayDays:F1} days, distance={distanceTiles} tiles, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
                 return true;
             }
             catch (Exception ex)

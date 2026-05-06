@@ -127,6 +127,38 @@ namespace RimChat.PawnRpgPush
                 return;
             }
 
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            CleanupExpiredMessageHashes(currentTick);
+
+            // Sliding window: skip if delivery window is full
+            if (IsRpgDeliveryWindowFull(currentTick))
+            {
+                Log.Message($"[RimChat] PawnRPG delivery skipped: sliding window full");
+                return;
+            }
+
+            // Event dedup: skip if same SourceTag was delivered recently
+            if (!string.IsNullOrEmpty(context.SourceTag))
+            {
+                recentEventDeliveries ??= new Dictionary<string, int>();
+                if (recentEventDeliveries.TryGetValue(context.SourceTag, out int lastEventTick)
+                    && currentTick - lastEventTick < EventDedupWindowTicks)
+                {
+                    Log.Message($"[RimChat] PawnRPG event deduplicated: sourceTag={context.SourceTag}");
+                    return;
+                }
+            }
+
+            // Content dedup: skip if same pawn pair delivered identical content recently
+            recentMessageHashes ??= new Dictionary<string, int>();
+            string contentHash = ComputeContentHash(text);
+            string dedupKey = $"{npcPawn.thingIDNumber}:{playerPawn.thingIDNumber}:{contentHash}";
+            if (recentMessageHashes.ContainsKey(dedupKey))
+            {
+                Log.Message($"[RimChat] PawnRPG proactive deduplicated: same content for {npcPawn.LabelShortCap} -> {playerPawn.LabelShortCap}");
+                return;
+            }
+
             TaggedString title = GetLetterTitle(context, npcPawn, playerPawn);
             LetterDef letterDef = GetLetterDef(context);
             var letter = new ChoiceLetter_PawnRpgInitiatedDialogue();
@@ -134,7 +166,12 @@ namespace RimChat.PawnRpgPush
             letter.Setup(npcPawn, playerPawn, title, text, letterDef);
             Find.LetterStack.ReceiveLetter(letter, string.Empty, 0, true);
 
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            recentMessageHashes[dedupKey] = currentTick;
+            if (!string.IsNullOrEmpty(context.SourceTag))
+            {
+                recentEventDeliveries[context.SourceTag] = currentTick;
+            }
+            RecordRpgDelivery(currentTick);
             PawnRpgNpcPushState npcState = GetOrCreateNpcState(npcPawn);
             npcState.lastNpcEvaluateTick = currentTick;
             if (IsColonistPairContext(context))

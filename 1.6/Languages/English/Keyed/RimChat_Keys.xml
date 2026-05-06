@@ -97,8 +97,8 @@
     <!-- UI Settings -->
     <RimChat_UISettings>UI Settings</RimChat_UISettings>
     <RimChat_UISettingsTooltip>Function: configure comms-console replacement and typewriter UX. Scope: RimChat interface presentation layer.</RimChat_UISettingsTooltip>
-    <RimChat_ReplaceCommsConsole>Replace Comms Console</RimChat_ReplaceCommsConsole>
-    <RimChat_ReplaceCommsConsoleDesc>Fully replace the vanilla comms console entry with RimChat. Some vanilla content may be unavailable.</RimChat_ReplaceCommsConsoleDesc>
+    <RimChat_ReplaceCommsConsole>Direct Open</RimChat_ReplaceCommsConsole>
+    <RimChat_ReplaceCommsConsoleDesc>Open RimChat interface without walking to the comms console.</RimChat_ReplaceCommsConsoleDesc>
     <RimChat_CommsToggleStatusOn>ON</RimChat_CommsToggleStatusOn>
     <RimChat_CommsToggleStatusOff>OFF</RimChat_CommsToggleStatusOff>
     <RimChat_TerminalScale>Terminal Scale</RimChat_TerminalScale>
@@ -1474,6 +1474,14 @@ Selected prisoners: {1}
     <RimChat_ColonistPairFrequencyLow>Colonist: Low</RimChat_ColonistPairFrequencyLow>
     <RimChat_ColonistPairFrequencyMedium>Colonist: Medium</RimChat_ColonistPairFrequencyMedium>
     <RimChat_ColonistPairFrequencyHigh>Colonist: High</RimChat_ColonistPairFrequencyHigh>
+    <RimChat_NegotiatorMode>Negotiator Selection</RimChat_NegotiatorMode>
+    <RimChat_NegotiatorMode_HighestSocial>Top Social</RimChat_NegotiatorMode_HighestSocial>
+    <RimChat_NegotiatorMode_ProtagonistList>Protagonist</RimChat_NegotiatorMode_ProtagonistList>
+    <RimChat_NegotiatorMode_LastUsed>Last Used</RimChat_NegotiatorMode_LastUsed>
+    <RimChat_NegotiatorMode_Designated>Designated</RimChat_NegotiatorMode_Designated>
+    <RimChat_NegotiatorMode_DesignatedPawn>Designated Pawn: {0}</RimChat_NegotiatorMode_DesignatedPawn>
+    <RimChat_NegotiatorMode_SelectPawn>Select Pawn</RimChat_NegotiatorMode_SelectPawn>
+    <RimChat_NegotiatorMode_None>None</RimChat_NegotiatorMode_None>
     <RimChat_ConversationReinitiated>You reinitiated the dialogue.</RimChat_ConversationReinitiated>
     <RimChat_ConversationReinitiatedByNpc>The other side proactively reinitiated the dialogue.</RimChat_ConversationReinitiatedByNpc>
     <RimChat_SystemExitDialogue>The other side ended the current dialogue.</RimChat_SystemExitDialogue>

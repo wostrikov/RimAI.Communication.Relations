@@ -1202,7 +1202,7 @@ namespace RimChat.AI
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat] Error executing main thread action: {ex.Message}");
+                    Log.Error($"[RimChat] Error executing main thread action: {ex.Message}\n{ex.StackTrace}");
                 }
             }
         }

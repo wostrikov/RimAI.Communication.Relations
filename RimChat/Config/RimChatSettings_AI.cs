@@ -38,6 +38,8 @@ namespace RimChat.Config
             Scribe_Values.Look(ref AidDelayBaseTicks, "AidDelayBaseTicks", 90000);
             Scribe_Values.Look(ref CaravanDelayBaseTicks, "CaravanDelayBaseTicks", 135000);
             Scribe_Values.Look(ref DialogueActionGoodwillCostMultiplier, "DialogueActionGoodwillCostMultiplier", 0.5f);
+            Scribe_Values.Look(ref DiplomacyNegotiatorMode, "DiplomacyNegotiatorMode", NegotiatorSelectionMode.HighestSocial);
+            Scribe_Values.Look(ref DesignatedNegotiatorThingId, "DesignatedNegotiatorThingId", -1);
 
             Scribe_Values.Look(ref MinQuestCooldownDays, "MinQuestCooldownDays", 7);
             Scribe_Values.Look(ref MaxQuestCooldownDays, "MaxQuestCooldownDays", 12);
@@ -132,7 +134,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref PresenceOnlineDuration_Archotech, "PresenceOnlineDuration_Archotech", 20);
 
             Scribe_Values.Look(ref EnableSocialCircle, "EnableSocialCircle", true);
-            Scribe_Values.Look(ref ScheduledNewsFrequencyLevel, "ScheduledNewsFrequencyLevel", global::RimChat.Config.ScheduledNewsFrequencyLevel.Medium);
+            Scribe_Values.Look(ref ScheduledNewsFrequencyLevel, "ScheduledNewsFrequencyLevel", global::RimChat.Config.ScheduledNewsFrequencyLevel.High);
             Scribe_Values.Look(ref SocialPostIntervalMinDays, "SocialPostIntervalMinDays", 5);
             Scribe_Values.Look(ref SocialPostIntervalMaxDays, "SocialPostIntervalMaxDays", 7);
             Scribe_Values.Look(ref EnablePlayerInfluenceNews, "EnablePlayerInfluenceNews", true);
@@ -148,8 +150,8 @@ namespace RimChat.Config
             Scribe_Values.Look(ref NpcQueueMaxPerFaction, "NpcQueueMaxPerFaction", 3);
             Scribe_Values.Look(ref NpcQueueExpireHours, "NpcQueueExpireHours", 12f);
             Scribe_Values.Look(ref NpcGlobalDeliveryCooldownHours, "NpcGlobalDeliveryCooldownHours", 6f);
-            Scribe_Values.Look(ref NpcGlobalMaxMessagesPerWindow, "NpcGlobalMaxMessagesPerWindow", 3);
-            Scribe_Values.Look(ref NpcGlobalWindowHours, "NpcGlobalWindowHours", 24f);
+            Scribe_Values.Look(ref NpcGlobalMaxMessagesPerWindow, "NpcGlobalMaxMessagesPerWindow", 1);
+            Scribe_Values.Look(ref NpcGlobalWindowHours, "NpcGlobalWindowHours", 12f);
             Scribe_Values.Look(ref NpcFactionCooldownMinDays, "NpcFactionCooldownMinDays", 3);
             Scribe_Values.Look(ref NpcFactionCooldownMaxDays, "NpcFactionCooldownMaxDays", 7);
             Scribe_Values.Look(ref EnableBusyByDrafted, "EnableBusyByDrafted", true);

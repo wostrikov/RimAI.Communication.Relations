@@ -24,6 +24,7 @@ namespace RimChat.DiplomacySystem
         private List<FactionPresenceState> presenceStates = new List<FactionPresenceState>();
         private Dictionary<Faction, FactionPresenceState> presenceStatesByFaction = new Dictionary<Faction, FactionPresenceState>();
         private List<DelayedDiplomacyEvent> delayedEvents = new List<DelayedDiplomacyEvent>();
+        private int lastNegotiatorThingId = -1;
         private const int ForcedOfflineDurationHours = 2;
         private const int ForcedDoNotDisturbDurationHours = 4;
         private readonly List<DelayedDiplomacyEvent> delayedEventsPendingAdd = new List<DelayedDiplomacyEvent>();
@@ -35,6 +36,13 @@ namespace RimChat.DiplomacySystem
         public GameComponent_DiplomacyManager(Game game)
         {
             Instance = this;
+        }
+
+        public int GetLastNegotiatorThingId() => lastNegotiatorThingId;
+
+        public void SetLastNegotiatorThingId(int thingId)
+        {
+            lastNegotiatorThingId = thingId;
         }
 
         public override void StartedNewGame()
@@ -732,6 +740,7 @@ namespace RimChat.DiplomacySystem
                 Scribe_Collections.Look(ref albumEntries, "albumEntries", LookMode.Deep);
                 Scribe_Deep.Look(ref socialCircleState, "socialCircleState");
                 Scribe_Values.Look(ref lastDailyResetTick, "lastDailyResetTick", 0);
+                Scribe_Values.Look(ref lastNegotiatorThingId, "lastNegotiatorThingId", -1);
 
                 // Save/load GameAIInterface data
                 GameAIInterface.Instance?.ExposeData();

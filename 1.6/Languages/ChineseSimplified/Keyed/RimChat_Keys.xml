@@ -171,8 +171,8 @@
     <!-- UI 设置 -->
     <RimChat_UISettings>UI 设置</RimChat_UISettings>
     <RimChat_UISettingsTooltip>功能：配置通讯台替换与打字机显示体验。作用域：RimChat 交互界面表现层。</RimChat_UISettingsTooltip>
-    <RimChat_ReplaceCommsConsole>替换通讯台</RimChat_ReplaceCommsConsole>
-    <RimChat_ReplaceCommsConsoleDesc>将原版通讯台入口完全替换为RimChat，部分原版内容可能不可用</RimChat_ReplaceCommsConsoleDesc>
+    <RimChat_ReplaceCommsConsole>通讯台直开</RimChat_ReplaceCommsConsole>
+    <RimChat_ReplaceCommsConsoleDesc>殖民者不用跑到通讯台即可打开RimChat界面</RimChat_ReplaceCommsConsoleDesc>
     <RimChat_CommsToggleStatusOn>开启</RimChat_CommsToggleStatusOn>
     <RimChat_CommsToggleStatusOff>关闭</RimChat_CommsToggleStatusOff>
     <RimChat_TerminalScale>终端缩放</RimChat_TerminalScale>
@@ -1093,6 +1093,14 @@ ID：{5}
     <RimChat_ColonistPairFrequencyLow>殖民者：低</RimChat_ColonistPairFrequencyLow>
     <RimChat_ColonistPairFrequencyMedium>殖民者：中</RimChat_ColonistPairFrequencyMedium>
     <RimChat_ColonistPairFrequencyHigh>殖民者：高</RimChat_ColonistPairFrequencyHigh>
+    <RimChat_NegotiatorMode>谈判代表选择</RimChat_NegotiatorMode>
+    <RimChat_NegotiatorMode_HighestSocial>社交最高</RimChat_NegotiatorMode_HighestSocial>
+    <RimChat_NegotiatorMode_ProtagonistList>主角列表</RimChat_NegotiatorMode_ProtagonistList>
+    <RimChat_NegotiatorMode_LastUsed>上次使用</RimChat_NegotiatorMode_LastUsed>
+    <RimChat_NegotiatorMode_Designated>指定小人</RimChat_NegotiatorMode_Designated>
+    <RimChat_NegotiatorMode_DesignatedPawn>指定小人：{0}</RimChat_NegotiatorMode_DesignatedPawn>
+    <RimChat_NegotiatorMode_SelectPawn>选择小人</RimChat_NegotiatorMode_SelectPawn>
+    <RimChat_NegotiatorMode_None>无</RimChat_NegotiatorMode_None>
     <RimChat_ConversationReinitiated>你重新发起了对话。</RimChat_ConversationReinitiated>
     <RimChat_ConversationReinitiatedByNpc>对方主动重新发起了对话。</RimChat_ConversationReinitiatedByNpc>
     <RimChat_SystemExitDialogue>对方结束了当前对话。</RimChat_SystemExitDialogue>

@@ -14,6 +14,7 @@ using RimChat.Persistence;
 using RimChat.Prompting;
 using RimChat.Util;
 using RimChat.Core;
+using RimChat.PawnRpgPush;
 using System.Text;
 using System.IO;
 
@@ -300,6 +301,10 @@ namespace RimChat.UI
             string windowLifecycleKey = null)
         {
             this.negotiator = ResolveAutoNegotiator(negotiator);
+            if (this.negotiator != null)
+            {
+                GameComponent_DiplomacyManager.Instance?.SetLastNegotiatorThingId(this.negotiator.thingIDNumber);
+            }
             closeOnClickedOutside = false;
             absorbInputAroundWindow = false;
             doCloseX = false; // disabled: bezel covers the default position; custom close button in DrawTitleBar
@@ -1057,6 +1062,20 @@ namespace RimChat.UI
                 return preferredNegotiator;
             }
 
+            var settings = RimChatMod.Instance?.InstanceSettings;
+            var mode = settings?.DiplomacyNegotiatorMode ?? NegotiatorSelectionMode.HighestSocial;
+
+            return mode switch
+            {
+                NegotiatorSelectionMode.ProtagonistList => ResolveNegotiatorFromProtagonistList(),
+                NegotiatorSelectionMode.LastUsed => ResolveLastUsedNegotiator(),
+                NegotiatorSelectionMode.Designated => ResolveDesignatedNegotiator(settings),
+                _ => ResolveHighestSocialNegotiator()
+            };
+        }
+
+        private static Pawn ResolveHighestSocialNegotiator()
+        {
             IEnumerable<Map> maps = Find.Maps ?? Enumerable.Empty<Map>();
             foreach (Map map in maps.Where(m => m != null && m.IsPlayerHome))
             {
@@ -1084,6 +1103,44 @@ namespace RimChat.UI
             }
 
             return null;
+        }
+
+        private static Pawn ResolveNegotiatorFromProtagonistList()
+        {
+            var manager = GameComponent_PawnRpgDialoguePushManager.Instance;
+            if (manager == null) return ResolveHighestSocialNegotiator();
+
+            List<Pawn> protagonists = manager.GetRpgProactiveProtagonists();
+            if (protagonists == null || protagonists.Count == 0) return ResolveHighestSocialNegotiator();
+
+            Pawn best = protagonists
+                .Where(IsValidNegotiator)
+                .OrderByDescending(p => GetNegotiatorScore(p))
+                .FirstOrDefault();
+            return best ?? ResolveHighestSocialNegotiator();
+        }
+
+        private static Pawn ResolveLastUsedNegotiator()
+        {
+            var diplomacyManager = GameComponent_DiplomacyManager.Instance;
+            if (diplomacyManager == null) return ResolveHighestSocialNegotiator();
+
+            int thingId = diplomacyManager.GetLastNegotiatorThingId();
+            if (thingId <= 0) return ResolveHighestSocialNegotiator();
+
+            Pawn pawn = PawnsFinder.AllMapsWorldAndTemporary_Alive
+                .FirstOrDefault(p => p != null && p.thingIDNumber == thingId);
+            return IsValidNegotiator(pawn) ? pawn : ResolveHighestSocialNegotiator();
+        }
+
+        private static Pawn ResolveDesignatedNegotiator(RimChatSettings settings)
+        {
+            if (settings == null || settings.DesignatedNegotiatorThingId <= 0)
+                return ResolveHighestSocialNegotiator();
+
+            Pawn pawn = PawnsFinder.AllMapsWorldAndTemporary_Alive
+                .FirstOrDefault(p => p != null && p.thingIDNumber == settings.DesignatedNegotiatorThingId);
+            return IsValidNegotiator(pawn) ? pawn : ResolveHighestSocialNegotiator();
         }
 
         private static bool IsValidNegotiator(Pawn pawn)
@@ -3126,7 +3183,8 @@ namespace RimChat.UI
                     continue;
                 }
 
-                if (hasSuccessfulAction && IsExpectedActionDenyFailure(failedOutcome))
+                bool isForcedSendInfoAction = IsForcedSendInfoActionType(failedOutcome.Action?.ActionType);
+                if (!isForcedSendInfoAction && hasSuccessfulAction && IsExpectedActionDenyFailure(failedOutcome))
                 {
                     continue;
                 }
@@ -3396,11 +3454,24 @@ namespace RimChat.UI
             string senderName = ResolveFactionSenderName(currentFaction, speakerPawn);
             string response = GenerateSimulatedResponse(playerMessage, currentFaction);
             currentSession.AddMessage(senderName, response, false, DialogueMessageType.Normal, speakerPawn);
-            
-            // 移除global音效播放
 
+            // Execute forced actions from hidden directive even in fallback mode
+            if (TryParseSendInfoForcedActionDirective(playerMessage, out SendInfoForcedActionDirective directive))
+            {
+                var action = new AIAction
+                {
+                    ActionType = directive.ActionType,
+                    Parameters = new Dictionary<string, object>(StringComparer.Ordinal)
+                };
+                var executor = new AIActionExecutor(currentFaction, applyDialogueApiGoodwillCost: true);
+                ActionResult result = executor.ExecuteAction(action);
+                if (!result.IsSuccess)
+                {
+                    string reason = result.Message ?? "Unknown error";
+                    currentSession.AddMessage("System", $"无法执行动作 '{directive.ActionType}': {reason}", false, DialogueMessageType.System);
+                }
+            }
 
-            // Savememory
             SaveFactionMemory(currentSession, currentFaction);
         }
 
@@ -4111,6 +4182,16 @@ namespace RimChat.UI
                 lower.Contains("below 0") ||
                 lower.Contains("cannot") ||
                 lower.Contains("denied");
+        }
+
+        private static bool IsForcedSendInfoActionType(string actionType)
+        {
+            if (string.IsNullOrWhiteSpace(actionType)) return false;
+            return actionType == AIActionNames.RequestCaravan
+                || actionType == AIActionNames.RequestVisitor
+                || actionType == AIActionNames.RequestAid
+                || actionType == AIActionNames.RequestRaid
+                || actionType == AIActionNames.RequestRaidCallEveryone;
         }
 
         /// <summary>/// 为执行的 AI 动作record重要event (只更新内存)

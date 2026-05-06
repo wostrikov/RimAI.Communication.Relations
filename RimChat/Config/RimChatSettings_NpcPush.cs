@@ -19,8 +19,8 @@ namespace RimChat.Config
         public int NpcQueueMaxPerFaction = 3;
         public float NpcQueueExpireHours = 12f;
         public float NpcGlobalDeliveryCooldownHours = 6f;
-        public int NpcGlobalMaxMessagesPerWindow = 3;
-        public float NpcGlobalWindowHours = 24f;
+        public int NpcGlobalMaxMessagesPerWindow = 1;
+        public float NpcGlobalWindowHours = 12f;
         public int NpcFactionCooldownMinDays = 3;
         public int NpcFactionCooldownMaxDays = 7;
         public bool EnableBusyByDrafted = true;
@@ -70,6 +70,7 @@ namespace RimChat.Config
             {
                 DrawColonistPairSettings(listing);
             }
+            DrawNegotiatorModeSettings(listing);
             DrawDebugForceTriggerButton(listing);
         }
 
@@ -207,6 +208,71 @@ namespace RimChat.Config
             ColonistPairMinOpinion = Mathf.RoundToInt(listing.Slider(ColonistPairMinOpinion, 0f, 60f));
         }
 
+        private void DrawNegotiatorModeSettings(Listing_Standard listing)
+        {
+            listing.Gap(6f);
+            listing.Label("RimChat_NegotiatorMode".Translate());
+            Rect rowRect = listing.GetRect(30f);
+            float buttonWidth = (rowRect.width - 30f) / 4f;
+            DrawNegotiatorModeButton(new Rect(rowRect.x, rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.HighestSocial, "RimChat_NegotiatorMode_HighestSocial".Translate());
+            DrawNegotiatorModeButton(new Rect(rowRect.x + (buttonWidth + 10f), rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.ProtagonistList, "RimChat_NegotiatorMode_ProtagonistList".Translate());
+            DrawNegotiatorModeButton(new Rect(rowRect.x + (buttonWidth + 10f) * 2f, rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.LastUsed, "RimChat_NegotiatorMode_LastUsed".Translate());
+            DrawNegotiatorModeButton(new Rect(rowRect.x + (buttonWidth + 10f) * 3f, rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.Designated, "RimChat_NegotiatorMode_Designated".Translate());
+
+            if (DiplomacyNegotiatorMode == NegotiatorSelectionMode.Designated)
+            {
+                listing.Gap(4f);
+                DrawDesignatedNegotiatorSelector(listing);
+            }
+        }
+
+        private void DrawNegotiatorModeButton(Rect rect, NegotiatorSelectionMode mode, string label)
+        {
+            bool isActive = DiplomacyNegotiatorMode == mode;
+            if (Widgets.ButtonText(rect, label, drawBackground: true, doMouseoverSound: true, isActive ? new Color(0.2f, 0.6f, 0.2f) : new Color(0.3f, 0.3f, 0.3f)))
+            {
+                DiplomacyNegotiatorMode = mode;
+            }
+        }
+
+        private void DrawDesignatedNegotiatorSelector(Listing_Standard listing)
+        {
+            string currentName = "RimChat_NegotiatorMode_None".Translate();
+            if (DesignatedNegotiatorThingId > 0)
+            {
+                Pawn current = PawnsFinder.AllMapsWorldAndTemporary_Alive
+                    .FirstOrDefault(p => p != null && p.thingIDNumber == DesignatedNegotiatorThingId);
+                if (current != null)
+                {
+                    currentName = GetNpcPushPawnDisplayName(current);
+                }
+            }
+
+            listing.Label("RimChat_NegotiatorMode_DesignatedPawn".Translate(currentName));
+            if (listing.ButtonText("RimChat_NegotiatorMode_SelectPawn".Translate()))
+            {
+                OpenDesignatedNegotiatorMenu();
+            }
+        }
+
+        private void OpenDesignatedNegotiatorMenu()
+        {
+            List<Pawn> candidates = PawnsFinder.AllMapsWorldAndTemporary_Alive
+                .Where(pawn => pawn != null && pawn.Faction == Faction.OfPlayer && !pawn.Dead && !pawn.Destroyed && pawn.RaceProps?.Humanlike == true)
+                .OrderBy(GetNpcPushPawnDisplayName)
+                .ToList();
+
+            var options = new List<FloatMenuOption>();
+            options.Add(new FloatMenuOption("RimChat_NegotiatorMode_None".Translate(), () => DesignatedNegotiatorThingId = -1));
+            foreach (Pawn pawn in candidates)
+            {
+                string label = GetNpcPushPawnDisplayName(pawn);
+                options.Add(new FloatMenuOption(label, () => DesignatedNegotiatorThingId = pawn.thingIDNumber));
+            }
+
+            Find.WindowStack.Add(new FloatMenu(options));
+        }
+
         private void DrawColonistPairFrequencySelector(Listing_Standard listing)
         {
             Rect rowRect = listing.GetRect(30f);
@@ -314,8 +380,8 @@ namespace RimChat.Config
             NpcQueueMaxPerFaction = 3;
             NpcQueueExpireHours = 12f;
             NpcGlobalDeliveryCooldownHours = 6f;
-            NpcGlobalMaxMessagesPerWindow = 3;
-            NpcGlobalWindowHours = 24f;
+            NpcGlobalMaxMessagesPerWindow = 1;
+            NpcGlobalWindowHours = 12f;
             NpcFactionCooldownMinDays = 3;
             NpcFactionCooldownMaxDays = 7;
             EnableBusyByDrafted = true;

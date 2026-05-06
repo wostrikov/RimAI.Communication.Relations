@@ -1,3 +1,20 @@
+1.2.4
+- [Tweak] Major frequency reduction: NPC diplomacy global window 12h/1 msg, PawnRPG window 24h/1 msg
+- [New] NPC diplomacy per-faction sliding window: max 2 msgs per faction per 24h, bypass also constrained
+- [New] PawnRPG event-level dedup: same SourceTag won't fire again within 1.25 days
+- [New] Home event independent cooldown: 2.5 days, prevents repeated triggers from always-true HasActiveHomeAlerts
+- [New] Caravan delay based on nearest settlement distance: +1.2h per tile, ±20% random variance
+- [New] Caravan schedule-time settlement existence check, fails immediately if no settlement
+- [Tweak] NPC diplomacy trigger probability halved: Low 6% / Medium 10% / High 15%
+- [Tweak] News default frequency changed to High (1 per day)
+- [Tweak] Diplomacy negotiator selection supports 4 modes: Top Social / Protagonist / Last Used / Designated
+- [Tweak] RPG dialogue content dedup: same pawn pair + same content won't deliver within 2.5 days
+- [Fix] Caravan request failure no longer silently swallowed
+- [Fix] Fallback path now executes forced actions from hidden directive
+- [Fix] IsPawnUnavailable relaxed: working colonists no longer excluded
+- [Fix] Main thread error log now includes stack trace
+- [Fix] recentMessageHashes null reference guard
+
 1.2.3
 - [New] Colonist-to-colonist proactive dialogue: supports ambient social, low mood care, threat discussion, and home alert triggers
 - [New] Colonist pair matching: receiver selected from protagonist list, initiator from all colonists

@@ -50,6 +50,14 @@ namespace RimChat.Config
         Warning = 1
     }
 
+    public enum NegotiatorSelectionMode
+    {
+        HighestSocial = 0,
+        ProtagonistList = 1,
+        LastUsed = 2,
+        Designated = 3
+    }
+
     public partial class RimChatSettings : ModSettings
     {
         // Provider Selection
@@ -117,6 +125,8 @@ namespace RimChat.Config
         public int CaravanDelayBaseTicks = 135000;
         public int RaidCooldownTicks = 180000;
         public float DialogueActionGoodwillCostMultiplier = 0.5f;
+        public NegotiatorSelectionMode DiplomacyNegotiatorMode = NegotiatorSelectionMode.HighestSocial;
+        public int DesignatedNegotiatorThingId = -1;
         public bool EnableAIGoodwillAdjustment = true;
         public bool EnableAIGiftSending = true;
         public bool EnableAIWarDeclaration = true;
@@ -245,7 +255,7 @@ namespace RimChat.Config
 
         // Social Circle Settings
         public bool EnableSocialCircle = true;
-        public ScheduledNewsFrequencyLevel ScheduledNewsFrequencyLevel = ScheduledNewsFrequencyLevel.Medium;
+        public ScheduledNewsFrequencyLevel ScheduledNewsFrequencyLevel = ScheduledNewsFrequencyLevel.High;
         // Legacy migration fields only. Current runtime scheduling uses ScheduledNewsFrequencyLevel; these values are kept for old save import.
         public int SocialPostIntervalMinDays = 5;
         public int SocialPostIntervalMaxDays = 7;
