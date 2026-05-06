@@ -252,21 +252,6 @@ namespace RimChat.DiplomacySystem
                 RecordAPICall("RequestItemAirdrop.BudgetMismatch", true, mismatchAudit);
             }
 
-            AirdropTradeRuleSnapshot tradeRule = ItemAirdropTradePolicy.ResolveRuleSnapshot(
-                faction,
-                map.wealthWatcher?.WealthItems ?? 0f,
-                GetAirdropFactionTradeTotal(faction));
-            if (paymentTotalSilver > tradeRule.TradeLimitSilver)
-            {
-                return FailFastAirdrop(
-                    "trade_limit_exceeded",
-                    $"Offer total {paymentTotalSilver} exceeds current trade limit {tradeRule.TradeLimitSilver}.",
-                    faction,
-                    parameters,
-                    $"goodwill={tradeRule.Goodwill},isMerchant={tradeRule.IsMerchantFaction},isAlly={tradeRule.IsAlly},limit={tradeRule.TradeLimitSilver}",
-                    sendLetter: false);
-            }
-
             ItemAirdropIntent intent = ItemAirdropIntent.Create(need, constraints, scenario);
             APIResult candidateResult = PrepareItemAirdropCandidates(
                 intent,

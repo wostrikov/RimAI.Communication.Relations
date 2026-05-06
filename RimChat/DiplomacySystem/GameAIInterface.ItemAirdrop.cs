@@ -367,19 +367,6 @@ namespace RimChat.DiplomacySystem
                 hardMax = Math.Max(0, Math.Min(maxByBudget, maxBySystem));
             }
 
-            if (hardMax <= 0)
-            {
-                string message = $"Budget {budget} is too low for {selectedRecord.DefName}. maxByBudget={maxByBudget},maxBySystem={maxBySystem},hardMax={hardMax}.";
-                return BuildSelectionFailure("budget_too_low", message);
-            }
-
-            if (targetCount > hardMax)
-            {
-                int originalCount = targetCount;
-                targetCount = hardMax;
-                resolvedCountSource = $"{resolvedCountSource}_clamped({originalCount}->{hardMax})";
-            }
-
             validatedCount = targetCount;
             return APIResult.SuccessResult("Selection validated.");
         }

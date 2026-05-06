@@ -86,6 +86,8 @@ namespace RimChat.Config
             Scribe_Values.Look(ref ItemAirdropUntradeableOfferPriceMultiplier, "ItemAirdropUntradeableOfferPriceMultiplier", 1.0f);
             Scribe_Values.Look(ref ItemAirdropSpecialItemDiscountMultiplier, "ItemAirdropSpecialItemDiscountMultiplier", 0.4f);
             Scribe_Values.Look(ref ItemAirdropSpecialItemScarceMultiplier, "ItemAirdropSpecialItemScarceMultiplier", 2.0f);
+            Scribe_Values.Look(ref ItemAirdropTradeLimitMultiplier, "ItemAirdropTradeLimitMultiplier", 2.0f);
+            Scribe_Values.Look(ref ItemAirdropCooldownMultiplier, "ItemAirdropCooldownMultiplier", 1.0f);
 
             // Raid Granular Settings
             Scribe_Values.Look(ref EnableRaidStrategy_ImmediateAttack, "EnableRaidStrategy_ImmediateAttack", true);
@@ -885,6 +887,12 @@ namespace RimChat.Config
             airdropDays = (int)listing.Slider(airdropDays, 1f, 7f);
             ItemAirdropCooldownTicks = airdropDays * 60000;
 
+            listing.Label("RimChat_AirdropTradeLimitMultiplier".Translate(ItemAirdropTradeLimitMultiplier.ToString("F1")));
+            ItemAirdropTradeLimitMultiplier = listing.Slider(ItemAirdropTradeLimitMultiplier, 0.5f, 10.0f);
+
+            listing.Label("RimChat_AirdropCooldownMultiplier".Translate(ItemAirdropCooldownMultiplier.ToString("F2")));
+            ItemAirdropCooldownMultiplier = listing.Slider(ItemAirdropCooldownMultiplier, 0.1f, 5.0f);
+
             listing.Label("RimChat_ItemAirdropBlockedCategories".Translate());
             ItemAirdropBlockedCategoriesCsv = listing.TextEntry(ItemAirdropBlockedCategoriesCsv ?? string.Empty);
 
@@ -1195,6 +1203,8 @@ namespace RimChat.Config
             ItemAirdropUntradeableOfferPriceMultiplier = 1.0f;
             ItemAirdropSpecialItemDiscountMultiplier = 0.4f;
             ItemAirdropSpecialItemScarceMultiplier = 2.0f;
+            ItemAirdropTradeLimitMultiplier = 2.0f;
+            ItemAirdropCooldownMultiplier = 1.0f;
         }
 
         private void ResetPrisonerRansomSettingsToDefault()

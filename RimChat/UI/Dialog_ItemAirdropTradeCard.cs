@@ -802,15 +802,6 @@ namespace RimChat.UI
                 return "RimChat_AirdropTradeCard_SubmitDisabledOfferCount".Translate().ToString();
             }
 
-            AirdropTradeRuleSnapshot tradeRule = ResolveTradeRuleSnapshot();
-            float offerTotal = ComputeOfferTotal();
-            if (offerTotal > tradeRule.TradeLimitSilver)
-            {
-                return "RimChat_AirdropTradeCard_SubmitDisabledTradeLimitExceeded".Translate(
-                    Mathf.RoundToInt(offerTotal),
-                    tradeRule.TradeLimitSilver).ToString();
-            }
-
             return string.Empty;
         }
 

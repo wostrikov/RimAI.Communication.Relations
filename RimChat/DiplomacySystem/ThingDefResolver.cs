@@ -330,7 +330,7 @@ namespace RimChat.DiplomacySystem
             ThingDefMatchCandidate candidate = ThingDefMatchEngine.ScoreRecord(record, request);
             int score = candidate?.Score ?? 0;
 
-            if (isPrimaryFamily)
+            if (isPrimaryFamily && score > 0)
             {
                 score += 56;
             }

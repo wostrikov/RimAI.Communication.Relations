@@ -1,3 +1,9 @@
+1.2.2
+- [Tweak] Remove all budget/trade-limit restrictions: removed hardMax clamping and budget_too_low rejection, removed trade_limit_exceeded check, removed UI submit disabled-on-limit
+- [Tweak] Trade limit formula: BaseFloor 500→800, final multiplier now configurable setting ItemAirdropTradeLimitMultiplier (default 2.0), growth delta synced
+- [New] Cooldown multiplier configurable: added ItemAirdropCooldownMultiplier setting (default 1.0) applied to airdrop cooldown formula
+- [Fix] Unknown family polluting candidate pool with irrelevant items: isPrimaryFamily +56 bonus now only applied when ScoreRecord text-match > 0
+
 1.2.1
 - [Fix] Social circle invalid seed: CreateDialogueSeed now uses TryBuildFactionDialoguePublicClaim to handle short intents (Raid/Aid/Caravan); added Warning logs in TryQueueNewsSeed/EnqueueDeferredSocialNewsSeed
 - [Fix] Airdrop translation FormatException: BuildAirdropFailurePlayerMessage simplified to generic format, inner [code] prefix stripped to avoid double code tags

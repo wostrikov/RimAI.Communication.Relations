@@ -1642,7 +1642,8 @@ namespace RimChat.DiplomacySystem
             float normalizedOfferPercentMultiplier = Mathf.Max(0.01f, offerPercentMultiplier);
             float crossFactionDays = WasLastSuccessfulAirdropFromFaction(faction) ? 0f : 3f;
             float cooldownDays = 8f * goodwillMultiplier * merchantMultiplier * normalizedOfferPercentMultiplier + crossFactionDays;
-            return Mathf.Max(1, Mathf.RoundToInt(cooldownDays * GenDate.TicksPerDay));
+            float cooldownMultiplier = RimChatMod.Instance?.InstanceSettings?.ItemAirdropCooldownMultiplier ?? 1.0f;
+            return Mathf.Max(1, Mathf.RoundToInt(cooldownDays * cooldownMultiplier * GenDate.TicksPerDay));
         }
 
         private int GetTradeCaravanCooldownTicks(Faction faction)

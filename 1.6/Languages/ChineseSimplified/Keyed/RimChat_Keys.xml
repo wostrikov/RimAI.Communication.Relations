@@ -841,6 +841,8 @@
     <RimChat_ActionsHint_Reason_InvalidFaction>派系无效</RimChat_ActionsHint_Reason_InvalidFaction>
     <RimChat_ActionsHint_Reason_Generic>不可用</RimChat_ActionsHint_Reason_Generic>
     <RimChat_ItemAirdropCooldownDays>空投冷却（天）: {0}</RimChat_ItemAirdropCooldownDays>
+    <RimChat_AirdropTradeLimitMultiplier>交易额乘数: {0}x</RimChat_AirdropTradeLimitMultiplier>
+    <RimChat_AirdropCooldownMultiplier>冷却乘数: {0}x</RimChat_AirdropCooldownMultiplier>
     <RimChat_DiplomacyActionLabel_adjust_goodwill>调整好感</RimChat_DiplomacyActionLabel_adjust_goodwill>
     <RimChat_DiplomacyActionLabel_send_gift>赠送礼物</RimChat_DiplomacyActionLabel_send_gift>
     <RimChat_DiplomacyActionLabel_request_aid>请求援助</RimChat_DiplomacyActionLabel_request_aid>

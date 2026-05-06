@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimChat.Config;
-using UnityEngine;
 
 namespace RimChat.DiplomacySystem
 {
@@ -46,11 +45,6 @@ namespace RimChat.DiplomacySystem
             }
 
             ComputeLegalCountWindow(budget, selectedRecord, candidatePack, settings, out maxByBudget, out int maxBySystem, out hardMax);
-            if (hardMax <= 0)
-            {
-                string message = $"Budget {budget} is too low for {selectedRecord.DefName}. maxByBudget={maxByBudget},maxBySystem={maxBySystem},hardMax={hardMax}.";
-                return BuildSelectionFailure("budget_too_low", message);
-            }
 
             if (requestedCount.HasMultipleCounts)
             {
@@ -64,38 +58,24 @@ namespace RimChat.DiplomacySystem
             {
                 countSource = "fallback_explicit";
                 resolvedCount = requestedCount.RequestedCount;
-                if (resolvedCount > hardMax)
-                {
-                    int originalCount = resolvedCount;
-                    resolvedCount = hardMax;
-                    countSource = $"fallback_explicit_clamped({originalCount}->{hardMax})";
-                }
             }
             else if (requestedCount.HasParameterCount)
             {
                 countSource = "fallback_parameter";
                 resolvedCount = requestedCount.ParameterCount;
-                if (resolvedCount > hardMax)
-                {
-                    int originalCount = resolvedCount;
-                    resolvedCount = hardMax;
-                    countSource = $"fallback_parameter_clamped({originalCount}->{hardMax})";
-                }
             }
             else
             {
                 int baseCount = ResolveFamilyDefaultCount(intent?.Family ?? ItemAirdropNeedFamily.Unknown);
-                resolvedCount = Mathf.Clamp(Math.Min(baseCount, hardMax), 1, hardMax);
+                resolvedCount = Math.Max(1, baseCount);
                 countSource = "fallback_default_family";
             }
 
             if (requestedCount.HasExplicitCount && requestedCount.HasParameterCount)
             {
                 int resolvedMax = Math.Max(requestedCount.RequestedCount, requestedCount.ParameterCount);
-                int finalCount = Mathf.Clamp(resolvedMax, 1, hardMax);
-                countSource = resolvedMax == finalCount
-                    ? "fallback_max_conflict"
-                    : $"fallback_max_conflict_clamped({resolvedMax}->{finalCount})";
+                int finalCount = Math.Max(1, resolvedMax);
+                countSource = "fallback_max_conflict";
                 resolvedCount = finalCount;
             }
 
@@ -137,10 +117,6 @@ namespace RimChat.DiplomacySystem
                 }
 
                 ComputeLegalCountWindow(budget, candidate.Record, candidatePack, settings, out _, out _, out int hardMax);
-                if (hardMax <= 0)
-                {
-                    continue;
-                }
 
                 float unitPrice = candidatePack.ResolveUnitPrice(candidate.Record);
                 options.Add(new ItemAirdropPendingSelectionOption
@@ -149,7 +125,7 @@ namespace RimChat.DiplomacySystem
                     DefName = candidate.Record.DefName ?? string.Empty,
                     Label = candidate.Record.Label ?? candidate.Record.DefName ?? string.Empty,
                     UnitPrice = Math.Max(0.01f, unitPrice),
-                    MaxLegalCount = hardMax
+                    MaxLegalCount = Math.Max(1, hardMax)
                 });
             }
 

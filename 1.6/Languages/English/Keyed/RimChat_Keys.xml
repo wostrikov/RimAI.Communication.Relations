@@ -1205,6 +1205,8 @@
     <RimChat_ActionsHint_Reason_InvalidFaction>Invalid faction</RimChat_ActionsHint_Reason_InvalidFaction>
     <RimChat_ActionsHint_Reason_Generic>Unavailable</RimChat_ActionsHint_Reason_Generic>
     <RimChat_ItemAirdropCooldownDays>Airdrop cooldown (days): {0}</RimChat_ItemAirdropCooldownDays>
+    <RimChat_AirdropTradeLimitMultiplier>Trade limit multiplier: {0}x</RimChat_AirdropTradeLimitMultiplier>
+    <RimChat_AirdropCooldownMultiplier>Cooldown multiplier: {0}x</RimChat_AirdropCooldownMultiplier>
     <RimChat_DiplomacyActionLabel_adjust_goodwill>Adjust goodwill</RimChat_DiplomacyActionLabel_adjust_goodwill>
     <RimChat_DiplomacyActionLabel_send_gift>Send gift</RimChat_DiplomacyActionLabel_send_gift>
     <RimChat_DiplomacyActionLabel_request_aid>Request aid</RimChat_DiplomacyActionLabel_request_aid>

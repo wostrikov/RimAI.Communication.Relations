@@ -1,3 +1,9 @@
+1.2.2
+- [调整] 取消所有budget/交易限额限制：移除hardMax截断与budget_too_low拒绝，移除trade_limit_exceeded校验，移除UI提交限额禁用
+- [调整] 交易额度公式优化：起始交易额500→800，最终乘数改为可配置设置ItemAirdropTradeLimitMultiplier(默认2.0)，增长提示同步乘数
+- [新增] 冷却乘数可配置：新增ItemAirdropCooldownMultiplier设置(默认1.0)，应用于空投冷却公式
+- [修复] Unknown需求族无关物品污染候选池：ComputeMatchScore中isPrimaryFamily加分仅对ScoreRecord文本匹配>0的物品生效
+
 1.2.1
 - [修复] 社交圈种子无效：CreateDialogueSeed改用TryBuildFactionDialoguePublicClaim处理短意图(Raid/Aid/Caravan)；TryQueueNewsSeed/EnqueueDeferredSocialNewsSeed添加无效种子Warning日志
 - [修复] 空投翻译FormatException：BuildAirdropFailurePlayerMessage简化为通用格式，剥离内层[code]前缀避免双层代码标签

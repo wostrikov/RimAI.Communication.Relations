@@ -162,6 +162,8 @@ namespace RimChat.Config
         public float ItemAirdropUntradeableOfferPriceMultiplier = 1.0f;
         public float ItemAirdropSpecialItemDiscountMultiplier = 0.4f;
         public float ItemAirdropSpecialItemScarceMultiplier = 2.0f;
+        public float ItemAirdropTradeLimitMultiplier = 2.0f;
+        public float ItemAirdropCooldownMultiplier = 1.0f;
 
         // Quest Settings
         public int MinQuestCooldownDays = 7;

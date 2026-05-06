@@ -131,7 +131,10 @@ namespace RimChat.DiplomacySystem
         internal static float SpecialItemScarceMultiplier =>
             RimChatMod.Instance?.InstanceSettings?.ItemAirdropSpecialItemScarceMultiplier
             ?? 2.0f;
-        private const float BaseFloor = 500f;
+        internal static float TradeLimitMultiplier =>
+            RimChatMod.Instance?.InstanceSettings?.ItemAirdropTradeLimitMultiplier ?? 2.0f;
+
+        private const float BaseFloor = 800f;
         private const float GoodwillCore = 2600f;
         private const float WealthCore = 650f;
         private const float GoodwillWealth = 1250f;
@@ -153,9 +156,9 @@ namespace RimChat.DiplomacySystem
             bool isMerchantFaction = string.Equals(faction?.def?.defName ?? string.Empty, TradersGuildDefName, StringComparison.Ordinal);
             bool isAlly = faction != null && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Ally;
             float normalLimit = ResolveNormalTradeLimit(goodwill, wealthItems, factionTradeTotalSilver);
-            float resolvedLimit = isMerchantFaction ? normalLimit * 1.4f : normalLimit;
+            float resolvedLimit = (isMerchantFaction ? normalLimit * 1.4f : normalLimit) * TradeLimitMultiplier;
             string tradeLimitRuleText = BuildTradeLimitRuleText(goodwill, wealthItems, factionTradeTotalSilver, isMerchantFaction, isAlly, resolvedLimit);
-            int tradeGrowthDeltaSilver = Mathf.RoundToInt(ResolveTradeGrowthDisplayDelta(goodwill, wealthItems, factionTradeTotalSilver));
+            int tradeGrowthDeltaSilver = Mathf.RoundToInt(ResolveTradeGrowthDisplayDelta(goodwill, wealthItems, factionTradeTotalSilver) * TradeLimitMultiplier);
             return new AirdropTradeRuleSnapshot(
                 goodwill,
                 isMerchantFaction,
