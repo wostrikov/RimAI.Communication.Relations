@@ -37,6 +37,7 @@
     <RimChat_HelpEmpty>Help file is empty: {0}</RimChat_HelpEmpty>
     <RimChat_APIGitHubButton>GitHub</RimChat_APIGitHubButton>
     <RimChat_APIGitHubButtonTooltip>Function: open RimChat GitHub repository. Scope: external browser navigation.</RimChat_APIGitHubButtonTooltip>
+    <RimChat_VersionLogWindowTitleByLanguage>Version Log - {0}</RimChat_VersionLogWindowTitleByLanguage>
     <RimChat_VersionLogWindowTitle>Version Log</RimChat_VersionLogWindowTitle>
     <RimChat_VersionLogPaginationInfo>Page {0}/{1}</RimChat_VersionLogPaginationInfo>
     <RimChat_VersionLogMissing>Version log file not found: {0}</RimChat_VersionLogMissing>
