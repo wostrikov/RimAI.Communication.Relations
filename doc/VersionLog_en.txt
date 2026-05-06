@@ -1,3 +1,12 @@
+1.2.5
+- [Fix] Settings: negotiator mode click feedback, designated opens dropdown immediately
+- [Fix] Settings: PawnsFinder null crash when opening designated pawn selector
+- [Fix] Debug button: NPC force trigger now bypasses all cooldowns/rate limits
+- [Tweak] Debug button renamed: Force random proactive dialogue → Force random diplomacy dialogue
+- [Tweak] Removed 8 internal airdrop settings UI (budget/stacks/phase2 params)
+- [Tweak] Caravan delay label updated to "base delay (affected by settlement distance)"
+- [Tweak] NPC diplomacy trigger probability halved: Low 6% / Medium 10% / High 15%
+
 1.2.4
 - [Tweak] Major frequency reduction: NPC diplomacy global window 12h/1 msg, PawnRPG window 24h/1 msg
 - [New] NPC diplomacy per-faction sliding window: max 2 msgs per faction per 24h, bypass also constrained

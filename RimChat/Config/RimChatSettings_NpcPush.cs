@@ -272,7 +272,11 @@ namespace RimChat.Config
 
         private void OpenDesignatedNegotiatorMenu()
         {
-            List<Pawn> candidates = PawnsFinder.AllMapsWorldAndTemporary_Alive
+            if (Current.ProgramState != ProgramState.Playing) return;
+            var allPawns = PawnsFinder.AllMapsWorldAndTemporary_Alive;
+            if (allPawns == null) return;
+
+            List<Pawn> candidates = allPawns
                 .Where(pawn => pawn != null && pawn.Faction == Faction.OfPlayer && !pawn.Dead && !pawn.Destroyed && pawn.RaceProps?.Humanlike == true)
                 .OrderBy(GetNpcPushPawnDisplayName)
                 .ToList();
