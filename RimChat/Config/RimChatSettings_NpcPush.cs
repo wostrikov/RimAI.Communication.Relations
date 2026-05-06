@@ -214,6 +214,7 @@ namespace RimChat.Config
             listing.Label("RimChat_NegotiatorMode".Translate());
             Rect rowRect = listing.GetRect(30f);
             float buttonWidth = (rowRect.width - 30f) / 4f;
+            bool openMenu = false;
             if (DrawNegotiatorModeButton(new Rect(rowRect.x, rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.HighestSocial, "RimChat_NegotiatorMode_HighestSocial".Translate()))
                 Messages.Message("RimChat_NegotiatorMode_HighestSocial".Translate(), MessageTypeDefOf.TaskCompletion, false);
             if (DrawNegotiatorModeButton(new Rect(rowRect.x + (buttonWidth + 10f), rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.ProtagonistList, "RimChat_NegotiatorMode_ProtagonistList".Translate()))
@@ -223,7 +224,7 @@ namespace RimChat.Config
             if (DrawNegotiatorModeButton(new Rect(rowRect.x + (buttonWidth + 10f) * 3f, rowRect.y, buttonWidth, 30f), NegotiatorSelectionMode.Designated, "RimChat_NegotiatorMode_Designated".Translate()))
             {
                 Messages.Message("RimChat_NegotiatorMode_Designated".Translate(), MessageTypeDefOf.TaskCompletion, false);
-                OpenDesignatedNegotiatorMenu();
+                openMenu = true;
             }
 
             if (DiplomacyNegotiatorMode == NegotiatorSelectionMode.Designated)
@@ -231,6 +232,8 @@ namespace RimChat.Config
                 listing.Gap(4f);
                 DrawDesignatedNegotiatorSelector(listing);
             }
+
+            if (openMenu) OpenDesignatedNegotiatorMenu();
         }
 
         private bool DrawNegotiatorModeButton(Rect rect, NegotiatorSelectionMode mode, string label)
