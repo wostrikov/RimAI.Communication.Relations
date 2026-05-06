@@ -820,15 +820,6 @@
     <RimChat_AidCooldown>Cooldown: {0} days</RimChat_AidCooldown>
     <RimChat_AidDelay>Aid arrival delay: {0} days</RimChat_AidDelay>
     <RimChat_ItemAirdropSettingsTitle>Item Airdrop Settings</RimChat_ItemAirdropSettingsTitle>
-    <RimChat_ItemAirdropMinBudget>Min budget (silver): {0}</RimChat_ItemAirdropMinBudget>
-    <RimChat_ItemAirdropMaxBudget>Max budget (silver): {0}</RimChat_ItemAirdropMaxBudget>
-    <RimChat_ItemAirdropDefaultBudget>Default AI budget (silver): {0}</RimChat_ItemAirdropDefaultBudget>
-    <RimChat_ItemAirdropRansomPercent>Ransom budget ratio: {0}%</RimChat_ItemAirdropRansomPercent>
-    <RimChat_ItemAirdropMaxStacks>Max stacks per drop: {0}</RimChat_ItemAirdropMaxStacks>
-    <RimChat_ItemAirdropMaxItems>Max total items per drop: {0}</RimChat_ItemAirdropMaxItems>
-    <RimChat_ItemAirdropSelectionCandidateLimit>Selection candidate limit: {0}</RimChat_ItemAirdropSelectionCandidateLimit>
-    <RimChat_ItemAirdropSecondPassTimeoutSeconds>Second-pass timeout (seconds): {0}</RimChat_ItemAirdropSecondPassTimeoutSeconds>
-    <RimChat_ItemAirdropSecondPassQueueTimeoutSeconds>Second-pass queue timeout (seconds): {0}</RimChat_ItemAirdropSecondPassQueueTimeoutSeconds>
     <RimChat_EnableAirdropAliasExpansion>Enable AI alias expansion for need matching</RimChat_EnableAirdropAliasExpansion>
     <RimChat_ItemAirdropAliasExpansionMaxCount>Alias count per expansion: {0}</RimChat_ItemAirdropAliasExpansionMaxCount>
     <RimChat_ItemAirdropAliasExpansionTimeoutSeconds>Alias expansion timeout (seconds): {0}</RimChat_ItemAirdropAliasExpansionTimeoutSeconds>
@@ -870,7 +861,7 @@
     <RimChat_CaravanSettings>Trade Caravan Settings</RimChat_CaravanSettings>
     <RimChat_CaravanSettingsTooltip>Function: configure caravan cooldown and travel delay. Scope: trade caravan dispatch flow.</RimChat_CaravanSettingsTooltip>
     <RimChat_CaravanCooldown>Caravan request cooldown: {0} days</RimChat_CaravanCooldown>
-    <RimChat_CaravanDelay>Caravan arrival delay: {0} days</RimChat_CaravanDelay>
+    <RimChat_CaravanDelay>Caravan base delay: {0} days (affected by settlement distance)</RimChat_CaravanDelay>
 
     <!-- Quest Settings -->
     <RimChat_QuestSettings>Quest Settings</RimChat_QuestSettings>

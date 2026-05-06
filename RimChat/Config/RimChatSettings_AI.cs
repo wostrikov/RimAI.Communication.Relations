@@ -325,7 +325,7 @@ namespace RimChat.Config
                 AIControlSection.GoodwillSettings => 320f,
                 AIControlSection.GiftSettings => 100f,
                 AIControlSection.AidRequestSettings => 300f,
-                AIControlSection.AirdropTradeSettings => 1700f,
+                AIControlSection.AirdropTradeSettings => 1000f,
                 AIControlSection.PrisonerRansomSettings => 450f,
                 AIControlSection.WarPeaceSettings => 400f,
                 AIControlSection.CaravanSettings => 280f,
@@ -855,28 +855,6 @@ namespace RimChat.Config
         private void DrawAirdropTradeSettings(Listing_Standard listing)
         {
             listing.Label("RimChat_ItemAirdropSettingsTitle".Translate());
-            listing.Label("RimChat_ItemAirdropMinBudget".Translate(ItemAirdropMinBudgetSilver));
-            ItemAirdropMinBudgetSilver = (int)listing.Slider(ItemAirdropMinBudgetSilver, 1, 5000);
-
-            listing.Label("RimChat_ItemAirdropMaxBudget".Translate(ItemAirdropMaxBudgetSilver));
-            ItemAirdropMaxBudgetSilver = (int)listing.Slider(ItemAirdropMaxBudgetSilver, ItemAirdropMinBudgetSilver, 20000);
-
-            listing.Label("RimChat_ItemAirdropDefaultBudget".Translate(ItemAirdropDefaultAIBudgetSilver));
-            ItemAirdropDefaultAIBudgetSilver = (int)listing.Slider(ItemAirdropDefaultAIBudgetSilver, ItemAirdropMinBudgetSilver, ItemAirdropMaxBudgetSilver);
-
-            listing.Label("RimChat_ItemAirdropRansomPercent".Translate((ItemAirdropRansomBudgetPercent * 100f).ToString("F1")));
-            ItemAirdropRansomBudgetPercent = listing.Slider(ItemAirdropRansomBudgetPercent, 0.001f, 0.20f);
-
-            listing.Label("RimChat_ItemAirdropMaxStacks".Translate(ItemAirdropMaxStacksPerDrop));
-            ItemAirdropMaxStacksPerDrop = (int)listing.Slider(ItemAirdropMaxStacksPerDrop, 1, 100);
-
-            listing.Label("RimChat_ItemAirdropSelectionCandidateLimit".Translate(ItemAirdropSelectionCandidateLimit));
-            ItemAirdropSelectionCandidateLimit = (int)listing.Slider(ItemAirdropSelectionCandidateLimit, 1, 100);
-
-            listing.Label("RimChat_ItemAirdropSecondPassTimeoutSeconds".Translate(ItemAirdropSecondPassTimeoutSeconds));
-            ItemAirdropSecondPassTimeoutSeconds = (int)listing.Slider(ItemAirdropSecondPassTimeoutSeconds, 3, 30);
-            listing.Label("RimChat_ItemAirdropSecondPassQueueTimeoutSeconds".Translate(ItemAirdropSecondPassQueueTimeoutSeconds));
-            ItemAirdropSecondPassQueueTimeoutSeconds = (int)listing.Slider(ItemAirdropSecondPassQueueTimeoutSeconds, 3, 120);
 
             listing.CheckboxLabeled("RimChat_EnableAirdropAliasExpansion".Translate(), ref EnableAirdropAliasExpansion);
             listing.Label("RimChat_ItemAirdropAliasExpansionMaxCount".Translate(ItemAirdropAliasExpansionMaxCount));

@@ -236,7 +236,7 @@
     <RimChat_EnableBusyByHostiles>忙碌判定：地图存在敌对单位</RimChat_EnableBusyByHostiles>
     <RimChat_EnableBusyByClickRate>忙碌判定：高频点击</RimChat_EnableBusyByClickRate>
     <RimChat_EnableNpcPushThrottleDebugLog>启用 NPC 主动节流调试日志</RimChat_EnableNpcPushThrottleDebugLog>
-    <RimChat_NpcPush_DebugForceTrigger>调试：强制触发随机主动对话</RimChat_NpcPush_DebugForceTrigger>
+    <RimChat_NpcPush_DebugForceTrigger>调试：强制触发随机外交主动对话</RimChat_NpcPush_DebugForceTrigger>
     <RimChat_NpcPush_DebugTriggerSuccess>已触发随机主动对话。</RimChat_NpcPush_DebugTriggerSuccess>
     <RimChat_NpcPush_DebugTriggerFailed>触发失败：请在进行中的存档内并确保存在可用派系与 AI 配置。</RimChat_NpcPush_DebugTriggerFailed>
     <RimChat_PawnRpgPush_DebugForceTrigger>调试：强制触发 PawnRPG 主动对话</RimChat_PawnRpgPush_DebugForceTrigger>
@@ -1248,15 +1248,6 @@ ID：{5}
     <RimChat_AidCooldown>冷却时间: {0} 天</RimChat_AidCooldown>
     <RimChat_AidDelay>援助到达延迟: {0} 天</RimChat_AidDelay>
     <RimChat_ItemAirdropSettingsTitle>物资空投设置</RimChat_ItemAirdropSettingsTitle>
-    <RimChat_ItemAirdropMinBudget>最小预算（白银）: {0}</RimChat_ItemAirdropMinBudget>
-    <RimChat_ItemAirdropMaxBudget>最大预算（白银）: {0}</RimChat_ItemAirdropMaxBudget>
-    <RimChat_ItemAirdropDefaultBudget>AI默认预算（白银）: {0}</RimChat_ItemAirdropDefaultBudget>
-    <RimChat_ItemAirdropRansomPercent>赎金预算比例: {0}%</RimChat_ItemAirdropRansomPercent>
-    <RimChat_ItemAirdropMaxStacks>每次空投最大堆数: {0}</RimChat_ItemAirdropMaxStacks>
-    <RimChat_ItemAirdropMaxItems>每次空投最大总数量: {0}</RimChat_ItemAirdropMaxItems>
-    <RimChat_ItemAirdropSelectionCandidateLimit>二阶段候选上限: {0}</RimChat_ItemAirdropSelectionCandidateLimit>
-    <RimChat_ItemAirdropSecondPassTimeoutSeconds>二阶段超时（秒）: {0}</RimChat_ItemAirdropSecondPassTimeoutSeconds>
-    <RimChat_ItemAirdropSecondPassQueueTimeoutSeconds>二阶段排队超时（秒）: {0}</RimChat_ItemAirdropSecondPassQueueTimeoutSeconds>
     <RimChat_EnableAirdropAliasExpansion>启用空投需求 AI 别名扩展</RimChat_EnableAirdropAliasExpansion>
     <RimChat_ItemAirdropAliasExpansionMaxCount>每次别名扩展数量: {0}</RimChat_ItemAirdropAliasExpansionMaxCount>
     <RimChat_ItemAirdropAliasExpansionTimeoutSeconds>别名扩展超时（秒）: {0}</RimChat_ItemAirdropAliasExpansionTimeoutSeconds>
@@ -1298,7 +1289,7 @@ ID：{5}
     <RimChat_CaravanSettings>贸易商队设置</RimChat_CaravanSettings>
     <RimChat_CaravanSettingsTooltip>功能：配置商队请求冷却与到达时间。作用域：贸易商队派发流程。</RimChat_CaravanSettingsTooltip>
     <RimChat_CaravanCooldown>商队请求冷却: {0} 天</RimChat_CaravanCooldown>
-    <RimChat_CaravanDelay>商队到达延迟: {0} 天</RimChat_CaravanDelay>
+    <RimChat_CaravanDelay>商队基础延迟: {0} 天（实际受据点距离影响）</RimChat_CaravanDelay>
 
     <!-- Quest Settings -->
     <RimChat_QuestSettings>任务发布设置</RimChat_QuestSettings>

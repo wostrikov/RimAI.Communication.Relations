@@ -278,7 +278,10 @@ namespace RimChat.NpcDialogue
                 SourceTag = "debug_force",
                 Reason = "manual_debug_trigger",
                 Severity = severity,
-                CreatedTick = Find.TickManager.TicksGame
+                CreatedTick = Find.TickManager.TicksGame,
+                BypassRateLimit = true,
+                BypassCategoryGate = true,
+                BypassPlayerBusyGate = true
             };
 
             GetOrCreateState(faction).lastInteractionTick = context.CreatedTick;
