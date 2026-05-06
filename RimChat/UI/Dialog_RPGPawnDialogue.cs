@@ -146,8 +146,7 @@ namespace RimChat.UI
             RpgNpcDialogueArchiveManager.Instance.BeginPromptMemoryWarmup(target, initiator);
 
             bool hasProactiveOpening = !string.IsNullOrWhiteSpace(proactiveOpening);
-            bool hasPersonalMemory = RpgNpcDialogueArchiveManager.Instance.HasPromptMemory(target, initiator, allowCacheLoad: false);
-            bool shouldSeedProactiveOpening = hasProactiveOpening && !hasPersonalMemory;
+            bool shouldSeedProactiveOpening = hasProactiveOpening;
 
             try
             {
@@ -158,14 +157,6 @@ namespace RimChat.UI
                 chatHistory = new List<ChatMessageData>();
                 ApplyPromptRenderFailure(ex);
                 return;
-            }
-            if (hasProactiveOpening && hasPersonalMemory)
-            {
-                chatHistory.Add(new ChatMessageData
-                {
-                    role = "user",
-                    content = BuildProactiveOpeningCarryOverPrompt(proactiveOpening)
-                });
             }
 
             if (!shouldSeedProactiveOpening || !TrySeedProactiveOpening(proactiveOpening))

@@ -503,13 +503,81 @@ namespace RimChat.UI
                     continue;
                 }
 
-                if (text.IndexOf(hint, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (MatchesPhraseWithBoundary(text, hint))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private static bool MatchesPhraseWithBoundary(string text, string hint)
+        {
+            int idx = 0;
+            while (idx <= text.Length - hint.Length)
+            {
+                int found = text.IndexOf(hint, idx, StringComparison.OrdinalIgnoreCase);
+                if (found < 0)
+                {
+                    return false;
+                }
+
+                bool hasSpace = hint.Contains(' ');
+                if (hasSpace)
+                {
+                    if (IsWordBoundaryBefore(text, found) && IsWordBoundaryAfter(text, found + hint.Length))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (!IsWordCharBefore(text, found) && !IsWordCharAfter(text, found + hint.Length))
+                    {
+                        return true;
+                    }
+                }
+
+                idx = found + 1;
+            }
+
+            return false;
+        }
+
+        private static bool IsWordChar(char c)
+        {
+            return char.IsLetterOrDigit(c);
+        }
+
+        private static bool IsWordCharBefore(string text, int matchStart)
+        {
+            return matchStart > 0 && matchStart <= text.Length && IsWordChar(text[matchStart - 1]);
+        }
+
+        private static bool IsWordCharAfter(string text, int matchEnd)
+        {
+            return matchEnd < text.Length && IsWordChar(text[matchEnd]);
+        }
+
+        private static bool IsWordBoundaryBefore(string text, int position)
+        {
+            if (position == 0)
+            {
+                return true;
+            }
+
+            return !IsWordChar(text[position - 1]);
+        }
+
+        private static bool IsWordBoundaryAfter(string text, int position)
+        {
+            if (position >= text.Length)
+            {
+                return true;
+            }
+
+            return !IsWordChar(text[position]);
         }
     }
 }

@@ -158,6 +158,9 @@ namespace RimChat.Config
             Scribe_Values.Look(ref EnableNpcPushThrottleDebugLog, "EnableNpcPushThrottleDebugLog", false);
             Scribe_Values.Look(ref NpcPushThrottleProfileVersion, "NpcPushThrottleProfileVersion", 1);
             Scribe_Values.Look(ref PawnRpgProtagonistCap, "PawnRpgProtagonistCap", 20);
+            Scribe_Values.Look(ref EnableColonistToColonistDialogue, "EnableColonistToColonistDialogue", true);
+            Scribe_Values.Look(ref ColonistPairMinOpinion, "ColonistPairMinOpinion", 10);
+            Scribe_Values.Look(ref ColonistPairFrequencyMode, "ColonistPairFrequencyMode", NpcPushFrequencyMode.Low);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 XmlNode currentNode = Scribe.loader?.curXmlParent;
@@ -312,23 +315,23 @@ namespace RimChat.Config
             return expandedAIControlSection switch
             {
                 AIControlSection.None => 0f,
-                AIControlSection.UISettings => 180f,
-                AIControlSection.PresenceSettings => 760f,
-                AIControlSection.NpcPushSettings => 320f,
-                AIControlSection.RpgDialogueSettings => 360f,
-                AIControlSection.RaidSettings => 760f,
-                AIControlSection.GoodwillSettings => 220f,
-                AIControlSection.GiftSettings => 0f,
-                AIControlSection.AidRequestSettings => 200f,
-                AIControlSection.AirdropTradeSettings => 1600f,
-                AIControlSection.PrisonerRansomSettings => 350f,
-                AIControlSection.WarPeaceSettings => 300f,
-                AIControlSection.CaravanSettings => 180f,
-                AIControlSection.QuestSettings => 160f,
-                AIControlSection.SocialCircleSettings => 320f,
-                AIControlSection.SecuritySettings => 170f,
-                AIControlSection.ModCompatSettings => 200f,
-                _ => 260f
+                AIControlSection.UISettings => 280f,
+                AIControlSection.PresenceSettings => 860f,
+                AIControlSection.NpcPushSettings => 620f,
+                AIControlSection.RpgDialogueSettings => 460f,
+                AIControlSection.RaidSettings => 860f,
+                AIControlSection.GoodwillSettings => 320f,
+                AIControlSection.GiftSettings => 100f,
+                AIControlSection.AidRequestSettings => 300f,
+                AIControlSection.AirdropTradeSettings => 1700f,
+                AIControlSection.PrisonerRansomSettings => 450f,
+                AIControlSection.WarPeaceSettings => 400f,
+                AIControlSection.CaravanSettings => 280f,
+                AIControlSection.QuestSettings => 260f,
+                AIControlSection.SocialCircleSettings => 420f,
+                AIControlSection.SecuritySettings => 270f,
+                AIControlSection.ModCompatSettings => 300f,
+                _ => 360f
             };
         }
 

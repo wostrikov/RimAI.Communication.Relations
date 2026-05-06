@@ -137,7 +137,11 @@ namespace RimChat.PawnRpgPush
             int currentTick = Find.TickManager?.TicksGame ?? 0;
             PawnRpgNpcPushState npcState = GetOrCreateNpcState(npcPawn);
             npcState.lastNpcEvaluateTick = currentTick;
-            if (!CanBypassGlobalCooldown(context))
+            if (IsColonistPairContext(context))
+            {
+                lastColonistPairDeliveredTick = currentTick;
+            }
+            else if (!CanBypassGlobalCooldown(context))
             {
                 lastColonyDeliveredTick = currentTick;
             }

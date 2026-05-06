@@ -1468,6 +1468,12 @@ Selected prisoners: {1}
     <RimChat_PawnRpgPush_TitleSocial>{0} wants to talk with {1}</RimChat_PawnRpgPush_TitleSocial>
     <RimChat_PawnRpgPush_TitleTask>{0} wants to discuss tasks with {1}</RimChat_PawnRpgPush_TitleTask>
     <RimChat_PawnRpgPush_TitleWarning>{0} wants to warn {1}</RimChat_PawnRpgPush_TitleWarning>
+    <RimChat_EnableColonistToColonistDialogue>Enable colonist-to-colonist dialogue</RimChat_EnableColonistToColonistDialogue>
+    <RimChat_ColonistPairMinOpinion>Colonist pair minimum opinion: {0}</RimChat_ColonistPairMinOpinion>
+    <RimChat_ColonistPairFrequency>Colonist pair frequency</RimChat_ColonistPairFrequency>
+    <RimChat_ColonistPairFrequencyLow>Colonist: Low</RimChat_ColonistPairFrequencyLow>
+    <RimChat_ColonistPairFrequencyMedium>Colonist: Medium</RimChat_ColonistPairFrequencyMedium>
+    <RimChat_ColonistPairFrequencyHigh>Colonist: High</RimChat_ColonistPairFrequencyHigh>
     <RimChat_ConversationReinitiated>You reinitiated the dialogue.</RimChat_ConversationReinitiated>
     <RimChat_ConversationReinitiatedByNpc>The other side proactively reinitiated the dialogue.</RimChat_ConversationReinitiatedByNpc>
     <RimChat_SystemExitDialogue>The other side ended the current dialogue.</RimChat_SystemExitDialogue>

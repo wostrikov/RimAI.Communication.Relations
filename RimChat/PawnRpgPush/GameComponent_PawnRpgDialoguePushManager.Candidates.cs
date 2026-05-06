@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using RimChat.Config;
 using RimChat.Core;
 using RimChat.Dialogue;
+using RimChat.NpcDialogue;
 using RimChat.WorldState;
 using RimWorld;
 using UnityEngine;
@@ -339,6 +341,329 @@ namespace RimChat.PawnRpgPush
             }
 
             mood = pawn.needs.mood.CurLevelPercentage;
+            return true;
+        }
+
+        private static bool IsColonistPairContext(PawnRpgTriggerContext context)
+        {
+            return context?.Faction == Faction.OfPlayer;
+        }
+
+        private bool IsColonistPairDialogueEnabled()
+        {
+            RimChatSettings settings = RimChatMod.Instance?.InstanceSettings;
+            return settings != null
+                && settings.EnableColonistToColonistDialogue
+                && settings.EnablePawnRpgInitiatedDialogue
+                && settings.EnableRPGDialogue;
+        }
+
+        private float GetColonistPairTriggerChance(NpcPushFrequencyMode mode)
+        {
+            return mode switch
+            {
+                NpcPushFrequencyMode.High => 0.30f,
+                NpcPushFrequencyMode.Medium => 0.20f,
+                _ => 0.12f
+            };
+        }
+
+        private void EvaluateColonistPairAmbientTriggers(int currentTick, float chance)
+        {
+            if (!IsColonistPairDialogueEnabled())
+            {
+                return;
+            }
+
+            if (PlayerGameStateCache.Instance.EligibleColonistCount < 2)
+            {
+                return;
+            }
+
+            RimChatSettings settings = RimChatMod.Instance?.InstanceSettings;
+            float colonistChance = GetColonistPairTriggerChance(settings?.ColonistPairFrequencyMode ?? NpcPushFrequencyMode.Low);
+            if (Rand.Value > colonistChance)
+            {
+                return;
+            }
+
+            if (currentTick - lastColonistPairDeliveredTick < ColonistPairCooldownTicks)
+            {
+                return;
+            }
+
+            if (!TryResolveColonistPair(currentTick, out Pawn initiator, out Pawn receiver))
+            {
+                return;
+            }
+
+            var context = new PawnRpgTriggerContext
+            {
+                Faction = Faction.OfPlayer,
+                TriggerType = NpcDialogueTriggerType.Ambient,
+                Category = NpcDialogueCategory.Social,
+                SourceTag = "colonist_ambient",
+                Reason = "colonist_social",
+                Severity = 1,
+                CreatedTick = currentTick
+            };
+            HandleTriggerContext(context, currentTick);
+        }
+
+        private void EvaluateColonistPairLowMoodTriggers(int currentTick)
+        {
+            if (!IsColonistPairDialogueEnabled())
+            {
+                return;
+            }
+
+            if (PlayerGameStateCache.Instance.EligibleColonistCount < 2)
+            {
+                return;
+            }
+
+            if (currentTick - lastColonistPairDeliveredTick < ColonistPairCooldownTicks)
+            {
+                return;
+            }
+
+            Pawn worstMoodColonist = null;
+            float worstMood = 1f;
+            foreach (Pawn colonist in ResolveConfiguredProtagonists())
+            {
+                if (!IsEligiblePlayerPawn(colonist) || IsPawnUnavailable(colonist))
+                {
+                    continue;
+                }
+
+                if (!TryGetMoodPercent(colonist, out float mood) || mood > LowMoodThreshold)
+                {
+                    continue;
+                }
+
+                if (!TryResolveColonistPairForTarget(colonist, out _))
+                {
+                    continue;
+                }
+
+                if (mood < worstMood)
+                {
+                    worstMood = mood;
+                    worstMoodColonist = colonist;
+                }
+            }
+
+            if (worstMoodColonist == null)
+            {
+                return;
+            }
+
+            var context = new PawnRpgTriggerContext
+            {
+                Faction = Faction.OfPlayer,
+                TriggerType = NpcDialogueTriggerType.Conditional,
+                Category = NpcDialogueCategory.Social,
+                SourceTag = "colonist_low_mood",
+                Reason = "colonist_low_mood",
+                Severity = 1,
+                CreatedTick = currentTick,
+                Metadata = worstMood.ToString("F3")
+            };
+            HandleTriggerContext(context, currentTick);
+        }
+
+        private void EvaluateColonistPairThreatTriggers(int currentTick, bool hasHive, bool hasHostiles)
+        {
+            if (!IsColonistPairDialogueEnabled())
+            {
+                return;
+            }
+
+            if (PlayerGameStateCache.Instance.EligibleColonistCount < 2)
+            {
+                return;
+            }
+
+            if (currentTick - lastColonistPairDeliveredTick < ColonistPairCooldownTicks)
+            {
+                return;
+            }
+
+            if (!TryResolveColonistPair(currentTick, out Pawn initiator, out Pawn receiver))
+            {
+                return;
+            }
+
+            var context = new PawnRpgTriggerContext
+            {
+                Faction = Faction.OfPlayer,
+                TriggerType = NpcDialogueTriggerType.Causal,
+                Category = NpcDialogueCategory.WarningThreat,
+                SourceTag = hasHive ? "colonist_hive_nearby" : "colonist_hostiles_nearby",
+                Reason = hasHive ? "colonist_hive_warning" : "colonist_hostile_warning",
+                Severity = hasHive ? 3 : 2,
+                CreatedTick = currentTick
+            };
+            HandleTriggerContext(context, currentTick);
+        }
+
+        private void EvaluateHomeEventTriggers(int currentTick)
+        {
+            if (!IsColonistPairDialogueEnabled())
+            {
+                return;
+            }
+
+            if (PlayerGameStateCache.Instance.EligibleColonistCount < 2)
+            {
+                return;
+            }
+
+            if (currentTick - lastColonistPairDeliveredTick < ColonistPairCooldownTicks)
+            {
+                return;
+            }
+
+            if (!PlayerGameStateCache.Instance.HasActiveHomeAlerts)
+            {
+                return;
+            }
+
+            if (!TryResolveColonistPair(currentTick, out Pawn initiator, out Pawn receiver))
+            {
+                return;
+            }
+
+            var context = new PawnRpgTriggerContext
+            {
+                Faction = Faction.OfPlayer,
+                TriggerType = NpcDialogueTriggerType.Conditional,
+                Category = NpcDialogueCategory.Social,
+                SourceTag = "colonist_home_alert",
+                Reason = "home_alert",
+                Severity = 1,
+                CreatedTick = currentTick
+            };
+            HandleTriggerContext(context, currentTick);
+        }
+
+        private bool TryResolveColonistPair(int currentTick, out Pawn initiator, out Pawn receiver, bool bypassAvailability = false)
+        {
+            initiator = null;
+            receiver = null;
+            int threshold = RimChatMod.Instance?.InstanceSettings?.ColonistPairMinOpinion ?? 10;
+
+            // Receiver: from protagonist list (player replies as receiver)
+            List<Pawn> receivers = ResolveConfiguredProtagonists()
+                .Where(IsEligiblePlayerPawn)
+                .Where(p => bypassAvailability || !IsPawnUnavailable(p))
+                .ToList();
+            if (receivers.Count == 0)
+            {
+                Log.Warning("[RimChat] TryResolveColonistPair: No eligible receivers in protagonist list.");
+                return false;
+            }
+
+            // Initiator: from ALL colonists on map (not limited to protagonist list)
+            List<Pawn> allColonists = new List<Pawn>();
+            foreach (Map map in Find.Maps)
+            {
+                if (map?.mapPawns?.FreeColonistsSpawned == null)
+                {
+                    continue;
+                }
+
+                foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
+                {
+                    if (IsEligiblePlayerPawn(p) && (bypassAvailability || !IsPawnUnavailable(p)))
+                    {
+                        allColonists.Add(p);
+                    }
+                }
+            }
+
+            // Find best pair: receiver from protagonist list, initiator from all colonists
+            Pawn bestReceiver = null;
+            Pawn bestInitiator = null;
+            int bestScore = int.MinValue;
+
+            foreach (Pawn recv in receivers)
+            {
+                foreach (Pawn init in allColonists)
+                {
+                    if (init == recv)
+                    {
+                        continue;
+                    }
+
+                    bool intimate = HasIntimateRelation(recv, init) || HasIntimateRelation(init, recv);
+                    int opinion = GetOpinion(recv, init);
+                    if (!intimate && opinion < threshold)
+                    {
+                        continue;
+                    }
+
+                    int score = (intimate ? 1000 : 0) + opinion;
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestReceiver = recv;
+                        bestInitiator = init;
+                    }
+                }
+            }
+
+            if (bestReceiver == null || bestInitiator == null)
+            {
+                Log.Warning($"[RimChat] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
+                return false;
+            }
+
+            initiator = bestInitiator;
+            receiver = bestReceiver;
+            return true;
+        }
+
+        private bool TryResolveColonistPairForTarget(Pawn target, out Pawn partner)
+        {
+            partner = null;
+            if (target == null || !IsEligiblePlayerPawn(target))
+            {
+                return false;
+            }
+
+            int threshold = RimChatMod.Instance?.InstanceSettings?.ColonistPairMinOpinion ?? 10;
+            Pawn best = null;
+            int bestScore = int.MinValue;
+
+            foreach (Pawn colonist in ResolveConfiguredProtagonists())
+            {
+                if (colonist == target || !IsEligiblePlayerPawn(colonist) || IsPawnUnavailable(colonist))
+                {
+                    continue;
+                }
+
+                bool intimate = HasIntimateRelation(target, colonist) || HasIntimateRelation(colonist, target);
+                int opinion = GetOpinion(target, colonist);
+                if (!intimate && opinion < threshold)
+                {
+                    continue;
+                }
+
+                int score = intimate ? 1000 + opinion : opinion;
+                if (score > bestScore)
+                {
+                    best = colonist;
+                    bestScore = score;
+                }
+            }
+
+            if (best == null)
+            {
+                return false;
+            }
+
+            partner = best;
             return true;
         }
     }

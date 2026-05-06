@@ -29,6 +29,9 @@ namespace RimChat.Config
         public bool EnableNpcPushThrottleDebugLog = false;
         public int NpcPushThrottleProfileVersion = 1;
         public int PawnRpgProtagonistCap = 20;
+        public bool EnableColonistToColonistDialogue = true;
+        public int ColonistPairMinOpinion = 10;
+        public NpcPushFrequencyMode ColonistPairFrequencyMode = NpcPushFrequencyMode.Low;
 
         private void DrawNpcInitiatedDialogueSettings(Listing_Standard listing)
         {
@@ -63,6 +66,10 @@ namespace RimChat.Config
             listing.CheckboxLabeled("RimChat_EnableBusyByClickRate".Translate(), ref EnableBusyByClickRate);
             listing.CheckboxLabeled("RimChat_EnableNpcPushThrottleDebugLog".Translate(), ref EnableNpcPushThrottleDebugLog);
             DrawPawnRpgProtagonistSettings(listing);
+            if (EnablePawnRpgInitiatedDialogue)
+            {
+                DrawColonistPairSettings(listing);
+            }
             DrawDebugForceTriggerButton(listing);
         }
 
@@ -185,6 +192,55 @@ namespace RimChat.Config
             Find.WindowStack.Add(new FloatMenu(options));
         }
 
+        private void DrawColonistPairSettings(Listing_Standard listing)
+        {
+            listing.Gap(6f);
+            listing.Label("RimChat_ColonistPairFrequency".Translate());
+            listing.CheckboxLabeled("RimChat_EnableColonistToColonistDialogue".Translate(), ref EnableColonistToColonistDialogue);
+            if (!EnableColonistToColonistDialogue)
+            {
+                return;
+            }
+
+            DrawColonistPairFrequencySelector(listing);
+            listing.Label("RimChat_ColonistPairMinOpinion".Translate(ColonistPairMinOpinion));
+            ColonistPairMinOpinion = Mathf.RoundToInt(listing.Slider(ColonistPairMinOpinion, 0f, 60f));
+        }
+
+        private void DrawColonistPairFrequencySelector(Listing_Standard listing)
+        {
+            Rect rowRect = listing.GetRect(30f);
+            float buttonWidth = (rowRect.width - 20f) / 3f;
+            DrawColonistPairFrequencyButton(
+                new Rect(rowRect.x, rowRect.y, buttonWidth, 30f),
+                NpcPushFrequencyMode.Low,
+                "RimChat_ColonistPairFrequencyLow".Translate());
+            DrawColonistPairFrequencyButton(
+                new Rect(rowRect.x + buttonWidth + 10f, rowRect.y, buttonWidth, 30f),
+                NpcPushFrequencyMode.Medium,
+                "RimChat_ColonistPairFrequencyMedium".Translate());
+            DrawColonistPairFrequencyButton(
+                new Rect(rowRect.x + (buttonWidth + 10f) * 2f, rowRect.y, buttonWidth, 30f),
+                NpcPushFrequencyMode.High,
+                "RimChat_ColonistPairFrequencyHigh".Translate());
+        }
+
+        private void DrawColonistPairFrequencyButton(Rect rect, NpcPushFrequencyMode mode, string label)
+        {
+            Color oldColor = GUI.color;
+            if (ColonistPairFrequencyMode == mode)
+            {
+                GUI.color = new Color(0.35f, 0.55f, 0.85f, 0.9f);
+            }
+
+            if (Widgets.ButtonText(rect, label))
+            {
+                ColonistPairFrequencyMode = mode;
+            }
+
+            GUI.color = oldColor;
+        }
+
         private void DrawDebugForceTriggerButton(Listing_Standard listing)
         {
             listing.Gap(4f);
@@ -268,6 +324,9 @@ namespace RimChat.Config
             EnableNpcPushThrottleDebugLog = false;
             NpcPushThrottleProfileVersion = 1;
             PawnRpgProtagonistCap = 20;
+            EnableColonistToColonistDialogue = true;
+            ColonistPairMinOpinion = 10;
+            ColonistPairFrequencyMode = NpcPushFrequencyMode.Low;
         }
     }
 }

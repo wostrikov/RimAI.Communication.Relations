@@ -1,3 +1,15 @@
+1.2.3
+- [New] Colonist-to-colonist proactive dialogue: supports ambient social, low mood care, threat discussion, and home alert triggers
+- [New] Colonist pair matching: receiver selected from protagonist list, initiator from all colonists
+- [New] Colonist dialogue independent frequency control and cooldown system
+- [New] Home alert trigger: detects RimWorld native alert system (food shortage, temperature issues, etc.)
+- [Fix] Protagonist persistence: ExposeData save order corrected, CleanupInvalidState no longer removes valid entries
+- [Fix] Relation label gender: DirectRelations now shows correct label based on other pawn's gender (mother/father)
+- [Fix] Letter content as first message: removed hasPersonalMemory restriction on proactiveOpening
+- [Merge] PawnRPG force trigger button: NPC→colonist fallback to colonist→colonist when no NPCs present
+- [Fix] Exit phrase false positive: ContainsAnyPhrase now uses boundary-aware matching
+- [Fix] AI settings scroll: increased estimated height for all sub-sections
+
 1.2.2
 - [Tweak] Remove all budget/trade-limit restrictions: removed hardMax clamping and budget_too_low rejection, removed trade_limit_exceeded check, removed UI submit disabled-on-limit
 - [Tweak] Trade limit formula: BaseFloor 500→800, final multiplier now configurable setting ItemAirdropTradeLimitMultiplier (default 2.0), growth delta synced

@@ -109,6 +109,11 @@ namespace RimChat.PawnRpgPush
 
         public void ExposeData()
         {
+            if (Scribe.mode == LoadSaveMode.Saving && pawn != null && !pawn.Destroyed && !pawn.Dead)
+            {
+                pawnThingId = pawn.thingIDNumber;
+            }
+
             Scribe_Values.Look(ref pawnThingId, "pawnThingId", -1);
             // Remove legacy <pawn> reference node from old saves without registering
             // in CrossRefHandler — prevents "Not all loadIDs consumed" on destroyed pawns.
@@ -120,18 +125,8 @@ namespace RimChat.PawnRpgPush
                     pawn = PawnsFinder.AllMapsWorldAndTemporary_Alive
                         .FirstOrDefault(p => p != null && p.thingIDNumber == pawnThingId && !p.Destroyed && !p.Dead);
                 }
-                // If pawn still null after resolve, CleanupInvalidState() will remove this entry.
-                // Do NOT fall back to Scribe_References.Look for legacy saves —
-                // recycled pawns would cause "Could not resolve reference" errors.
             }
-            else if (Scribe.mode == LoadSaveMode.Saving)
-            {
-                if (pawn != null && !pawn.Destroyed && !pawn.Dead)
-                {
-                    pawnThingId = pawn.thingIDNumber;
-                }
-                // No longer write <pawn> reference node — pawnThingId replaces it.
-            }
+
             Scribe_Values.Look(ref lastNpcEvaluateTick, "lastNpcEvaluateTick", 0);
         }
     }
@@ -207,6 +202,11 @@ namespace RimChat.PawnRpgPush
 
         public void ExposeData()
         {
+            if (Scribe.mode == LoadSaveMode.Saving && pawn != null && !pawn.Destroyed && !pawn.Dead)
+            {
+                pawnThingId = pawn.thingIDNumber;
+            }
+
             Scribe_Values.Look(ref pawnThingId, "pawnThingId", -1);
             // Remove legacy <pawn> reference node from old saves without registering
             // in CrossRefHandler — prevents "Not all loadIDs consumed" on destroyed pawns.

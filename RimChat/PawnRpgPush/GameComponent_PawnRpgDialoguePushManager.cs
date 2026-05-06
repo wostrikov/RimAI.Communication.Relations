@@ -39,6 +39,7 @@ namespace RimChat.PawnRpgPush
         private const int CausalMaxDelayTicks = 1000;
         private const int NpcEvaluateCooldownTicks = 150000;
         private const int ColonyDeliveryCooldownTicks = 75000;
+        private const int ColonistPairCooldownTicks = 37500;
         private const int BlockedRetryTicks = 300;
         private const int MissingProtagonistLogIntervalTicks = 6000;
         private const float LowMoodThreshold = 0.30f;
@@ -57,6 +58,7 @@ namespace RimChat.PawnRpgPush
         private readonly Queue<int> clickTicks = new Queue<int>();
         private readonly Dictionary<string, int> recentQuestTriggerTicks = new Dictionary<string, int>();
         private int lastColonyDeliveredTick = -ColonyDeliveryCooldownTicks;
+        private int lastColonistPairDeliveredTick = -ColonyDeliveryCooldownTicks;
         private int lastMissingProtagonistLogTick = -MissingProtagonistLogIntervalTicks;
 
         public GameComponent_PawnRpgDialoguePushManager(Game game) : base()
@@ -90,6 +92,7 @@ namespace RimChat.PawnRpgPush
                 Scribe_Collections.Look(ref queuedTriggers, "pawnRpgQueuedTriggers", LookMode.Deep);
                 Scribe_Collections.Look(ref proactiveProtagonists, "pawnRpgProactiveProtagonists", LookMode.Deep);
                 Scribe_Values.Look(ref lastColonyDeliveredTick, "pawnRpgLastColonyDeliveredTick", -ColonyDeliveryCooldownTicks);
+                Scribe_Values.Look(ref lastColonistPairDeliveredTick, "pawnRpgLastColonistPairDeliveredTick", -ColonyDeliveryCooldownTicks);
             }
             catch (Exception ex)
             {
@@ -235,11 +238,13 @@ namespace RimChat.PawnRpgPush
         {
             if (Current.ProgramState != ProgramState.Playing || Find.TickManager == null)
             {
+                Log.Warning("[RimChat] DebugForcePawnRpg: Not in playing state.");
                 return false;
             }
 
             if (!AI.AIChatServiceAsync.Instance.IsConfigured())
             {
+                Log.Warning("[RimChat] DebugForcePawnRpg: AI not configured.");
                 return false;
             }
 
@@ -250,34 +255,52 @@ namespace RimChat.PawnRpgPush
                 return false;
             }
 
+            // Path 1: NPC → colonist
             IReadOnlyCollection<Faction> factions = GetActiveCandidateFactionsOnPlayerMaps(now);
-            if (factions.Count == 0)
+            if (factions.Count > 0)
             {
-                return false;
+                foreach (Faction faction in factions.InRandomOrder().ToList())
+                {
+                    if (!TryResolvePairForFaction(faction, now, true, true, true, out Pawn npcPawn, out Pawn playerPawn))
+                    {
+                        continue;
+                    }
+
+                    Log.Message($"[RimChat] DebugForcePawnRpg: NPC path resolved: NPC={npcPawn.LabelShortCap}, Player={playerPawn.LabelShortCap}");
+                    var context = new PawnRpgTriggerContext
+                    {
+                        Faction = faction,
+                        TriggerType = NpcDialogueTriggerType.Causal,
+                        Category = NpcDialogueCategory.Social,
+                        SourceTag = "debug_force",
+                        Reason = "manual_debug_trigger",
+                        Severity = 1,
+                        CreatedTick = now
+                    };
+                    StartGeneration(context, npcPawn, playerPawn);
+                    return true;
+                }
             }
 
-            factions = factions.InRandomOrder().ToList();
-            foreach (Faction faction in factions)
+            // Path 2: colonist → colonist (fallback)
+            if (TryResolveColonistPair(now, out Pawn initiator, out Pawn receiver, bypassAvailability: true))
             {
-                if (!TryResolvePairForFaction(faction, now, true, true, true, out Pawn npcPawn, out Pawn playerPawn))
-                {
-                    continue;
-                }
-
+                Log.Message($"[RimChat] DebugForcePawnRpg: Colonist path resolved: Initiator={initiator.LabelShortCap}, Receiver={receiver.LabelShortCap}");
                 var context = new PawnRpgTriggerContext
                 {
-                    Faction = faction,
+                    Faction = Faction.OfPlayer,
                     TriggerType = NpcDialogueTriggerType.Causal,
                     Category = NpcDialogueCategory.Social,
-                    SourceTag = "debug_force",
+                    SourceTag = "debug_force_colonist",
                     Reason = "manual_debug_trigger",
                     Severity = 1,
                     CreatedTick = now
                 };
-                StartGeneration(context, npcPawn, playerPawn);
+                StartGeneration(context, initiator, receiver);
                 return true;
             }
 
+            Log.Warning("[RimChat] DebugForcePawnRpg: Both paths failed. No valid pair found.");
             return false;
         }
 
@@ -571,6 +594,10 @@ namespace RimChat.PawnRpgPush
                 };
                 HandleTriggerContext(ambientContext, currentTick);
             }
+
+            EvaluateColonistPairAmbientTriggers(currentTick, chance);
+            EvaluateColonistPairLowMoodTriggers(currentTick);
+            EvaluateHomeEventTriggers(currentTick);
         }
 
         private void EvaluateThreatTriggers(int currentTick)
@@ -596,6 +623,11 @@ namespace RimChat.PawnRpgPush
                 RegisterThreatStateTrigger(faction, hasHive, hasHostiles);
                 state.hadThreat = true;
             }
+
+            if (hasThreat)
+            {
+                EvaluateColonistPairThreatTriggers(currentTick, hasHive, hasHostiles);
+            }
         }
 
         private bool TryStartGenerationForContext(PawnRpgTriggerContext context, int currentTick)
@@ -604,6 +636,17 @@ namespace RimChat.PawnRpgPush
             {
                 LogMissingProtagonists(currentTick);
                 return false;
+            }
+
+            if (IsColonistPairContext(context))
+            {
+                if (!TryResolveColonistPair(currentTick, out Pawn initiator, out Pawn receiver))
+                {
+                    return false;
+                }
+
+                StartGeneration(context, initiator, receiver);
+                return true;
             }
 
             if (!TryResolvePairForFaction(context.Faction, currentTick, false, false, false, out Pawn npcPawn, out Pawn playerPawn))
@@ -798,7 +841,7 @@ namespace RimChat.PawnRpgPush
             threatStates.RemoveAll(s => s == null || s.faction == null || s.faction.defeated);
             queuedTriggers.RemoveAll(q => q == null || q.faction == null || q.faction.defeated);
             proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
-            proactiveProtagonists.RemoveAll(e => e == null || e.TryResolvePawn() == null);
+            proactiveProtagonists.RemoveAll(e => e == null || !e.HasConfiguredIdentifier);
         }
 
         private bool HasConfiguredProtagonists()

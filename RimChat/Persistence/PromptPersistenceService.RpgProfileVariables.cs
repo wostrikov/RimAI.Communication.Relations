@@ -216,7 +216,11 @@ namespace RimChat.Persistence
                     continue;
                 }
 
-                string label = relation.def.label ?? relation.def.defName;
+                bool isFemale = toPawn.gender == Gender.Female;
+                bool hasLabelFemale = !string.IsNullOrEmpty(relation.def.labelFemale);
+                string label = isFemale && hasLabelFemale
+                    ? relation.def.labelFemale
+                    : relation.def.label ?? relation.def.defName;
                 if (!string.IsNullOrWhiteSpace(label))
                 {
                     labels.Add(label.Trim());

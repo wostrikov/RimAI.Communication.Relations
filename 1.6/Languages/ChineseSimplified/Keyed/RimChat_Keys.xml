@@ -1087,6 +1087,12 @@ ID：{5}
     <RimChat_PawnRpgPush_TitleSocial>{0} 想和 {1} 聊聊</RimChat_PawnRpgPush_TitleSocial>
     <RimChat_PawnRpgPush_TitleTask>{0} 想和 {1} 聊聊（任务）</RimChat_PawnRpgPush_TitleTask>
     <RimChat_PawnRpgPush_TitleWarning>{0} 想和 {1} 聊聊（警告）</RimChat_PawnRpgPush_TitleWarning>
+    <RimChat_EnableColonistToColonistDialogue>启用殖民者间主动对话</RimChat_EnableColonistToColonistDialogue>
+    <RimChat_ColonistPairMinOpinion>殖民者对话最低好感：{0}</RimChat_ColonistPairMinOpinion>
+    <RimChat_ColonistPairFrequency>殖民者对话频率</RimChat_ColonistPairFrequency>
+    <RimChat_ColonistPairFrequencyLow>殖民者：低</RimChat_ColonistPairFrequencyLow>
+    <RimChat_ColonistPairFrequencyMedium>殖民者：中</RimChat_ColonistPairFrequencyMedium>
+    <RimChat_ColonistPairFrequencyHigh>殖民者：高</RimChat_ColonistPairFrequencyHigh>
     <RimChat_ConversationReinitiated>你重新发起了对话。</RimChat_ConversationReinitiated>
     <RimChat_ConversationReinitiatedByNpc>对方主动重新发起了对话。</RimChat_ConversationReinitiatedByNpc>
     <RimChat_SystemExitDialogue>对方结束了当前对话。</RimChat_SystemExitDialogue>

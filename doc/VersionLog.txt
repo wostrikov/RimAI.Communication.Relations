@@ -1,3 +1,15 @@
+1.2.3
+- [新增] 殖民者间主动对话：支持环境社交、低心情关心、威胁讨论、家园提醒四种触发源
+- [新增] 殖民者间对话配对逻辑：接收者从主角名单选取，发起者从所有殖民者中选取
+- [新增] 殖民者间对话独立频率控制和冷却系统
+- [新增] 家园提醒触发：检测RimWorld原生提醒系统（食物不足、温度异常等）
+- [修复] 主角持久化：ExposeData保存顺序修正，CleanupInvalidState不再误删有效条目
+- [修复] 关系标签性别：DirectRelations根据对方pawn性别显示正确标签（母亲/父亲）
+- [修复] 信件内容作为首条消息：移除hasPersonalMemory对proactiveOpening的限制
+- [合并] PawnRPG强制触发按钮：NPC→殖民者失败时自动回退到殖民者→殖民者
+- [修复] 退出短语误判：ContainsAnyPhrase改为边界感知匹配
+- [修复] AI设置滚动：增大各分选项预估高度
+
 1.2.2
 - [调整] 取消所有budget/交易限额限制：移除hardMax截断与budget_too_low拒绝，移除trade_limit_exceeded校验，移除UI提交限额禁用
 - [调整] 交易额度公式优化：起始交易额500→800，最终乘数改为可配置设置ItemAirdropTradeLimitMultiplier(默认2.0)，增长提示同步乘数
