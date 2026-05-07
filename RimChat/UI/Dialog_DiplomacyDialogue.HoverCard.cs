@@ -103,26 +103,33 @@ namespace RimChat.UI
                 return;
             }
 
-            Pawn subjectPawn = ResolveHoverCardPawn(targetFaction, explicitPawn) ?? explicitPawn;
-            Faction fallbackFaction = targetFaction ?? subjectPawn?.Faction ?? faction;
-            if (fallbackFaction == null)
+            try
             {
-                return;
-            }
+                Pawn subjectPawn = ResolveHoverCardPawn(targetFaction, explicitPawn) ?? explicitPawn;
+                Faction fallbackFaction = targetFaction ?? subjectPawn?.Faction ?? faction;
+                if (fallbackFaction == null)
+                {
+                    return;
+                }
 
-            if (fallbackFaction.IsPlayer)
+                if (fallbackFaction.IsPlayer)
+                {
+                    DrawHoverCardForPlayerPawn(subjectPawn, anchorRect, alpha);
+                    return;
+                }
+
+                FactionIntelRevealTier tier = ResolveFactionRevealTier(fallbackFaction);
+                List<HoverCardLine> lines = BuildHoverCardLines(fallbackFaction, subjectPawn, tier);
+                float contentHeight = CalculateHoverCardContentHeight(lines, fallbackFaction);
+                Rect cardRect = BuildHoverCardRect(anchorRect, contentHeight);
+
+                DrawHoverCardChrome(cardRect, alpha, GetGoodwillColor(fallbackFaction.PlayerGoodwill));
+                DrawHoverCardContent(cardRect, fallbackFaction, subjectPawn, lines, tier, alpha);
+            }
+            catch (Exception ex)
             {
-                DrawHoverCardForPlayerPawn(subjectPawn, anchorRect, alpha);
-                return;
+                Log.Warning($"[RimChat] Failed to draw hover card for faction={targetFaction?.Name}: {ex.Message}");
             }
-
-            FactionIntelRevealTier tier = ResolveFactionRevealTier(fallbackFaction);
-            List<HoverCardLine> lines = BuildHoverCardLines(fallbackFaction, subjectPawn, tier);
-            float contentHeight = CalculateHoverCardContentHeight(lines, fallbackFaction);
-            Rect cardRect = BuildHoverCardRect(anchorRect, contentHeight);
-
-            DrawHoverCardChrome(cardRect, alpha, GetGoodwillColor(fallbackFaction.PlayerGoodwill));
-            DrawHoverCardContent(cardRect, fallbackFaction, subjectPawn, lines, tier, alpha);
         }
 
         private void DrawHoverCardForPlayerPawn(Pawn pawn, Rect anchorRect, float alpha)
@@ -321,7 +328,20 @@ namespace RimChat.UI
                 return "RimChat_HoverCardUnknownValue".Translate();
             }
 
-            string xenotype = subjectPawn.genes?.XenotypeLabelCap ?? subjectPawn.genes?.xenotypeName;
+            string xenotype = string.Empty;
+            try
+            {
+                if (subjectPawn.genes != null)
+                {
+                    xenotype = subjectPawn.genes.XenotypeLabelCap ?? subjectPawn.genes.xenotypeName ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimChat] Failed to resolve xenotype for pawn={subjectPawn.LabelShortCap}: {ex.Message}");
+                xenotype = string.Empty;
+            }
+
             string race = subjectPawn.def?.label ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(xenotype) && !string.Equals(xenotype, race, StringComparison.OrdinalIgnoreCase))
             {

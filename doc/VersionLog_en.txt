@@ -1,3 +1,7 @@
+1.2.6
+- [Fix] HoverCard: XenotypeLabelCap null reference crash when hovering faction list
+- [Fix] HoverCard: Exception guard protects ScrollView GUI state consistency
+
 1.2.5
 - [Fix] Settings: negotiator mode click feedback, designated opens dropdown immediately
 - [Fix] Settings: PawnsFinder null crash when opening designated pawn selector
