@@ -19,6 +19,7 @@ nul
 .agents/
 .trae/
 .claude/
+CLAUDE.md
 .codebuddy/
 __pycache__/
 *.pyc
