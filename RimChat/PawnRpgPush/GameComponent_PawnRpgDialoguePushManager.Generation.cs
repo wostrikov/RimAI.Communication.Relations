@@ -201,7 +201,7 @@ namespace RimChat.PawnRpgPush
         {
             if (context?.Category == NpcDialogueCategory.WarningThreat)
             {
-                return context.Severity >= 3 ? LetterDefOf.ThreatBig : LetterDefOf.ThreatSmall;
+                return LetterDefOf.ThreatSmall;
             }
 
             return context?.Category == NpcDialogueCategory.DiplomacyTask

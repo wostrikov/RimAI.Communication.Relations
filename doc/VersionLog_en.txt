@@ -1,3 +1,9 @@
+1.2.7
+- [New] RPG dialogue integrates RimTalk-ExpandMemory memories: NPC's three-layer memories (ABM/ELS/CLPA) automatically injected into dialogue prompts via [ExpandMemory] block appended to personal_memory
+- [New] Independent toggle: ExpandMemory compat settings page adds pawn memory injection checkbox (enabled by default)
+- [Adjust] RPG proactive dialogue Letter downgraded: removed ThreatBig red letter, max level now ThreatSmall
+- [Optimize] Diplomacy channel prompt: added highest-priority buyer/seller direction constraint, clarifying need=AI delivers to player, payment_items=player pays AI
+
 1.2.6
 - [Fix] HoverCard: XenotypeLabelCap null reference crash when hovering faction list
 - [Fix] HoverCard: Exception guard protects ScrollView GUI state consistency

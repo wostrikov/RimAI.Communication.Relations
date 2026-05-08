@@ -2360,6 +2360,7 @@ Selected prisoners: {1}
     <RimChat_ExpandMemoryCompatAuto>Auto (detect installed mod)</RimChat_ExpandMemoryCompatAuto>
     <RimChat_ExpandMemoryCompatOn>On (force enable)</RimChat_ExpandMemoryCompatOn>
     <RimChat_ExpandMemoryCompatOff>Off (force disable)</RimChat_ExpandMemoryCompatOff>
+    <RimChat_ExpandMemoryInjectPawnMemory>Inject ExpandMemory pawn memories into RPG prompts</RimChat_ExpandMemoryInjectPawnMemory>
     <RimChat_RimTalkOpenDiplomacySections>Open Diplomacy Sections</RimChat_RimTalkOpenDiplomacySections>
     <RimChat_RimTalkOpenRpgSections>Open RPG Sections</RimChat_RimTalkOpenRpgSections>
     <RimChat_RimTalkSummaryPersonaTitle>Summary &amp; Persona</RimChat_RimTalkSummaryPersonaTitle>
@@ -2446,6 +2447,7 @@ Selected prisoners: {1}
     <RimChat_PromptNode_RpgSurvivalInstinct>RPG Survival Instinct</RimChat_PromptNode_RpgSurvivalInstinct>
     <RimChat_PromptNode_RpgAliveFeeling>RPG Alive Feeling</RimChat_PromptNode_RpgAliveFeeling>
     <RimChat_PromptNode_CommonKnowledge>Common Knowledge</RimChat_PromptNode_CommonKnowledge>
+    <RimChat_PromptNode_ExpandMemoryNpcMemory>ExpandMemory NPC Memory</RimChat_PromptNode_ExpandMemoryNpcMemory>
     <RimChat_ImmersionFallback_Diplomacy>We will continue this talk with focus and dignity.</RimChat_ImmersionFallback_Diplomacy>
     <RimChat_ImmersionFallback_Rpg>I stay in the moment and speak from my heart.</RimChat_ImmersionFallback_Rpg>
     <RimChat_ImmersionGuardWarning>(Detected possible mechanic leakage in response, original dialogue preserved)</RimChat_ImmersionGuardWarning>

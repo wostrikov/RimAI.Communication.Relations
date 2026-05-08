@@ -1316,11 +1316,15 @@ namespace RimChat.Config
                 ExpandMemoryCompatMode = modes[1];
             if (Widgets.RadioButtonLabeled(offRect, "RimChat_ExpandMemoryCompatOff".Translate(), selectedIndex == 2))
                 ExpandMemoryCompatMode = modes[2];
+
+            listing.Gap();
+            listing.CheckboxLabeled("RimChat_ExpandMemoryInjectPawnMemory".Translate(), ref ExpandMemoryInjectPawnMemory);
         }
 
         private void ResetModCompatSettingsToDefault()
         {
             ExpandMemoryCompatMode = "auto";
+            ExpandMemoryInjectPawnMemory = true;
         }
 
         #endregion

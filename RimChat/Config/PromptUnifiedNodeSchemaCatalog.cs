@@ -46,7 +46,8 @@ namespace RimChat.Config
             new PromptUnifiedNodeSchemaItem("rpg_state_anchor", "RimChat_PromptNode_RpgStateAnchor", "RPG State Anchor"),
             new PromptUnifiedNodeSchemaItem("rpg_survival_instinct", "RimChat_PromptNode_RpgSurvivalInstinct", "RPG Survival Instinct"),
             new PromptUnifiedNodeSchemaItem("rpg_alive_feeling", "RimChat_PromptNode_RpgAliveFeeling", "RPG Alive Feeling"),
-            new PromptUnifiedNodeSchemaItem("common_knowledge", "RimChat_PromptNode_CommonKnowledge", "Common Knowledge")
+            new PromptUnifiedNodeSchemaItem("common_knowledge", "RimChat_PromptNode_CommonKnowledge", "Common Knowledge"),
+            new PromptUnifiedNodeSchemaItem("expandmemory_npc_memory", "RimChat_PromptNode_ExpandMemoryNpcMemory", "ExpandMemory NPC Memory")
         };
 
         private static readonly Dictionary<string, string[]> AllowedNodesByChannel =
@@ -102,6 +103,7 @@ namespace RimChat.Config
                     "rpg_proactive_social",
                     "response_contract_node_template",
                     "common_knowledge",
+                    "expandmemory_npc_memory",
 
                     "rpg_body_emotion_override",
                     "rpg_state_anchor",
@@ -123,6 +125,7 @@ namespace RimChat.Config
                     "rpg_proactive_social",
                     "response_contract_node_template",
                     "common_knowledge",
+                    "expandmemory_npc_memory",
 
                     "rpg_body_emotion_override",
                     "rpg_state_anchor",

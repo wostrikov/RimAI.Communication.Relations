@@ -1,3 +1,9 @@
+1.2.7
+- [新增] RPG 对话集成 RimTalk-ExpandMemory 记忆：对话提示词自动注入 NPC 的三层记忆（ABM/ELS/CLPA），通过 [ExpandMemory] 块追加到 personal_memory 中
+- [新增] 独立开关：ExpandMemory 兼容设置页新增 pawn 记忆注入 Checkbox（默认开启）
+- [调整] RPG 主动对话 Letter 降级：移除 ThreatBig 红字，最高使用 ThreatSmall
+- [优化] 外交通道提示词：新增买卖方向最高优先级约束，明确 need=AI 交付玩家、payment_items=玩家支付 AI
+
 1.2.6
 - [修复] 悬停卡片：派系列表悬停时 XenotypeLabelCap 空引用导致 GUI 崩溃
 - [修复] 悬停卡片：异常捕获保护 ScrollView GUI 状态一致性

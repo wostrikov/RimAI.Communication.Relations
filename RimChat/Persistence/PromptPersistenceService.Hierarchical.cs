@@ -638,6 +638,10 @@ namespace RimChat.Persistence
                         placement.OutputTag = "common_knowledge";
                         placement.Content = BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
                         break;
+                    case "expandmemory_npc_memory":
+                        placement.OutputTag = "expandmemory_npc_memory";
+                        placement.Content = BuildExpandMemoryPawnBlock(target);
+                        break;
 
                     default:
                         placement.Content = string.Empty;

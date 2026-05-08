@@ -2452,6 +2452,7 @@ ID：{5}
     <RimChat_ExpandMemoryCompatAuto>自动（检测已安装模组）</RimChat_ExpandMemoryCompatAuto>
     <RimChat_ExpandMemoryCompatOn>开启（强制启用）</RimChat_ExpandMemoryCompatOn>
     <RimChat_ExpandMemoryCompatOff>关闭（强制禁用）</RimChat_ExpandMemoryCompatOff>
+    <RimChat_ExpandMemoryInjectPawnMemory>将 ExpandMemory 的 pawn 记忆注入 RPG 提示词</RimChat_ExpandMemoryInjectPawnMemory>
     <RimChat_RimTalkOpenDiplomacySections>打开外交分段</RimChat_RimTalkOpenDiplomacySections>
     <RimChat_RimTalkOpenRpgSections>打开 RPG 分段</RimChat_RimTalkOpenRpgSections>
     <RimChat_RimTalkSummaryPersonaTitle>摘要与人格</RimChat_RimTalkSummaryPersonaTitle>
@@ -2537,6 +2538,7 @@ ID：{5}
     <RimChat_PromptNode_RpgSurvivalInstinct>RPG求生本能</RimChat_PromptNode_RpgSurvivalInstinct>
     <RimChat_PromptNode_RpgAliveFeeling>RPG活人感</RimChat_PromptNode_RpgAliveFeeling>
     <RimChat_PromptNode_CommonKnowledge>常识库</RimChat_PromptNode_CommonKnowledge>
+    <RimChat_PromptNode_ExpandMemoryNpcMemory>ExpandMemory NPC 记忆</RimChat_PromptNode_ExpandMemoryNpcMemory>
     <RimChat_ImmersionFallback_Diplomacy>我们会以更专注、更体面的方式继续这次会谈。</RimChat_ImmersionFallback_Diplomacy>
     <RimChat_ImmersionFallback_Rpg>我会留在当下，用自己的心声回应你。</RimChat_ImmersionFallback_Rpg>
     <RimChat_ImmersionGuardWarning>（检测到回复可能受机制描述干扰，对话已保留）</RimChat_ImmersionGuardWarning>

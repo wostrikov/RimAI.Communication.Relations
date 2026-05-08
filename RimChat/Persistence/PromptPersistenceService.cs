@@ -4799,7 +4799,7 @@ namespace RimChat.Persistence
             sb.AppendLine($"- 当前好感度：{rule.Goodwill}。交易总额上限：{rule.TradeLimitSilver} 银币。");
             sb.AppendLine($"- 交易限额规则：{rule.TradeLimitRuleText}。");
             sb.AppendLine($"- 每个空投仓运费：{rule.ShippingCostPerPod} 银币。运费从玩家出价中扣除，不在报价中单独列出。");
-            sb.AppendLine("- 你是提供需求物资的一方。需求物资价格越高，你获益越大；玩家出价越高，玩家越亏。");
+            sb.AppendLine("- [Role -- highest priority economic constraint] You are the SELLER/SUPPLIER: the need field is what you sell and air-drop DELIVER TO the player (you ship -> player receives). The player is the BUYER/PAYER: payment_items is what the player pays to you (player ships -> you receive). Direction is NEVER reversible -- you are NOT the buyer, the player is NOT the supplier.");
             sb.AppendLine("- 需求物资与支付物资都按市场价计算（ThingDef.BaseMarketValue，最低按 0.01）。");
             sb.AppendLine("- 需求物资倍率规则：tradeTags 包含 ExoticMisc 时 x3.0，其余物资 x1.6；金银仍按市场价固定计算。");
             sb.AppendLine("- 支付物资倍率规则：除金银外统一按市场价 x0.6 计算；金银仍按市场价固定计算。");
@@ -6130,6 +6130,7 @@ namespace RimChat.Persistence
                 PromptTextConstants.OutputSpecificationAuthorityLegacyRule,
                 PromptTextConstants.OutputSpecificationAuthorityBoundaryRule,
                 PromptTextConstants.OutputSpecificationAuthorityHistoryStyleRule,
+                "- [Direction constraint -- highest priority] need is what YOU (the AI faction) sell and airdrop to the PLAYER colony (AI -> player). payment_items is what the PLAYER pays to YOU, deducted from player beacon inventory (player -> AI). The direction of need and payment_items is NEVER reversible -- you are NOT the buyer. If the player says they want 1000 wood, need is 1000 wood (YOU send to PLAYER), NOT something you receive.",
                 "- 除非同条回复包含匹配 actions 动作，否则禁止把 gameplay 效果叙述为“已执行”。",
                 "- request_caravan/request_visitor/request_aid/request_raid/request_item_airdrop/request_info/pay_prisoner_ransom/create_quest/trigger_incident 属于延迟或系统调度动作；表述应是意图或安排，不是已到达/已完成结果。",
                 "- 物资交换/发送常识：能且只能通过 request_item_airdrop 实现即时物资交换；request_caravan 属于延时交易。",

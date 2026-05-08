@@ -17,6 +17,7 @@ namespace RimChat.Config
         public bool RimTalkAutoPushSessionSummary;
         public bool RimTalkAutoInjectCompatPreset;
         public string ExpandMemoryCompatMode = "auto";
+        public bool ExpandMemoryInjectPawnMemory = true;
         internal RimTalkPromptEntryDefaultsConfig PromptSectionCatalog = RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot();
         internal PromptUnifiedCatalog UnifiedPromptCatalog = PromptUnifiedCatalog.CreateFallback();
 
@@ -85,6 +86,7 @@ You may reference RimTalk variables/plugins directly in this section.";
             }
 
             Scribe_Values.Look(ref ExpandMemoryCompatMode, "ExpandMemoryCompatMode", "auto");
+            Scribe_Values.Look(ref ExpandMemoryInjectPawnMemory, "ExpandMemoryInjectPawnMemory", true);
             EnsurePromptSectionCatalogReady();
             ClampRimTalkCompatSettings();
         }
@@ -95,6 +97,11 @@ You may reference RimTalk variables/plugins directly in this section.";
             if (mode == "on") return true;
             if (mode == "off") return false;
             return Prompting.PromptRuntimeVariableBridge.IsDependencyAvailable("expandmemory");
+        }
+
+        public bool IsExpandMemoryPawnMemoryEnabled()
+        {
+            return ExpandMemoryInjectPawnMemory;
         }
 
         public bool IsAnyRimTalkPromptCompatEnabled()

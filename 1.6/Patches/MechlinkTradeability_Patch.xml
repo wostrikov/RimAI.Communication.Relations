@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Patch>
     <!-- Set Mechlink as untradeable so it routes through black-market pricing -->
-    <Operation Class="PatchOperationAdd">
-        <xpath>/Defs/ThingDef[defName="Mechlink" and not(tradeability)]</xpath>
-        <value>
-            <tradeability>None</tradeability>
-        </value>
+    <Operation Class="PatchOperationConditional">
+        <xpath>/Defs/ThingDef[defName="Mechlink"]</xpath>
+        <match Class="PatchOperationConditional">
+            <xpath>/Defs/ThingDef[defName="Mechlink" and not(tradeability)]</xpath>
+            <match Class="PatchOperationAdd">
+                <xpath>/Defs/ThingDef[defName="Mechlink"]</xpath>
+                <value>
+                    <tradeability>None</tradeability>
+                </value>
+            </match>
+        </match>
     </Operation>
 </Patch>

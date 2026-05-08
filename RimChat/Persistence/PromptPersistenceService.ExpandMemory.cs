@@ -5,7 +5,7 @@ namespace RimChat.Persistence
 {
     /// <summary>
     /// Dependencies: ExpandMemoryBridge.
-    /// Responsibility: build common knowledge prompt block via ExpandMemory keyword matching.
+    /// Responsibility: build prompt blocks via ExpandMemory (common knowledge and per-pawn memory).
     /// </summary>
     public partial class PromptPersistenceService
     {
@@ -32,6 +32,43 @@ namespace RimChat.Persistence
             }
 
             return result.Trim();
+        }
+
+        internal string BuildExpandMemoryPawnBlock(Pawn pawn)
+        {
+            if (!ExpandMemoryBridge.IsPawnMemoryAvailable() || pawn == null)
+            {
+                return string.Empty;
+            }
+
+            string result = ExpandMemoryBridge.GetPawnMemory(pawn);
+            return string.IsNullOrWhiteSpace(result) ? string.Empty : result;
+        }
+
+        private string InjectExpandMemoryIntoPrompt(string prompt, Pawn target)
+        {
+            string memory = BuildExpandMemoryPawnBlock(target);
+            if (string.IsNullOrWhiteSpace(memory))
+            {
+                return prompt;
+            }
+
+            string tag = "</dynamic_npc_personal_memory>";
+            int idx = prompt.IndexOf(tag, System.StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+            {
+                return prompt.Insert(idx, "\n  [ExpandMemory]\n  " + memory.Replace("\n", "\n  ") + "\n");
+            }
+
+            // Fallback: append before </prompt_context>
+            string closingTag = "</prompt_context>";
+            int closingIdx = prompt.IndexOf(closingTag, System.StringComparison.OrdinalIgnoreCase);
+            if (closingIdx >= 0)
+            {
+                return prompt.Insert(closingIdx, "<expandmemory_npc_memory>\n" + memory + "\n</expandmemory_npc_memory>\n");
+            }
+
+            return prompt;
         }
     }
 }

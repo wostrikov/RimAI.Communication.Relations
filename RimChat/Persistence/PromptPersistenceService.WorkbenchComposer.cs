@@ -83,6 +83,11 @@ namespace RimChat.Persistence
                     prompt = rendered;
                 }
 
+                if (rootChannel == RimTalkPromptChannel.Rpg && !deterministicPreview)
+                {
+                    prompt = InjectExpandMemoryIntoPrompt(prompt, scenarioContext?.Target);
+                }
+
                 if (rootChannel == RimTalkPromptChannel.Diplomacy &&
                     !deterministicPreview)
                 {
@@ -862,6 +867,10 @@ namespace RimChat.Persistence
                 if (string.Equals(nodeId, "common_knowledge", StringComparison.OrdinalIgnoreCase))
                 {
                     rendered = BuildCommonKnowledgeBlock(expandMemoryPlayerMessage);
+                }
+                else if (string.Equals(nodeId, "expandmemory_npc_memory", StringComparison.OrdinalIgnoreCase))
+                {
+                    rendered = BuildExpandMemoryPawnBlock(scenarioContext?.Target);
                 }
                 else
                 {
