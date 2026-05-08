@@ -3,6 +3,8 @@
 [![Steam Workshop](https://img.shields.io/badge/Steam-Workshop-blue?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=3683001105)
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-blue.svg)](https://rimworldgame.com/)
 [![Harmony](https://img.shields.io/badge/Dependency-Harmony-orange.svg)](https://github.com/pardeike/HarmonyRimWorld)
+[![GitHub](https://img.shields.io/badge/GitHub-RimChat-181717?logo=github&logoColor=white)](https://github.com/yancy22737-sudo/RimChat)
+[![Bilibili](https://img.shields.io/badge/Bilibili-当我让AI接管了游戏外交！-00A1D6?logo=bilibili&logoColor=white)](https://bilibili.com/video/BV11FRqBJEZG)
 
 # 用语言改变游戏进程
 
