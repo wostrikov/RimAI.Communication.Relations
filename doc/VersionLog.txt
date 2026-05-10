@@ -1,3 +1,15 @@
+1.2.9
+- [修复] ExpandMemory pawn 记忆全量读取导致提示词 token 大幅超出预期：新增每层条数上限(20)、总量上限(50)、字符预算截断(默认1200)；修复 expandmemory_npc_memory 节点与 InjectExpandMemoryIntoPrompt 双重注入
+- [新增] ExpandMemory 兼容设置页新增"最大字符数"和"最大记忆条数"滑块控件
+
+1.2.8
+- [优化] RpgPush 主动对话性能大幅提升：QueueProcess 耗时从 ~1400ms 降至 ~50ms（28x），通过同 tick 缓存、LINQ 移除、HashSet/Dictionary 替换、提示词组合同 tick 值共享、协程延迟执行、系统提示词缓存
+- [修复] 物资空投失败后状态残留导致后续所有空投均失败
+- [优化] 提示词构建改为协程延迟执行，不再阻塞 GameComponentTick
+- [优化] RPG/外交系统提示词缓存，同组合 50 秒内复用
+- [调整] 拖拽悬浮提示文本："rua一下" -> "拖动到左边以强制触发行为"
+- [文档] 新增性能优化规范：CLAUDE.md 和 doc/perf-optimization-guide.md
+
 1.2.7
 - [新增] RPG 对话集成 RimTalk-ExpandMemory 记忆：对话提示词自动注入 NPC 的三层记忆（ABM/ELS/CLPA），通过 [ExpandMemory] 块追加到 personal_memory 中
 - [新增] 独立开关：ExpandMemory 兼容设置页新增 pawn 记忆注入 Checkbox（默认开启）

@@ -18,6 +18,8 @@ namespace RimChat.Config
         public bool RimTalkAutoInjectCompatPreset;
         public string ExpandMemoryCompatMode = "auto";
         public bool ExpandMemoryInjectPawnMemory = true;
+        public int ExpandMemoryPawnMemoryMaxChars = 1200;
+        public int ExpandMemoryPawnMemoryMaxEntries = 50;
         internal RimTalkPromptEntryDefaultsConfig PromptSectionCatalog = RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot();
         internal PromptUnifiedCatalog UnifiedPromptCatalog = PromptUnifiedCatalog.CreateFallback();
 
@@ -87,6 +89,8 @@ You may reference RimTalk variables/plugins directly in this section.";
 
             Scribe_Values.Look(ref ExpandMemoryCompatMode, "ExpandMemoryCompatMode", "auto");
             Scribe_Values.Look(ref ExpandMemoryInjectPawnMemory, "ExpandMemoryInjectPawnMemory", true);
+            Scribe_Values.Look(ref ExpandMemoryPawnMemoryMaxChars, "ExpandMemoryPawnMemoryMaxChars", 1200);
+            Scribe_Values.Look(ref ExpandMemoryPawnMemoryMaxEntries, "ExpandMemoryPawnMemoryMaxEntries", 50);
             EnsurePromptSectionCatalogReady();
             ClampRimTalkCompatSettings();
         }
@@ -918,6 +922,14 @@ You may reference RimTalk variables/plugins directly in this section.";
                 RimTalkSummaryHistoryLimit,
                 RimTalkSummaryHistoryMin,
                 RimTalkSummaryHistoryMax);
+            ExpandMemoryPawnMemoryMaxChars = Mathf.Clamp(
+                ExpandMemoryPawnMemoryMaxChars,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxCharsMin,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxCharsMax);
+            ExpandMemoryPawnMemoryMaxEntries = Mathf.Clamp(
+                ExpandMemoryPawnMemoryMaxEntries,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxEntriesMin,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxEntriesMax);
             PromptSectionCatalog = PromptLegacyCompatMigration.NormalizePromptSections(PromptSectionCatalog);
             RimTalkPersonaCopyTemplate = NormalizePersonaCopyTemplateToStrictScriban(RimTalkPersonaCopyTemplate);
             if (RimTalkPersonaCopyTemplate.Length > RimTalkPersonaCopyTemplateMaxLength)

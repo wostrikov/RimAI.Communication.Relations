@@ -1319,12 +1319,28 @@ namespace RimChat.Config
 
             listing.Gap();
             listing.CheckboxLabeled("RimChat_ExpandMemoryInjectPawnMemory".Translate(), ref ExpandMemoryInjectPawnMemory);
+
+            listing.Gap();
+            listing.Label("RimChat_ExpandMemoryPawnMemoryMaxChars".Translate(ExpandMemoryPawnMemoryMaxChars));
+            ExpandMemoryPawnMemoryMaxChars = (int)listing.Slider(
+                ExpandMemoryPawnMemoryMaxChars,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxCharsMin,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxCharsMax);
+
+            listing.Gap();
+            listing.Label("RimChat_ExpandMemoryPawnMemoryMaxEntries".Translate(ExpandMemoryPawnMemoryMaxEntries));
+            ExpandMemoryPawnMemoryMaxEntries = (int)listing.Slider(
+                ExpandMemoryPawnMemoryMaxEntries,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxEntriesMin,
+                Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxEntriesMax);
         }
 
         private void ResetModCompatSettingsToDefault()
         {
             ExpandMemoryCompatMode = "auto";
             ExpandMemoryInjectPawnMemory = true;
+            ExpandMemoryPawnMemoryMaxChars = 1200;
+            ExpandMemoryPawnMemoryMaxEntries = 50;
         }
 
         #endregion

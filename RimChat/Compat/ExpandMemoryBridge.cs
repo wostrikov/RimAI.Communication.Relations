@@ -66,7 +66,7 @@ namespace RimChat.Compat
             return IsAvailable();
         }
 
-        internal static string GetPawnMemory(Pawn pawn)
+        internal static string GetPawnMemory(Pawn pawn, int maxEntriesPerLayer = 20, int maxTotalEntries = 50)
         {
             if (!IsPawnMemoryAvailable() || pawn == null || _fourLayerMemoryCompType == null)
             {
@@ -81,29 +81,25 @@ namespace RimChat.Compat
                     return string.Empty;
                 }
 
-                // Collect raw List<MemoryEntry> from each layer — keep original type for MemoryFormatter compatibility
-                var layerLists = new List<object>();
-                AddIfNotEmpty(_activeMemoriesProp, comp, layerLists);
-                AddIfNotEmpty(_eventLogMemoriesProp, comp, layerLists);
-                AddIfNotEmpty(_archiveMemoriesProp, comp, layerLists);
+                // Collect raw List<MemoryEntry> from each layer, keeping only the most recent entries per layer.
+                // Active > EventLog > Archive priority order.
+                var activeList = ReadLayerTail(_activeMemoriesProp, comp, maxEntriesPerLayer);
+                var eventList = ReadLayerTail(_eventLogMemoriesProp, comp, maxEntriesPerLayer);
+                var archiveList = ReadLayerTail(_archiveMemoriesProp, comp, maxEntriesPerLayer);
 
-                if (layerLists.Count == 0)
-                {
-                    return string.Empty;
-                }
-
-                // Concatenate all layers into a single list for formatting
-                // Each entry in layerLists IS a List<MemoryEntry> — pass directly to MemoryFormatter.Format
-                object combinedList = layerLists[0];
-                for (int i = 1; i < layerLists.Count; i++)
-                {
-                    combinedList = MergeMemoryLists(combinedList, layerLists[i]);
-                }
+                // Merge in priority order: Active + EventLog first, then Archive.
+                object combinedList = null;
+                if (activeList != null) combinedList = activeList;
+                if (eventList != null) combinedList = combinedList == null ? eventList : MergeMemoryLists(combinedList, eventList);
+                if (archiveList != null) combinedList = combinedList == null ? archiveList : MergeMemoryLists(combinedList, archiveList);
 
                 if (combinedList == null)
                 {
                     return string.Empty;
                 }
+
+                // Enforce total entry cap — trim oldest entries from the front.
+                combinedList = TrimListHead(combinedList, maxTotalEntries);
 
                 // Try MemoryFormatter.Format(List<MemoryEntry>, int) — the runtime type is List<MemoryEntry>
                 if (_memoryFormatterFormatMethod != null)
@@ -131,18 +127,49 @@ namespace RimChat.Compat
             }
         }
 
-        private static void AddIfNotEmpty(PropertyInfo prop, ThingComp comp, List<object> target)
+        private static object ReadLayerTail(PropertyInfo prop, ThingComp comp, int maxEntries)
         {
-            if (prop == null) return;
+            if (prop == null || maxEntries <= 0) return null;
             try
             {
                 object value = prop.GetValue(comp);
-                if (value is System.Collections.IList list && list.Count > 0)
-                {
-                    target.Add(value);
-                }
+                if (!(value is System.Collections.IList list) || list.Count == 0) return null;
+
+                int count = list.Count;
+                int take = count <= maxEntries ? count : maxEntries;
+                int skip = count - take;
+
+                Type entryType = list.GetType().GetGenericArguments()[0];
+                Type listType = typeof(List<>).MakeGenericType(entryType);
+                var result = (System.Collections.IList)Activator.CreateInstance(listType);
+                for (int i = skip; i < count; i++) result.Add(list[i]);
+                return result;
             }
-            catch { }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static object TrimListHead(object listObj, int maxEntries)
+        {
+            if (listObj == null || maxEntries <= 0) return listObj;
+            try
+            {
+                var list = (System.Collections.IList)listObj;
+                if (list.Count <= maxEntries) return listObj;
+
+                int trim = list.Count - maxEntries;
+                Type entryType = list.GetType().GetGenericArguments()[0];
+                Type listType = typeof(List<>).MakeGenericType(entryType);
+                var trimmed = (System.Collections.IList)Activator.CreateInstance(listType);
+                for (int i = trim; i < list.Count; i++) trimmed.Add(list[i]);
+                return trimmed;
+            }
+            catch
+            {
+                return listObj;
+            }
         }
 
         private static object MergeMemoryLists(object listA, object listB)

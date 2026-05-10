@@ -2453,6 +2453,8 @@ ID：{5}
     <RimChat_ExpandMemoryCompatOn>开启（强制启用）</RimChat_ExpandMemoryCompatOn>
     <RimChat_ExpandMemoryCompatOff>关闭（强制禁用）</RimChat_ExpandMemoryCompatOff>
     <RimChat_ExpandMemoryInjectPawnMemory>将 ExpandMemory 的 pawn 记忆注入 RPG 提示词</RimChat_ExpandMemoryInjectPawnMemory>
+    <RimChat_ExpandMemoryPawnMemoryMaxChars>每个 pawn 记忆块最大字符数：{0}</RimChat_ExpandMemoryPawnMemoryMaxChars>
+    <RimChat_ExpandMemoryPawnMemoryMaxEntries>每个 pawn 最大记忆条数：{0}</RimChat_ExpandMemoryPawnMemoryMaxEntries>
     <RimChat_RimTalkOpenDiplomacySections>打开外交分段</RimChat_RimTalkOpenDiplomacySections>
     <RimChat_RimTalkOpenRpgSections>打开 RPG 分段</RimChat_RimTalkOpenRpgSections>
     <RimChat_RimTalkSummaryPersonaTitle>摘要与人格</RimChat_RimTalkSummaryPersonaTitle>
@@ -2609,7 +2611,7 @@ ID：{5}
     <RimChat_DragMenu_Recruit>招募</RimChat_DragMenu_Recruit>
     <RimChat_DragMenu_Inspiration>赋予灵感</RimChat_DragMenu_Inspiration>
     <RimChat_DragMenu_Incident>触发事件</RimChat_DragMenu_Incident>
-    <RimChat_DragMenu_HoverHint>rua一下</RimChat_DragMenu_HoverHint>
+    <RimChat_DragMenu_HoverHint>拖动到左边以强制触发行为</RimChat_DragMenu_HoverHint>
 
     <!-- Module Transfer -->
     <RimChat_ModuleCreateTitle>新建模块</RimChat_ModuleCreateTitle>

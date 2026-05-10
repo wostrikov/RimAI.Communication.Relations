@@ -2361,6 +2361,8 @@ Selected prisoners: {1}
     <RimChat_ExpandMemoryCompatOn>On (force enable)</RimChat_ExpandMemoryCompatOn>
     <RimChat_ExpandMemoryCompatOff>Off (force disable)</RimChat_ExpandMemoryCompatOff>
     <RimChat_ExpandMemoryInjectPawnMemory>Inject ExpandMemory pawn memories into RPG prompts</RimChat_ExpandMemoryInjectPawnMemory>
+    <RimChat_ExpandMemoryPawnMemoryMaxChars>Max characters per pawn memory block: {0}</RimChat_ExpandMemoryPawnMemoryMaxChars>
+    <RimChat_ExpandMemoryPawnMemoryMaxEntries>Max memory entries per pawn: {0}</RimChat_ExpandMemoryPawnMemoryMaxEntries>
     <RimChat_RimTalkOpenDiplomacySections>Open Diplomacy Sections</RimChat_RimTalkOpenDiplomacySections>
     <RimChat_RimTalkOpenRpgSections>Open RPG Sections</RimChat_RimTalkOpenRpgSections>
     <RimChat_RimTalkSummaryPersonaTitle>Summary &amp; Persona</RimChat_RimTalkSummaryPersonaTitle>
@@ -2518,7 +2520,7 @@ Selected prisoners: {1}
     <RimChat_DragMenu_Recruit>Recruit</RimChat_DragMenu_Recruit>
     <RimChat_DragMenu_Inspiration>Grant Inspiration</RimChat_DragMenu_Inspiration>
     <RimChat_DragMenu_Incident>Trigger Incident</RimChat_DragMenu_Incident>
-    <RimChat_DragMenu_HoverHint>rua it</RimChat_DragMenu_HoverHint>
+    <RimChat_DragMenu_HoverHint>Drag to left to force trigger action</RimChat_DragMenu_HoverHint>
 
     <!-- Module Transfer -->
     <RimChat_ModuleCreateTitle>New Module</RimChat_ModuleCreateTitle>

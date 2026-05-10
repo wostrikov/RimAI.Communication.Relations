@@ -6,6 +6,7 @@ using RimChat.Config;
 using RimChat.Core;
 using RimChat.Memory;
 using RimChat.Prompting;
+using RimChat.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -52,7 +53,9 @@ namespace RimChat.Persistence
 
             try
             {
-                PromptWorkspaceComposeResult composed = ComposePromptWorkspace(
+                PromptWorkspaceComposeResult composed;
+                using (PerfScope.Measure("RpgPush.QueueProcess.ComposeWorkspace"))
+                    composed = ComposePromptWorkspace(
                     rootChannel,
                     promptChannel,
                     includeNodes: !IsSectionOnlyChannel(promptChannel),
@@ -85,7 +88,15 @@ namespace RimChat.Persistence
 
                 if (rootChannel == RimTalkPromptChannel.Rpg && !deterministicPreview)
                 {
-                    prompt = InjectExpandMemoryIntoPrompt(prompt, scenarioContext?.Target);
+                    // Only inject via post-processing if the expandmemory_npc_memory node is NOT already enabled.
+                    // When the node is enabled, BuildPromptNodePlacementsForCompose already rendered ExpandMemory content.
+                    bool nodeEnabled = RimChatMod.Settings?.ResolvePromptNodeLayout(
+                        composed?.PromptChannel ?? promptChannel,
+                        "expandmemory_npc_memory")?.Enabled ?? false;
+                    if (!nodeEnabled)
+                    {
+                        prompt = InjectExpandMemoryIntoPrompt(prompt, scenarioContext?.Target);
+                    }
                 }
 
                 if (rootChannel == RimTalkPromptChannel.Diplomacy &&
@@ -240,13 +251,23 @@ namespace RimChat.Persistence
         {
             string normalizedChannel = PromptSectionSchemaCatalog.NormalizeWorkspaceChannel(promptChannel, rootChannel);
             bool effectiveIncludeNodes = includeNodes && !IsSectionOnlyChannel(normalizedChannel);
+
+            // Build compose values once for reuse across all sections and nodes
+            Dictionary<string, object> sharedComposeValues = null;
+            if (!deterministicPreview)
+            {
+                using (PerfScope.Measure("RpgPush.QueueProcess.BuildComposeValuesBase"))
+                    sharedComposeValues = BuildCachedComposeValues(normalizedChannel, rootChannel, scenarioContext, environmentConfig);
+            }
+
             PromptSectionAggregate aggregate = BuildPromptSectionAggregateForCompose(
                 rootChannel,
                 normalizedChannel,
                 deterministicPreview,
                 scenarioContext,
                 environmentConfig,
-                additionalValues);
+                additionalValues,
+                sharedComposeValues);
             List<ResolvedPromptNodePlacement> placements = effectiveIncludeNodes
                 ? BuildPromptNodePlacementsForCompose(
                     rootChannel,
@@ -254,7 +275,8 @@ namespace RimChat.Persistence
                     deterministicPreview,
                     scenarioContext,
                     environmentConfig,
-                    additionalValues)
+                    additionalValues,
+                    sharedComposeValues)
                 : new List<ResolvedPromptNodePlacement>();
 
             string mode = ResolvePromptModeForCompose(scenarioContext, normalizedChannel);
@@ -570,13 +592,20 @@ namespace RimChat.Persistence
             bool deterministicPreview,
             DialogueScenarioContext scenarioContext,
             EnvironmentPromptConfig environmentConfig,
-            IReadOnlyDictionary<string, object> additionalValues)
+            IReadOnlyDictionary<string, object> additionalValues,
+            Dictionary<string, object> cachedComposeValues = null)
         {
             string normalizedChannel = PromptSectionSchemaCatalog.NormalizeWorkspaceChannel(promptChannel, rootChannel);
             var aggregate = new PromptSectionAggregate
             {
                 PromptChannel = normalizedChannel
             };
+
+            if (cachedComposeValues == null && !deterministicPreview)
+            {
+                using (PerfScope.Measure("RpgPush.QueueProcess.BuildComposeValuesBase"))
+                    cachedComposeValues = BuildCachedComposeValues(normalizedChannel, rootChannel, scenarioContext, environmentConfig);
+            }
 
             foreach (PromptSectionSchemaItem section in GetOrderedSectionsForCompose(normalizedChannel))
             {
@@ -602,7 +631,8 @@ namespace RimChat.Persistence
                         deterministicPreview,
                         scenarioContext,
                         environmentConfig,
-                        additionalValues);
+                        additionalValues,
+                        cachedComposeValues: cachedComposeValues);
                 if (string.IsNullOrWhiteSpace(rendered))
                 {
                     continue;
@@ -831,7 +861,8 @@ namespace RimChat.Persistence
             bool deterministicPreview,
             DialogueScenarioContext scenarioContext,
             EnvironmentPromptConfig environmentConfig,
-            IReadOnlyDictionary<string, object> additionalValues)
+            IReadOnlyDictionary<string, object> additionalValues,
+            Dictionary<string, object> cachedComposeValues = null)
         {
             string normalizedChannel = PromptSectionSchemaCatalog.NormalizeWorkspaceChannel(promptChannel, rootChannel);
             if (TryBuildRuntimeAlignedPreviewNodePlacements(
@@ -882,7 +913,8 @@ namespace RimChat.Persistence
                         deterministicPreview,
                         scenarioContext,
                         environmentConfig,
-                        additionalValues);
+                        additionalValues,
+                        cachedComposeValues: cachedComposeValues);
                 }
                 if (suppressFallbackRoleNode &&
                     string.Equals(
@@ -1097,21 +1129,43 @@ namespace RimChat.Persistence
 
             string renderChannel = ResolveTemplateRenderChannel(promptChannel, rootChannel, scenarioContext);
             Dictionary<string, object> values;
-            if (deterministicPreview && cachedComposeValues != null)
+            if (cachedComposeValues != null)
             {
-                // Reuse pre-built compose values from the build state — avoids repeated CloneSnapshotValues
-                values = cachedComposeValues;
+                values = new Dictionary<string, object>(cachedComposeValues);
+                InjectRuntimeNodeBodies(values, templateId, promptChannel, scenarioContext);
+                values["ctx.channel"] = promptChannel ?? string.Empty;
+                values["ctx.mode"] = ResolvePromptModeForCompose(scenarioContext, promptChannel);
+                MergeAdditionalValues(values, additionalValues);
+                PromptRequestSnapshotCache.RecordSnapshot(promptChannel, values, BuildScenarioSignature(scenarioContext));
             }
             else
             {
-                values = deterministicPreview
-                    ? BuildDeterministicComposeValues(promptChannel, scenarioContext, additionalValues)
-                    : BuildRuntimeComposeValues(templateId, renderChannel, promptChannel, scenarioContext, environmentConfig, additionalValues);
+                using (PerfScope.Measure("RpgPush.QueueProcess.BuildComposeValues"))
+                    values = deterministicPreview
+                        ? BuildDeterministicComposeValues(promptChannel, scenarioContext, additionalValues)
+                        : BuildRuntimeComposeValues(templateId, renderChannel, promptChannel, scenarioContext, environmentConfig, additionalValues);
             }
 
             PromptRenderContext renderContext = PromptRenderContext.Create(templateId, renderChannel);
             renderContext.SetValues(values);
-            return PromptTemplateRenderer.RenderOrThrow(templateId, renderChannel, template, renderContext).Trim();
+            string rendered;
+            using (PerfScope.Measure("RpgPush.QueueProcess.RenderTemplate"))
+                rendered = PromptTemplateRenderer.RenderOrThrow(templateId, renderChannel, template, renderContext).Trim();
+            return rendered;
+        }
+
+        // Build the base compose values (without template-specific injection) for reuse across sections.
+        // Excludes: InjectRuntimeNodeBodies, ctx.channel, ctx.mode, MergeAdditionalValues, RecordSnapshot
+        private Dictionary<string, object> BuildCachedComposeValues(
+            string promptChannel,
+            RimTalkPromptChannel rootChannel,
+            DialogueScenarioContext scenarioContext,
+            EnvironmentPromptConfig environmentConfig)
+        {
+            // Use a dummy templateId; BuildTemplateVariableValues uses it only for provider availability checks.
+            string dummyId = $"prompt_sections.{promptChannel}.__cached_base__";
+            string renderChannel = ResolveTemplateRenderChannel(promptChannel, rootChannel, scenarioContext);
+            return BuildTemplateVariableValues(dummyId, renderChannel, scenarioContext, environmentConfig);
         }
 
         private string RenderUnifiedTemplateLenient(
@@ -1138,9 +1192,14 @@ namespace RimChat.Persistence
 
             string renderChannel = ResolveTemplateRenderChannel(promptChannel, rootChannel, scenarioContext);
             Dictionary<string, object> values;
-            if (deterministicPreview && cachedComposeValues != null)
+            if (cachedComposeValues != null)
             {
-                values = cachedComposeValues;
+                values = new Dictionary<string, object>(cachedComposeValues);
+                InjectRuntimeNodeBodies(values, templateId, promptChannel, scenarioContext);
+                values["ctx.channel"] = promptChannel ?? string.Empty;
+                values["ctx.mode"] = ResolvePromptModeForCompose(scenarioContext, promptChannel);
+                MergeAdditionalValues(values, additionalValues);
+                PromptRequestSnapshotCache.RecordSnapshot(promptChannel, values, BuildScenarioSignature(scenarioContext));
             }
             else
             {

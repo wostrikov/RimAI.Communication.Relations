@@ -1,3 +1,15 @@
+1.2.9
+- [Fix] ExpandMemory pawn memory full-read causing prompt token overflow: added per-layer entry cap (20), total entry cap (50), character budget truncation (default 1200); fixed double injection between expandmemory_npc_memory node and InjectExpandMemoryIntoPrompt
+- [New] ExpandMemory compat settings page adds "Max characters" and "Max memory entries" slider controls
+
+1.2.8
+- [Optimize] RpgPush proactive dialogue massive performance boost: QueueProcess from ~1400ms to ~50ms (28x), via per-tick caches, LINQ removal, HashSet/Dictionary replacements, compose values sharing, coroutine deferred execution, system prompt caching
+- [Fix] Airdrop stale state causing all subsequent airdrops to fail after first failure
+- [Optimize] Prompt building deferred to coroutine, no longer blocks GameComponentTick
+- [Optimize] RPG/Diplomacy system prompt caching, same combination reused within 50 seconds
+- [Tweak] Drag hover tooltip: "rua it" -> "Drag to left to force trigger action"
+- [Doc] Added performance optimization guide: CLAUDE.md and doc/perf-optimization-guide.md
+
 1.2.7
 - [New] RPG dialogue integrates RimTalk-ExpandMemory memories: NPC's three-layer memories (ABM/ELS/CLPA) automatically injected into dialogue prompts via [ExpandMemory] block appended to personal_memory
 - [New] Independent toggle: ExpandMemory compat settings page adds pawn memory injection checkbox (enabled by default)

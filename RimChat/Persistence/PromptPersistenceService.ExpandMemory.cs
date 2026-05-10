@@ -1,4 +1,5 @@
 using RimChat.Compat;
+using RimChat.Core;
 using Verse;
 
 namespace RimChat.Persistence
@@ -10,6 +11,13 @@ namespace RimChat.Persistence
     public partial class PromptPersistenceService
     {
         private const int CommonKnowledgeMaxEntries = 10;
+        internal const int ExpandMemoryPawnMemoryMaxCharsDefault = 1200;
+        internal const int ExpandMemoryPawnMemoryMaxCharsMin = 200;
+        internal const int ExpandMemoryPawnMemoryMaxCharsMax = 4000;
+        internal const int ExpandMemoryPawnMemoryMaxEntriesDefault = 50;
+        internal const int ExpandMemoryPawnMemoryMaxEntriesMin = 10;
+        internal const int ExpandMemoryPawnMemoryMaxEntriesMax = 500;
+        internal const int ExpandMemoryPawnMemoryMaxEntriesPerLayer = 20;
 
         private string BuildCommonKnowledgeBlock(string playerMessage)
         {
@@ -36,13 +44,53 @@ namespace RimChat.Persistence
 
         internal string BuildExpandMemoryPawnBlock(Pawn pawn)
         {
+            int maxChars = RimChatMod.Settings?.ExpandMemoryPawnMemoryMaxChars ?? ExpandMemoryPawnMemoryMaxCharsDefault;
+            int maxEntries = RimChatMod.Settings?.ExpandMemoryPawnMemoryMaxEntries ?? ExpandMemoryPawnMemoryMaxEntriesDefault;
+            return BuildExpandMemoryPawnBlock(pawn, maxChars, maxEntries);
+        }
+
+        internal string BuildExpandMemoryPawnBlock(Pawn pawn, int maxChars, int maxTotalEntries)
+        {
             if (!ExpandMemoryBridge.IsPawnMemoryAvailable() || pawn == null)
             {
                 return string.Empty;
             }
 
-            string result = ExpandMemoryBridge.GetPawnMemory(pawn);
-            return string.IsNullOrWhiteSpace(result) ? string.Empty : result;
+            string result = ExpandMemoryBridge.GetPawnMemory(pawn, ExpandMemoryPawnMemoryMaxEntriesPerLayer, maxTotalEntries);
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return string.Empty;
+            }
+
+            if (result.Length > maxChars)
+            {
+                result = TruncateAtNaturalBoundary(result, maxChars);
+            }
+
+            return result;
+        }
+
+        private static string TruncateAtNaturalBoundary(string text, int maxChars)
+        {
+            if (string.IsNullOrEmpty(text) || text.Length <= maxChars)
+            {
+                return text;
+            }
+
+            if (maxChars <= 0) return string.Empty;
+
+            int cutoff = maxChars - 3;
+            if (cutoff <= 0) return "...";
+
+            int newline = text.LastIndexOf('\n', cutoff);
+            int dot = text.LastIndexOf('.', cutoff);
+            int space = text.LastIndexOf(' ', cutoff);
+
+            int boundary = newline > dot ? newline : dot;
+            boundary = boundary > space ? boundary : space;
+            if (boundary < cutoff / 2) boundary = space > cutoff / 2 ? space : cutoff;
+
+            return text.Substring(0, boundary + 1) + "\n...";
         }
 
         private string InjectExpandMemoryIntoPrompt(string prompt, Pawn target)
@@ -65,7 +113,7 @@ namespace RimChat.Persistence
             int closingIdx = prompt.IndexOf(closingTag, System.StringComparison.OrdinalIgnoreCase);
             if (closingIdx >= 0)
             {
-                return prompt.Insert(closingIdx, "<expandmemory_npc_memory>\n" + memory + "\n</expandmemory_npc_memory>\n");
+                return prompt.Insert(closingIdx, "[ExpandMemory]\n" + memory.Replace("\n", "\n  ") + "\n");
             }
 
             return prompt;
