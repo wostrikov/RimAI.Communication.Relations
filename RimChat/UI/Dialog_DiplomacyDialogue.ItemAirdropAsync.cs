@@ -98,7 +98,7 @@ namespace RimChat.UI
                 string reason = string.IsNullOrWhiteSpace(prepareResult.Message)
                     ? "RimChat_Unknown".Translate().ToString()
                     : prepareResult.Message;
-                ResetAirdropConfirmationRuntime(currentSession, "async_prepare_failed", true);
+                ResetAirdropConfirmationRuntime(currentSession, "async_prepare_failed", true, true);
                 TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Failed, reason);
                 currentSession.AddMessage(
                     "System",

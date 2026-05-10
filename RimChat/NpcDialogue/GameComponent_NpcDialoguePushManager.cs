@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RimChat.AI;
@@ -65,6 +66,9 @@ namespace RimChat.NpcDialogue
         private int globalDeliveryOldestInWindow;
         private int lastGlobalDeliveredTick = -DefaultGlobalDeliveryCooldownTicks;
         private const int FactionWindowMaxMessages = 2;
+        private const int SystemPromptCacheTtlTicks = 3000;
+        private readonly Dictionary<string, (int builtTick, string prompt)> _systemPromptCache =
+            new Dictionary<string, (int builtTick, string prompt)>();
         private const int FactionWindowTicks = 60000;
         private int lastCandidateCacheMaintenanceTick;
         private int lastCandidateSessionSyncTick;
@@ -567,7 +571,45 @@ namespace RimChat.NpcDialogue
                 return;
             }
 
-            List<ChatMessageData> messages = BuildGenerationMessages(context, runtimeSnapshot);
+            // Defer prompt building to a coroutine to avoid blocking GameComponentTick
+            AIChatServiceAsync.Instance.StartCoroutine(BuildAndSendRoutine(context, runtimeSnapshot));
+        }
+
+        private IEnumerator BuildAndSendRoutine(NpcDialogueTriggerContext context, DiplomacyPromptRuntimeSnapshot runtimeSnapshot)
+        {
+            yield return null; // Defer to next frame
+
+            if (context == null || !IsValidTargetFaction(context.Faction))
+                yield break;
+
+            if (!AIChatServiceAsync.Instance.IsConfigured())
+                yield break;
+
+            // Use cached system prompt when available; snapshot revisions ensure freshness
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            List<string> sceneTags = BuildProactiveSceneTags(context?.Category ?? NpcDialogueCategory.Social);
+            string cacheKey = $"{context.Faction.loadID}:{string.Join(",", sceneTags)}:r{currentTick / 1500}";
+            string basePrompt;
+
+            if (_systemPromptCache.TryGetValue(cacheKey, out var entry) &&
+                currentTick - entry.builtTick < SystemPromptCacheTtlTicks)
+            {
+                basePrompt = entry.prompt;
+            }
+            else
+            {
+                PromptPersistenceService.Instance.Initialize();
+                basePrompt = PromptPersistenceService.Instance.BuildFullSystemPrompt(
+                    context.Faction,
+                    PromptPersistenceService.Instance.LoadConfig(),
+                    true,
+                    sceneTags,
+                    runtimeSnapshot);
+                _systemPromptCache[cacheKey] = (currentTick, basePrompt);
+            }
+
+            List<ChatMessageData> messages = BuildGenerationMessagesWithPrompt(context, runtimeSnapshot, basePrompt, sceneTags);
+
             string requestId = string.Empty;
             requestId = AIChatServiceAsync.Instance.SendChatRequestAsync(
                 messages,
@@ -577,9 +619,7 @@ namespace RimChat.NpcDialogue
                 debugSource: AIRequestDebugSource.NpcPush);
 
             if (string.IsNullOrEmpty(requestId))
-            {
-                return;
-            }
+                yield break;
 
             pendingRequests[requestId] = new PendingGenerationContext
             {
@@ -801,6 +841,42 @@ namespace RimChat.NpcDialogue
                 true,
                 sceneTags,
                 runtimeSnapshot);
+            messages.Add(new ChatMessageData { role = "system", content = basePrompt });
+            AppendRecentSessionContext(messages, context.Faction);
+
+            string categoryText = context.Category switch
+            {
+                NpcDialogueCategory.DiplomacyTask => "diplomacy_or_task",
+                NpcDialogueCategory.WarningThreat => "warning_or_threat",
+                _ => "casual_social"
+            };
+
+            string userPrompt =
+                $"Generate one proactive diplomacy message now.\n" +
+                $"Category: {categoryText}\n" +
+                $"TriggerType: {context.TriggerType}\n" +
+                $"Reason: {context.Reason}\n" +
+                $"Severity: {context.Severity}\n";
+
+            int rapidDeclineLoss = GetAccumulatedGoodwillLoss(context.Faction);
+            if (rapidDeclineLoss > 30)
+            {
+                userPrompt += $"\n[DynamicOverride] {rapidDeclineLoss} points of goodwill lost in recent days. The faction's attitude toward the player has deteriorated significantly, making them more inclined to initiate hostile actions or even raids.\n";
+            }
+
+            messages.Add(new ChatMessageData { role = "user", content = userPrompt });
+            AppendManualSocialPostPrompt(messages, context);
+            return messages;
+        }
+
+        // Overload that uses a pre-built (potentially cached) system prompt
+        private List<ChatMessageData> BuildGenerationMessagesWithPrompt(
+            NpcDialogueTriggerContext context,
+            DiplomacyPromptRuntimeSnapshot runtimeSnapshot,
+            string basePrompt,
+            List<string> sceneTags)
+        {
+            var messages = new List<ChatMessageData>();
             messages.Add(new ChatMessageData { role = "system", content = basePrompt });
             AppendRecentSessionContext(messages, context.Faction);
 

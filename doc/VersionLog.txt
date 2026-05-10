@@ -1,3 +1,8 @@
+1.3.0
+- [新增] RPG 对话肖像自适应体型缩放：宽度 √bodySize 缓增、高度 bodySize 线性缩放、镜头 zoom 按 bodySize^0.3 降幅，非人类基础视角更宽，大型pawn 完整显示
+- [修复] 小体型动物肖像被对话框过度遮挡：overlap 改为 Min(150, 高度×0.3)，矮的少叠
+- [调整] 社交圈失败原因语言键 "当前机器原生提示词渲染不兼容" → "未安装RimTalk"
+
 1.2.9
 - [修复] ExpandMemory pawn 记忆全量读取导致提示词 token 大幅超出预期：新增每层条数上限(20)、总量上限(50)、字符预算截断(默认1200)；修复 expandmemory_npc_memory 节点与 InjectExpandMemoryIntoPrompt 双重注入
 - [新增] ExpandMemory 兼容设置页新增"最大字符数"和"最大记忆条数"滑块控件

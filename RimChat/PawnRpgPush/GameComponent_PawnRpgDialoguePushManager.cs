@@ -54,12 +54,14 @@ namespace RimChat.PawnRpgPush
         public static GameComponent_PawnRpgDialoguePushManager Instance;
 
         private List<PawnRpgNpcPushState> npcPushStates = new List<PawnRpgNpcPushState>();
+        private Dictionary<Pawn, PawnRpgNpcPushState> _npcStateByPawn;
         private List<PawnRpgThreatState> threatStates = new List<PawnRpgThreatState>();
         private List<QueuedPawnRpgTrigger> queuedTriggers = new List<QueuedPawnRpgTrigger>();
         private List<PawnRpgProtagonistEntry> proactiveProtagonists = new List<PawnRpgProtagonistEntry>();
 
         private readonly Queue<PawnRpgTriggerContext> incomingTriggers = new Queue<PawnRpgTriggerContext>();
         private readonly Dictionary<string, PendingGenerationContext> pendingRequests = new Dictionary<string, PendingGenerationContext>();
+        private readonly HashSet<Faction> factionsWithPendingRequests = new HashSet<Faction>();
         private readonly Queue<int> clickTicks = new Queue<int>();
         private readonly Dictionary<string, int> recentQuestTriggerTicks = new Dictionary<string, int>();
         private Dictionary<string, int> recentMessageHashes = new Dictionary<string, int>();
@@ -69,6 +71,19 @@ namespace RimChat.PawnRpgPush
         private int lastColonyDeliveredTick = -ColonyDeliveryCooldownTicks;
         private int lastColonistPairDeliveredTick = -ColonyDeliveryCooldownTicks;
         private int lastMissingProtagonistLogTick = -MissingProtagonistLogIntervalTicks;
+
+        // Per-tick cache to avoid repeated ResolveConfiguredProtagonists() allocations
+        private List<Pawn> _cachedProtagonists;
+        private int _cachedProtagonistsTick = -1;
+
+        // Per-tick cache to avoid repeated GetFactionNpcCandidates() scans
+        private Dictionary<Faction, List<Pawn>> _cachedFactionNpcs;
+        private int _cachedFactionNpcsTick = -1;
+
+        // System prompt cache keyed by pawn-pair + scene tags, TTL-limited
+        private const int SystemPromptCacheTtlTicks = 3000;
+        private readonly Dictionary<string, (int builtTick, string prompt)> _systemPromptCache =
+            new Dictionary<string, (int builtTick, string prompt)>();
 
         public GameComponent_PawnRpgDialoguePushManager(Game game) : base()
         {
@@ -129,6 +144,11 @@ namespace RimChat.PawnRpgPush
                 proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
                 recentMessageHashes ??= new Dictionary<string, int>();
                 recentEventDeliveries ??= new Dictionary<string, int>();
+                _cachedProtagonists = null;
+                _npcStateByPawn = npcPushStates
+                    .Where(s => s?.pawn != null)
+                    .GroupBy(s => s.pawn)
+                    .ToDictionary(g => g.Key, g => g.First());
                 CleanupInvalidState();
                 AutoSelectDefaultProtagonist();
             }
@@ -136,6 +156,9 @@ namespace RimChat.PawnRpgPush
 
         public override void GameComponentTick()
         {
+            _cachedProtagonists = null;
+            _cachedFactionNpcs = null;
+
             if (Current.ProgramState != ProgramState.Playing || Find.TickManager == null)
             {
                 return;
@@ -352,6 +375,7 @@ namespace RimChat.PawnRpgPush
             }
 
             proactiveProtagonists.Add(PawnRpgProtagonistEntry.FromPawn(pawn));
+            _cachedProtagonists = null;
             return true;
         }
 
@@ -364,12 +388,14 @@ namespace RimChat.PawnRpgPush
 
             int before = proactiveProtagonists.Count;
             proactiveProtagonists.RemoveAll(entry => IsSamePawn(entry, pawn));
+            _cachedProtagonists = null;
             return proactiveProtagonists.Count < before;
         }
 
         public void ClearRpgProactiveProtagonists()
         {
             proactiveProtagonists.Clear();
+            _cachedProtagonists = null;
         }
 
         public int GetConfiguredProtagonistCount()
@@ -401,6 +427,7 @@ namespace RimChat.PawnRpgPush
             if (best != null)
             {
                 proactiveProtagonists.Add(PawnRpgProtagonistEntry.FromPawn(best));
+                _cachedProtagonists = null;
                 Log.Message($"[RimChat] Auto-selected default protagonist: {best.LabelShortCap} (highest skills)");
             }
         }
@@ -448,17 +475,23 @@ namespace RimChat.PawnRpgPush
                 return new List<Pawn>();
             }
 
-            return ResolveConfiguredProtagonists()
-                .Where(IsEligiblePlayerPawn)
-                .Where(pawn => pawn.Map == map)
-                .Distinct()
-                .ToList();
+            List<Pawn> protagonists = ResolveConfiguredProtagonists();
+            List<Pawn> result = new List<Pawn>(protagonists.Count);
+            HashSet<Pawn> seen = new HashSet<Pawn>();
+            for (int i = 0; i < protagonists.Count; i++)
+            {
+                Pawn pawn = protagonists[i];
+                if (pawn != null && IsEligiblePlayerPawn(pawn) && pawn.Map == map && seen.Add(pawn))
+                    result.Add(pawn);
+            }
+            return result;
         }
 
         private void ClearTransientState()
         {
             incomingTriggers.Clear();
             pendingRequests.Clear();
+            factionsWithPendingRequests.Clear();
             clickTicks.Clear();
             recentQuestTriggerTicks.Clear();
             recentMessageHashes.Clear();
@@ -484,13 +517,19 @@ namespace RimChat.PawnRpgPush
         private void CleanupExpiredMessageHashes(int currentTick)
         {
             if (recentMessageHashes == null || recentMessageHashes.Count == 0) return;
-            var expired = recentMessageHashes
-                .Where(kv => currentTick - kv.Value > MessageDedupWindowTicks)
-                .Select(kv => kv.Key)
-                .ToList();
-            foreach (string key in expired)
+            List<string> expiredKeys = null;
+            foreach (var kv in recentMessageHashes)
             {
-                recentMessageHashes.Remove(key);
+                if (currentTick - kv.Value > MessageDedupWindowTicks)
+                {
+                    expiredKeys ??= new List<string>();
+                    expiredKeys.Add(kv.Key);
+                }
+            }
+            if (expiredKeys != null)
+            {
+                for (int i = 0; i < expiredKeys.Count; i++)
+                    recentMessageHashes.Remove(expiredKeys[i]);
             }
         }
 
@@ -572,7 +611,8 @@ namespace RimChat.PawnRpgPush
 
         private void ProcessQueuedTriggers(int currentTick)
         {
-            CleanupExpiredQueue(currentTick);
+            using (PerfScope.Measure("RpgPush.QueueProcess.Cleanup"))
+                CleanupExpiredQueue(currentTick);
             if (!HasConfiguredProtagonists())
             {
                 if (queuedTriggers.Count > 0)
@@ -584,46 +624,59 @@ namespace RimChat.PawnRpgPush
                 return;
             }
 
-            List<QueuedPawnRpgTrigger> dueItems = queuedTriggers
-                .Where(q => q != null && q.dueTick <= currentTick)
-                .OrderBy(q => q.dueTick)
-                .ToList();
+            int dueCount = 0;
+            for (int i = 0; i < queuedTriggers.Count; i++)
+            {
+                if (queuedTriggers[i]?.dueTick <= currentTick) dueCount++;
+            }
+
+            if (dueCount > 1)
+            {
+                queuedTriggers.Sort((a, b) => (a?.dueTick ?? 0).CompareTo(b?.dueTick ?? 0));
+            }
 
             int processed = 0;
-            foreach (QueuedPawnRpgTrigger item in dueItems)
+            for (int i = queuedTriggers.Count - 1; i >= 0; i--)
             {
-                if (processed >= 3)
-                {
-                    break;
-                }
+                if (processed >= 3) break;
+                QueuedPawnRpgTrigger item = queuedTriggers[i];
+                if (item == null || item.dueTick > currentTick) continue;
 
                 if (!IsValidTargetFaction(item.faction))
                 {
-                    queuedTriggers.Remove(item);
+                    queuedTriggers.RemoveAt(i);
                     continue;
                 }
 
                 PawnRpgTriggerContext context = item.ToContext();
-                if (IsFactionPending(context.Faction) || IsPlayerBusy())
+
+                using (PerfScope.Measure("RpgPush.QueueProcess.PreGate"))
+                {
+                    if (IsFactionPending(context.Faction) || IsPlayerBusy())
+                    {
+                        item.dueTick = currentTick + BlockedRetryTicks;
+                        continue;
+                    }
+
+                    int nextAllowed = GetNextAllowedTickForContext(context, currentTick);
+                    if (nextAllowed > currentTick)
+                    {
+                        item.dueTick = nextAllowed;
+                        continue;
+                    }
+                }
+
+                bool startResult;
+                using (PerfScope.Measure("RpgPush.QueueProcess.Generation"))
+                    startResult = TryStartGenerationForContext(context, currentTick);
+
+                if (!startResult)
                 {
                     item.dueTick = currentTick + BlockedRetryTicks;
                     continue;
                 }
 
-                int nextAllowed = GetNextAllowedTickForContext(context, currentTick);
-                if (nextAllowed > currentTick)
-                {
-                    item.dueTick = nextAllowed;
-                    continue;
-                }
-
-                if (!TryStartGenerationForContext(context, currentTick))
-                {
-                    item.dueTick = currentTick + BlockedRetryTicks;
-                    continue;
-                }
-
-                queuedTriggers.Remove(item);
+                queuedTriggers.RemoveAt(i);
                 processed++;
             }
         }
@@ -718,21 +771,27 @@ namespace RimChat.PawnRpgPush
 
             if (IsColonistPairContext(context))
             {
-                if (!TryResolveColonistPair(currentTick, out Pawn initiator, out Pawn receiver))
+                Pawn initiator, receiver;
+                using (PerfScope.Measure("RpgPush.QueueProcess.ResolveColonistPair"))
                 {
-                    return false;
+                    if (!TryResolveColonistPair(currentTick, out initiator, out receiver))
+                        return false;
                 }
 
-                StartGeneration(context, initiator, receiver);
+                using (PerfScope.Measure("RpgPush.QueueProcess.StartGeneration"))
+                    StartGeneration(context, initiator, receiver);
                 return true;
             }
 
-            if (!TryResolvePairForFaction(context.Faction, currentTick, false, false, false, out Pawn npcPawn, out Pawn playerPawn))
+            Pawn npcPawn, playerPawn;
+            using (PerfScope.Measure("RpgPush.QueueProcess.ResolvePairForFaction"))
             {
-                return false;
+                if (!TryResolvePairForFaction(context.Faction, currentTick, false, false, false, out npcPawn, out playerPawn))
+                    return false;
             }
 
-            StartGeneration(context, npcPawn, playerPawn);
+            using (PerfScope.Measure("RpgPush.QueueProcess.StartGeneration"))
+                StartGeneration(context, npcPawn, playerPawn);
             return true;
         }
 
@@ -820,13 +879,19 @@ namespace RimChat.PawnRpgPush
 
         private void CleanupQuestTriggerCache(int currentTick)
         {
-            List<string> staleKeys = recentQuestTriggerTicks
-                .Where(pair => currentTick - pair.Value > QuestDeadlineWindowTicks)
-                .Select(pair => pair.Key)
-                .ToList();
-            foreach (string key in staleKeys)
+            List<string> staleKeys = null;
+            foreach (var pair in recentQuestTriggerTicks)
             {
-                recentQuestTriggerTicks.Remove(key);
+                if (currentTick - pair.Value > QuestDeadlineWindowTicks)
+                {
+                    staleKeys ??= new List<string>();
+                    staleKeys.Add(pair.Key);
+                }
+            }
+            if (staleKeys != null)
+            {
+                for (int i = 0; i < staleKeys.Count; i++)
+                    recentQuestTriggerTicks.Remove(staleKeys[i]);
             }
         }
 
@@ -853,13 +918,24 @@ namespace RimChat.PawnRpgPush
             int expireTicks = Mathf.RoundToInt((settings?.NpcQueueExpireHours ?? 12f) * TickPerHour);
             expireTicks = Mathf.Max(expireTicks, TickPerHour);
 
-            List<QueuedPawnRpgTrigger> sameFaction = queuedTriggers
-                .Where(q => q?.faction == context.Faction)
-                .OrderBy(q => q.enqueuedTick)
-                .ToList();
-            if (sameFaction.Count >= maxPerFaction)
+            int sameFactionCount = 0;
+            QueuedPawnRpgTrigger lowestPriority = null;
+            int lowestEnqueuedTick = int.MaxValue;
+            for (int i = 0; i < queuedTriggers.Count; i++)
             {
-                queuedTriggers.Remove(sameFaction[0]);
+                var q = queuedTriggers[i];
+                if (q?.faction != context.Faction) continue;
+                sameFactionCount++;
+                if (q.enqueuedTick < lowestEnqueuedTick)
+                {
+                    lowestEnqueuedTick = q.enqueuedTick;
+                    lowestPriority = q;
+                }
+            }
+
+            if (sameFactionCount >= maxPerFaction && lowestPriority != null)
+            {
+                queuedTriggers.Remove(lowestPriority);
             }
 
             queuedTriggers.Add(QueuedPawnRpgTrigger.FromContext(context, nowTick, dueTick, nowTick + expireTicks));
@@ -867,11 +943,12 @@ namespace RimChat.PawnRpgPush
 
         private void CleanupExpiredQueue(int currentTick)
         {
-            queuedTriggers.RemoveAll(q =>
-                q == null ||
-                q.faction == null ||
-                q.faction.defeated ||
-                q.expireTick <= currentTick);
+            for (int i = queuedTriggers.Count - 1; i >= 0; i--)
+            {
+                var q = queuedTriggers[i];
+                if (q == null || q.faction == null || q.faction.defeated || q.expireTick <= currentTick)
+                    queuedTriggers.RemoveAt(i);
+            }
         }
 
         private bool IsFeatureEnabled()
@@ -897,49 +974,58 @@ namespace RimChat.PawnRpgPush
 
         private bool IsFactionPending(Faction faction)
         {
-            if (faction == null)
-            {
-                return false;
-            }
-
-            foreach (KeyValuePair<string, PendingGenerationContext> pair in pendingRequests)
-            {
-                if (pair.Value?.Context?.Faction == faction)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return faction != null && factionsWithPendingRequests.Contains(faction);
         }
 
         private void CleanupInvalidState()
         {
             npcPushStates.RemoveAll(s => s == null || s.pawn == null || s.pawn.Destroyed || s.pawn.Dead);
+            if (_npcStateByPawn != null)
+            {
+                var stalePawns = _npcStateByPawn.Keys
+                    .Where(p => p == null || p.Destroyed || p.Dead)
+                    .ToList();
+                foreach (var p in stalePawns)
+                    _npcStateByPawn.Remove(p);
+            }
             threatStates.RemoveAll(s => s == null || s.faction == null || s.faction.defeated);
             queuedTriggers.RemoveAll(q => q == null || q.faction == null || q.faction.defeated);
             proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
             proactiveProtagonists.RemoveAll(e => e == null || !e.HasConfiguredIdentifier);
+            _cachedProtagonists = null;
         }
 
         private bool HasConfiguredProtagonists()
         {
-            return proactiveProtagonists != null &&
-                   proactiveProtagonists.Any(entry => entry?.HasConfiguredIdentifier == true);
+            if (proactiveProtagonists == null) return false;
+            for (int i = 0; i < proactiveProtagonists.Count; i++)
+            {
+                if (proactiveProtagonists[i]?.HasConfiguredIdentifier == true)
+                    return true;
+            }
+            return false;
         }
 
         private List<Pawn> ResolveConfiguredProtagonists()
         {
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            if (_cachedProtagonists != null && _cachedProtagonistsTick == currentTick)
+                return _cachedProtagonists;
+
             if (proactiveProtagonists == null || proactiveProtagonists.Count == 0)
             {
-                return new List<Pawn>();
+                _cachedProtagonists = new List<Pawn>();
             }
-
-            return proactiveProtagonists
-                .Select(entry => entry?.TryResolvePawn())
-                .Where(pawn => pawn != null)
-                .Distinct()
-                .ToList();
+            else
+            {
+                _cachedProtagonists = proactiveProtagonists
+                    .Select(entry => entry?.TryResolvePawn())
+                    .Where(pawn => pawn != null)
+                    .Distinct()
+                    .ToList();
+            }
+            _cachedProtagonistsTick = currentTick;
+            return _cachedProtagonists;
         }
 
         private bool CanConfigureAsProtagonist(Pawn pawn)

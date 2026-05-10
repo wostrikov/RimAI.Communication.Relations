@@ -37,6 +37,7 @@ namespace RimChat.UI
             }
 
             bool clearedPendingIntent = currentSession.ClearPendingAirdropSelectionIntentState();
+            bool clearedAirdropIntent = ClearAirdropDelayedIntentRuntime(currentSession);
             bool hadAsyncState =
                 currentSession.isWaitingForAirdropSelection ||
                 !string.IsNullOrWhiteSpace(currentSession.pendingAirdropRequestId) ||
@@ -56,11 +57,11 @@ namespace RimChat.UI
                 currentSession.airdropExecutionStage = AirdropExecutionStage.Idle;
             }
 
-            if (clearedPendingIntent || hadAsyncState || clearTradeCardReference || resetStageToIdle)
+            if (clearedPendingIntent || clearedAirdropIntent || hadAsyncState || clearTradeCardReference || resetStageToIdle)
             {
                 currentSession.airdropRequestGeneration++;
                 Log.Message(
-                    $"[RimChat] AirdropPendingIntentInvalidated: reason={reason ?? "none"},clearedPendingIntent={clearedPendingIntent},clearedAsyncState={hadAsyncState},clearedTradeCard={clearTradeCardReference},resetStageToIdle={resetStageToIdle},generation={currentSession.airdropRequestGeneration}");
+                    $"[RimChat] AirdropPendingIntentInvalidated: reason={reason ?? "none"},clearedPendingIntent={clearedPendingIntent},clearedAirdropIntent={clearedAirdropIntent},clearedAsyncState={hadAsyncState},clearedTradeCard={clearTradeCardReference},resetStageToIdle={resetStageToIdle},generation={currentSession.airdropRequestGeneration}");
             }
         }
 

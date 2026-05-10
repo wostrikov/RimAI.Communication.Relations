@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RimChat.AI;
@@ -8,6 +9,7 @@ using RimChat.NpcDialogue;
 using RimChat.Persistence;
 using RimChat.Core;
 using RimChat.UI;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -31,7 +33,62 @@ namespace RimChat.PawnRpgPush
                 return;
             }
 
-            List<ChatMessageData> messages = BuildGenerationMessages(context, npcPawn, playerPawn);
+            // Defer prompt building to a coroutine to avoid blocking GameComponentTick
+            AIChatServiceAsync.Instance.StartCoroutine(BuildAndSendRoutine(context, npcPawn, playerPawn));
+        }
+
+        private IEnumerator BuildAndSendRoutine(PawnRpgTriggerContext context, Pawn npcPawn, Pawn playerPawn)
+        {
+            yield return null; // Defer to next frame, skipping the current tick
+
+            if (context == null || npcPawn == null || playerPawn == null)
+                yield break;
+
+            if (!IsValidTargetFaction(context.Faction) || !AIChatServiceAsync.Instance.IsConfigured())
+                yield break;
+
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            List<string> sceneTags = BuildProactiveSceneTags(context?.Category ?? NpcDialogueCategory.Social);
+            string cacheKey = $"{npcPawn.thingIDNumber}:{playerPawn.thingIDNumber}:{string.Join(",", sceneTags)}";
+            string systemPrompt;
+
+            if (_systemPromptCache.TryGetValue(cacheKey, out var entry) &&
+                currentTick - entry.builtTick < SystemPromptCacheTtlTicks)
+            {
+                systemPrompt = entry.prompt;
+            }
+            else
+            {
+                bool wasCached = _systemPromptCache.ContainsKey(cacheKey);
+                PromptPersistenceService.Instance.Initialize();
+                systemPrompt = PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(
+                    playerPawn, npcPawn, true, sceneTags);
+                _systemPromptCache[cacheKey] = (currentTick, systemPrompt);
+                if (wasCached)
+                    Log.Message($"[RimChat] RpgSystemPromptCache: expired for key={cacheKey}, age={currentTick - entry.builtTick}ticks");
+                else
+                    Log.Message($"[RimChat] RpgSystemPromptCache: miss (new) for key={cacheKey}");
+            }
+
+            var messages = new List<ChatMessageData>();
+            messages.Add(new ChatMessageData { role = "system", content = systemPrompt });
+            AppendRecentRpgContext(messages, npcPawn, playerPawn);
+
+            string category = context.Category switch
+            {
+                NpcDialogueCategory.DiplomacyTask => "diplomacy_task",
+                NpcDialogueCategory.WarningThreat => "warning_threat",
+                _ => "social"
+            };
+            string reason = BuildReasonText(context);
+            string userPrompt =
+                $"Generate one proactive pawn dialogue line now.\n" +
+                $"Category: {category}\n" +
+                $"TriggerType: {context.TriggerType}\n" +
+                $"Reason: {reason}\n" +
+                $"Severity: {context.Severity}\n";
+            messages.Add(new ChatMessageData { role = "user", content = userPrompt });
+
             string requestId = string.Empty;
             requestId = AIChatServiceAsync.Instance.SendChatRequestAsync(
                 messages,
@@ -41,9 +98,7 @@ namespace RimChat.PawnRpgPush
                 debugSource: AIRequestDebugSource.PawnRpgPush);
 
             if (string.IsNullOrEmpty(requestId))
-            {
-                return;
-            }
+                yield break;
 
             pendingRequests[requestId] = new PendingGenerationContext
             {
@@ -53,6 +108,7 @@ namespace RimChat.PawnRpgPush
                 Messages = messages,
                 Attempt = 1
             };
+            factionsWithPendingRequests.Add(context.Faction);
         }
 
         private void OnGenerationSuccess(string requestId, string response)
@@ -63,6 +119,7 @@ namespace RimChat.PawnRpgPush
             }
 
             pendingRequests.Remove(requestId);
+            factionsWithPendingRequests.Remove(pending.Context.Faction);
             string message = SanitizeModelOutput(response);
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -81,6 +138,7 @@ namespace RimChat.PawnRpgPush
             }
 
             pendingRequests.Remove(requestId);
+            factionsWithPendingRequests.Remove(pending.Context.Faction);
             if (pending.Attempt < 2 && AIChatServiceAsync.Instance.IsConfigured())
             {
                 RetryGeneration(pending);
@@ -113,6 +171,7 @@ namespace RimChat.PawnRpgPush
                 Messages = pending.Messages,
                 Attempt = pending.Attempt + 1
             };
+            factionsWithPendingRequests.Add(pending.Context.Faction);
         }
 
         private void DeliverMessage(PawnRpgTriggerContext context, Pawn npcPawn, Pawn playerPawn, string text)
@@ -212,11 +271,15 @@ namespace RimChat.PawnRpgPush
         private List<ChatMessageData> BuildGenerationMessages(PawnRpgTriggerContext context, Pawn npcPawn, Pawn playerPawn)
         {
             var messages = new List<ChatMessageData>();
-            PromptPersistenceService.Instance.Initialize();
+            using (PerfScope.Measure("RpgPush.QueueProcess.Initialize"))
+                PromptPersistenceService.Instance.Initialize();
             List<string> sceneTags = BuildProactiveSceneTags(context?.Category ?? NpcDialogueCategory.Social);
-            string systemPrompt = PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(playerPawn, npcPawn, true, sceneTags);
+            string systemPrompt;
+            using (PerfScope.Measure("RpgPush.QueueProcess.BuildSystemPrompt"))
+                systemPrompt = PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(playerPawn, npcPawn, true, sceneTags);
             messages.Add(new ChatMessageData { role = "system", content = systemPrompt });
-            AppendRecentRpgContext(messages, npcPawn, playerPawn);
+            using (PerfScope.Measure("RpgPush.QueueProcess.AppendContext"))
+                AppendRecentRpgContext(messages, npcPawn, playerPawn);
 
             string category = context.Category switch
             {

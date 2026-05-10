@@ -1,3 +1,8 @@
+1.3.0
+- [New] RPG dialogue portrait adaptive body-size scaling: width scales by √bodySize (capped), height scales linearly, camera zoom reduces by bodySize^0.3, wider base view for non-humanoids, large pawns fully visible
+- [Fix] Small animal portraits excessively covered by dialogue box: overlap now Min(150, height×0.3), shorter pawns overlap less
+- [Tweak] Social-circle failure reason key "native prompt render is incompatible on this machine" → "RimTalk is not installed"
+
 1.2.9
 - [Fix] ExpandMemory pawn memory full-read causing prompt token overflow: added per-layer entry cap (20), total entry cap (50), character budget truncation (default 1200); fixed double injection between expandmemory_npc_memory node and InjectExpandMemoryIntoPrompt
 - [New] ExpandMemory compat settings page adds "Max characters" and "Max memory entries" slider controls

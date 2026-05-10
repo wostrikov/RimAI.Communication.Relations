@@ -130,7 +130,7 @@ namespace RimChat.UI
                 targetPortraitRect.xMax + ActionFeedbackHorizontalOffset,
                 targetPortraitRect.y + ActionFeedbackVerticalInset,
                 ActionFeedbackWidth,
-                PortraitHeight - ActionFeedbackVerticalInset * 2f);
+                TargetPortraitHeight - ActionFeedbackVerticalInset * 2f);
             return true;
         }
 

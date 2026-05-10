@@ -68,8 +68,8 @@ namespace RimChat.UI
         {
             if (isDraggingInitiator || isSpringReturning)
             {
-                float w = PortraitWidth * dragScale;
-                float h = PortraitHeight * dragScale;
+                float w = InitiatorPortraitWidth * dragScale;
+                float h = InitiatorPortraitHeight * dragScale;
                 return new Rect(dragCenter.x - w * 0.5f, dragCenter.y - h * 0.5f, w, h);
             }
 

@@ -20,28 +20,35 @@ namespace RimChat.PawnRpgPush
         private static bool _loggedNoEligibleReceivers;
         private static bool _loggedNoValidPair;
 
-        private IEnumerable<Pawn> GetFactionNpcCandidates(Faction faction)
+        private List<Pawn> GetFactionNpcCandidates(Faction faction)
         {
-            if (!IsValidTargetFaction(faction) || Find.Maps == null)
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            if (_cachedFactionNpcs != null && _cachedFactionNpcsTick == currentTick)
             {
-                yield break;
+                if (_cachedFactionNpcs.TryGetValue(faction, out List<Pawn> cached))
+                    return cached;
+            }
+            else
+            {
+                _cachedFactionNpcs = new Dictionary<Faction, List<Pawn>>();
+                _cachedFactionNpcsTick = currentTick;
             }
 
-            foreach (Map map in Find.Maps)
+            var list = new List<Pawn>();
+            if (IsValidTargetFaction(faction) && Find.Maps != null)
             {
-                if (map?.mapPawns?.AllPawnsSpawned == null || !map.IsPlayerHome)
+                foreach (Map map in Find.Maps)
                 {
-                    continue;
-                }
-
-                foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
-                {
-                    if (IsEligibleNpcPawn(pawn) && pawn.Faction == faction)
+                    if (map?.mapPawns?.AllPawnsSpawned == null || !map.IsPlayerHome) continue;
+                    foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
                     {
-                        yield return pawn;
+                        if (IsEligibleNpcPawn(pawn) && pawn.Faction == faction)
+                            list.Add(pawn);
                     }
                 }
             }
+            _cachedFactionNpcs[faction] = list;
+            return list;
         }
 
         private IReadOnlyCollection<Faction> GetActiveCandidateFactionsOnPlayerMaps(int currentTick)
@@ -140,18 +147,9 @@ namespace RimChat.PawnRpgPush
             return true;
         }
 
-        private IEnumerable<Pawn> GetPlayerDialogueTargets(Map map)
+        private List<Pawn> GetPlayerDialogueTargets(Map map)
         {
-            List<Pawn> protagonists = GetEligibleRpgProactiveTargetsOnMap(map);
-            if (protagonists.Count == 0)
-            {
-                yield break;
-            }
-
-            foreach (Pawn pawn in protagonists)
-            {
-                yield return pawn;
-            }
+            return GetEligibleRpgProactiveTargetsOnMap(map);
         }
 
         private bool IsEligiblePlayerPawn(Pawn pawn)
@@ -253,14 +251,15 @@ namespace RimChat.PawnRpgPush
 
         private PawnRpgNpcPushState GetOrCreateNpcState(Pawn pawn)
         {
-            PawnRpgNpcPushState state = npcPushStates.FirstOrDefault(s => s?.pawn == pawn);
-            if (state != null)
-            {
+            if (_npcStateByPawn == null)
+                _npcStateByPawn = new Dictionary<Pawn, PawnRpgNpcPushState>();
+
+            if (_npcStateByPawn.TryGetValue(pawn, out PawnRpgNpcPushState state))
                 return state;
-            }
 
             state = new PawnRpgNpcPushState { pawn = pawn };
             npcPushStates.Add(state);
+            _npcStateByPawn[pawn] = state;
             return state;
         }
 
@@ -563,10 +562,14 @@ namespace RimChat.PawnRpgPush
             int threshold = RimChatMod.Instance?.InstanceSettings?.ColonistPairMinOpinion ?? 10;
 
             // Receiver: from protagonist list (player replies as receiver)
-            List<Pawn> receivers = ResolveConfiguredProtagonists()
-                .Where(IsEligiblePlayerPawn)
-                .Where(p => bypassAvailability || !IsPawnUnavailable(p))
-                .ToList();
+            List<Pawn> protagonists = ResolveConfiguredProtagonists();
+            List<Pawn> receivers = new List<Pawn>(protagonists.Count);
+            for (int i = 0; i < protagonists.Count; i++)
+            {
+                Pawn p = protagonists[i];
+                if (IsEligiblePlayerPawn(p) && (bypassAvailability || !IsPawnUnavailable(p)))
+                    receivers.Add(p);
+            }
             if (receivers.Count == 0)
             {
                 if (!_loggedNoEligibleReceivers)
@@ -581,40 +584,32 @@ namespace RimChat.PawnRpgPush
             List<Pawn> allColonists = new List<Pawn>();
             foreach (Map map in Find.Maps)
             {
-                if (map?.mapPawns?.FreeColonistsSpawned == null)
+                if (map?.mapPawns?.FreeColonistsSpawned == null) continue;
+                for (int i = 0; i < map.mapPawns.FreeColonistsSpawned.Count; i++)
                 {
-                    continue;
-                }
-
-                foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
-                {
+                    Pawn p = map.mapPawns.FreeColonistsSpawned[i];
                     if (IsEligiblePlayerPawn(p) && (bypassAvailability || !IsPawnUnavailable(p)))
-                    {
                         allColonists.Add(p);
-                    }
                 }
             }
 
-            // Find best pair: receiver from protagonist list, initiator from all colonists
+            // Find best pair with early exit on perfect score
             Pawn bestReceiver = null;
             Pawn bestInitiator = null;
             int bestScore = int.MinValue;
+            const int perfectScore = 2000;
 
-            foreach (Pawn recv in receivers)
+            for (int ri = 0; ri < receivers.Count; ri++)
             {
-                foreach (Pawn init in allColonists)
+                Pawn recv = receivers[ri];
+                for (int ci = 0; ci < allColonists.Count; ci++)
                 {
-                    if (init == recv)
-                    {
-                        continue;
-                    }
+                    Pawn init = allColonists[ci];
+                    if (init == recv) continue;
 
                     bool intimate = HasIntimateRelation(recv, init) || HasIntimateRelation(init, recv);
                     int opinion = GetOpinion(recv, init);
-                    if (!intimate && opinion < threshold)
-                    {
-                        continue;
-                    }
+                    if (!intimate && opinion < threshold) continue;
 
                     int score = (intimate ? 1000 : 0) + opinion;
                     if (score > bestScore)
@@ -622,10 +617,12 @@ namespace RimChat.PawnRpgPush
                         bestScore = score;
                         bestReceiver = recv;
                         bestInitiator = init;
+                        if (score >= perfectScore) goto found;
                     }
                 }
             }
 
+        found:
             if (bestReceiver == null || bestInitiator == null)
             {
                 if (!_loggedNoValidPair)

@@ -85,6 +85,19 @@ namespace RimChat.UI
         private const float PortraitWidth = 400f;
         private const float PortraitHeight = 500f;
 
+        private static float GetPortraitWidthScale(float bodySize) => Mathf.Clamp(Mathf.Sqrt(Mathf.Max(bodySize, 0.5f)), 0.7f, 1.5f);
+        private static float GetPortraitHeightScale(float bodySize) => Mathf.Clamp(Mathf.Max(bodySize, 0.5f), 0.7f, 2.0f);
+        private static float GetPortraitZoom(float bodySize, bool humanlike)
+        {
+            float b = humanlike ? 1.35f : 1.0f;
+            return Mathf.Clamp(b / Mathf.Pow(Mathf.Max(bodySize, 0.5f), 0.3f), 0.5f, 1.35f);
+        }
+
+        private float TargetPortraitWidth => PortraitWidth * GetPortraitWidthScale(target?.BodySize ?? 1f);
+        private float TargetPortraitHeight => PortraitHeight * GetPortraitHeightScale(target?.BodySize ?? 1f);
+        private float InitiatorPortraitWidth => PortraitWidth * GetPortraitWidthScale(initiator?.BodySize ?? 1f);
+        private float InitiatorPortraitHeight => PortraitHeight * GetPortraitHeightScale(initiator?.BodySize ?? 1f);
+
         private float globalFadeAlpha = 0f;
         private float initiatorFadeAlpha = 0f;
         private float targetFadeAlpha = 0f;
@@ -529,7 +542,7 @@ namespace RimChat.UI
             if (Event.current.type == EventType.Repaint)
             {
                 Vector3 cameraOffset = new Vector3(0f, 0f, 0.15f);
-                float zoom = 1.35f;
+                float zoom = GetPortraitZoom(pawn.BodySize, pawn.RaceProps.Humanlike);
 
                 // Directly Render pawn onto our custom high-res buffer every frame
                 Find.PawnCacheRenderer.RenderPawn(pawn, rt, cameraOffset, zoom, 0f, Rot4.South, true, true, true, true, default(Vector3), null, null, true);

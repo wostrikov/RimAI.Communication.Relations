@@ -24,25 +24,26 @@ namespace RimChat.UI
 
         private Rect GetTargetPortraitRect(Rect inRect)
         {
-            return new Rect(
-                PortraitHorizontalMargin,
-                GetPortraitTopY(inRect),
-                PortraitWidth,
-                PortraitHeight);
+            float w = TargetPortraitWidth;
+            float h = CappedHeight(TargetPortraitHeight, inRect);
+            float overlap = Mathf.Min(PortraitVerticalOverlap, h * 0.3f);
+            float topY = inRect.height - DialogueBoxHeight - h + overlap;
+            return new Rect(PortraitHorizontalMargin, topY, w, h);
         }
 
         private Rect GetInitiatorPortraitRect(Rect inRect)
         {
-            return new Rect(
-                inRect.width - PortraitWidth - PortraitHorizontalMargin,
-                GetPortraitTopY(inRect),
-                PortraitWidth,
-                PortraitHeight);
+            float w = InitiatorPortraitWidth;
+            float h = CappedHeight(InitiatorPortraitHeight, inRect);
+            float overlap = Mathf.Min(PortraitVerticalOverlap, h * 0.3f);
+            float topY = inRect.height - DialogueBoxHeight - h + overlap;
+            return new Rect(inRect.width - w - PortraitHorizontalMargin, topY, w, h);
         }
 
-        private float GetPortraitTopY(Rect inRect)
+        private static float CappedHeight(float desired, Rect inRect)
         {
-            return inRect.height - DialogueBoxHeight - PortraitHeight + PortraitVerticalOverlap;
+            float maxH = inRect.height - DialogueBoxHeight + PortraitVerticalOverlap;
+            return Mathf.Min(desired, maxH);
         }
     }
 }
