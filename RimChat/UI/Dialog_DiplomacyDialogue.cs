@@ -126,6 +126,7 @@ namespace RimChat.UI
         private bool fallbackRetryRequestedThisFrame;
 
         private const float PendingAirdropDialogDelaySeconds = 1f;
+        private const float MaxTypewriterWaitSeconds = 8f;
 
         // 等逐字完成后稳定调度的空投确认弹窗状态
         private PendingAirdropDialogState pendingAirdropDialogState;
@@ -148,6 +149,7 @@ namespace RimChat.UI
             public bool DelayStarted;
             public bool WaitingForTypewriterLogged;
             public bool DelayWindowLogged;
+            public float TypewriterWaitStartRealtime = -1f;
         }
 
         private sealed class ManualQuestRequestOption
@@ -3581,18 +3583,31 @@ namespace RimChat.UI
 
             if (HasActiveNpcTypewriter())
             {
-                if (!state.WaitingForTypewriterLogged)
+                if (state.TypewriterWaitStartRealtime < 0f)
                 {
-                    state.WaitingForTypewriterLogged = true;
-                    Log.Message(
-                        $"[RimChat] AirdropConfirmQueued: state=waiting_for_typewriter,def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity}");
+                    state.TypewriterWaitStartRealtime = Time.realtimeSinceStartup;
                 }
 
-                state.DelayStarted = false;
-                state.ReadyAtRealtime = -1f;
-                state.DelayWindowLogged = false;
-                return;
+                if (Time.realtimeSinceStartup - state.TypewriterWaitStartRealtime < MaxTypewriterWaitSeconds)
+                {
+                    if (!state.WaitingForTypewriterLogged)
+                    {
+                        state.WaitingForTypewriterLogged = true;
+                        Log.Message(
+                            $"[RimChat] AirdropConfirmQueued: state=waiting_for_typewriter,def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity}");
+                    }
+
+                    state.DelayStarted = false;
+                    state.ReadyAtRealtime = -1f;
+                    state.DelayWindowLogged = false;
+                    return;
+                }
+
+                Log.Warning(
+                    $"[RimChat] AirdropConfirmQueued: typewriter wait timeout after {MaxTypewriterWaitSeconds:F1}s, forcing confirmation for def={state.PreparedTrade.SelectedDefName ?? "unknown"}");
             }
+
+            state.TypewriterWaitStartRealtime = -1f;
 
             if (!state.DelayStarted)
             {

@@ -139,9 +139,9 @@ namespace RimChat.DiplomacySystem
         private const float WealthCore = 650f;
         private const float GoodwillWealth = 1250f;
         private const float WealthLate = 380f;
-        private const float TradeLinear = 520f;
-        private const float TradeWealth = 430f;
-        private const float TradeGoodwill = 680f;
+        private const float TradeLinear = 5200f;
+        private const float TradeWealth = 4300f;
+        private const float TradeGoodwill = 6800f;
         private const float TradeActivationBase = 0.35f;
         private const float TradeActivationGoodwill = 0.35f;
         private const float TradeActivationWealth = 0.20f;
@@ -267,12 +267,12 @@ namespace RimChat.DiplomacySystem
         private static float ResolveTradeScore(float factionTradeTotalSilver)
         {
             float clamped = Mathf.Max(0f, factionTradeTotalSilver);
-            float firstBand = Mathf.Min(clamped, 10000f) * 0.000018f;
-            float secondBand = Mathf.Max(0f, Mathf.Min(clamped - 10000f, 20000f)) * 0.000012f;
-            float thirdBand = Mathf.Max(0f, Mathf.Min(clamped - 30000f, 50000f)) * 0.000009f;
-            float fourthBand = Mathf.Max(0f, Mathf.Min(clamped - 80000f, 270000f)) * 0.0000075f;
-            float fifthBand = Mathf.Max(0f, Mathf.Min(clamped - 350000f, 650000f)) * 0.0000060f;
-            float sixthBand = Mathf.Max(0f, clamped - 1000000f) * 0.0000050f;
+            float firstBand = Mathf.Min(clamped, 10000f) * 0.00018f;
+            float secondBand = Mathf.Max(0f, Mathf.Min(clamped - 10000f, 20000f)) * 0.00012f;
+            float thirdBand = Mathf.Max(0f, Mathf.Min(clamped - 30000f, 50000f)) * 0.00009f;
+            float fourthBand = Mathf.Max(0f, Mathf.Min(clamped - 80000f, 270000f)) * 0.000075f;
+            float fifthBand = Mathf.Max(0f, Mathf.Min(clamped - 350000f, 650000f)) * 0.00006f;
+            float sixthBand = Mathf.Max(0f, clamped - 1000000f) * 0.00005f;
             return firstBand + secondBand + thirdBand + fourthBand + fifthBand + sixthBand;
         }
 

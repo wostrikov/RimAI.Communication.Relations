@@ -91,7 +91,7 @@ namespace RimChat.Config
         {
             listing.Label("RimChat_ScheduledNewsFrequency".Translate());
             Rect rowRect = listing.GetRect(30f);
-            float buttonWidth = (rowRect.width - 20f) / 3f;
+            float buttonWidth = (rowRect.width - 30f) / 4f;
             DrawScheduledNewsFrequencyButton(
                 new Rect(rowRect.x, rowRect.y, buttonWidth, 30f),
                 global::RimChat.Config.ScheduledNewsFrequencyLevel.Low,
@@ -104,6 +104,10 @@ namespace RimChat.Config
                 new Rect(rowRect.x + (buttonWidth + 10f) * 2f, rowRect.y, buttonWidth, 30f),
                 global::RimChat.Config.ScheduledNewsFrequencyLevel.High,
                 "RimChat_ScheduledNewsFrequencyHigh".Translate());
+            DrawScheduledNewsFrequencyButton(
+                new Rect(rowRect.x + (buttonWidth + 10f) * 3f, rowRect.y, buttonWidth, 30f),
+                global::RimChat.Config.ScheduledNewsFrequencyLevel.VeryHigh,
+                "RimChat_ScheduledNewsFrequencyVeryHigh".Translate());
         }
 
         private void DrawScheduledNewsFrequencyButton(

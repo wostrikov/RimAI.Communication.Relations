@@ -44,22 +44,18 @@ namespace RimChat.DiplomacySystem
 
         public static int CalculateNextIntervalTicks(RimChatSettings settings)
         {
-            int days = ResolveScheduledDays(settings);
-            return days * GenDate.TicksPerDay;
-        }
-
-        private static int ResolveScheduledDays(RimChatSettings settings)
-        {
             global::RimChat.Config.ScheduledNewsFrequencyLevel level =
                 settings?.ScheduledNewsFrequencyLevel ?? global::RimChat.Config.ScheduledNewsFrequencyLevel.Low;
             switch (level)
             {
+                case global::RimChat.Config.ScheduledNewsFrequencyLevel.VeryHigh:
+                    return 15000;
                 case global::RimChat.Config.ScheduledNewsFrequencyLevel.High:
-                    return 1;
+                    return Rand.Range(0, GenDate.TicksPerDay);
                 case global::RimChat.Config.ScheduledNewsFrequencyLevel.Medium:
-                    return Rand.RangeInclusive(1, 2);
+                    return Rand.RangeInclusive(1, 2) * GenDate.TicksPerDay;
                 default:
-                    return Rand.RangeInclusive(3, 5);
+                    return Rand.RangeInclusive(3, 5) * GenDate.TicksPerDay;
             }
         }
 

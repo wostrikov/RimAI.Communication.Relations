@@ -63,8 +63,8 @@ namespace RimChat.Config
             Scribe_Values.Look(ref RansomPenaltySevere, "RansomPenaltySevere", -25);
             Scribe_Values.Look(ref RansomPenaltyTimeout, "RansomPenaltyTimeout", -35);
             Scribe_Values.Look(ref ItemAirdropMinBudgetSilver, "ItemAirdropMinBudgetSilver", 200);
-            Scribe_Values.Look(ref ItemAirdropMaxBudgetSilver, "ItemAirdropMaxBudgetSilver", 5000);
-            Scribe_Values.Look(ref ItemAirdropDefaultAIBudgetSilver, "ItemAirdropDefaultAIBudgetSilver", 800);
+            Scribe_Values.Look(ref ItemAirdropMaxBudgetSilver, "ItemAirdropMaxBudgetSilver", 50000);
+            Scribe_Values.Look(ref ItemAirdropDefaultAIBudgetSilver, "ItemAirdropDefaultAIBudgetSilver", 2000);
             Scribe_Values.Look(ref ItemAirdropRansomBudgetPercent, "ItemAirdropRansomBudgetPercent", 0.01f);
             Scribe_Values.Look(ref ItemAirdropMaxStacksPerDrop, "ItemAirdropMaxStacksPerDrop", 8);
             Scribe_Values.Look(ref ItemAirdropMaxTotalItemsPerDrop, "ItemAirdropMaxTotalItemsPerDrop", 200);
@@ -856,6 +856,15 @@ namespace RimChat.Config
         {
             listing.Label("RimChat_ItemAirdropSettingsTitle".Translate());
 
+            listing.Label("RimChat_AirdropMinBudgetSilver".Translate(ItemAirdropMinBudgetSilver));
+            ItemAirdropMinBudgetSilver = (int)listing.Slider(ItemAirdropMinBudgetSilver, 100f, 5000f);
+
+            listing.Label("RimChat_AirdropMaxBudgetSilver".Translate(ItemAirdropMaxBudgetSilver));
+            ItemAirdropMaxBudgetSilver = (int)listing.Slider(ItemAirdropMaxBudgetSilver, 5000f, 200000f);
+
+            listing.Label("RimChat_AirdropDefaultAIBudgetSilver".Translate(ItemAirdropDefaultAIBudgetSilver));
+            ItemAirdropDefaultAIBudgetSilver = (int)listing.Slider(ItemAirdropDefaultAIBudgetSilver, (float)ItemAirdropMinBudgetSilver, (float)ItemAirdropMaxBudgetSilver);
+
             listing.CheckboxLabeled("RimChat_EnableAirdropAliasExpansion".Translate(), ref EnableAirdropAliasExpansion);
             listing.Label("RimChat_ItemAirdropAliasExpansionMaxCount".Translate(ItemAirdropAliasExpansionMaxCount));
             ItemAirdropAliasExpansionMaxCount = (int)listing.Slider(ItemAirdropAliasExpansionMaxCount, 2, 12);
@@ -1161,8 +1170,8 @@ namespace RimChat.Config
         private void ResetAirdropTradeSettingsToDefault()
         {
             ItemAirdropMinBudgetSilver = 200;
-            ItemAirdropMaxBudgetSilver = 5000;
-            ItemAirdropDefaultAIBudgetSilver = 800;
+            ItemAirdropMaxBudgetSilver = 50000;
+            ItemAirdropDefaultAIBudgetSilver = 2000;
             ItemAirdropRansomBudgetPercent = 0.01f;
             ItemAirdropMaxStacksPerDrop = 8;
             ItemAirdropMaxTotalItemsPerDrop = 200;

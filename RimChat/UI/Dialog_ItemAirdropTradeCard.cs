@@ -738,7 +738,7 @@ namespace RimChat.UI
         private void DrawFooterInputs(Rect rect)
         {
             float groupWidth = (rect.width - 12f) * 0.5f;
-            DrawIntegerField(new Rect(rect.x, rect.y, groupWidth, rect.height), "RimChat_AirdropTradeCard_RequestCountLabel".Translate().ToString(), requestedCountText, out requestedCountText, 1, 5000);
+            DrawIntegerField(new Rect(rect.x, rect.y, groupWidth, rect.height), "RimChat_AirdropTradeCard_RequestCountLabel".Translate().ToString(), requestedCountText, out requestedCountText, 1, 100000);
             DrawIntegerField(new Rect(rect.x + groupWidth + 12f, rect.y, groupWidth, rect.height), "RimChat_AirdropTradeCard_OfferCountLabel".Translate().ToString(), offerCountText, out offerCountText, 1, 1000000);
         }
 

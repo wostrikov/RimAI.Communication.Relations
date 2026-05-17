@@ -16,7 +16,7 @@ namespace RimChat.DiplomacySystem
     public partial class GameComponent_DiplomacyManager
     {
         private const int MaxPendingSocialNewsRequests = 4;
-        private const int FailedOriginAutoRetryDays = 2;
+        private const int FailedOriginAutoRetryDays = 1;
         private const int SnapshotRetryDelayTicks = 250;
         private readonly Dictionary<string, PendingSocialNewsRequest> pendingSocialNewsRequests =
             new Dictionary<string, PendingSocialNewsRequest>();

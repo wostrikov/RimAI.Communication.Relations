@@ -15,7 +15,7 @@ namespace RimChat.DiplomacySystem
  ///</summary>
     internal static class SocialNewsSeedFactory
     {
-        private const int SeedWindowDays = 30;
+        private const int SeedWindowDays = 60;
 
         public static SocialNewsSeed CreateDialogueSeed(
             Faction sourceFaction,

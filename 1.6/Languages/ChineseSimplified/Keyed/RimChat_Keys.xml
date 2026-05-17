@@ -281,7 +281,8 @@
     <RimChat_ScheduledNewsFrequency>周期新闻频率</RimChat_ScheduledNewsFrequency>
     <RimChat_ScheduledNewsFrequencyLow>低（3-5天）</RimChat_ScheduledNewsFrequencyLow>
     <RimChat_ScheduledNewsFrequencyMedium>中（1-2天）</RimChat_ScheduledNewsFrequencyMedium>
-    <RimChat_ScheduledNewsFrequencyHigh>高（每天）</RimChat_ScheduledNewsFrequencyHigh>
+    <RimChat_ScheduledNewsFrequencyHigh>高（0-1天）</RimChat_ScheduledNewsFrequencyHigh>
+    <RimChat_ScheduledNewsFrequencyVeryHigh>极高（每天4次）</RimChat_ScheduledNewsFrequencyVeryHigh>
     <RimChat_SocialIntervalMinDays>社交圈最小间隔天数: {0}</RimChat_SocialIntervalMinDays>
     <RimChat_SocialIntervalMaxDays>社交圈最大间隔天数: {0}</RimChat_SocialIntervalMaxDays>
     <RimChat_SocialForceGenerateButton>调试：提交一条新闻卡</RimChat_SocialForceGenerateButton>
@@ -844,6 +845,9 @@
     <RimChat_ItemAirdropCooldownDays>空投冷却（天）: {0}</RimChat_ItemAirdropCooldownDays>
     <RimChat_AirdropTradeLimitMultiplier>交易额乘数: {0}x</RimChat_AirdropTradeLimitMultiplier>
     <RimChat_AirdropCooldownMultiplier>冷却乘数: {0}x</RimChat_AirdropCooldownMultiplier>
+    <RimChat_AirdropMinBudgetSilver>最小预算: {0}</RimChat_AirdropMinBudgetSilver>
+    <RimChat_AirdropMaxBudgetSilver>最大预算: {0}</RimChat_AirdropMaxBudgetSilver>
+    <RimChat_AirdropDefaultAIBudgetSilver>默认AI预算: {0}</RimChat_AirdropDefaultAIBudgetSilver>
     <RimChat_DiplomacyActionLabel_adjust_goodwill>调整好感</RimChat_DiplomacyActionLabel_adjust_goodwill>
     <RimChat_DiplomacyActionLabel_send_gift>赠送礼物</RimChat_DiplomacyActionLabel_send_gift>
     <RimChat_DiplomacyActionLabel_request_aid>请求援助</RimChat_DiplomacyActionLabel_request_aid>

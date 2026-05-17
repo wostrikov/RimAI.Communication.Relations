@@ -147,8 +147,8 @@ namespace RimChat.Config
         public int RansomPenaltyTimeout = -35;
 
         public int ItemAirdropMinBudgetSilver = 200;
-        public int ItemAirdropMaxBudgetSilver = 5000;
-        public int ItemAirdropDefaultAIBudgetSilver = 800;
+        public int ItemAirdropMaxBudgetSilver = 50000;
+        public int ItemAirdropDefaultAIBudgetSilver = 2000;
         public float ItemAirdropRansomBudgetPercent = 0.01f;
         public int ItemAirdropMaxStacksPerDrop = 8;
         public int ItemAirdropMaxTotalItemsPerDrop = 200;

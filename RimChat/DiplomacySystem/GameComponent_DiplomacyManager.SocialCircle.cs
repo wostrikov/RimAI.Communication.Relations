@@ -382,6 +382,8 @@ namespace RimChat.DiplomacySystem
             socialCircleState.NextPostTick = currentTick + SocialCircleService.CalculateNextIntervalTicks(RimChatMod.Instance?.InstanceSettings);
         }
 
+        private const int NoSeedRetryIntervalTicks = 18000;
+
         private void TryGenerateScheduledSocialPost(int currentTick)
         {
             if (currentTick < socialCircleState.NextPostTick)
@@ -389,8 +391,15 @@ namespace RimChat.DiplomacySystem
                 return;
             }
 
-            TryQueueNextScheduledNews(DebugGenerateReason.Scheduled, currentTick, false);
-            ScheduleNextSocialPost(currentTick);
+            bool generated = TryQueueNextScheduledNews(DebugGenerateReason.Scheduled, currentTick, false);
+            if (generated)
+            {
+                ScheduleNextSocialPost(currentTick);
+            }
+            else
+            {
+                socialCircleState.NextPostTick = currentTick + NoSeedRetryIntervalTicks;
+            }
         }
 
         private void TrimSocialPosts()

@@ -207,7 +207,8 @@
     <RimChat_ScheduledNewsFrequency>Scheduled news frequency</RimChat_ScheduledNewsFrequency>
     <RimChat_ScheduledNewsFrequencyLow>Low (3-5 days)</RimChat_ScheduledNewsFrequencyLow>
     <RimChat_ScheduledNewsFrequencyMedium>Medium (1-2 days)</RimChat_ScheduledNewsFrequencyMedium>
-    <RimChat_ScheduledNewsFrequencyHigh>High (daily)</RimChat_ScheduledNewsFrequencyHigh>
+    <RimChat_ScheduledNewsFrequencyHigh>High (0-1 day)</RimChat_ScheduledNewsFrequencyHigh>
+    <RimChat_ScheduledNewsFrequencyVeryHigh>Very High (4/day)</RimChat_ScheduledNewsFrequencyVeryHigh>
     <RimChat_SocialIntervalMinDays>Social Circle Min Interval Days: {0}</RimChat_SocialIntervalMinDays>
     <RimChat_SocialIntervalMaxDays>Social Circle Max Interval Days: {0}</RimChat_SocialIntervalMaxDays>
     <RimChat_SocialForceGenerateButton>Debug: Queue One News Card</RimChat_SocialForceGenerateButton>
@@ -1199,6 +1200,9 @@
     <RimChat_ItemAirdropCooldownDays>Airdrop cooldown (days): {0}</RimChat_ItemAirdropCooldownDays>
     <RimChat_AirdropTradeLimitMultiplier>Trade limit multiplier: {0}x</RimChat_AirdropTradeLimitMultiplier>
     <RimChat_AirdropCooldownMultiplier>Cooldown multiplier: {0}x</RimChat_AirdropCooldownMultiplier>
+    <RimChat_AirdropMinBudgetSilver>Min budget: {0}</RimChat_AirdropMinBudgetSilver>
+    <RimChat_AirdropMaxBudgetSilver>Max budget: {0}</RimChat_AirdropMaxBudgetSilver>
+    <RimChat_AirdropDefaultAIBudgetSilver>Default AI budget: {0}</RimChat_AirdropDefaultAIBudgetSilver>
     <RimChat_DiplomacyActionLabel_adjust_goodwill>Adjust goodwill</RimChat_DiplomacyActionLabel_adjust_goodwill>
     <RimChat_DiplomacyActionLabel_send_gift>Send gift</RimChat_DiplomacyActionLabel_send_gift>
     <RimChat_DiplomacyActionLabel_request_aid>Request aid</RimChat_DiplomacyActionLabel_request_aid>

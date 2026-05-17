@@ -22,9 +22,16 @@ namespace RimChat.UI
         // to disable the default semi-transparent black background.
         // The bezel texture provides its own background.
 
-        // CRT bezel textures (standard + spacer variant)
+        // CRT bezel textures (standard + spacer + fallout variants)
         private static Texture2D TexCRTBezel;
         private static Texture2D TexCRTBezelSpacer;
+        private static Texture2D TexCRTBezelFallout;
+
+        // Active bezel index: 0=Standard, 1=Spacer, 2=Fallout
+        private static int _activeBezelIndex;
+        private const int BezelIndexStandard = 0;
+        private const int BezelIndexSpacer = 1;
+        private const int BezelIndexFallout = 2;
 
         // Texture switch hotspot — rect in original texture coords (1402x1122): (40,665)→(148,783)
         // Scaled to window 960x720: (27,404)→(101,480)
@@ -34,7 +41,6 @@ namespace RimChat.UI
         // Scaled to window 960x720: (753,665)→(880,712)
         private static readonly Rect CloseHotspotWindow = new Rect(724f, 632f, 127f, 47f);
         private static bool _closeHotspotWasHovering;
-        private static bool _forceSpacerBezel;
 
         // Terminal UI scale override
         private float _originalUIScale;
@@ -64,6 +70,7 @@ namespace RimChat.UI
         {
             TexCRTBezel = ContentFinder<Texture2D>.Get("UI/RimChat/Terminal/terminal", false);
             TexCRTBezelSpacer = ContentFinder<Texture2D>.Get("UI/RimChat/Terminal/terminal_spacer", false);
+            TexCRTBezelFallout = ContentFinder<Texture2D>.Get("UI/RimChat/Terminal/terminal_fallout", false);
 
             Shader crtShader = Shader.Find("RimChat/CRT");
             if (crtShader != null)
@@ -114,12 +121,15 @@ namespace RimChat.UI
             // Auto-switch to spacer bezel on first Spacer research completion
             if (!_spacerAutoSwitched && IsSpacerTechLevel())
             {
-                _forceSpacerBezel = true;
+                _activeBezelIndex = BezelIndexSpacer;
                 _spacerAutoSwitched = true;
             }
 
-            // Texture switch hotspot (only visible at Spacer tech level)
-            if (IsSpacerTechLevel() && TexCRTBezelSpacer != null)
+            // Texture switch hotspot — always visible (Fallout always unlocked, Spacer unlocks later)
+            bool hasSpacer = IsSpacerTechLevel() && TexCRTBezelSpacer != null;
+            bool hasFallout = TexCRTBezelFallout != null;
+            bool hasAnyAlternative = hasSpacer || hasFallout;
+            if (hasAnyAlternative)
             {
                 Rect hotspot = new Rect(
                     windowRect.x + SwitchHotspotWindow.x,
@@ -143,10 +153,10 @@ namespace RimChat.UI
                         SoundDefOf.Mouseover_ButtonToggle.PlayOneShotOnCamera();
                     }
 
-                    // Click to toggle
+                    // Click to cycle to next available theme
                     if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
                     {
-                        _forceSpacerBezel = !_forceSpacerBezel;
+                        CycleToNextBezel(hasSpacer, hasFallout);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         Event.current.Use();
                     }
@@ -198,9 +208,31 @@ namespace RimChat.UI
 
         private static Texture2D GetActiveBezelTexture()
         {
-            if (_forceSpacerBezel && TexCRTBezelSpacer != null)
-                return TexCRTBezelSpacer;
-            return TexCRTBezel;
+            switch (_activeBezelIndex)
+            {
+                case BezelIndexSpacer:
+                    return TexCRTBezelSpacer ?? TexCRTBezel;
+                case BezelIndexFallout:
+                    return TexCRTBezelFallout ?? TexCRTBezel;
+                default:
+                    return TexCRTBezel;
+            }
+        }
+
+        private static void CycleToNextBezel(bool hasSpacer, bool hasFallout)
+        {
+            if (_activeBezelIndex == BezelIndexStandard)
+            {
+                _activeBezelIndex = hasSpacer ? BezelIndexSpacer : BezelIndexFallout;
+            }
+            else if (_activeBezelIndex == BezelIndexSpacer)
+            {
+                _activeBezelIndex = hasFallout ? BezelIndexFallout : BezelIndexStandard;
+            }
+            else // Fallout
+            {
+                _activeBezelIndex = BezelIndexStandard;
+            }
         }
 
         private static bool IsSpacerTechLevel()
