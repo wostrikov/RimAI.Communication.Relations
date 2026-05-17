@@ -80,6 +80,16 @@ namespace RimChat.UI
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
+            int totalCount = groups?.Sum(g => g?.Rows?.Count ?? 0) ?? 0;
+            if (totalCount > 0)
+            {
+                Rect clearAllRect = new Rect(panelRect.xMax - 130f, panelRect.y + 10f, 80f, 28f);
+                if (Widgets.ButtonText(clearAllRect, "RimChat_DiplomacyHistoryClearAll".Translate().ToString()))
+                {
+                    ExecuteClearAllHistory();
+                }
+            }
+
             Rect closeRect = new Rect(panelRect.xMax - 44f, panelRect.y + 10f, 28f, 28f);
             if (Widgets.ButtonText(closeRect, "×"))
             {
@@ -442,6 +452,38 @@ namespace RimChat.UI
                 "history_message_empty" => "RimChat_DiplomacyHistoryErrorMessageEmpty".Translate().ToString(),
                 _ => "RimChat_DiplomacyHistoryErrorUnknown".Translate().ToString()
             };
+        }
+
+        private void ExecuteClearAllHistory()
+        {
+            // Delete last-to-first to avoid index shifting
+            var allRows = new List<LeaderMemoryManager.DiplomacyHistoryRow>();
+            foreach (var group in groups)
+            {
+                if (group?.Rows != null) allRows.AddRange(group.Rows);
+            }
+            allRows.Reverse();
+
+            int cleared = 0;
+            foreach (var row in allRows)
+            {
+                if (historyManager.TryDeleteDialogueHistoryRow(currentFaction, row, out _))
+                    cleared++;
+            }
+
+            if (cleared > 0)
+            {
+                string message = "RimChat_DiplomacyHistoryClearAllSuccess".Translate(currentFaction?.Name ?? "Unknown").ToString();
+                Messages.Message(message, MessageTypeDefOf.NeutralEvent, false);
+            }
+            else if (allRows.Count > 0)
+            {
+                string message = "RimChat_DiplomacyHistoryClearAllFailed".Translate("could not delete records").ToString();
+                Messages.Message(message, MessageTypeDefOf.RejectInput, false);
+            }
+
+            selectedRowKey = string.Empty;
+            RefreshGroups(forceResetSelection: true);
         }
 
         private static void ShowMutationError(string message)

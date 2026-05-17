@@ -81,6 +81,8 @@ namespace RimChat.UI
                     "TryTakeOrderedJob" => ExecuteTryTakeOrderedJob(action),
                     "TriggerIncident" => ExecuteTriggerIncident(action),
                     "GrantInspiration" => ExecuteGrantInspiration(action),
+                    "ConvertIdeology" => ExecuteConvertIdeology(action),
+                    "AdjustCertainty" => ExecuteAdjustCertainty(action),
                     _ => ExecuteUnknownAction(normalizedName, action)
                 };
 
@@ -94,7 +96,7 @@ namespace RimChat.UI
             catch (Exception ex)
             {
                 NotifyActionError(normalizedName, ex.Message);
-                Log.Warning($"[RimChat] RPG action execution failed: {action?.action}, error={ex}");
+                DebugLogger.WarningGated($"RPG action execution failed: {action?.action}, error={ex}");
                 return false;
             }
         }
@@ -371,7 +373,7 @@ namespace RimChat.UI
             string rawAction = action?.action ?? normalizedName;
             AddActionFeedback("RimChat_RPGActionToast_Unknown".Translate(rawAction), ActionFailureColor);
             RecordSessionActionOutcome(rawAction, SessionActionOutcome.Failure, "RimChat_RPGActionToast_Unknown".Translate(rawAction).ToString());
-            Log.Message($"[RimChat] Unknown RPG action ignored: {rawAction}");
+            DebugLogger.LogInternal("RPGAction", $"Unknown RPG action ignored: {rawAction}");
             return false;
         }
 
@@ -577,6 +579,88 @@ namespace RimChat.UI
             return args;
         }
 
+        private bool ExecuteConvertIdeology(LLMRpgApiResponse.ApiAction action)
+        {
+            if (!DLCCompatibility.IsIdeologyActive)
+            {
+                NotifyActionFailure("ConvertIdeology", "RimChat_RPGActionFail_IdeologyDLCRequired".Translate());
+                return false;
+            }
+
+            if (target?.ideo == null)
+            {
+                NotifyActionFailure("ConvertIdeology", "RimChat_RPGActionFail_NoIdeology".Translate());
+                return false;
+            }
+
+            Ideo sourceIdeo = initiator?.ideo?.Ideo ?? Faction.OfPlayer?.ideos?.PrimaryIdeo;
+            if (sourceIdeo == null)
+            {
+                NotifyActionFailure("ConvertIdeology", "RimChat_RPGActionFail_NoSourceIdeology".Translate());
+                return false;
+            }
+
+            if (target.ideo.Ideo == sourceIdeo)
+            {
+                return true; // Already converted, no-op success
+            }
+
+            target.ideo.SetIdeo(sourceIdeo);
+            return true;
+        }
+
+        private bool ExecuteAdjustCertainty(LLMRpgApiResponse.ApiAction action)
+        {
+            if (!DLCCompatibility.IsIdeologyActive)
+            {
+                NotifyActionFailure("AdjustCertainty", "RimChat_RPGActionFail_IdeologyDLCRequired".Translate());
+                return false;
+            }
+
+            if (target?.ideo == null)
+            {
+                NotifyActionFailure("AdjustCertainty", "RimChat_RPGActionFail_NoIdeology".Translate());
+                return false;
+            }
+
+            float delta = action.amount;
+            if (Math.Abs(delta) < 0.01f)
+            {
+                delta = -0.15f;
+            }
+
+            try
+            {
+                var ideoTracker = target.ideo;
+                float currentCertainty = ideoTracker.Certainty;
+                float newCertainty = Mathf.Clamp01(currentCertainty + delta);
+                var certaintyField = typeof(Pawn_IdeoTracker).GetField("certainty",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                if (certaintyField != null)
+                {
+                    var certaintyObj = certaintyField.GetValue(ideoTracker);
+                    if (certaintyObj != null)
+                    {
+                        var valueField = certaintyObj.GetType().GetField("certainty",
+                            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                        if (valueField != null)
+                        {
+                            valueField.SetValue(certaintyObj, newCertainty);
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                NotifyActionFailure("AdjustCertainty", "RimChat_RPGActionFail_GameRejected".Translate());
+                return false;
+            }
+
+            NotifyActionFailure("AdjustCertainty", "RimChat_RPGActionFail_GameRejected".Translate());
+            return false;
+        }
+
         private void LogRpgActionDebug(string message)
         {
             if (RimChatMod.Settings?.EnableDebugLogging != true)
@@ -584,7 +668,7 @@ namespace RimChat.UI
                 return;
             }
 
-            Log.Message($"[RimChat] {message}");
+            DebugLogger.Debug(message);
         }
 
         private void HandleNpcExitDialogue(string reason)
@@ -633,7 +717,7 @@ namespace RimChat.UI
             string actionLabel = GetRpgActionLabel(actionName);
             AddActionFeedback("RimChat_RPGActionToast_Error".Translate(actionLabel), ActionErrorColor);
             RecordSessionActionOutcome(actionName, SessionActionOutcome.Error, reason);
-            Log.Warning($"[RimChat] RPG action error: {actionName}");
+            DebugLogger.WarningGated($"RPG action error: {actionName}");
         }
 
         private string GetRpgActionLabel(string actionName)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimChat.Util;
@@ -489,7 +489,7 @@ namespace RimChat.DiplomacySystem
             int maxSingleAdjustment = settings.MaxGoodwillAdjustmentPerCall;
             if (Math.Abs(amount) > maxSingleAdjustment)
             {
-                Log.Warning($"[RimChat] AI attempted to adjust goodwill by {amount}, clamped to {maxSingleAdjustment}");
+                DebugLogger.WarningGated($"AI attempted to adjust goodwill by {amount}, clamped to {maxSingleAdjustment}");
                 amount = Math.Sign(amount) * maxSingleAdjustment;
             }
 
@@ -505,7 +505,7 @@ namespace RimChat.DiplomacySystem
                 if (allowedAdjustment == 0)
                     return APIResult.FailureResult($"Daily goodwill adjustment limit reached for {faction.Name}. Current: {currentDayAdjustment}, Limit: ±{maxDailyAdjustment}");
 
-                Log.Warning($"[RimChat] AI goodwill adjustment clamped from {amount} to {allowedAdjustment} due to daily limit");
+                DebugLogger.WarningGated($"AI goodwill adjustment clamped from {amount} to {allowedAdjustment} due to daily limit");
                 amount = allowedAdjustment;
             }
 
@@ -1429,7 +1429,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering incident {incidentDefName}: {ex}");
+                DebugLogger.Error($"Error triggering incident {incidentDefName}: {ex}");
                 return APIResult.FailureResult($"Execution error: {ex.Message}");
             }
         }
@@ -1480,18 +1480,18 @@ namespace RimChat.DiplomacySystem
 
             if (faction == null)
             {
-                Log.Warning($"[RimChat] CreateQuest: Could not resolve faction from parameters. Quest '{questDefName}' might fallback to Empire.");
+                DebugLogger.WarningGated($"CreateQuest: Could not resolve faction from parameters. Quest '{questDefName}' might fallback to Empire.");
             }
             else if (RimChatMod.Instance?.InstanceSettings?.EnableDebugLogging ?? false)
             {
-                Log.Message($"[RimChat] CreateQuest: Using faction context '{faction.Name}' (Def: {faction.def.defName})");
+                DebugLogger.Debug($"CreateQuest: Using faction context '{faction.Name}' (Def: {faction.def.defName})");
             }
 
             // 2. 严格校验: 不再做任务重定向, 失败直接返回
             var questValidation = ApiActionEligibilityService.Instance.ValidateCreateQuest(faction, questDefName, parameters);
             if (!questValidation.Allowed)
             {
-                Log.Warning($"[RimChat] CreateQuest denied. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{questValidation.Code}', message='{questValidation.Message}'");
+                DebugLogger.WarningGated($"CreateQuest denied. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{questValidation.Code}', message='{questValidation.Message}'");
                 return APIResult.FailureResult(questValidation.Message);
             }
             questDefName = questValidation.NormalizedQuestDefName;
@@ -1504,7 +1504,7 @@ namespace RimChat.DiplomacySystem
             {
                 if (!QuestSlatePrebuilder.TryBuild(faction, questDef, parameters, out RimWorld.QuestGen.Slate slate, out string prebuildCode, out string prebuildMessage))
                 {
-                    Log.Warning($"[RimChat] CreateQuest prebuild failed. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{prebuildCode}', message='{prebuildMessage}'");
+                    DebugLogger.WarningGated($"CreateQuest prebuild failed. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{prebuildCode}', message='{prebuildMessage}'");
                     return APIResult.FailureResult(prebuildMessage);
                 }
 
@@ -1521,7 +1521,7 @@ namespace RimChat.DiplomacySystem
 
                 if (!QuestGenerationProbe.TryValidateGeneratedQuest(quest, questDef, slate, out string publicationCode, out string publicationMessage))
                 {
-                    Log.Warning($"[RimChat] CreateQuest publication probe failed. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{publicationCode}', message='{publicationMessage}'");
+                    DebugLogger.WarningGated($"CreateQuest publication probe failed. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{publicationCode}', message='{publicationMessage}'");
                     return APIResult.FailureResult(publicationMessage);
                 }
 
@@ -1544,8 +1544,8 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error creating quest {questDefName}: {ex}");
-                Log.Warning($"[RimChat] CreateQuest technical failure. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}'. No fallback quest will be generated.");
+                DebugLogger.Error($"Error creating quest {questDefName}: {ex}");
+                DebugLogger.WarningGated($"CreateQuest technical failure. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}'. No fallback quest will be generated.");
                 return APIResult.FailureResult($"Quest generation error: {ex.Message}");
             }
         }
@@ -1842,13 +1842,13 @@ namespace RimChat.DiplomacySystem
                 if (RimChatMod.Instance != null && (RimChatMod.Instance.InstanceSettings?.EnableDebugLogging ?? false))
                 {
                     string status = success ? "SUCCESS" : "FAILED";
-                    Log.Message($"[RimChat] API Call [{status}]: {methodName} - {parameters}");
+                    DebugLogger.Debug($"API Call [{status}]: {methodName} - {parameters}");
                 }
             }
             catch (Exception ex)
             {
                 // 防止record过程中的任何异常影响主流程
-                Log.Error($"[RimChat] Failed to record API call: {ex.Message}");
+                DebugLogger.Error($"Failed to record API call: {ex.Message}");
             }
         }
 

@@ -120,6 +120,12 @@ namespace RimChat.UI
             Widgets.Label(titleRect, "RimChat_RPGHistoryPanelTitle".Translate().ToString());
             Text.Anchor = TextAnchor.UpperLeft;
 
+            Rect clearAllRect = new Rect(panelRect.xMax - 140f, panelRect.y + 10f, 90f, 28f);
+            if (sessionHistoryRecords.Count > 0 && Widgets.ButtonText(clearAllRect, "RimChat_RPGHistoryClearAll".Translate().ToString()))
+            {
+                ClearAllSessionRecords();
+            }
+
             Rect closeRect = new Rect(panelRect.xMax - 44f, panelRect.y + 10f, 28f, 28f);
             if (Widgets.ButtonText(closeRect, "×"))
             {
@@ -228,8 +234,53 @@ namespace RimChat.UI
             Rect actionRect = new Rect(innerRect.x + 4f, textRect.yMax, innerRect.width - 4f, actionHeight);
             Widgets.Label(actionRect, actionLine);
 
+            // Delete button for this record
+            Rect deleteBtnRect = new Rect(innerRect.xMax - 20f, innerRect.y, 18f, 18f);
+            Color prevDelColor = GUI.color;
+            GUI.color = new Color(0.6f, 0.15f, 0.15f, 0.7f);
+            if (Widgets.ButtonText(deleteBtnRect, "×"))
+            {
+                ConfirmDeleteSessionRecord(index);
+            }
+            GUI.color = prevDelColor;
+
             Text.Font = GameFont.Small;
             GUI.color = Color.white;
+        }
+
+        private void DeleteSessionRecord(int index)
+        {
+            if (index < 0 || index >= sessionHistoryRecords.Count) return;
+            sessionHistoryRecords.RemoveAt(index);
+        }
+
+        private void ConfirmDeleteSessionRecord(int index)
+        {
+            Find.WindowStack.Add(new Dialog_MessageBox(
+                "RimChat_RPGHistoryDeleteSingleConfirmBody".Translate().ToString(),
+                "RimChat_DiplomacyHistoryDeleteConfirmAccept".Translate().ToString(),
+                () => DeleteSessionRecord(index),
+                "RimChat_DiplomacyHistoryDeleteConfirmCancel".Translate().ToString(),
+                null,
+                "RimChat_RPGHistoryDeleteSingleConfirmTitle".Translate().ToString()));
+        }
+
+        private void ClearAllSessionRecords()
+        {
+            sessionHistoryRecords.Clear();
+            latestNpcTurnSequence = 0;
+        }
+
+        private void ConfirmClearAllSessionRecords()
+        {
+            int count = sessionHistoryRecords.Count;
+            Find.WindowStack.Add(new Dialog_MessageBox(
+                "RimChat_RPGHistoryClearAllConfirmBody".Translate(count).ToString(),
+                "RimChat_RPGHistoryClearAllConfirmAccept".Translate().ToString(),
+                () => ClearAllSessionRecords(),
+                "RimChat_RPGHistoryClearAllConfirmCancel".Translate().ToString(),
+                null,
+                "RimChat_RPGHistoryClearAllConfirmTitle".Translate().ToString()));
         }
 
         private static float CalcHeightWithFont(string text, float width, GameFont font)

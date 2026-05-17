@@ -656,6 +656,40 @@
     <RimChat_DialogueTitle>RimChat</RimChat_DialogueTitle>
     <RimChat_FactionsTitle>派系</RimChat_FactionsTitle>
     <RimChat_HiddenFactionSelectorTooltip>选择要显示在当前外交列表中的隐藏派系。</RimChat_HiddenFactionSelectorTooltip>
+    <RimChat_FactionEditorLink>编辑</RimChat_FactionEditorLink>
+    <RimChat_FactionEditorLinkTooltip_NotInstalled>未安装派系编辑器，点击前往Steam创意工坊</RimChat_FactionEditorLinkTooltip_NotInstalled>
+    <RimChat_FactionEditorLinkTooltip_Installed>打开派系编辑器</RimChat_FactionEditorLinkTooltip_Installed>
+    <RimChat_QuickActionMakePeace>求和</RimChat_QuickActionMakePeace>
+    <RimChat_QuickActionMakePeaceTooltip>向 {0} 提出和平协议，需要支付白银。</RimChat_QuickActionMakePeaceTooltip>
+    <RimChat_QuickActionDeclareWar>宣战</RimChat_QuickActionDeclareWar>
+    <RimChat_QuickActionDeclareWarTooltip>向 {0} 宣战，将立刻转为敌对关系。</RimChat_QuickActionDeclareWarTooltip>
+    <RimChat_QuickActionDeclareWarNotEligible>无法宣战：好感度须低于 {0}。</RimChat_QuickActionDeclareWarNotEligible>
+    <RimChat_DeclareWarConfirmTitle>确认宣战</RimChat_DeclareWarConfirmTitle>
+    <RimChat_DeclareWarConfirmBody>确定要向 {0} 宣战吗？这将立刻使其变为敌对状态。此操作不易撤销。</RimChat_DeclareWarConfirmBody>
+    <RimChat_DeclareWarConfirmAccept>宣战</RimChat_DeclareWarConfirmAccept>
+    <RimChat_DeclareWarConfirmCancel>取消</RimChat_DeclareWarConfirmCancel>
+    <RimChat_DeclareWarConfirmedSystem>已向 {0} 宣战。</RimChat_DeclareWarConfirmedSystem>
+    <RimChat_DeclareWarFailedSystem>宣战失败：{0}</RimChat_DeclareWarFailedSystem>
+    <RimChat_RPGHistoryDeleteRecord>删除</RimChat_RPGHistoryDeleteRecord>
+    <RimChat_RPGHistoryDeleteRecordTooltip>从会话历史中删除此条对话记录。</RimChat_RPGHistoryDeleteRecordTooltip>
+    <RimChat_RPGHistoryClearAll>清空全部</RimChat_RPGHistoryClearAll>
+    <RimChat_RPGHistoryClearAllTooltip>删除所有会话历史记录。</RimChat_RPGHistoryClearAllTooltip>
+    <RimChat_RPGHistoryClearAllConfirmTitle>清空全部历史</RimChat_RPGHistoryClearAllConfirmTitle>
+    <RimChat_RPGHistoryClearAllConfirmBody>确定要删除全部 {0} 条会话历史记录吗？此操作无法撤销。</RimChat_RPGHistoryClearAllConfirmBody>
+    <RimChat_RPGHistoryClearAllConfirmAccept>清空全部</RimChat_RPGHistoryClearAllConfirmAccept>
+    <RimChat_RPGHistoryClearAllConfirmCancel>取消</RimChat_RPGHistoryClearAllConfirmCancel>
+    <RimChat_RPGHistoryDeleteSingleConfirmTitle>删除记录</RimChat_RPGHistoryDeleteSingleConfirmTitle>
+    <RimChat_RPGHistoryDeleteSingleConfirmBody>确定要删除此条历史记录吗？此操作无法撤销。</RimChat_RPGHistoryDeleteSingleConfirmBody>
+    <RimChat_DragMenu_ConvertIdeo>改变意识形态</RimChat_DragMenu_ConvertIdeo>
+    <RimChat_DragMenu_AdjCertainty>调整信仰度</RimChat_DragMenu_AdjCertainty>
+    <RimChat_DiplomacyHistoryClearAll>清空全部</RimChat_DiplomacyHistoryClearAll>
+    <RimChat_DiplomacyHistoryClearAllTooltip>删除 {0} 的全部历史记录。</RimChat_DiplomacyHistoryClearAllTooltip>
+    <RimChat_DiplomacyHistoryClearAllConfirmTitle>清空全部外交历史</RimChat_DiplomacyHistoryClearAllConfirmTitle>
+    <RimChat_DiplomacyHistoryClearAllConfirmBody>确定要删除 {1} 的全部 {0} 条历史记录吗？此操作无法撤销。</RimChat_DiplomacyHistoryClearAllConfirmBody>
+    <RimChat_DiplomacyHistoryClearAllConfirmAccept>清空全部</RimChat_DiplomacyHistoryClearAllConfirmAccept>
+    <RimChat_DiplomacyHistoryClearAllConfirmCancel>取消</RimChat_DiplomacyHistoryClearAllConfirmCancel>
+    <RimChat_DiplomacyHistoryClearAllFailed>清空历史失败：{0}</RimChat_DiplomacyHistoryClearAllFailed>
+    <RimChat_DiplomacyHistoryClearAllSuccess>{0} 的全部历史记录已清空。</RimChat_DiplomacyHistoryClearAllSuccess>
     <RimChat_HiddenFactionSelectorTitle>隐藏派系显示</RimChat_HiddenFactionSelectorTitle>
     <RimChat_HiddenFactionSelectorDesc>选择要加入通讯台外交派系列表的隐藏派系。</RimChat_HiddenFactionSelectorDesc>
     <RimChat_HiddenFactionSelectorSelectAll>全选</RimChat_HiddenFactionSelectorSelectAll>
@@ -788,6 +822,42 @@
     <RimChat_SelfieGenerateFailed>自拍生成失败：{0}</RimChat_SelfieGenerateFailed>
     <RimChat_SelfieConfigInvalid>图片 API 未配置或未启用。</RimChat_SelfieConfigInvalid>
     <RimChat_SelfieDefaultCaption>{0} 的自拍</RimChat_SelfieDefaultCaption>
+    <RimChat_SelfieSelectColonist>选择自拍殖民者</RimChat_SelfieSelectColonist>
+    <RimChat_SelfieSelectColonistPrompt>请选择正式殖民者</RimChat_SelfieSelectColonistPrompt>
+    <RimChat_SelfieNoColonistAvailable>没有可用正式殖民者</RimChat_SelfieNoColonistAvailable>
+    <RimChat_SelfieColonistSelectorHint>仅显示玩家阵营正式殖民者。生成时会提取所选小人的 RimWorld 肖像渲染图。</RimChat_SelfieColonistSelectorHint>
+    <RimChat_SelfieInjectionSection>附加提示词选项</RimChat_SelfieInjectionSection>
+    <RimChat_SelfieInjectAge>年龄</RimChat_SelfieInjectAge>
+    <RimChat_SelfieInjectGender>性别</RimChat_SelfieInjectGender>
+    <RimChat_SelfieInjectFaction>派系</RimChat_SelfieInjectFaction>
+    <RimChat_SelfieInjectRole>身份/职业</RimChat_SelfieInjectRole>
+    <RimChat_SelfieInjectBodyType>体型</RimChat_SelfieInjectBodyType>
+    <RimChat_SelfieInjectHair>发型</RimChat_SelfieInjectHair>
+    <RimChat_SelfieInjectXenotype>种族/异种型</RimChat_SelfieInjectXenotype>
+    <RimChat_SelfieInjectApparel>服饰</RimChat_SelfieInjectApparel>
+    <RimChat_SelfieInjectHediff>hediff</RimChat_SelfieInjectHediff>
+    <RimChat_SelfieInjectHealth>当前健康状态</RimChat_SelfieInjectHealth>
+    <RimChat_SelfieInjectWeapon>武器</RimChat_SelfieInjectWeapon>
+    <RimChat_SelfieInjectEquipment>装备</RimChat_SelfieInjectEquipment>
+    <RimChat_SelfieInjectPositivePrompt>附加 Positive prompt</RimChat_SelfieInjectPositivePrompt>
+    <RimChat_SelfieInjectNegativePrompt>附加 Negative prompt</RimChat_SelfieInjectNegativePrompt>
+    <RimChat_SelfieNoColonistSelected>未选择正式殖民者。</RimChat_SelfieNoColonistSelected>
+    <RimChat_SelfieSelectColonistFirst>请选择正式殖民者。</RimChat_SelfieSelectColonistFirst>
+    <RimChat_SelfieAppendixAge>年龄={0}</RimChat_SelfieAppendixAge>
+    <RimChat_SelfieAppendixGender>性别={0}</RimChat_SelfieAppendixGender>
+    <RimChat_SelfieAppendixFaction>派系={0}</RimChat_SelfieAppendixFaction>
+    <RimChat_SelfieAppendixRole>身份/职业={0}</RimChat_SelfieAppendixRole>
+    <RimChat_SelfieAppendixBodyType>体型={0}</RimChat_SelfieAppendixBodyType>
+    <RimChat_SelfieAppendixHair>发型={0}</RimChat_SelfieAppendixHair>
+    <RimChat_SelfieAppendixXenotype>种族/异种型={0}</RimChat_SelfieAppendixXenotype>
+    <RimChat_SelfieAppendixApparel>服饰={0}</RimChat_SelfieAppendixApparel>
+    <RimChat_SelfieAppendixHediff>hediff={0}</RimChat_SelfieAppendixHediff>
+    <RimChat_SelfieAppendixHealth>当前健康状态={0}</RimChat_SelfieAppendixHealth>
+    <RimChat_SelfieAppendixWeapon>武器={0}</RimChat_SelfieAppendixWeapon>
+    <RimChat_SelfieAppendixEquipment>装备={0}</RimChat_SelfieAppendixEquipment>
+    <RimChat_SelfieAppendixPositivePrompt>Positive prompt: {0}</RimChat_SelfieAppendixPositivePrompt>
+    <RimChat_SelfieAppendixNegativePrompt>Negative prompt: {0}</RimChat_SelfieAppendixNegativePrompt>
+    <RimChat_SelfieAppendixHeader>以下内容为参考补充信息，供自拍图生成时保持人物一致性：</RimChat_SelfieAppendixHeader>
     <RimChat_SelfieDefaultPrompt>为 {0} 生成一张清晰正脸自拍，保持边缘世界风格并突出人物细节。</RimChat_SelfieDefaultPrompt>
     <RimChat_SelfieInjectSection>自动注入信息（发送时隐藏追加）</RimChat_SelfieInjectSection>
     <RimChat_SelfieInjectApparel>服饰</RimChat_SelfieInjectApparel>
@@ -1178,6 +1248,7 @@ ID：{5}
     <RimChat_LogAIResponses>记录AI响应</RimChat_LogAIResponses>
     <RimChat_LogInternals>记录内部状态</RimChat_LogInternals>
     <RimChat_LogFullMessages>记录完整收发消息</RimChat_LogFullMessages>
+    <RimChat_LogWarnings>记录警告</RimChat_LogWarnings>
 
     <!-- AI Control Tab -->
     <RimChat_AIBehaviorSettings>AI行为设置</RimChat_AIBehaviorSettings>
@@ -1469,6 +1540,11 @@ ID：{5}
     <RimChat_RPGActionLabel_TryTakeOrderedJob>执行指定行为</RimChat_RPGActionLabel_TryTakeOrderedJob>
     <RimChat_RPGActionLabel_TriggerIncident>触发事件</RimChat_RPGActionLabel_TriggerIncident>
     <RimChat_RPGActionLabel_GrantInspiration>触发灵感</RimChat_RPGActionLabel_GrantInspiration>
+    <RimChat_RPGActionLabel_ConvertIdeology>改变意识形态</RimChat_RPGActionLabel_ConvertIdeology>
+    <RimChat_RPGActionLabel_AdjustCertainty>调整信仰度</RimChat_RPGActionLabel_AdjustCertainty>
+    <RimChat_RPGActionFail_IdeologyDLCRequired>需要 Ideology DLC</RimChat_RPGActionFail_IdeologyDLCRequired>
+    <RimChat_RPGActionFail_NoIdeology>目标角色没有意识形态</RimChat_RPGActionFail_NoIdeology>
+    <RimChat_RPGActionFail_NoSourceIdeology>没有可用的源意识形态（发起者无意识形态且玩家派系无主意识形态）</RimChat_RPGActionFail_NoSourceIdeology>
     <RimChat_RPGSystem_MemoryApplied>系统：已添加记忆 {0}。</RimChat_RPGSystem_MemoryApplied>
     <RimChat_RPGSystem_MemoryRollFailed>系统：记忆判定失败（轮次 {0}，目标 {1}%，掷骰 {2}%）。</RimChat_RPGSystem_MemoryRollFailed>
     <RimChat_RPGSystem_MemoryNoDef>系统：记忆判定成功，但未找到可用 ThoughtDef，已跳过。</RimChat_RPGSystem_MemoryNoDef>

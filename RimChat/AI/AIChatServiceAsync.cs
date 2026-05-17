@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -756,7 +756,7 @@ namespace RimChat.AI
                             }
 
                             DebugLogger.LogFullMessages(attemptMessages, $"HTTP {request.responseCode} ERROR\n{responseBody}");
-                            Log.Error($"[RimChat] AI API Error (HTTP {request.responseCode}): {request.error}\nResponse Body: {responseBody}");
+                            DebugLogger.Error($"AI API Error (HTTP {request.responseCode}): {request.error}\nResponse Body: {responseBody}");
 
                             string errorMsg = FormatProtocolError(request.responseCode, isLocalModel);
                             if (!string.IsNullOrEmpty(responseBody) && responseBody.Length < 200)
@@ -871,7 +871,7 @@ namespace RimChat.AI
                                         attemptMessages,
                                         usageChannel,
                                         parsedEnvelope.FailureReason);
-                                    Log.Warning($"[RimChat] Dialogue envelope retry requested: reason={parsedEnvelope.FailureReason}");
+                                    DebugLogger.WarningGated($"Dialogue envelope retry requested: reason={parsedEnvelope.FailureReason}");
                                     attempt++;
                                     continue;
                                 }
@@ -888,7 +888,7 @@ namespace RimChat.AI
                                         ? safeVisible
                                         : rawPassthrough;
                                     string responsePreview = BuildResponsePreviewForLog(rawPassthrough, 280);
-                                    Log.Warning($"[RimChat] Dialogue envelope raw passthrough used after retry: reason={envelopeFailureReason}, response_preview={responsePreview}");
+                                    DebugLogger.WarningGated($"Dialogue envelope raw passthrough used after retry: reason={envelopeFailureReason}, response_preview={responsePreview}");
                                 }
                                 else
                                 {
@@ -905,7 +905,7 @@ namespace RimChat.AI
                                 {
                                     immersionRetryCount++;
                                     attemptMessages = AppendImmersionRetryMessage(attemptMessages, usageChannel, guardResult);
-                                    Log.Warning($"[RimChat] Immersion guard requested retry: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
+                                    DebugLogger.WarningGated($"Immersion guard requested retry: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
                                     attempt++;
                                     continue;
                                 }
@@ -921,7 +921,7 @@ namespace RimChat.AI
                                         parsedEnvelope = null;
                                     }
 
-                                    Log.Warning($"[RimChat] Immersion guard failed after retry, outputting raw response: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}");
+                                    DebugLogger.WarningGated($"Immersion guard failed after retry, outputting raw response: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}");
                                 }
                                 else
                                 {
@@ -949,7 +949,7 @@ namespace RimChat.AI
                                 {
                                     textIntegrityRetryCount++;
                                     attemptMessages = AppendTextIntegrityRetryMessage(attemptMessages, usageChannel, integrityResult);
-                                    Log.Warning($"[RimChat] Text integrity guard requested retry: reason={integrityResult.ReasonTag}");
+                                    DebugLogger.WarningGated($"Text integrity guard requested retry: reason={integrityResult.ReasonTag}");
                                     attempt++;
                                     continue;
                                 }
@@ -965,7 +965,7 @@ namespace RimChat.AI
                                         parsedEnvelope = null;
                                     }
 
-                                    Log.Warning($"[RimChat] Text integrity guard failed after retry, outputting raw response: reason={integrityResult.ReasonTag}");
+                                    DebugLogger.WarningGated($"Text integrity guard failed after retry, outputting raw response: reason={integrityResult.ReasonTag}");
                                 }
                                 else
                                 {
@@ -1043,7 +1043,7 @@ namespace RimChat.AI
                                     contractValidationStatus = "retry";
                                     contractFailureReason = RpgResponseContractGuard.BuildViolationTag(contractResult.Violation);
                                     attemptMessages = AppendRpgContractRetryMessage(attemptMessages, contractResult);
-                                    Log.Warning($"[RimChat] RPG contract guard requested retry: reason={contractFailureReason}");
+                                    DebugLogger.WarningGated($"RPG contract guard requested retry: reason={contractFailureReason}");
                                     attempt++;
                                     continue;
                                 }
@@ -1059,7 +1059,7 @@ namespace RimChat.AI
                                     parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
                                         ? safeVisible
                                         : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
-                                    Log.Warning($"[RimChat] RPG contract guard failed after retry, outputting raw response: reason={contractFailureReason}");
+                                    DebugLogger.WarningGated($"RPG contract guard failed after retry, outputting raw response: reason={contractFailureReason}");
                                 }
                                 else
                                 {
@@ -1202,7 +1202,7 @@ namespace RimChat.AI
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat] Error executing main thread action: {ex.Message}\n{ex.StackTrace}");
+                    DebugLogger.Error($"Error executing main thread action: {ex.Message}\n{ex.StackTrace}");
                 }
             }
         }
@@ -1264,7 +1264,7 @@ namespace RimChat.AI
 
             if (cancelledCount > 0)
             {
-                Log.Message($"[RimChat] Cancelled {cancelledCount} pending AI requests due to context change: {reason}");
+                DebugLogger.Debug($"Cancelled {cancelledCount} pending AI requests due to context change: {reason}");
             }
         }
 
@@ -1917,7 +1917,7 @@ namespace RimChat.AI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse AI response: {ex.Message}");
+                DebugLogger.WarningGated($"Failed to parse AI response: {ex.Message}");
                 return new PrimaryTextExtractionResult
                 {
                     IsSuccess = false,
@@ -1956,7 +1956,7 @@ namespace RimChat.AI
             int totalTokens = useEstimated ? estimatedTotalTokens : providerTotalTokens;
             if (useEstimated && providerLooksAbnormal)
             {
-                Log.Warning($"[RimChat] Token usage from provider looks abnormal for {anomalyStreak} consecutive calls, fallback to estimate. provider=({providerPromptTokens},{providerCompletionTokens},{providerTotalTokens}), estimated=({estimatedPromptTokens},{estimatedCompletionTokens},{estimatedTotalTokens})");
+                DebugLogger.WarningGated($"Token usage from provider looks abnormal for {anomalyStreak} consecutive calls, fallback to estimate. provider=({providerPromptTokens},{providerCompletionTokens},{providerTotalTokens}), estimated=({estimatedPromptTokens},{estimatedCompletionTokens},{estimatedTotalTokens})");
             }
 
             if (totalTokens <= 0)

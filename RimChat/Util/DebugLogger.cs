@@ -25,6 +25,7 @@ namespace RimChat.Util
         public static bool LogResponses => IsDebugEnabled && ((RimChatMod.Instance?.InstanceSettings)?.LogAIResponses ?? false);
         public static bool LogInternals => IsDebugEnabled && ((RimChatMod.Instance?.InstanceSettings)?.LogInternals ?? false);
         public static bool LogFullMessagesEnabled => IsDebugEnabled && ((RimChatMod.Instance?.InstanceSettings)?.LogFullMessages ?? false);
+        public static bool LogWarningsEnabled => IsDebugEnabled && ((RimChatMod.Instance?.InstanceSettings)?.LogWarnings ?? true);
 
         public static void Info(string message)
         {
@@ -34,6 +35,18 @@ namespace RimChat.Util
         public static void Warning(string message)
         {
             Log.Warning($"{Prefix} {message}");
+        }
+
+        public static void WarningGated(string message)
+        {
+            if (!LogWarningsEnabled) return;
+            Log.Warning($"{Prefix} {message}");
+        }
+
+        public static void MessageGated(string message)
+        {
+            if (!IsDebugEnabled) return;
+            Log.Message($"{Prefix} {message}");
         }
 
         public static void Error(string message)

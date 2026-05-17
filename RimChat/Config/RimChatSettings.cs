@@ -206,6 +206,7 @@ namespace RimChat.Config
         public bool LogAIResponses = true;
         public bool LogInternals = false;
         public bool LogFullMessages = false;
+        public bool LogWarnings = true;
 
         // UI Settings  
         public TypewriterSpeedMode TypewriterSpeedMode = TypewriterSpeedMode.Immersive;
@@ -452,6 +453,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref LogAIResponses, "LogAIResponses", true);
             Scribe_Values.Look(ref LogInternals, "LogInternals", false);
             Scribe_Values.Look(ref LogFullMessages, "LogFullMessages", false);
+            Scribe_Values.Look(ref LogWarnings, "LogWarnings", true);
 
             // UI Settings
             Scribe_Values.Look(ref TypewriterSpeedMode, "TypewriterSpeedMode", TypewriterSpeedMode.Standard);
@@ -1539,6 +1541,7 @@ namespace RimChat.Config
                 listing.CheckboxLabeled("RimChat_LogAIResponses".Translate(), ref LogAIResponses);
                 listing.CheckboxLabeled("RimChat_LogInternals".Translate(), ref LogInternals);
                 listing.CheckboxLabeled("RimChat_LogFullMessages".Translate(), ref LogFullMessages);
+                listing.CheckboxLabeled("RimChat_LogWarnings".Translate(), ref LogWarnings);
             }
         }
 

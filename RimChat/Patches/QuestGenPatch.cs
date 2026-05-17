@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
+using RimChat.Util;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using Verse;
@@ -26,21 +27,21 @@ namespace RimChat.Patches
  var slateSet = AccessTools.Method(typeof(Slate), "Set");
  if (slateSet != null)
  harmony.Patch(slateSet, prefix: new HarmonyMethod(typeof(QuestGenPatch), nameof(Prefix_SlateSet)));
- } catch (Exception ex) { Log.Warning($"[RimChat] Failed patch Slate.Set: {ex.Message}"); } */
+ } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch Slate.Set: {ex.Message}"); } */
 
             // 1. Patch QuestNode_GetNearbySettlement.RunInt
             try {
                 var target1 = AccessTools.Method(typeof(QuestNode_GetNearbySettlement), "RunInt");
                 if (target1 != null)
                     harmony.Patch(target1, prefix: new HarmonyMethod(typeof(QuestGenPatch), nameof(Prefix_GetNearbySettlement)));
-            } catch (Exception ex) { Log.Warning($"[RimChat] Failed patch GetNearbySettlement: {ex.Message}"); }
+            } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch GetNearbySettlement: {ex.Message}"); }
 
             // 2. Patch QuestNode_GetFactionOf.RunInt
             try {
                 var target2 = AccessTools.Method(typeof(QuestNode_GetFactionOf), "RunInt");
                 if (target2 != null)
                     harmony.Patch(target2, prefix: new HarmonyMethod(typeof(QuestGenPatch), nameof(Prefix_GetFactionOf)));
-            } catch (Exception ex) { Log.Warning($"[RimChat] Failed patch GetFactionOf: {ex.Message}"); }
+            } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch GetFactionOf: {ex.Message}"); }
 
             // 3. Mission_BanditCamp is disabled by safety policy; skip patching its quest node to avoid startup warnings.
 
@@ -60,7 +61,7 @@ namespace RimChat.Patches
                         if (method != null)
                             harmony.Patch(method, prefix: new HarmonyMethod(typeof(QuestGenPatch), nameof(Prefix_PreventOverwrite)));
                     }
-                } catch (Exception ex) { Log.Warning($"[RimChat] Failed patch {nodeName}: {ex.Message}"); }
+                } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch {nodeName}: {ex.Message}"); }
             }
 
             // 5. Patch QuestNode_GiveRewards to force giverFaction
@@ -72,7 +73,7 @@ namespace RimChat.Patches
                     if (method != null)
                         harmony.Patch(method, prefix: new HarmonyMethod(typeof(QuestGenPatch), nameof(Prefix_ForceGiverFaction)));
                 }
-            } catch (Exception ex) { Log.Warning($"[RimChat] Failed patch GiveRewards: {ex.Message}"); }
+            } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch GiveRewards: {ex.Message}"); }
 
             // 6. Patch QuestNode_HasRoyalTitleInCurrentFaction
             try {
@@ -83,7 +84,7 @@ namespace RimChat.Patches
                     if (method != null)
                         harmony.Patch(method, prefix: new HarmonyMethod(typeof(QuestGenPatch), nameof(Prefix_HasRoyalTitleInCurrentFaction)));
                 }
-            } catch (Exception ex) { Log.Warning($"[RimChat] Failed patch HasRoyalTitleInCurrentFaction: {ex.Message}"); }
+            } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch HasRoyalTitleInCurrentFaction: {ex.Message}"); }
         }
 
         /// <summary>/// Slate.Set 前缀patch: 在 LockSlateVariables 为 true 时保护核心变量
@@ -187,7 +188,7 @@ namespace RimChat.Patches
                             }
                             catch (Exception ex)
                             {
-                                Log.Warning($"[RimChat] QuestGenPatch: failed to patch field '{fieldName}' on {__instance.GetType().Name}: {ex.Message}");
+                                DebugLogger.WarningGated($"QuestGenPatch: failed to patch field '{fieldName}' on {__instance.GetType().Name}: {ex.Message}");
                             }
                         }
 
@@ -200,7 +201,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] QuestGenPatch.Prefix_ForceGiverFaction failed: {ex.Message}");
+                DebugLogger.WarningGated($"QuestGenPatch.Prefix_ForceGiverFaction failed: {ex.Message}");
             }
             return true;
         }
@@ -250,13 +251,13 @@ namespace RimChat.Patches
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning($"[RimChat] QuestGenPatch.Prefix_PreventOverwrite: failed on field '{fieldName}' of {__instance.GetType().Name}: {ex.Message}");
+                        DebugLogger.WarningGated($"QuestGenPatch.Prefix_PreventOverwrite: failed on field '{fieldName}' of {__instance.GetType().Name}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] QuestGenPatch.Prefix_PreventOverwrite failed: {ex.Message}");
+                DebugLogger.WarningGated($"QuestGenPatch.Prefix_PreventOverwrite failed: {ex.Message}");
             }
             return true;
         }
@@ -357,7 +358,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] QuestGenPatch.Prefix_HasRoyalTitleInCurrentFaction failed: {ex.Message}");
+                DebugLogger.WarningGated($"QuestGenPatch.Prefix_HasRoyalTitleInCurrentFaction failed: {ex.Message}");
                 return true;
             }
         }
@@ -406,7 +407,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] QuestGenPatch.PatchGiveRewardsNodeForNonEmpireFaction failed on {node.GetType().Name}: {ex.Message}");
+                DebugLogger.WarningGated($"QuestGenPatch.PatchGiveRewardsNodeForNonEmpireFaction failed on {node.GetType().Name}: {ex.Message}");
             }
         }
 
@@ -438,7 +439,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] QuestGenPatch.Prefix_Mission_BanditCamp failed: {ex.Message}");
+                DebugLogger.WarningGated($"QuestGenPatch.Prefix_Mission_BanditCamp failed: {ex.Message}");
             }
             return true;
         }

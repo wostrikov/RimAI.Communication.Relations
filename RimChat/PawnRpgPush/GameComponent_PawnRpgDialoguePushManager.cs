@@ -29,7 +29,7 @@ namespace RimChat.PawnRpgPush
 
         private const int TickPerHour = 2500;
         private const int TickPerDay = 60000;
-        private const int RegularEvaluationInterval = 6000;
+        private const int RegularEvaluationInterval = 36000;
         private const int QueueProcessInterval = 600;
         private const int IncomingDrainInterval = 120;
         private const int ThreatScanInterval = 600;
@@ -38,8 +38,8 @@ namespace RimChat.PawnRpgPush
         private const int CausalMinDelayTicks = 250;
         private const int CausalMaxDelayTicks = 1000;
         private const int NpcEvaluateCooldownTicks = 150000;
-        private const int ColonyDeliveryCooldownTicks = 75000;
-        private const int ColonistPairCooldownTicks = 37500;
+        private const int ColonyDeliveryCooldownTicks = TickPerHour * 3;
+        private const int ColonistPairCooldownTicks = TickPerHour;
         private const int BlockedRetryTicks = 300;
         private const int MissingProtagonistLogIntervalTicks = 6000;
         private const float LowMoodThreshold = 0.30f;
@@ -1080,9 +1080,9 @@ namespace RimChat.PawnRpgPush
         {
             return mode switch
             {
-                NpcPushFrequencyMode.High => 0.15f,
-                NpcPushFrequencyMode.Medium => 0.10f,
-                _ => 0.06f
+                NpcPushFrequencyMode.High => 0.10f,
+                NpcPushFrequencyMode.Medium => 0.05f,
+                _ => 0f
             };
         }
     }

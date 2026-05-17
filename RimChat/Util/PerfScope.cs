@@ -1,11 +1,10 @@
 using System;
 using System.Diagnostics;
-using Verse;
 
 namespace RimChat.Util
 {
     /// <summary>
-    /// Lightweight disposable perf probe. Logs to [RimChatPerf] when the
+    /// Lightweight disposable perf probe. Logs via DebugLogger when the
     /// measured block exceeds <see cref="ThresholdMs"/>.
     /// Usage: using (PerfScope.Measure("MyMethod")) { ... }
     /// </summary>
@@ -30,7 +29,7 @@ namespace RimChat.Util
             double ms = sw.Elapsed.TotalMilliseconds;
             if (ms >= ThresholdMs)
             {
-                Log.Warning($"[RimChatPerf] {label}: {ms:F1}ms");
+                DebugLogger.WarningGated($"[Perf] {label}: {ms:F1}ms");
             }
         }
     }

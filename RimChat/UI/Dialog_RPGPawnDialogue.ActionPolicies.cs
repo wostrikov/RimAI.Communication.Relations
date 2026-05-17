@@ -157,6 +157,8 @@ namespace RimChat.UI
                 "grantinspiration" or "grant_inspiration" => "GrantInspiration",
                 "exitdialoguecooldown" or "exit_dialogue_cooldown" or "exit_dialogue_with_cooldown" => "ExitDialogueCooldown",
                 "exitdialogue" or "exit_dialogue" or "end_dialogue" => "ExitDialogue",
+                "convertideology" or "convert_ideology" or "改变意识形态" or "皈依" => "ConvertIdeology",
+                "adjustcertainty" or "adjust_certainty" or "调整信仰度" or "动摇信仰" => "AdjustCertainty",
                 _ => actionName.Trim()
             };
         }

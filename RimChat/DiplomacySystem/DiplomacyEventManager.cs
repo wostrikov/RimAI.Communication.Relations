@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -42,13 +42,13 @@ namespace RimChat.DiplomacySystem
                 Map map = Find.AnyPlayerHomeMap;
                 if (map == null)
                 {
-                    Log.Warning("[RimChat] No player home map found for caravan event");
+                    DebugLogger.WarningGated("No player home map found for caravan event");
                     return false;
                 }
 
                 if (!TryFindNearestFactionSettlement(faction, map.Tile, out _))
                 {
-                    Log.Warning($"[RimChat] Caravan trigger skipped: {faction.Name} has no reachable settlement.");
+                    DebugLogger.WarningGated($"Caravan trigger skipped: {faction.Name} has no reachable settlement.");
                     return false;
                 }
 
@@ -63,29 +63,29 @@ namespace RimChat.DiplomacySystem
                 }
                 else
                 {
-                    Log.Warning($"[RimChat] No trader kind found for {faction.Name} type={caravanType}; TryExecute will use faction default.");
+                    DebugLogger.WarningGated($"No trader kind found for {faction.Name} type={caravanType}; TryExecute will use faction default.");
                 }
 
                 IncidentDef incidentDef = IncidentDefOf.TraderCaravanArrival;
                 bool canFire = incidentDef.Worker.CanFireNow(parms);
-                Log.Message($"[RimChat] Caravan pre-check: faction={faction.Name}, type={caravanType}, traderKind={traderKind?.defName ?? "null"}, canFireNow={canFire}, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
+                DebugLogger.Debug($"Caravan pre-check: faction={faction.Name}, type={caravanType}, traderKind={traderKind?.defName ?? "null"}, canFireNow={canFire}, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
 
                 bool success = incidentDef.Worker.TryExecute(parms);
 
                 if (success)
                 {
-                    Log.Message($"[RimChat] Triggered {caravanType} caravan from {faction.Name}");
+                    DebugLogger.Debug($"Triggered {caravanType} caravan from {faction.Name}");
                 }
                 else
                 {
-                    Log.Warning($"[RimChat] Failed to trigger {caravanType} caravan from {faction.Name} (canFireNow was {canFire})");
+                    DebugLogger.WarningGated($"Failed to trigger {caravanType} caravan from {faction.Name} (canFireNow was {canFire})");
                 }
 
                 return success;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering caravan event: {ex}");
+                DebugLogger.Error($"Error triggering caravan event: {ex}");
                 return false;
             }
         }
@@ -97,14 +97,14 @@ namespace RimChat.DiplomacySystem
                 Map map = Find.AnyPlayerHomeMap;
                 if (map == null)
                 {
-                    Log.Warning("[RimChat] No player home map found for visitor event");
+                    DebugLogger.WarningGated("No player home map found for visitor event");
                     return false;
                 }
 
                 IncidentDef incidentDef = DefDatabase<IncidentDef>.GetNamedSilentFail("VisitorGroup");
                 if (incidentDef == null)
                 {
-                    Log.Error("[RimChat] VisitorGroup incident def not found");
+                    DebugLogger.Error("VisitorGroup incident def not found");
                     return false;
                 }
 
@@ -115,18 +115,18 @@ namespace RimChat.DiplomacySystem
 
                 if (success)
                 {
-                    Log.Message($"[RimChat] Triggered visitor group from {faction.Name}");
+                    DebugLogger.Debug($"Triggered visitor group from {faction.Name}");
                 }
                 else
                 {
-                    Log.Warning($"[RimChat] Failed to trigger visitor group from {faction.Name}");
+                    DebugLogger.WarningGated($"Failed to trigger visitor group from {faction.Name}");
                 }
 
                 return success;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering visitor event: {ex}");
+                DebugLogger.Error($"Error triggering visitor event: {ex}");
                 return false;
             }
         }
@@ -136,7 +136,7 @@ namespace RimChat.DiplomacySystem
             List<TraderKindDef> factionTraders = GetFactionGroundTraderKinds(faction);
             if (factionTraders.Count == 0)
             {
-                Log.Warning($"[RimChat] Faction {faction?.Name ?? "null"} has no ground caravan traders; leave traderKind null.");
+                DebugLogger.WarningGated($"Faction {faction?.Name ?? "null"} has no ground caravan traders; leave traderKind null.");
                 return null;
             }
 
@@ -144,22 +144,22 @@ namespace RimChat.DiplomacySystem
                 .Where(trader => MatchesCaravanType(trader, caravanType))
                 .ToList();
 
-            Log.Message($"[RimChat] Faction trader pool for {faction?.Name ?? "null"}: total={factionTraders.Count}, typeMatched={matchingTraders.Count}, requestedType={caravanType}");
+            DebugLogger.Debug($"Faction trader pool for {faction?.Name ?? "null"}: total={factionTraders.Count}, typeMatched={matchingTraders.Count}, requestedType={caravanType}");
             foreach (TraderKindDef trader in matchingTraders)
             {
-                Log.Message($"[RimChat]   - {trader.defName}");
+                DebugLogger.Debug($"- {trader.defName}");
             }
 
             if (matchingTraders.Count > 0)
             {
                 TraderKindDef selected = matchingTraders.RandomElement();
-                Log.Message($"[RimChat] Selected faction-matched trader: {selected.defName}");
+                DebugLogger.Debug($"Selected faction-matched trader: {selected.defName}");
                 return selected;
             }
 
             // Fail fast to faction-safe fallback instead of global cross-faction randomization.
             TraderKindDef factionFallback = factionTraders.RandomElement();
-            Log.Warning($"[RimChat] No trader matched {caravanType} for {faction?.Name ?? "null"}, fallback to faction trader {factionFallback.defName}.");
+            DebugLogger.WarningGated($"No trader matched {caravanType} for {faction?.Name ?? "null"}, fallback to faction trader {factionFallback.defName}.");
             return factionFallback;
         }
 
@@ -217,7 +217,7 @@ namespace RimChat.DiplomacySystem
                 Map map = Find.AnyPlayerHomeMap;
                 if (map == null)
                 {
-                    Log.Warning("[RimChat] No player home map found for aid event");
+                    DebugLogger.WarningGated("No player home map found for aid event");
                     return false;
                 }
 
@@ -235,7 +235,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering aid event: {ex}");
+                DebugLogger.Error($"Error triggering aid event: {ex}");
                 return false;
             }
         }
@@ -249,13 +249,13 @@ namespace RimChat.DiplomacySystem
                 Map map = Find.AnyPlayerHomeMap;
                 if (map == null)
                 {
-                    Log.Warning("[RimChat] No player home map found for military aid event");
+                    DebugLogger.WarningGated("No player home map found for military aid event");
                     return false;
                 }
 
                 if (faction == null || faction.defeated)
                 {
-                    Log.Warning("[RimChat] Invalid faction for military aid");
+                    DebugLogger.WarningGated("Invalid faction for military aid");
                     return false;
                 }
 
@@ -263,7 +263,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering military aid event: {ex}");
+                DebugLogger.Error($"Error triggering military aid event: {ex}");
                 return false;
             }
         }
@@ -275,23 +275,23 @@ namespace RimChat.DiplomacySystem
         {
             if (!TryBuildCallEveryoneAidParms(faction, out Map map, out IncidentParms aidParms, out string parmReason))
             {
-                Log.Error($"[RimChat][CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=BuildParms, reason={parmReason}");
+                DebugLogger.Error($"CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=BuildParms, reason={parmReason}");
                 return false;
             }
 
             if (!TryGenerateCallEveryoneAidPawns(aidParms, out List<Pawn> pawns, out string pawnReason))
             {
-                Log.Error($"[RimChat][CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=GeneratePawns, reason={pawnReason}");
+                DebugLogger.Error($"CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=GeneratePawns, reason={pawnReason}");
                 return false;
             }
 
             if (!TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out string arriveReason))
             {
-                Log.Error($"[RimChat][CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=Arrive, reason={arriveReason}");
+                DebugLogger.Error($"CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=Arrive, reason={arriveReason}");
                 return false;
             }
 
-            Log.Message($"[RimChat] Triggered custom military aid from {faction.Name}, pawns={pawns.Count}");
+            DebugLogger.Debug($"Triggered custom military aid from {faction.Name}, pawns={pawns.Count}");
             SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
                 "RimChat_MilitaryAidLetterBody".Translate(faction.Name));
             return true;
@@ -312,18 +312,18 @@ namespace RimChat.DiplomacySystem
                 bool success = militaryAidDef.Worker.TryExecute(parms);
                 if (success)
                 {
-                    Log.Message($"[RimChat][AidIncidentResolve] faction={faction.Name}, incident={militaryAidDef.defName}, result=success");
-                    Log.Message($"[RimChat] Triggered military aid from {faction.Name}");
+                    DebugLogger.Debug($"AidIncidentResolve] faction={faction.Name}, incident={militaryAidDef.defName}, result=success");
+                    DebugLogger.Debug($"Triggered military aid from {faction.Name}");
                     SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
                         "RimChat_MilitaryAidLetterBody".Translate(faction.Name));
                     return true;
                 }
 
-                Log.Warning($"[RimChat][AidIncidentResolve] faction={faction.Name}, incident={militaryAidDef.defName}, TryExecute returned false; falling back to custom spawn.");
+                DebugLogger.WarningGated($"AidIncidentResolve] faction={faction.Name}, incident={militaryAidDef.defName}, TryExecute returned false; falling back to custom spawn.");
             }
             else
             {
-                Log.Warning($"[RimChat][AidIncidentResolve] faction={faction.Name}, vanilla incident unavailable ({resolveReason}); falling back to custom spawn.");
+                DebugLogger.WarningGated($"AidIncidentResolve] faction={faction.Name}, vanilla incident unavailable ({resolveReason}); falling back to custom spawn.");
             }
 
             // Fallback: custom pawn generation (same approach as CallEveryone military aid)
@@ -334,23 +334,23 @@ namespace RimChat.DiplomacySystem
         {
             if (!TryBuildCallEveryoneAidParms(faction, out Map map, out IncidentParms aidParms, out string buildReason))
             {
-                Log.Error($"[RimChat][AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=BuildParms, reason={buildReason}");
+                DebugLogger.Error($"AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=BuildParms, reason={buildReason}");
                 return false;
             }
 
             if (!TryGenerateCallEveryoneAidPawns(aidParms, out List<Pawn> pawns, out string pawnReason))
             {
-                Log.Error($"[RimChat][AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=GeneratePawns, reason={pawnReason}");
+                DebugLogger.Error($"AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=GeneratePawns, reason={pawnReason}");
                 return false;
             }
 
             if (!TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out string arriveReason))
             {
-                Log.Error($"[RimChat][AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=Arrive, reason={arriveReason}");
+                DebugLogger.Error($"AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=Arrive, reason={arriveReason}");
                 return false;
             }
 
-            Log.Message($"[RimChat] Triggered military aid (custom fallback) from {faction.Name}, pawns={pawns.Count}");
+            DebugLogger.Debug($"Triggered military aid (custom fallback) from {faction.Name}, pawns={pawns.Count}");
             SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
                 "RimChat_MilitaryAidLetterBody".Translate(faction.Name));
             return true;
@@ -388,12 +388,12 @@ namespace RimChat.DiplomacySystem
 
                 incidentDef = def;
                 reason = $"Resolved:{def.defName}";
-                Log.Message($"[RimChat][AidIncidentResolve] faction={parms.faction?.Name ?? "null"}, selected={def.defName}, observed={string.Join(",", observed)}");
+                DebugLogger.Debug($"AidIncidentResolve] faction={parms.faction?.Name ?? "null"}, selected={def.defName}, observed={string.Join(",", observed)}");
                 return true;
             }
 
             reason = $"NoExecutableCandidate; observed={string.Join(",", observed)}";
-            Log.Error($"[RimChat][AidIncidentResolve] faction={parms.faction?.Name ?? "null"}, selected=<none>, observed={string.Join(",", observed)}");
+            DebugLogger.Error($"AidIncidentResolve] faction={parms.faction?.Name ?? "null"}, selected=<none>, observed={string.Join(",", observed)}");
             return false;
         }
 
@@ -413,7 +413,7 @@ namespace RimChat.DiplomacySystem
             SendAidLetter(faction, "RimChat_MedicalAidArrivedTitle".Translate(), 
                 "RimChat_MedicalAidLetterBody".Translate(faction.Name));
             
-            Log.Message($"[RimChat] Triggered medical aid from {faction.Name}");
+            DebugLogger.Debug($"Triggered medical aid from {faction.Name}");
             return true;
         }
 
@@ -433,7 +433,7 @@ namespace RimChat.DiplomacySystem
             SendAidLetter(faction, "RimChat_ResourceAidArrivedTitle".Translate(), 
                 "RimChat_ResourceAidLetterBody".Translate(faction.Name));
             
-            Log.Message($"[RimChat] Triggered resource aid from {faction.Name}");
+            DebugLogger.Debug($"Triggered resource aid from {faction.Name}");
             return true;
         }
 
@@ -602,7 +602,7 @@ namespace RimChat.DiplomacySystem
                 int homeTile = Find.AnyPlayerHomeMap?.Tile ?? -1;
                 if (!TryFindNearestFactionSettlement(faction, homeTile, out int distanceTiles))
                 {
-                    Log.Warning($"[RimChat] Cannot schedule caravan from {faction.Name}: no valid settlement found.");
+                    DebugLogger.WarningGated($"Cannot schedule caravan from {faction.Name}: no valid settlement found.");
                     return false;
                 }
 
@@ -620,12 +620,12 @@ namespace RimChat.DiplomacySystem
                 string caravanTypeLabel = GetCaravanTypeLabel(caravanType);
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Caravan, caravanTypeLabel, delayDays);
 
-                Log.Message($"[RimChat] Scheduled delayed caravan from {faction.Name}, type={caravanType}, delay={delayDays:F1} days, distance={distanceTiles} tiles, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
+                DebugLogger.Debug($"Scheduled delayed caravan from {faction.Name}, type={caravanType}, delay={delayDays:F1} days, distance={distanceTiles} tiles, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error scheduling delayed caravan: {ex}");
+                DebugLogger.Error($"Error scheduling delayed caravan: {ex}");
                 return false;
             }
         }
@@ -648,12 +648,12 @@ namespace RimChat.DiplomacySystem
                 string aidTypeLabel = GetAidTypeLabel(aidType);
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Aid, aidTypeLabel, delayDays);
 
-                Log.Message($"[RimChat] Scheduled delayed aid from {faction.Name}, type={aidType}, delay={delayDays:F1} days");
+                DebugLogger.Debug($"Scheduled delayed aid from {faction.Name}, type={aidType}, delay={delayDays:F1} days");
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error scheduling delayed aid: {ex}");
+                DebugLogger.Error($"Error scheduling delayed aid: {ex}");
                 return false;
             }
         }
@@ -672,12 +672,12 @@ namespace RimChat.DiplomacySystem
                 string detail = "RimChat_VisitorGroupLabel".Translate();
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Visitor, detail, delayDays);
 
-                Log.Message($"[RimChat] Scheduled delayed visitor group from {faction.Name}, delay={delayDays:F1} days");
+                DebugLogger.Debug($"Scheduled delayed visitor group from {faction.Name}, delay={delayDays:F1} days");
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error scheduling delayed visitor event: {ex}");
+                DebugLogger.Error($"Error scheduling delayed visitor event: {ex}");
                 return false;
             }
         }
@@ -688,14 +688,14 @@ namespace RimChat.DiplomacySystem
             {
                 if (!TryValidateRaidFaction(faction, out string factionValidationReason))
                 {
-                    Log.Warning($"[RimChat] Raid blocked: {factionValidationReason}");
+                    DebugLogger.WarningGated($"Raid blocked: {factionValidationReason}");
                     return false;
                 }
 
                 Map map = Find.AnyPlayerHomeMap;
                 if (map == null)
                 {
-                    Log.Warning("[RimChat] No player home map found for raid event");
+                    DebugLogger.WarningGated("No player home map found for raid event");
                     return false;
                 }
 
@@ -708,7 +708,7 @@ namespace RimChat.DiplomacySystem
                         return true;
                     }
 
-                    Log.Warning($"[RimChat] Milira direct raid fallback failed: {miliraDirectReason}");
+                    DebugLogger.WarningGated($"Milira direct raid fallback failed: {miliraDirectReason}");
                     return false;
                 }
 
@@ -719,11 +719,11 @@ namespace RimChat.DiplomacySystem
                     normalizedStrategy = GetFallbackStrategy(faction, map);
                     if (normalizedStrategy == null)
                     {
-                        Log.Warning($"[RimChat] Cannot find executable raid strategy for {faction?.Name}; falling back to vanilla raid strategy resolution.");
+                        DebugLogger.WarningGated($"Cannot find executable raid strategy for {faction?.Name}; falling back to vanilla raid strategy resolution.");
                     }
                     else
                     {
-                        Log.Warning($"[RimChat] Strategy {strategy?.defName} not executable, using fallback {normalizedStrategy.defName}");
+                        DebugLogger.WarningGated($"Strategy {strategy?.defName} not executable, using fallback {normalizedStrategy.defName}");
                     }
                 }
 
@@ -738,16 +738,16 @@ namespace RimChat.DiplomacySystem
                     normalizedArrivalMode = GetFallbackArrivalMode(normalizedStrategy);
                     if (normalizedArrivalMode == null)
                     {
-                        Log.Error($"[RimChat] Cannot find compatible arrival mode for strategy {normalizedStrategy?.defName}");
+                        DebugLogger.Error($"Cannot find compatible arrival mode for strategy {normalizedStrategy?.defName}");
                         return false;
                     }
-                    Log.Warning($"[RimChat] Arrival mode {arrivalMode?.defName} not compatible, using fallback {normalizedArrivalMode.defName}");
+                    DebugLogger.WarningGated($"Arrival mode {arrivalMode?.defName} not compatible, using fallback {normalizedArrivalMode.defName}");
                 }
 
                 IncidentDef incidentDef = IncidentDefOf.RaidEnemy;
                 if (incidentDef == null || incidentDef.Worker == null)
                 {
-                    Log.Error("[RimChat] RaidEnemy incident def/worker is unavailable.");
+                    DebugLogger.Error("RaidEnemy incident def/worker is unavailable.");
                     return false;
                 }
 
@@ -760,14 +760,14 @@ namespace RimChat.DiplomacySystem
                     normalizedArrivalMode);
                 if (!EnsureUsableCombatPawnGroupMakerForParms(faction, parms, out string groupPreflightReason))
                 {
-                    Log.Warning($"[RimChat] Raid group preflight could not ensure usable combat maker: {groupPreflightReason}");
+                    DebugLogger.WarningGated($"Raid group preflight could not ensure usable combat maker: {groupPreflightReason}");
                 }
 
                 if (!incidentDef.Worker.CanFireNow(parms))
                 {
                     if (TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out string vanillaAutoReason))
                     {
-                        Log.Warning($"[RimChat] Raid precheck blocked for strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}; forced vanilla auto fallback succeeded.");
+                        DebugLogger.WarningGated($"Raid precheck blocked for strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}; forced vanilla auto fallback succeeded.");
                         return true;
                     }
 
@@ -776,7 +776,7 @@ namespace RimChat.DiplomacySystem
                         return true;
                     }
 
-                    Log.Warning($"[RimChat] Raid precheck blocked for faction={faction.Name}, def={faction.def?.defName}, relation={faction.RelationKindWith(Faction.OfPlayer)}, points={raidPoints:F1}, strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DescribeRaidGroupMakerState(faction)}");
+                    DebugLogger.WarningGated($"Raid precheck blocked for faction={faction.Name}, def={faction.def?.defName}, relation={faction.RelationKindWith(Faction.OfPlayer)}, points={raidPoints:F1}, strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DescribeRaidGroupMakerState(faction)}");
                     return false;
                 }
 
@@ -784,13 +784,13 @@ namespace RimChat.DiplomacySystem
 
                 if (success)
                 {
-                    Log.Message($"[RimChat] Triggered raid from {faction.Name} with strategy {normalizedStrategy?.defName ?? "auto"} and arrival {normalizedArrivalMode?.defName ?? "auto"}");
+                    DebugLogger.Debug($"Triggered raid from {faction.Name} with strategy {normalizedStrategy?.defName ?? "auto"} and arrival {normalizedArrivalMode?.defName ?? "auto"}");
                 }
                 else
                 {
                     if (TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out string vanillaAutoReason))
                     {
-                        Log.Warning($"[RimChat] Raid execution failed for strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}; forced vanilla auto fallback succeeded.");
+                        DebugLogger.WarningGated($"Raid execution failed for strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}; forced vanilla auto fallback succeeded.");
                         return true;
                     }
 
@@ -799,14 +799,14 @@ namespace RimChat.DiplomacySystem
                         return true;
                     }
 
-                    Log.Warning($"[RimChat] Failed to trigger raid from {faction.Name}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DescribeRaidGroupMakerState(faction)}");
+                    DebugLogger.WarningGated($"Failed to trigger raid from {faction.Name}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DescribeRaidGroupMakerState(faction)}");
                 }
 
                 return success;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering raid event: {ex}");
+                DebugLogger.Error($"Error triggering raid event: {ex}");
                 return false;
             }
         }
@@ -931,7 +931,7 @@ namespace RimChat.DiplomacySystem
                 arrivalMode: null);
             if (!EnsureUsableCombatPawnGroupMakerForParms(faction, autoParms, out string groupReason))
             {
-                Log.Warning($"[RimChat] Vanilla auto fallback preflight warning: {groupReason}");
+                DebugLogger.WarningGated($"Vanilla auto fallback preflight warning: {groupReason}");
             }
 
             if (!incidentDef.Worker.CanFireNow(autoParms))
@@ -947,7 +947,7 @@ namespace RimChat.DiplomacySystem
             }
 
             reason = "success";
-            Log.Message($"[RimChat] Triggered raid from {faction.Name} with forced vanilla auto strategy/arrival.");
+            DebugLogger.Debug($"Triggered raid from {faction.Name} with forced vanilla auto strategy/arrival.");
             return true;
         }
 
@@ -974,7 +974,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to resolve default raid points from storyteller parms: {ex.Message}");
+                DebugLogger.WarningGated($"Failed to resolve default raid points from storyteller parms: {ex.Message}");
             }
 
             float fallbackThreatPoints = StorytellerUtility.DefaultThreatPointsNow(map);
@@ -1041,7 +1041,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error getting fallback strategy: {ex}");
+                DebugLogger.Error($"Error getting fallback strategy: {ex}");
                 return null;
             }
         }
@@ -1061,7 +1061,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error getting fallback arrival mode: {ex}");
+                DebugLogger.Error($"Error getting fallback arrival mode: {ex}");
                 return PawnsArrivalModeDefOf.EdgeWalkIn;
             }
         }
@@ -1110,12 +1110,12 @@ namespace RimChat.DiplomacySystem
                 string strategyLabel = strategy?.label ?? "Standard";
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Raid, strategyLabel, delayHours);
 
-                Log.Message($"[RimChat] Scheduled delayed raid from {faction.Name}, strategy={strategy?.defName}, delay={delayHours:F1} hours");
+                DebugLogger.Debug($"Scheduled delayed raid from {faction.Name}, strategy={strategy?.defName}, delay={delayHours:F1} hours");
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error scheduling delayed raid: {ex}");
+                DebugLogger.Error($"Error scheduling delayed raid: {ex}");
                 return false;
             }
         }
@@ -1128,7 +1128,7 @@ namespace RimChat.DiplomacySystem
             {
                 if (targetFactions == null || targetFactions.Count == 0)
                 {
-                    Log.Warning("[RimChat] ScheduleRaidCallEveryone: No target factions provided.");
+                    DebugLogger.WarningGated("ScheduleRaidCallEveryone: No target factions provided.");
                     return false;
                 }
 
@@ -1138,7 +1138,7 @@ namespace RimChat.DiplomacySystem
                 List<Faction> effectiveFactions = BalanceCallEveryoneParticipants(targetFactions);
                 if (effectiveFactions.Count == 0)
                 {
-                    Log.Warning("[RimChat] ScheduleRaidCallEveryone: No effective factions after balancing.");
+                    DebugLogger.WarningGated("ScheduleRaidCallEveryone: No effective factions after balancing.");
                     return false;
                 }
                 
@@ -1177,7 +1177,7 @@ namespace RimChat.DiplomacySystem
                 int hostileCount = effectiveFactions.Count(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile);
                 int friendlyCount = effectiveFactions.Count - hostileCount;
                 
-                Log.Message($"[RimChat] Scheduled raid_call_everyone: {effectiveFactions.Count} factions " +
+                DebugLogger.Debug($"Scheduled raid_call_everyone: {effectiveFactions.Count} factions " +
                            $"({hostileCount} hostile, {friendlyCount} friendly/neutral), " +
                            $"all arrivals scheduled in 16-30 hours window; friendly/neutral uses custom military aid.");
 
@@ -1203,7 +1203,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error scheduling raid_call_everyone: {ex}");
+                DebugLogger.Error($"Error scheduling raid_call_everyone: {ex}");
                 return false;
             }
         }
@@ -1234,7 +1234,7 @@ namespace RimChat.DiplomacySystem
 
             int actualHostile = result.Count(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile);
             int actualFriendly = result.Count(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Ally);
-            Log.Message($"[RimChat][CallEveryoneBalance] wealth={playerWealth:F0}, maxHostile={maxHostile}, maxFriendly={maxFriendly}, " +
+            DebugLogger.Debug($"CallEveryoneBalance] wealth={playerWealth:F0}, maxHostile={maxHostile}, maxFriendly={maxFriendly}, " +
                        $"actualHostile={actualHostile}, actualFriendly={actualFriendly}");
 
             return result;
@@ -1281,7 +1281,7 @@ namespace RimChat.DiplomacySystem
             GameComponent_DiplomacyManager manager = GameComponent_DiplomacyManager.Instance;
             if (manager == null)
             {
-                Log.Warning($"[RimChat][CallEveryoneSocialPost] manager unavailable, faction={sourceFaction.Name}, followup={isFollowup}");
+                DebugLogger.WarningGated($"CallEveryoneSocialPost] manager unavailable, faction={sourceFaction.Name}, followup={isFollowup}");
                 return false;
             }
 
@@ -1298,7 +1298,7 @@ namespace RimChat.DiplomacySystem
                 isFromPlayerDialogue: false,
                 reason: DebugGenerateReason.DialogueExplicit);
 
-            Log.Message($"[RimChat][CallEveryoneSocialPost] faction={sourceFaction.Name}, followup={isFollowup}, queued={queued}");
+            DebugLogger.Debug($"CallEveryoneSocialPost] faction={sourceFaction.Name}, followup={isFollowup}, queued={queued}");
             return queued;
         }
 
@@ -1312,7 +1312,7 @@ namespace RimChat.DiplomacySystem
             GameComponent_DiplomacyManager manager = GameComponent_DiplomacyManager.Instance;
             if (manager == null)
             {
-                Log.Warning($"[RimChat][RaidWavesSocialPost] manager unavailable, faction={sourceFaction.Name}, totalWaves={totalWaves}");
+                DebugLogger.WarningGated($"RaidWavesSocialPost] manager unavailable, faction={sourceFaction.Name}, totalWaves={totalWaves}");
                 return false;
             }
 
@@ -1327,7 +1327,7 @@ namespace RimChat.DiplomacySystem
                 isFromPlayerDialogue: false,
                 reason: DebugGenerateReason.DialogueExplicit);
 
-            Log.Message($"[RimChat][RaidWavesSocialPost] faction={sourceFaction.Name}, totalWaves={safeTotalWaves}, queued={queued}");
+            DebugLogger.Debug($"RaidWavesSocialPost] faction={sourceFaction.Name}, totalWaves={safeTotalWaves}, queued={queued}");
             return queued;
         }
 
@@ -1344,7 +1344,7 @@ namespace RimChat.DiplomacySystem
                 MaxRetryCount = 3
             };
             GameComponent_DiplomacyManager.Instance?.AddDelayedEvent(evt);
-            Log.Message($"[RimChat][CallEveryoneSocialPost] Scheduled follow-up social post for {sourceFaction.Name} at tick {executeTick}");
+            DebugLogger.Debug($"CallEveryoneSocialPost] Scheduled follow-up social post for {sourceFaction.Name} at tick {executeTick}");
         }
 
         private static bool TryBuildCallEveryoneAidParms(
@@ -1629,7 +1629,7 @@ namespace RimChat.DiplomacySystem
                 float firstWaveHours = 12f;
                 float lastWaveHours = accumulatedDelay / 2500f;
                 
-                Log.Message($"[RimChat] Scheduled raid_waves from {faction.Name}: {waves} waves, " +
+                DebugLogger.Debug($"Scheduled raid_waves from {faction.Name}: {waves} waves, " +
                            $"first wave in ~{firstWaveHours:F0}h, last wave in ~{lastWaveHours:F0}h, " +
                            $"end message will be sent after final wave departure");
                 
@@ -1637,7 +1637,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error scheduling raid waves: {ex}");
+                DebugLogger.Error($"Error scheduling raid waves: {ex}");
                 return false;
             }
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -138,7 +138,7 @@ namespace RimChat.Prompting
                 {
                     _bridgeRuntimeAvailable = false;
                     _bridgeFailureReason = ex.Message ?? "Bridge initialization failed.";
-                    Log.Error($"[RimChat] RimTalk bridge initialization failed. Bridge chain blocked: {_bridgeFailureReason}");
+                    DebugLogger.Error($"RimTalk bridge initialization failed. Bridge chain blocked: {_bridgeFailureReason}");
                 }
             }
         }
@@ -253,7 +253,7 @@ namespace RimChat.Prompting
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to refresh RimTalk custom variable snapshot: {ex.Message}");
+                    DebugLogger.WarningGated($"Failed to refresh RimTalk custom variable snapshot: {ex.Message}");
                     return;
                 }
 
@@ -764,7 +764,7 @@ namespace RimChat.Prompting
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to query RimTalk JSON instruction: {ex.Message}");
+                DebugLogger.WarningGated($"Failed to query RimTalk JSON instruction: {ex.Message}");
                 return GetFallbackJsonInstruction();
             }
         }
@@ -1004,7 +1004,7 @@ namespace RimChat.Prompting
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to build reflected RimTalk PromptContext: {ex.Message}");
+                DebugLogger.WarningGated($"Failed to build reflected RimTalk PromptContext: {ex.Message}");
                 return null;
             }
         }
@@ -1156,7 +1156,7 @@ namespace RimChat.Prompting
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to invoke RimTalk variable cleanup method '{method.Name}': {ex.Message}");
+                DebugLogger.WarningGated($"Failed to invoke RimTalk variable cleanup method '{method.Name}': {ex.Message}");
                 return true;
             }
 
@@ -1269,7 +1269,7 @@ namespace RimChat.Prompting
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to unregister legacy mod hooks for '{modId}': {ex.Message}");
+                    DebugLogger.WarningGated($"Failed to unregister legacy mod hooks for '{modId}': {ex.Message}");
                 }
             }
 
@@ -1335,7 +1335,7 @@ namespace RimChat.Prompting
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to remove legacy runtime key '{key}': {ex.Message}");
+                    DebugLogger.WarningGated($"Failed to remove legacy runtime key '{key}': {ex.Message}");
                 }
             }
 

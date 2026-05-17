@@ -560,6 +560,19 @@ namespace RimChat.AI
                 case "exitdialogue":
                 case "exit_dialogue":
                     return "ExitDialogue";
+                case "convertideology":
+                case "convert_ideology":
+                case "change_ideology":
+                case "改变意识形态":
+                case "皈依":
+                case "改变信仰":
+                    return "ConvertIdeology";
+                case "adjustcertainty":
+                case "adjust_certainty":
+                case "change_certainty":
+                case "调整信仰度":
+                case "动摇信仰":
+                    return "AdjustCertainty";
                 default:
                     return actionName.Trim();
             }

@@ -31,7 +31,7 @@ namespace RimChat.NpcDialogue
 
         private const int TickPerHour = 2500;
         private const int TickPerDay = 60000;
-        private const int RegularEvaluationInterval = 6000;
+        private const int RegularEvaluationInterval = 36000;
         private const int QueueProcessInterval = 600;
         private const int IncomingDrainInterval = 120;
         private const int ClickWindowTicks = 360;
@@ -39,7 +39,7 @@ namespace RimChat.NpcDialogue
         private const int CausalMinDelayTicks = 250;
         private const int CausalMaxDelayTicks = 1000;
         private const int RecentInteractionWindowTicks = TickPerDay * 7;
-        private const int DefaultGlobalDeliveryCooldownTicks = TickPerHour * 6;
+        private const int DefaultGlobalDeliveryCooldownTicks = TickPerHour * 3;
         private const int DefaultFactionCooldownMinTicks = TickPerDay * 3;
         private const int DefaultFactionCooldownMaxTicks = TickPerDay * 7;
         private const int CandidateCacheMaintenanceIntervalTicks = 15000;
@@ -1581,9 +1581,9 @@ namespace RimChat.NpcDialogue
         {
             return mode switch
             {
-                NpcPushFrequencyMode.High => 0.15f,
-                NpcPushFrequencyMode.Medium => 0.10f,
-                _ => 0.06f
+                NpcPushFrequencyMode.High => 0.10f,
+                NpcPushFrequencyMode.Medium => 0.05f,
+                _ => 0f
             };
         }
     }

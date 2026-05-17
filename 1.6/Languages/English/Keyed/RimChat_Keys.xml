@@ -412,6 +412,7 @@
     <RimChat_LogAIResponses>Log AI responses</RimChat_LogAIResponses>
     <RimChat_LogInternals>Log internal states</RimChat_LogInternals>
     <RimChat_LogFullMessages>Log full inbound/outbound messages</RimChat_LogFullMessages>
+    <RimChat_LogWarnings>Log Warnings</RimChat_LogWarnings>
     <RimChat_LastDialogueTokenUsageLine>Recent dialogue token usage: {0} ({1}){2}</RimChat_LastDialogueTokenUsageLine>
     <RimChat_LastDialogueTokenUsageNoData>Recent dialogue token usage: no data</RimChat_LastDialogueTokenUsageNoData>
     <RimChat_LastDialogueTokenUsageEstimated> (estimated)</RimChat_LastDialogueTokenUsageEstimated>
@@ -1011,6 +1012,40 @@
     <!-- Dialogue Window -->
     <RimChat_FactionsTitle>Factions</RimChat_FactionsTitle>
     <RimChat_HiddenFactionSelectorTooltip>Select hidden factions to show in this diplomacy list.</RimChat_HiddenFactionSelectorTooltip>
+    <RimChat_FactionEditorLink>Edit</RimChat_FactionEditorLink>
+    <RimChat_FactionEditorLinkTooltip_NotInstalled>Faction Editor not installed. Click to open Steam Workshop.</RimChat_FactionEditorLinkTooltip_NotInstalled>
+    <RimChat_FactionEditorLinkTooltip_Installed>Open Faction Editor</RimChat_FactionEditorLinkTooltip_Installed>
+    <RimChat_QuickActionMakePeace>Make Peace</RimChat_QuickActionMakePeace>
+    <RimChat_QuickActionMakePeaceTooltip>Propose a peace agreement with {0}. This requires silver payment.</RimChat_QuickActionMakePeaceTooltip>
+    <RimChat_QuickActionDeclareWar>Declare War</RimChat_QuickActionDeclareWar>
+    <RimChat_QuickActionDeclareWarTooltip>Declare war on {0}. This will immediately turn them hostile.</RimChat_QuickActionDeclareWarTooltip>
+    <RimChat_QuickActionDeclareWarNotEligible>Cannot declare war: goodwill must be below {0}.</RimChat_QuickActionDeclareWarNotEligible>
+    <RimChat_DeclareWarConfirmTitle>Confirm Declaration of War</RimChat_DeclareWarConfirmTitle>
+    <RimChat_DeclareWarConfirmBody>Are you sure you want to declare war on {0}? This will immediately make them hostile. This action cannot be easily undone.</RimChat_DeclareWarConfirmBody>
+    <RimChat_DeclareWarConfirmAccept>Declare War</RimChat_DeclareWarConfirmAccept>
+    <RimChat_DeclareWarConfirmCancel>Cancel</RimChat_DeclareWarConfirmCancel>
+    <RimChat_DeclareWarConfirmedSystem>War has been declared against {0}.</RimChat_DeclareWarConfirmedSystem>
+    <RimChat_DeclareWarFailedSystem>Failed to declare war: {0}</RimChat_DeclareWarFailedSystem>
+    <RimChat_RPGHistoryDeleteRecord>Delete</RimChat_RPGHistoryDeleteRecord>
+    <RimChat_RPGHistoryDeleteRecordTooltip>Delete this dialogue record from the session history.</RimChat_RPGHistoryDeleteRecordTooltip>
+    <RimChat_RPGHistoryClearAll>Clear All</RimChat_RPGHistoryClearAll>
+    <RimChat_RPGHistoryClearAllTooltip>Delete all session history records.</RimChat_RPGHistoryClearAllTooltip>
+    <RimChat_RPGHistoryClearAllConfirmTitle>Clear All History</RimChat_RPGHistoryClearAllConfirmTitle>
+    <RimChat_RPGHistoryClearAllConfirmBody>Delete all {0} session history records? This cannot be undone.</RimChat_RPGHistoryClearAllConfirmBody>
+    <RimChat_RPGHistoryClearAllConfirmAccept>Clear All</RimChat_RPGHistoryClearAllConfirmAccept>
+    <RimChat_RPGHistoryClearAllConfirmCancel>Cancel</RimChat_RPGHistoryClearAllConfirmCancel>
+    <RimChat_RPGHistoryDeleteSingleConfirmTitle>Delete Record</RimChat_RPGHistoryDeleteSingleConfirmTitle>
+    <RimChat_RPGHistoryDeleteSingleConfirmBody>Delete this history record? This cannot be undone.</RimChat_RPGHistoryDeleteSingleConfirmBody>
+    <RimChat_DragMenu_ConvertIdeo>Convert ideology</RimChat_DragMenu_ConvertIdeo>
+    <RimChat_DragMenu_AdjCertainty>Adjust certainty</RimChat_DragMenu_AdjCertainty>
+    <RimChat_DiplomacyHistoryClearAll>Clear All</RimChat_DiplomacyHistoryClearAll>
+    <RimChat_DiplomacyHistoryClearAllTooltip>Delete all history records for {0}.</RimChat_DiplomacyHistoryClearAllTooltip>
+    <RimChat_DiplomacyHistoryClearAllConfirmTitle>Clear All Diplomacy History</RimChat_DiplomacyHistoryClearAllConfirmTitle>
+    <RimChat_DiplomacyHistoryClearAllConfirmBody>Delete all {0} history records for {1}? This cannot be undone.</RimChat_DiplomacyHistoryClearAllConfirmBody>
+    <RimChat_DiplomacyHistoryClearAllConfirmAccept>Clear All</RimChat_DiplomacyHistoryClearAllConfirmAccept>
+    <RimChat_DiplomacyHistoryClearAllConfirmCancel>Cancel</RimChat_DiplomacyHistoryClearAllConfirmCancel>
+    <RimChat_DiplomacyHistoryClearAllFailed>Failed to clear history: {0}</RimChat_DiplomacyHistoryClearAllFailed>
+    <RimChat_DiplomacyHistoryClearAllSuccess>All history records cleared for {0}.</RimChat_DiplomacyHistoryClearAllSuccess>
     <RimChat_HiddenFactionSelectorTitle>Hidden Faction Visibility</RimChat_HiddenFactionSelectorTitle>
     <RimChat_HiddenFactionSelectorDesc>Choose hidden factions to include in the comms diplomacy faction list.</RimChat_HiddenFactionSelectorDesc>
     <RimChat_HiddenFactionSelectorSelectAll>Select All</RimChat_HiddenFactionSelectorSelectAll>
@@ -1143,6 +1178,42 @@
     <RimChat_SelfieGenerateFailed>Selfie generation failed: {0}</RimChat_SelfieGenerateFailed>
     <RimChat_SelfieConfigInvalid>Image API is not configured or disabled.</RimChat_SelfieConfigInvalid>
     <RimChat_SelfieDefaultCaption>{0}'s selfie</RimChat_SelfieDefaultCaption>
+    <RimChat_SelfieSelectColonist>Select Selfie Colonist</RimChat_SelfieSelectColonist>
+    <RimChat_SelfieSelectColonistPrompt>Please select a formal colonist</RimChat_SelfieSelectColonistPrompt>
+    <RimChat_SelfieNoColonistAvailable>No formal colonist available</RimChat_SelfieNoColonistAvailable>
+    <RimChat_SelfieColonistSelectorHint>Only displays player faction formal colonists. The selected pawn's RimWorld portrait will be extracted during generation.</RimChat_SelfieColonistSelectorHint>
+    <RimChat_SelfieInjectionSection>Additional Prompt Options</RimChat_SelfieInjectionSection>
+    <RimChat_SelfieInjectAge>Age</RimChat_SelfieInjectAge>
+    <RimChat_SelfieInjectGender>Gender</RimChat_SelfieInjectGender>
+    <RimChat_SelfieInjectFaction>Faction</RimChat_SelfieInjectFaction>
+    <RimChat_SelfieInjectRole>Role/Occupation</RimChat_SelfieInjectRole>
+    <RimChat_SelfieInjectBodyType>Body Type</RimChat_SelfieInjectBodyType>
+    <RimChat_SelfieInjectHair>Hair</RimChat_SelfieInjectHair>
+    <RimChat_SelfieInjectXenotype>Xenotype</RimChat_SelfieInjectXenotype>
+    <RimChat_SelfieInjectApparel>Apparel</RimChat_SelfieInjectApparel>
+    <RimChat_SelfieInjectHediff>Hediff</RimChat_SelfieInjectHediff>
+    <RimChat_SelfieInjectHealth>Current Health</RimChat_SelfieInjectHealth>
+    <RimChat_SelfieInjectWeapon>Weapon</RimChat_SelfieInjectWeapon>
+    <RimChat_SelfieInjectEquipment>Equipment</RimChat_SelfieInjectEquipment>
+    <RimChat_SelfieInjectPositivePrompt>Add Positive prompt</RimChat_SelfieInjectPositivePrompt>
+    <RimChat_SelfieInjectNegativePrompt>Add Negative prompt</RimChat_SelfieInjectNegativePrompt>
+    <RimChat_SelfieNoColonistSelected>No formal colonist selected.</RimChat_SelfieNoColonistSelected>
+    <RimChat_SelfieSelectColonistFirst>Please select a formal colonist first.</RimChat_SelfieSelectColonistFirst>
+    <RimChat_SelfieAppendixAge>age={0}</RimChat_SelfieAppendixAge>
+    <RimChat_SelfieAppendixGender>gender={0}</RimChat_SelfieAppendixGender>
+    <RimChat_SelfieAppendixFaction>faction={0}</RimChat_SelfieAppendixFaction>
+    <RimChat_SelfieAppendixRole>role={0}</RimChat_SelfieAppendixRole>
+    <RimChat_SelfieAppendixBodyType>body_type={0}</RimChat_SelfieAppendixBodyType>
+    <RimChat_SelfieAppendixHair>hair={0}</RimChat_SelfieAppendixHair>
+    <RimChat_SelfieAppendixXenotype>xenotype={0}</RimChat_SelfieAppendixXenotype>
+    <RimChat_SelfieAppendixApparel>apparel={0}</RimChat_SelfieAppendixApparel>
+    <RimChat_SelfieAppendixHediff>hediff={0}</RimChat_SelfieAppendixHediff>
+    <RimChat_SelfieAppendixHealth>health={0}</RimChat_SelfieAppendixHealth>
+    <RimChat_SelfieAppendixWeapon>weapon={0}</RimChat_SelfieAppendixWeapon>
+    <RimChat_SelfieAppendixEquipment>equipment={0}</RimChat_SelfieAppendixEquipment>
+    <RimChat_SelfieAppendixPositivePrompt>Positive prompt: {0}</RimChat_SelfieAppendixPositivePrompt>
+    <RimChat_SelfieAppendixNegativePrompt>Negative prompt: {0}</RimChat_SelfieAppendixNegativePrompt>
+    <RimChat_SelfieAppendixHeader>The following are reference details for maintaining character consistency during selfie generation:</RimChat_SelfieAppendixHeader>
     <RimChat_SelfieDefaultPrompt>Create a clean selfie portrait of {0}, with grounded RimWorld style and clear face details.</RimChat_SelfieDefaultPrompt>
     <RimChat_SelfieInjectSection>Auto-injected profile (hidden append on send)</RimChat_SelfieInjectSection>
     <RimChat_SelfieInjectApparel>Apparel</RimChat_SelfieInjectApparel>
@@ -1802,6 +1873,11 @@ Selected prisoners: {1}
     <RimChat_RPGActionLabel_TryTakeOrderedJob>Execute ordered job</RimChat_RPGActionLabel_TryTakeOrderedJob>
     <RimChat_RPGActionLabel_TriggerIncident>Trigger incident</RimChat_RPGActionLabel_TriggerIncident>
     <RimChat_RPGActionLabel_GrantInspiration>Grant inspiration</RimChat_RPGActionLabel_GrantInspiration>
+    <RimChat_RPGActionLabel_ConvertIdeology>Convert ideology</RimChat_RPGActionLabel_ConvertIdeology>
+    <RimChat_RPGActionLabel_AdjustCertainty>Adjust certainty</RimChat_RPGActionLabel_AdjustCertainty>
+    <RimChat_RPGActionFail_IdeologyDLCRequired>Ideology DLC is not active</RimChat_RPGActionFail_IdeologyDLCRequired>
+    <RimChat_RPGActionFail_NoIdeology>Target pawn has no ideology</RimChat_RPGActionFail_NoIdeology>
+    <RimChat_RPGActionFail_NoSourceIdeology>No source ideology available (initiator has no ideology and player faction has no primary ideology)</RimChat_RPGActionFail_NoSourceIdeology>
     <RimChat_PromptVariables>Variables</RimChat_PromptVariables>
     <RimChat_ValidateVariables>Validate Vars</RimChat_ValidateVariables>
     <RimChat_PromptVariablePickerTitle>Prompt Variable Reference</RimChat_PromptVariablePickerTitle>

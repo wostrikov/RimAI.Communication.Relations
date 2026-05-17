@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimChat.Config;
@@ -134,9 +134,9 @@ namespace RimChat.UI
         private float DrawColonistSelector(Rect rect)
         {
             Widgets.DrawBoxSolid(rect, new Color(0.1f, 0.1f, 0.13f, 0.95f));
-            Widgets.Label(new Rect(rect.x + 8f, rect.y + 6f, rect.width - 16f, 24f), "选择自拍殖民者");
+            Widgets.Label(new Rect(rect.x + 8f, rect.y + 6f, rect.width - 16f, 24f), "RimChat_SelfieSelectColonist".Translate().ToString());
             Rect buttonRect = new Rect(rect.x + 8f, rect.y + 34f, rect.width - 16f, 28f);
-            string label = selectedColonist?.LabelShortCap ?? "请选择正式殖民者";
+            string label = selectedColonist?.LabelShortCap ?? "RimChat_SelfieSelectColonistPrompt".Translate().ToString();
             if (Widgets.ButtonText(buttonRect, label))
             {
                 var options = selectableColonists
@@ -149,13 +149,13 @@ namespace RimChat.UI
                     .ToList();
                 if (options.Count == 0)
                 {
-                    options.Add(new FloatMenuOption("没有可用正式殖民者", null));
+                    options.Add(new FloatMenuOption("RimChat_SelfieNoColonistAvailable".Translate().ToString(), null));
                 }
 
                 Find.WindowStack.Add(new FloatMenu(options));
             }
 
-            Widgets.Label(new Rect(rect.x + 8f, rect.y + 66f, rect.width - 16f, 20f), "仅显示玩家阵营正式殖民者。生成时会提取所选小人的 RimWorld 肖像渲染图。");
+            Widgets.Label(new Rect(rect.x + 8f, rect.y + 66f, rect.width - 16f, 20f), "RimChat_SelfieColonistSelectorHint".Translate().ToString());
             return rect.height;
         }
 
@@ -163,7 +163,7 @@ namespace RimChat.UI
         {
             Widgets.DrawBoxSolid(rect, new Color(0.1f, 0.1f, 0.13f, 0.95f));
             GUI.color = new Color(0.85f, 0.88f, 0.94f);
-            Widgets.Label(new Rect(rect.x + 8f, rect.y + 6f, rect.width - 16f, 24f), "附加提示词选项");
+            Widgets.Label(new Rect(rect.x + 8f, rect.y + 6f, rect.width - 16f, 24f), "RimChat_SelfieInjectionSection".Translate().ToString());
             GUI.color = Color.white;
 
             float x = rect.x + 8f;
@@ -172,30 +172,30 @@ namespace RimChat.UI
             float rightX = rect.x + rect.width * 0.5f;
             float rightWidth = rect.width * 0.48f;
 
-            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "年龄", ref includeAge); y += 24f;
-            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "性别", ref includeGender); y += 24f;
-            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "派系", ref includeFaction); y += 24f;
-            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "身份/职业", ref includeRole); y += 24f;
-            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "体型", ref includeBodyType); y += 24f;
-            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "发型", ref includeHair);
+            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "RimChat_SelfieInjectAge".Translate().ToString(), ref includeAge); y += 24f;
+            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "RimChat_SelfieInjectGender".Translate().ToString(), ref includeGender); y += 24f;
+            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "RimChat_SelfieInjectFaction".Translate().ToString(), ref includeFaction); y += 24f;
+            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "RimChat_SelfieInjectRole".Translate().ToString(), ref includeRole); y += 24f;
+            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "RimChat_SelfieInjectBodyType".Translate().ToString(), ref includeBodyType); y += 24f;
+            Widgets.CheckboxLabeled(new Rect(x, y, leftWidth, 24f), "RimChat_SelfieInjectHair".Translate().ToString(), ref includeHair);
 
             float rightY = rect.y + 32f;
-            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "种族/异种型", ref includeXenotype); rightY += 24f;
-            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "服饰", ref includeApparel); rightY += 24f;
-            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "hediff", ref includeHediffs); rightY += 24f;
-            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "当前健康状态", ref includeHealth); rightY += 24f;
-            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "武器", ref includeWeapon); rightY += 24f;
-            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "装备", ref includeEquipment);
+            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "RimChat_SelfieInjectXenotype".Translate().ToString(), ref includeXenotype); rightY += 24f;
+            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "RimChat_SelfieInjectApparel".Translate().ToString(), ref includeApparel); rightY += 24f;
+            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "RimChat_SelfieInjectHediff".Translate().ToString(), ref includeHediffs); rightY += 24f;
+            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "RimChat_SelfieInjectHealth".Translate().ToString(), ref includeHealth); rightY += 24f;
+            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "RimChat_SelfieInjectWeapon".Translate().ToString(), ref includeWeapon); rightY += 24f;
+            Widgets.CheckboxLabeled(new Rect(rightX, rightY, rightWidth, 24f), "RimChat_SelfieInjectEquipment".Translate().ToString(), ref includeEquipment);
 
             float promptY = rect.y + 182f;
-            Widgets.CheckboxLabeled(new Rect(rect.x + 8f, promptY, rect.width - 16f, 24f), "附加 Positive prompt", ref includePositivePrompt);
+            Widgets.CheckboxLabeled(new Rect(rect.x + 8f, promptY, rect.width - 16f, 24f), "RimChat_SelfieInjectPositivePrompt".Translate().ToString(), ref includePositivePrompt);
             if (includePositivePrompt)
             {
                 positivePromptText = Widgets.TextArea(new Rect(rect.x + 8f, promptY + 26f, rect.width - 16f, 42f), positivePromptText ?? string.Empty);
             }
 
             float negativeY = includePositivePrompt ? promptY + 74f : promptY + 26f;
-            Widgets.CheckboxLabeled(new Rect(rect.x + 8f, negativeY, rect.width - 16f, 24f), "附加 Negative prompt", ref includeNegativePrompt);
+            Widgets.CheckboxLabeled(new Rect(rect.x + 8f, negativeY, rect.width - 16f, 24f), "RimChat_SelfieInjectNegativePrompt".Translate().ToString(), ref includeNegativePrompt);
             if (includeNegativePrompt)
             {
                 negativePromptText = Widgets.TextArea(new Rect(rect.x + 8f, negativeY + 26f, rect.width - 16f, 56f), negativePromptText ?? string.Empty);
@@ -221,7 +221,7 @@ namespace RimChat.UI
         {
             if (selectedColonist == null)
             {
-                return "未选择正式殖民者。";
+                return "RimChat_SelfieNoColonistSelected".Translate().ToString();
             }
 
             return BuildPromptAppendix(selectedColonist, includeBase64Preview: false);
@@ -257,7 +257,7 @@ namespace RimChat.UI
 
             if (selectedColonist == null)
             {
-                status = "请选择正式殖民者。";
+                status = "RimChat_SelfieSelectColonistFirst".Translate().ToString();
                 return;
             }
 
@@ -326,59 +326,59 @@ namespace RimChat.UI
             var lines = new List<string>();
             if (includeAge)
             {
-                lines.Add($"年龄={ResolveAgeText(pawn)}");
+                lines.Add("RimChat_SelfieAppendixAge".Translate(ResolveAgeText(pawn)).ToString());
             }
             if (includeGender)
             {
-                lines.Add($"性别={pawn?.gender.ToString() ?? "Unknown"}");
+                lines.Add("RimChat_SelfieAppendixGender".Translate(pawn?.gender.ToString() ?? "Unknown").ToString());
             }
             if (includeFaction)
             {
-                lines.Add($"派系={pawn?.Faction?.Name ?? faction?.Name ?? "Unknown"}");
+                lines.Add("RimChat_SelfieAppendixFaction".Translate(pawn?.Faction?.Name ?? faction?.Name ?? "Unknown").ToString());
             }
             if (includeRole)
             {
-                lines.Add($"身份/职业={pawn?.story?.TitleCap ?? pawn?.kindDef?.label ?? "Colonist"}");
+                lines.Add("RimChat_SelfieAppendixRole".Translate(pawn?.story?.TitleCap ?? pawn?.kindDef?.label ?? "Colonist").ToString());
             }
             if (includeBodyType)
             {
-                lines.Add($"体型={pawn?.story?.bodyType?.label ?? "unknown"}");
+                lines.Add("RimChat_SelfieAppendixBodyType".Translate(pawn?.story?.bodyType?.label ?? "unknown").ToString());
             }
             if (includeHair)
             {
-                lines.Add($"发型={pawn?.story?.hairDef?.label ?? "unknown"}");
+                lines.Add("RimChat_SelfieAppendixHair".Translate(pawn?.story?.hairDef?.label ?? "unknown").ToString());
             }
             if (includeXenotype)
             {
-                lines.Add($"种族/异种型={pawn?.genes?.XenotypeLabelCap ?? pawn?.def?.label ?? "unknown"}");
+                lines.Add("RimChat_SelfieAppendixXenotype".Translate(pawn?.genes?.XenotypeLabelCap ?? pawn?.def?.label ?? "unknown").ToString());
             }
             if (includeApparel)
             {
-                lines.Add($"服饰={ResolveApparelText(pawn)}");
+                lines.Add("RimChat_SelfieAppendixApparel".Translate(ResolveApparelText(pawn)).ToString());
             }
             if (includeHediffs)
             {
-                lines.Add($"hediff={ResolveHediffText(pawn)}");
+                lines.Add("RimChat_SelfieAppendixHediff".Translate(ResolveHediffText(pawn)).ToString());
             }
             if (includeHealth)
             {
-                lines.Add($"当前健康状态={pawn?.health?.summaryHealth?.SummaryHealthPercent.ToStringPercent() ?? "unknown"}");
+                lines.Add("RimChat_SelfieAppendixHealth".Translate(pawn?.health?.summaryHealth?.SummaryHealthPercent.ToStringPercent() ?? "unknown").ToString());
             }
             if (includeWeapon)
             {
-                lines.Add($"武器={pawn?.equipment?.Primary?.LabelCap ?? "none"}");
+                lines.Add("RimChat_SelfieAppendixWeapon".Translate(pawn?.equipment?.Primary?.LabelCap ?? "none").ToString());
             }
             if (includeEquipment)
             {
-                lines.Add($"装备={ResolveApparelText(pawn)}");
+                lines.Add("RimChat_SelfieAppendixEquipment".Translate(ResolveApparelText(pawn)).ToString());
             }
             if (includePositivePrompt && !string.IsNullOrWhiteSpace(positivePromptText))
             {
-                lines.Add($"Positive prompt: {positivePromptText.Trim()}");
+                lines.Add("RimChat_SelfieAppendixPositivePrompt".Translate(positivePromptText.Trim()).ToString());
             }
             if (includeNegativePrompt && !string.IsNullOrWhiteSpace(negativePromptText))
             {
-                lines.Add($"Negative prompt: {negativePromptText.Trim()}");
+                lines.Add("RimChat_SelfieAppendixNegativePrompt".Translate(negativePromptText.Trim()).ToString());
             }
 
             if (lines.Count == 0)
@@ -386,7 +386,7 @@ namespace RimChat.UI
                 return string.Empty;
             }
 
-            return "以下内容为参考补充信息，供自拍图生成时保持人物一致性：\n- " + string.Join("\n- ", lines);
+            return "RimChat_SelfieAppendixHeader".Translate().ToString() + "\n- " + string.Join("\n- ", lines);
         }
 
         private void ApplyPersistedState(RimChatSettings settings)

@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using RimChat.Dialogue;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -64,7 +65,7 @@ namespace RimChat.AI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse AI response: {ex.Message}");
+                DebugLogger.WarningGated($"Failed to parse AI response: {ex.Message}");
                 return new ParsedResponse
                 {
                     Success = true,
@@ -109,7 +110,7 @@ namespace RimChat.AI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse dialogue envelope: {ex.Message}");
+                DebugLogger.WarningGated($"Failed to parse dialogue envelope: {ex.Message}");
                 return ParseResponse(envelope.ToLegacyText(), faction);
             }
         }
@@ -423,7 +424,7 @@ namespace RimChat.AI
             ImmersionGuardResult guardResult = ImmersionOutputGuard.ValidateVisibleDialogue(normalized);
             if (!guardResult.IsValid)
             {
-                Log.Warning($"[RimChat] Immersion guard flagged diplomacy text (downgraded to warning, dialogue preserved): reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
+                DebugLogger.WarningGated($"Immersion guard flagged diplomacy text (downgraded to warning, dialogue preserved): reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
             }
 
             return guardResult.IsValid ? guardResult.VisibleDialogue : normalized;
@@ -617,7 +618,7 @@ namespace RimChat.AI
                     }
                     if (!parameters.ContainsKey("questDefName"))
                     {
-                        Log.Warning($"[RimChat] create_quest action missing questDefName. Raw actionObj: {actionObj}");
+                        DebugLogger.WarningGated($"create_quest action missing questDefName. Raw actionObj: {actionObj}");
                     }
                 }
 
@@ -989,7 +990,7 @@ namespace RimChat.AI
 
             if (!IsValidAction(normalizedAction))
             {
-                Log.Warning($"[RimChat] Unknown AI action: {normalizedAction}");
+                DebugLogger.WarningGated($"Unknown AI action: {normalizedAction}");
                 return;
             }
 
@@ -1040,7 +1041,7 @@ namespace RimChat.AI
                     if (IsDuplicateRansomActionForTarget(actions, targetPawnLoadId))
                     {
                         droppedDuplicateRansomTargetIds?.Add(targetPawnLoadId);
-                        Log.Message($"[RimChat] pay_prisoner_ransom parser dropped duplicate target action. target_pawn_load_id={targetPawnLoadId}");
+                        DebugLogger.Debug($"pay_prisoner_ransom parser dropped duplicate target action. target_pawn_load_id={targetPawnLoadId}");
                         return;
                     }
 
@@ -1225,7 +1226,7 @@ namespace RimChat.AI
                         if (inferred > 0)
                         {
                             SetCanonicalParameter(item, "count", inferred);
-                            Log.Message($"[RimChat] Inferred airdrop payment count={inferred} from visible_dialogue.");
+                            DebugLogger.Debug($"Inferred airdrop payment count={inferred} from visible_dialogue.");
                         }
                     }
                     normalizedItems.Add(item);

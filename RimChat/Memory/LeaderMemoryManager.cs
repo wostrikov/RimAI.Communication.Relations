@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using RimChat.Core;
+using RimChat.Util;
 using Verse;
 using RimWorld;
 
@@ -169,12 +170,12 @@ namespace RimChat.Memory
                 if (!Directory.Exists(CurrentSaveDataPath))
                 {
                     Directory.CreateDirectory(CurrentSaveDataPath);
-                    Log.Message($"[RimChat] Created memory data directory: {CurrentSaveDataPath}");
+                    DebugLogger.Debug($"Created memory data directory: {CurrentSaveDataPath}");
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to create data directory: {ex.Message}");
+                DebugLogger.Error($"Failed to create data directory: {ex.Message}");
             }
         }
 
@@ -187,7 +188,7 @@ namespace RimChat.Memory
             }
             catch (InvalidOperationException ex)
             {
-                Log.Error($"[RimChat] Leader memory persistence blocked in {operationName}: {ex.Message}");
+                DebugLogger.Error($"Leader memory persistence blocked in {operationName}: {ex.Message}");
                 return false;
             }
         }
@@ -223,7 +224,7 @@ namespace RimChat.Memory
             
             if (!_memoryCache.TryGetValue(factionId, out var memory))
             {
-                Log.Warning($"[RimChat] Attempted to save memory for {faction.Name}, but no memory found in cache");
+                DebugLogger.WarningGated($"Attempted to save memory for {faction.Name}, but no memory found in cache");
                 return;
             }
 
@@ -236,7 +237,7 @@ namespace RimChat.Memory
             SaveMemoryToFile(faction, memory);
             
             // 调试log
-            Log.Message($"[RimChat] Saved memory for {faction.Name}: {memory.DialogueHistory.Count} dialogues, {memory.FactionMemories.Count} factions, {memory.SignificantEvents.Count} events");
+            DebugLogger.Debug($"Saved memory for {faction.Name}: {memory.DialogueHistory.Count} dialogues, {memory.FactionMemories.Count} factions, {memory.SignificantEvents.Count} events");
         }
 
         /// <summary>/// save所有factionleader的memory
@@ -255,7 +256,7 @@ namespace RimChat.Memory
                 }
             }
 
-            Log.Message("[RimChat] All faction leader memories saved");
+            DebugLogger.Debug("All faction leader memories saved");
         }
 
         /// <summary>/// 从dialogue更新memory (但不save到file, 只更新内存)
@@ -345,7 +346,7 @@ namespace RimChat.Memory
 
             if (!TryBuildSanitizedSummaryRecord(record, out CrossChannelSummaryRecord sanitizedRecord, out string reasonTag))
             {
-                Log.Warning($"[RimChat] summary_drop_invalid source={record.Source} contentHash={record.ContentHash ?? string.Empty} factionId={record.FactionId ?? string.Empty} reason={reasonTag ?? "invalid_summary"}");
+                DebugLogger.WarningGated($"summary_drop_invalid source={record.Source} contentHash={record.ContentHash ?? string.Empty} factionId={record.FactionId ?? string.Empty} reason={reasonTag ?? "invalid_summary"}");
                 TryQueueSummaryRepair(faction, record, maxEntries, useRpgPool, reasonTag ?? "invalid_summary");
                 return;
             }
@@ -475,7 +476,7 @@ namespace RimChat.Memory
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to load memory cache: {ex.Message}");
+                DebugLogger.Error($"Failed to load memory cache: {ex.Message}");
             }
         }
 
@@ -502,11 +503,11 @@ namespace RimChat.Memory
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat] Failed to load memory file {file}: {ex.Message}");
+                    DebugLogger.Error($"Failed to load memory file {file}: {ex.Message}");
                 }
             }
 
-            Log.Message($"[RimChat] Loaded {_memoryCache.Count} faction leader memories from {files.Length} files");
+            DebugLogger.Debug($"Loaded {_memoryCache.Count} faction leader memories from {files.Length} files");
         }
 
         private string ResolveMemorySourceDirectory()
@@ -539,13 +540,13 @@ namespace RimChat.Memory
                 if (memory != null)
                 {
                     NormalizeMemoryData(memory);
-                    Log.Message($"[RimChat] Loaded memory for {faction.Name} from {fileName}");
+                    DebugLogger.Debug($"Loaded memory for {faction.Name} from {fileName}");
                     return memory;
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to load memory for {faction.Name}: {ex.Message}");
+                DebugLogger.Error($"Failed to load memory for {faction.Name}: {ex.Message}");
             }
 
             return null;
@@ -572,7 +573,7 @@ namespace RimChat.Memory
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to save memory for {faction.Name}: {ex.Message}");
+                DebugLogger.Error($"Failed to save memory for {faction.Name}: {ex.Message}");
             }
         }
 
@@ -638,7 +639,7 @@ namespace RimChat.Memory
                 EnsureBaselineSnapshot(faction, memory, "new_game");
             }
 
-            Log.Message("[RimChat] Initialized faction leader memories for new game");
+            DebugLogger.Debug("Initialized faction leader memories for new game");
         }
 
         /// <summary>/// 游戏load时的initialize
@@ -650,7 +651,7 @@ namespace RimChat.Memory
             _resolvedSaveKey = string.Empty;
             EnsureDataDirectoryExists();
             EnsureCacheLoaded();
-            Log.Message("[RimChat] Initialized faction leader memory manager for saved game");
+            DebugLogger.Debug("Initialized faction leader memory manager for saved game");
         }
 
         /// <summary>/// 游戏loadcompleted后, 从fileloadmemory数据
@@ -671,7 +672,7 @@ namespace RimChat.Memory
             EnsureCacheLoaded();
 
             int touched = RefreshBaselineSnapshotsAfterLoad();
-            Log.Message($"[RimChat] Loaded {_memoryCache.Count} faction leader memories from save, refreshed {touched} factions");
+            DebugLogger.Debug($"Loaded {_memoryCache.Count} faction leader memories from save, refreshed {touched} factions");
         }
 
         /// <summary>/// 游戏save前调用, save所有memory数据

@@ -18,7 +18,7 @@ namespace RimChat.Config
         public NpcPushFrequencyMode NpcPushFrequencyMode = global::RimChat.Config.NpcPushFrequencyMode.Low;
         public int NpcQueueMaxPerFaction = 3;
         public float NpcQueueExpireHours = 12f;
-        public float NpcGlobalDeliveryCooldownHours = 6f;
+        public float NpcGlobalDeliveryCooldownHours = 3f;
         public int NpcGlobalMaxMessagesPerWindow = 1;
         public float NpcGlobalWindowHours = 12f;
         public int NpcFactionCooldownMinDays = 3;
@@ -398,7 +398,7 @@ namespace RimChat.Config
             ProactiveMessageHardLimit = 0;
             NpcQueueMaxPerFaction = 3;
             NpcQueueExpireHours = 12f;
-            NpcGlobalDeliveryCooldownHours = 6f;
+            NpcGlobalDeliveryCooldownHours = 3f;
             NpcGlobalMaxMessagesPerWindow = 1;
             NpcGlobalWindowHours = 12f;
             NpcFactionCooldownMinDays = 3;

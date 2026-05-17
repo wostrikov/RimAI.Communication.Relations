@@ -146,6 +146,34 @@ namespace RimChat.Memory
             return true;
         }
 
+        public bool TryClearAllDialogueHistory(Faction faction, out string error, out int clearedCount)
+        {
+            error = string.Empty;
+            clearedCount = 0;
+            if (faction == null)
+            {
+                error = "history_faction_missing";
+                return false;
+            }
+
+            FactionLeaderMemory memory = GetMemory(faction);
+            if (memory?.DialogueHistory == null || memory.DialogueHistory.Count == 0)
+            {
+                clearedCount = 0;
+                return true;
+            }
+
+            clearedCount = memory.DialogueHistory.Count;
+            memory.DialogueHistory.Clear();
+
+            NormalizeAndPersistDialogueHistory(faction, memory);
+            PublishDiplomacyMemoryChanged(faction,
+                affectsCurrentSession: true,
+                affectsPersistentHistory: true,
+                affectsAiPrompt: true);
+            return true;
+        }
+
         private static DiplomacyHistorySessionGroup BuildCurrentSessionGroup(List<DiplomacyHistoryRow> currentRows)
         {
             return new DiplomacyHistorySessionGroup

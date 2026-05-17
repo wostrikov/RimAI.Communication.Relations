@@ -47,6 +47,8 @@ namespace RimChat.UI
             ("RimChat_DragMenu_ReduceResist", "ReduceResistance",    (t, i) => t.IsPrisoner),
             ("RimChat_DragMenu_ReduceWill",   "ReduceWill",          (t, i) => t.IsPrisoner),
             ("RimChat_DragMenu_Recruit",      "Recruit",             (t, i) => t.Faction != Faction.OfPlayer),
+            ("RimChat_DragMenu_ConvertIdeo",  "ConvertIdeology",     (t, i) => Util.DLCCompatibility.IsIdeologyActive && t?.ideo != null),
+            ("RimChat_DragMenu_AdjCertainty", "AdjustCertainty",     (t, i) => Util.DLCCompatibility.IsIdeologyActive && t?.ideo != null),
             ("RimChat_DragMenu_Inspiration",  "GrantInspiration",    (t, i) => true),
             ("RimChat_DragMenu_Incident",     "TriggerIncident",     (t, i) => true),
         };

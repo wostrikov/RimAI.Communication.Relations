@@ -596,7 +596,6 @@ namespace RimChat.UI
                     contentY += LayoutTraderCardSpacing;
                 }
 
-                contentY += DrawExpandedActions(new Rect(rightX, crtContent.y + contentY, rightWidth, crtContent.height - contentY));
             }
             long t2c = System.Diagnostics.Stopwatch.GetTimestamp();
 
@@ -813,6 +812,35 @@ namespace RimChat.UI
                 LayoutFactionHeaderButtonSize);
             Widgets.Label(headerLabelRect, "RimChat_FactionsTitle".Translate());
 
+            // Edit link for Faction Editor (bottom-aligned Tiny text matching title baseline)
+            bool feInstalled = ModDependencyProbe.IsLoaded("yancy.factiongearcustomizer");
+            string editLabel = feInstalled
+                ? "RimChat_FactionEditorLink".Translate().ToString()
+                : "*" + "RimChat_FactionEditorLink".Translate().ToString();
+            float editLabelWidth = Text.CalcSize(editLabel).x;
+            float titleTextWidth = Text.CalcSize("RimChat_FactionsTitle".Translate().ToString()).x;
+            Rect editLinkRect = new Rect(headerLabelRect.x + titleTextWidth + 6f, headerLabelRect.y, editLabelWidth + 4f, headerLabelRect.height);
+            bool isOverEdit = Mouse.IsOver(editLinkRect);
+            Text.Font = GameFont.Tiny;
+            Text.Anchor = TextAnchor.LowerLeft;
+            GUI.color = isOverEdit ? new Color(0.6f, 0.75f, 1f) : new Color(0.45f, 0.52f, 0.65f);
+            Widgets.Label(editLinkRect, editLabel);
+            Text.Anchor = TextAnchor.UpperLeft;
+            if (isOverEdit)
+            {
+                TooltipHandler.TipRegion(editLinkRect,
+                    feInstalled
+                        ? "RimChat_FactionEditorLinkTooltip_Installed".Translate()
+                        : "RimChat_FactionEditorLinkTooltip_NotInstalled".Translate());
+            }
+            if (isOverEdit && Event.current.type == EventType.MouseDown && Event.current.button == 0)
+            {
+                Event.current.Use();
+                HandleFactionEditorLink();
+            }
+            Text.Font = GameFont.Small;
+            GUI.color = Color.white;
+
             Rect hiddenFactionSettingsRect = new Rect(
                 innerRect.xMax - LayoutFactionHeaderButtonSize,
                 innerRect.y,
@@ -923,6 +951,24 @@ namespace RimChat.UI
             return factionEntry != null &&
                    !factionEntry.IsPlayer &&
                    !factionEntry.defeated;
+        }
+
+        private void HandleFactionEditorLink()
+        {
+            if (ModDependencyProbe.IsLoaded("yancy.factiongearcustomizer"))
+            {
+                var def = DefDatabase<MainButtonDef>.GetNamed("FactionGear_MainButton");
+                if (def?.workerClass != null)
+                {
+                    var worker = (MainButtonWorker)Activator.CreateInstance(def.workerClass);
+                    worker.def = def;
+                    worker.Activate();
+                }
+            }
+            else
+            {
+                Application.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=3670833973");
+            }
         }
 
         private void OpenHiddenFactionVisibilitySelector()
@@ -1255,10 +1301,6 @@ namespace RimChat.UI
             }
         }
 
-        private float DrawExpandedActions(Rect rect)
-        {
-            return 0f;
-        }
 
         private float DrawFactionQuests(Rect rect, Faction targetFaction)
         {
@@ -1921,7 +1963,9 @@ namespace RimChat.UI
                     TryStartManualTauntSend),
                 new FloatMenuOption(
                     "RimChat_SendInfoMenuEndConversation".Translate(),
-                    TryEndConversation)
+                    TryEndConversation),
+                BuildQuickMakePeaceMenuOption(),
+                BuildQuickDeclareWarMenuOption()
             };
 
             Find.WindowStack.Add(new FloatMenu(options));

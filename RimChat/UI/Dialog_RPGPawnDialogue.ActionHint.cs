@@ -23,6 +23,8 @@ namespace RimChat.UI
             "ReduceResistance",
             "ReduceWill",
             "Recruit",
+            "ConvertIdeology",
+            "AdjustCertainty",
             "TryTakeOrderedJob",
             "TriggerIncident",
             "GrantInspiration"
