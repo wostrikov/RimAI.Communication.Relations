@@ -1,3 +1,10 @@
+1.4.1
+- [调整] 社交圈 fact_lines 现包含 raw_text 段落，提供完整未截断的事件文本（最长1500字符），使 AI 能生成更丰富的社交新闻文章
+- [调整] 信件原文保留在 OriginalFullText 字段中；面向显示的 Summary 保持 220 字符截断以确保向后兼容
+- [调整] 袭击意图和事件意图摘要增加了地图位置和派系科技等级信息
+- [调整] 更新了中英文提示词模板，指导 AI 如何使用 raw_text 段落配合结构化事实
+- [调整] 旧事件压缩仅影响摘要字段；原始全文永不压缩
+
 1.4.0
 - [新增] 日志系统受设置控制：新增LogWarnings开关，核心文件迁移至DebugLogger
 - [新增] RPG意识形态/教化Action：ConvertIdeology + AdjustCertainty（需Ideology DLC），已注入提示词和[?]/拖拽菜单

@@ -60,7 +60,8 @@ namespace RimChat.DiplomacySystem
                 DebugReason = reason,
                 PrimaryClaim = publicClaim,
                 QuoteAttributionHint = BuildDialogueQuoteAttributionHint(sourceFaction),
-                Facts = BuildDialogueFacts(sourceFaction, targetFaction, category, sentiment, trimmedSummary, trimmedIntent, isKeyword, publicClaim)
+                Facts = BuildDialogueFacts(sourceFaction, targetFaction, category, sentiment, trimmedSummary, trimmedIntent, isKeyword, publicClaim),
+                RawText = string.IsNullOrWhiteSpace(publicClaim) ? trimmedSummary : publicClaim
             };
         }
 
@@ -162,6 +163,7 @@ namespace RimChat.DiplomacySystem
                 facts.Add($"Intent hint: {trimmedIntent}");
             }
 
+            facts.Add($"raw_text: {(string.IsNullOrWhiteSpace(publicClaim) ? trimmedSummary : publicClaim)}");
             return facts;
         }
 
@@ -503,7 +505,8 @@ namespace RimChat.DiplomacySystem
                 SourceLabel = "RimChat_SocialSourceBattleReport",
                 CredibilityLabel = "RimChat_SocialCredibilityBattleReport",
                 CredibilityValue = 0.85f,
-                Facts = BuildRaidFacts(report)
+                Facts = BuildRaidFacts(report),
+                RawText = report?.Summary ?? string.Empty
             };
         }
 
@@ -521,7 +524,8 @@ namespace RimChat.DiplomacySystem
                 BuildSettlementContextFact(location, attacker, defender),
                 $"Attacker deaths: {report?.AttackerDeaths ?? 0}",
                 $"Defender deaths: {report?.DefenderDeaths ?? 0}",
-                $"Defender downed: {report?.DefenderDowned ?? 0}"
+                $"Defender downed: {report?.DefenderDowned ?? 0}",
+                $"raw_text: {report?.AttackerFactionName} raided {report?.MapLabel}. Attacker lost {report?.AttackerDeaths ?? 0}, defender lost {report?.DefenderDeaths ?? 0}, {report?.DefenderDowned ?? 0} defenders were downed. Battle from tick {report?.BattleStartTick} to {report?.BattleEndTick}."
             };
         }
 
@@ -577,7 +581,8 @@ namespace RimChat.DiplomacySystem
                     ? "RimChat_SocialCredibilityPublicReport"
                     : "RimChat_SocialCredibilityObserverNote",
                 CredibilityValue = record?.IsPublic == true ? 0.74f : 0.62f,
-                Facts = BuildWorldEventFacts(record)
+                Facts = BuildWorldEventFacts(record),
+                RawText = record?.OriginalFullText ?? record?.Summary ?? string.Empty
             };
         }
 
@@ -595,7 +600,8 @@ namespace RimChat.DiplomacySystem
                 BuildLocationFact(location),
                 BuildSettlementContextFact(location, sourceFaction, targetFaction),
                 $"Visibility: {(record?.IsPublic == true ? "public" : "direct/limited")}",
-                $"Known factions: {string.Join(", ", record?.KnownFactionIds ?? new List<string>())}"
+                $"Known factions: {string.Join(", ", record?.KnownFactionIds ?? new List<string>())}",
+                $"raw_text: {record?.OriginalFullText ?? record?.Summary ?? string.Empty}"
             };
         }
 
@@ -641,7 +647,8 @@ namespace RimChat.DiplomacySystem
                 SourceLabel = "RimChat_SocialSourceAidArrival",
                 CredibilityLabel = "RimChat_SocialCredibilityPublicReport",
                 CredibilityValue = 0.88f,
-                Facts = BuildWorldEventFacts(record)
+                Facts = BuildWorldEventFacts(record),
+                RawText = record?.OriginalFullText ?? record?.Summary ?? string.Empty
             };
         }
 
@@ -693,7 +700,8 @@ namespace RimChat.DiplomacySystem
                 SourceLabel = "RimChat_SocialSourceLeaderMemory",
                 CredibilityLabel = "RimChat_SocialCredibilityLeaderMemory",
                 CredibilityValue = 0.58f,
-                Facts = BuildLeaderMemoryFacts(evt)
+                Facts = BuildLeaderMemoryFacts(evt),
+                RawText = evt?.Description ?? string.Empty
             };
         }
 
@@ -708,7 +716,8 @@ namespace RimChat.DiplomacySystem
                 $"Involved faction: {BuildFactionFactValue(involvedFaction, evt?.InvolvedFactionName)}",
                 BuildLocationFact(location),
                 BuildSettlementContextFact(location, involvedFaction, null),
-                $"Occurred tick: {evt?.OccurredTick ?? 0}"
+                $"Occurred tick: {evt?.OccurredTick ?? 0}",
+                $"raw_text: {evt?.Description ?? string.Empty}"
             };
         }
 
@@ -749,7 +758,8 @@ namespace RimChat.DiplomacySystem
                     ? "RimChat_SocialCredibilityArchiveFallback"
                     : "RimChat_SocialCredibilityArchiveSummary",
                 CredibilityValue = record?.IsLlmFallback == true ? 0.55f : 0.68f,
-                Facts = BuildSummaryFacts(record)
+                Facts = BuildSummaryFacts(record),
+                RawText = record?.SummaryText ?? string.Empty
             };
         }
 
@@ -765,7 +775,8 @@ namespace RimChat.DiplomacySystem
                 BuildSettlementContextFact(location, sourceFaction, null),
                 $"Source pool: {record?.Source.ToString() ?? "Unknown"}",
                 $"Confidence: {(record?.Confidence ?? 0f):F2}",
-                $"Key facts: {string.Join(" | ", record?.KeyFacts ?? new List<string>())}"
+                $"Key facts: {string.Join(" | ", record?.KeyFacts ?? new List<string>())}",
+                $"raw_text: {record?.SummaryText ?? string.Empty}"
             };
         }
 
@@ -886,7 +897,9 @@ namespace RimChat.DiplomacySystem
                 SourceLabel = sourceLabel,
                 CredibilityLabel = credibilityLabel,
                 CredibilityValue = credibility,
-                Facts = BuildScheduledFacts(record)
+                Facts = BuildScheduledFacts(record),
+                RawText = (record?.Summary ?? string.Empty) +
+                    (string.IsNullOrWhiteSpace(record?.Detail) ? string.Empty : " — " + record.Detail)
             };
         }
 
@@ -899,7 +912,8 @@ namespace RimChat.DiplomacySystem
                 $"Source faction: {record?.SourceFaction?.Name ?? "Unknown"}",
                 $"Target faction: {record?.TargetFaction?.Name ?? "None"}",
                 $"Detail: {record?.Detail ?? string.Empty}",
-                $"Value: {record?.Value ?? 0}"
+                $"Value: {record?.Value ?? 0}",
+                $"raw_text: {record?.Summary ?? string.Empty} {(string.IsNullOrWhiteSpace(record?.Detail) ? string.Empty : "— " + record.Detail)}"
             };
         }
 

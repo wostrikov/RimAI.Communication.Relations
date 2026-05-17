@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using RimChat.AI;
 using RimChat.Config;
 using RimChat.Core;
@@ -93,9 +94,50 @@ namespace RimChat.DiplomacySystem
                 return "- none";
             }
 
-            return string.Join("\n", facts
-                .Where(item => !string.IsNullOrWhiteSpace(item))
-                .Select(item => "- " + item.Trim()));
+            var structured = new List<string>();
+            var rawTexts = new List<string>();
+
+            for (int i = 0; i < facts.Count; i++)
+            {
+                string item = facts[i];
+                if (string.IsNullOrWhiteSpace(item))
+                {
+                    continue;
+                }
+
+                string trimmed = item.Trim();
+                if (trimmed.StartsWith("raw_text:", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    string rawContent = trimmed.Substring("raw_text:".Length).Trim();
+                    if (!string.IsNullOrWhiteSpace(rawContent))
+                    {
+                        rawTexts.Add(rawContent);
+                    }
+                }
+                else
+                {
+                    structured.Add("- " + trimmed);
+                }
+            }
+
+            var sb = new StringBuilder();
+            if (structured.Count > 0)
+            {
+                sb.Append(string.Join("\n", structured));
+            }
+
+            if (rawTexts.Count > 0)
+            {
+                if (sb.Length > 0)
+                {
+                    sb.Append("\n\n");
+                }
+
+                sb.Append("raw_text:\n");
+                sb.Append(string.Join("\n", rawTexts));
+            }
+
+            return sb.Length > 0 ? sb.ToString() : "- none";
         }
 
         internal static string BuildPromptInputPayloadForDebug(SocialNewsSeed seed)

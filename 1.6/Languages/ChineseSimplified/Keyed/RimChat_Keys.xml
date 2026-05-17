@@ -2095,7 +2095,7 @@ ID：{5}
     <RimChat_TemplateVar_world_social_source_label_Desc>社会情报来源的显示标签或标题。</RimChat_TemplateVar_world_social_source_label_Desc>
     <RimChat_TemplateVar_world_social_credibility_label_Desc>社会情报可信度标签。</RimChat_TemplateVar_world_social_credibility_label_Desc>
     <RimChat_TemplateVar_world_social_credibility_value_Desc>社会情报可信度数值。</RimChat_TemplateVar_world_social_credibility_value_Desc>
-    <RimChat_TemplateVar_world_social_fact_lines_Desc>社会情报正文事实行文本块。</RimChat_TemplateVar_world_social_fact_lines_Desc>
+    <RimChat_TemplateVar_world_social_fact_lines_Desc>为当前社交情报条目渲染的 fact-line 块。包含结构化元数据项目符号和 raw_text 段落，提供完整未截断的事件描述以供 AI 叙事参考。</RimChat_TemplateVar_world_social_fact_lines_Desc>
     <RimChat_TemplateVar_pawn_initiator_name_Desc>当前发起者 Pawn 的短名称。</RimChat_TemplateVar_pawn_initiator_name_Desc>
     <RimChat_TemplateVar_pawn_initiator_Desc>当前发起者 Pawn 对象引用。</RimChat_TemplateVar_pawn_initiator_Desc>
     <RimChat_TemplateVar_pawn_target_name_Desc>当前目标 Pawn 的短名称。</RimChat_TemplateVar_pawn_target_name_Desc>

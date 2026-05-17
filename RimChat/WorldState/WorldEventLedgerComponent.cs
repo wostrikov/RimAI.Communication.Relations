@@ -23,6 +23,7 @@ namespace RimChat.WorldState
         private const int MaxLettersPerScanPass = 24;
         private const int OldEventAgeThresholdTicks = 60000 * 60 * 24;
         private const int MaxCompressedSummaryLength = 100;
+        private const int MaxFullTextLength = 1500;
         private const int MaxProcessedLetterIds = 512;
 
         private static int _globalEventRevision = 1;
@@ -237,7 +238,9 @@ namespace RimChat.WorldState
             string strategy = string.IsNullOrWhiteSpace(strategyDefName) ? "default" : strategyDefName;
             string arrival = string.IsNullOrWhiteSpace(arrivalModeDefName) ? "default" : arrivalModeDefName;
             string mode = delayed ? "scheduled" : "immediate";
-            string summary = $"{attackerFaction.Name} initiated a raid ({mode}, strategy={strategy}, arrival={arrival}).";
+            string tech = attackerFaction.def?.techLevel.ToString() ?? "Unknown";
+            string mapLabel = map?.Parent?.LabelCap ?? map?.Biome?.LabelCap ?? "an unknown settlement";
+            string summary = $"{attackerFaction.Name} ({tech} tech level) initiated a raid on {mapLabel} ({mode}, strategy={strategy}, arrival={arrival}).";
 
             RecordDirectEvent(
                 "raid_intent",
@@ -256,7 +259,8 @@ namespace RimChat.WorldState
             }
 
             int tick = Find.TickManager?.TicksGame ?? 0;
-            string summary = $"{sourceFaction.Name} triggered incident {incidentDefName}.";
+            string mapLabel = map?.Parent?.LabelCap ?? map?.Biome?.LabelCap ?? "unknown location";
+            string summary = $"{sourceFaction.Name} launched incident {incidentDefName} on {mapLabel}.";
             RecordDirectEvent(
                 "incident_intent",
                 tick,
@@ -317,6 +321,7 @@ namespace RimChat.WorldState
                 return;
             }
 
+            string fullText = BuildLetterFullText(letter);
             string eventType = DetectEventType(summary);
             string key = $"letter:{letter.ID}:{eventType}";
             if (HasRecentSourceKey(key))
@@ -332,6 +337,7 @@ namespace RimChat.WorldState
                 MapLabel = map.Parent?.LabelCap ?? map.Biome?.LabelCap ?? $"Map#{map.uniqueID}",
                 IsPublic = true,
                 Summary = summary,
+                OriginalFullText = fullText,
                 SourceKey = key,
                 KnownFactionIds = new List<string>()
             };
@@ -436,12 +442,18 @@ namespace RimChat.WorldState
                 $"敌方阵亡{state.AttackerDeaths}人，我方阵亡{state.DefenderDeaths}人，" +
                 $"{state.DefenderDownedPeak}人倒地。";
 
+            string originalFullText =
+                $"Raid ended: {state.AttackerFactionName} raid on {state.MapLabel} repelled. " +
+                $"Attacker deaths: {state.AttackerDeaths}, Defender deaths: {state.DefenderDeaths}, " +
+                $"Defender downed: {state.DefenderDownedPeak}.";
+
             var eventRecord = new WorldEventRecord
             {
                 OccurredTick = battleEndTick,
                 EventType = "raid_end",
                 IsPublic = true,
                 Summary = eventSummary,
+                OriginalFullText = originalFullText,
                 SourceKey = $"raid_end_{state.MapId}_{state.AttackerFactionId}_{battleEndTick}",
                 KnownFactionIds = new List<string>
                 {
@@ -598,6 +610,39 @@ namespace RimChat.WorldState
             return $"{label}: {text}";
         }
 
+        private static string BuildLetterFullText(Letter letter)
+        {
+            if (letter == null)
+            {
+                return string.Empty;
+            }
+
+            string label = letter.Label.ToString().Trim();
+            string text = string.Empty;
+            if (letter is ChoiceLetter choiceLetter)
+            {
+                text = choiceLetter.Text.ToString();
+            }
+
+            text = (text ?? string.Empty).Replace('\n', ' ').Replace('\r', ' ').Trim();
+            if (text.Length > MaxFullTextLength)
+            {
+                text = text.Substring(0, MaxFullTextLength);
+            }
+
+            if (string.IsNullOrWhiteSpace(label) && string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return label;
+            }
+
+            return $"{label}: {text}";
+        }
+
         private string DetectEventType(string summary)
         {
             string normalized = (summary ?? string.Empty).ToLowerInvariant();
@@ -669,6 +714,7 @@ namespace RimChat.WorldState
                 MapLabel = map?.Parent?.LabelCap ?? map?.Biome?.LabelCap ?? "UnknownMap",
                 IsPublic = false,
                 Summary = summary ?? string.Empty,
+                OriginalFullText = summary ?? string.Empty,
                 SourceKey = sourceKey ?? string.Empty,
                 KnownFactionIds = (knownFactionIds ?? Enumerable.Empty<string>())
                     .Where(id => !string.IsNullOrWhiteSpace(id))

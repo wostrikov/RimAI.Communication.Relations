@@ -148,6 +148,7 @@ namespace RimChat.Config
                     + "narrative_mode={{ world.social.narrative_mode }}\n"
                     + "facts:\n"
                     + "{{ world.social.fact_lines }}\n"
+                    + "The facts section has two parts. Use the structured bullet lines (before raw_text) as ground truth for names, numbers, faction IDs, and event metadata. Then read the raw_text block: it contains the complete untruncated event description and is your primary narrative source — it gives you the full story, sequence, and details that the structured facts only summarize. Prefer raw_text for scene-building, timeline, and the event's cause-and-effect chain. Never contradict the structured facts, but let raw_text supply the richer detail that turns metadata into a living article.\n"
                     + "First decide what channel this news is traveling through, then write it as one continuous world-event short piece. lead/cause/process/outlook are returned as separate fields, but they must read in sequence like continuous paragraphs of the same article. Do not turn them into mechanical labeled sections.\n"
                     + "Prefer putting stronger first-person flavor, stance, or witness-like immediacy into quote. The quote should usually be 2-3 sentences, while the main body stays more restrained and continuous.\n"
                     + "When facts are sparse, the quote may feel a little more human and lightly emotional, but it must still stay inside the supplied facts and must not add a new outcome or judgment.\n"

@@ -1947,7 +1947,7 @@ Selected prisoners: {1}
     <RimChat_TemplateVar_world_social_source_label_Desc>Display label or title for the current social intel source.</RimChat_TemplateVar_world_social_source_label_Desc>
     <RimChat_TemplateVar_world_social_credibility_label_Desc>Credibility label for the current social intel entry.</RimChat_TemplateVar_world_social_credibility_label_Desc>
     <RimChat_TemplateVar_world_social_credibility_value_Desc>Credibility numeric value for the current social intel entry.</RimChat_TemplateVar_world_social_credibility_value_Desc>
-    <RimChat_TemplateVar_world_social_fact_lines_Desc>Rendered fact-line block for the current social intel entry.</RimChat_TemplateVar_world_social_fact_lines_Desc>
+    <RimChat_TemplateVar_world_social_fact_lines_Desc>Rendered fact-line block for the current social intel entry. Contains structured metadata bullet points followed by a raw_text section with the complete untruncated event description for AI narrative reference.</RimChat_TemplateVar_world_social_fact_lines_Desc>
     <RimChat_TemplateVar_pawn_initiator_name_Desc>Initiator pawn short name in context.</RimChat_TemplateVar_pawn_initiator_name_Desc>
     <RimChat_TemplateVar_pawn_initiator_Desc>Current initiator pawn object reference.</RimChat_TemplateVar_pawn_initiator_Desc>
     <RimChat_TemplateVar_pawn_target_name_Desc>Target pawn short name in context.</RimChat_TemplateVar_pawn_target_name_Desc>

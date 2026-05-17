@@ -26,6 +26,7 @@ namespace RimChat.DiplomacySystem
         public string PrimaryClaim = string.Empty;
         public string QuoteAttributionHint = string.Empty;
         public List<string> Facts = new List<string>();
+        public string RawText = string.Empty;
 
         public bool IsValid()
         {

@@ -16,6 +16,7 @@ namespace RimChat.WorldState
         public string SourceKey;
         public List<string> KnownFactionIds;
         public bool IsCompressed;
+        public string OriginalFullText;
 
         public WorldEventRecord()
         {
@@ -28,6 +29,7 @@ namespace RimChat.WorldState
             SourceKey = string.Empty;
             KnownFactionIds = new List<string>();
             IsCompressed = false;
+            OriginalFullText = string.Empty;
         }
 
         public void ExposeData()
@@ -41,6 +43,7 @@ namespace RimChat.WorldState
             Scribe_Values.Look(ref SourceKey, "sourceKey", string.Empty);
             Scribe_Collections.Look(ref KnownFactionIds, "knownFactionIds", LookMode.Value);
             Scribe_Values.Look(ref IsCompressed, "isCompressed", false);
+            Scribe_Values.Look(ref OriginalFullText, "originalFullText", string.Empty);
             if (KnownFactionIds == null)
             {
                 KnownFactionIds = new List<string>();
