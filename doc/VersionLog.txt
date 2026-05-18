@@ -1,3 +1,6 @@
+1.4.7
+- [修复] File.Delete + File.Move TOCTOU竞态：替换为File.Replace原子写入 + fallback，彻底修复"文件已存在无法创建"持久化异常（杀毒/OneDrive等过滤驱动持有句柄时File.Delete延迟删除）
+
 1.4.6
 - [修复] IsConcreteDialogueFact阻断词检查优先于动作词，导致AI回复含"讨论贸易"等文本被误杀，种子无效
 - [修复] CreateDialogueSeed缺少兜底声明：显式AI动作路径无降级，关键词路径已有但另一路径未对齐

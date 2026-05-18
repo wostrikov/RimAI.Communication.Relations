@@ -1,3 +1,6 @@
+1.4.7
+- [Fix] File.Delete + File.Move TOCTOU race: replaced with File.Replace atomic write + fallback, definitively fixing "Cannot create a file when that file already exists" persistence exception (File.Delete deferred when AV/OneDrive filter drivers hold handles)
+
 1.4.6
 - [Fix] IsConcreteDialogueFact blocked-fragment check took priority over concrete-fragment check, causing false rejection of AI replies containing both meta words ("discussion") and action words ("trade"), leading to invalid seeds
 - [Fix] CreateDialogueSeed lacked fallback claim: explicit AI action path had no degradation, while keyword path already had fallback — now aligned

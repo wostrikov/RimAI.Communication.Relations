@@ -893,11 +893,7 @@ namespace RimChat.Memory
                 string filePath = Path.Combine(CurrentArchiveDirPath, fileName);
                 CleanupLegacyArchiveFiles(archive.PawnLoadId, fileName);
                 string json = RpgNpcDialogueArchiveJsonCodec.ConvertToJson(archive);
-                string tempPath = filePath + ".tmp";
-                File.WriteAllText(tempPath, json);
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
-                File.Move(tempPath, filePath);
+                AtomicFileWriter.WriteAllText(filePath, json);
             }
             catch (Exception ex)
             {
