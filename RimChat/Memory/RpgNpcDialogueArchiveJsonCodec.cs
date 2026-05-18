@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -405,12 +406,22 @@ namespace RimChat.Memory
                 return string.Empty;
             }
 
-            return match.Groups[1].Value
+            string value = match.Groups[1].Value
+                .Replace("\\\\", "\\")
+                .Replace("\\\"", "\"")
                 .Replace("\\n", "\n")
                 .Replace("\\r", "\r")
                 .Replace("\\t", "\t")
-                .Replace("\\\"", "\"")
-                .Replace("\\\\", "\\");
+                .Replace("\\b", "\b")
+                .Replace("\\f", "\f");
+
+            value = Regex.Replace(value, @"\\u([0-9a-fA-F]{4})", m =>
+            {
+                int code = int.Parse(m.Groups[1].Value, NumberStyles.HexNumber);
+                return ((char)code).ToString();
+            });
+
+            return value;
         }
 
         private static int ExtractJsonInt(string json, string key)

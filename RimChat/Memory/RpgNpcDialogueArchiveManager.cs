@@ -893,7 +893,9 @@ namespace RimChat.Memory
                 string filePath = Path.Combine(CurrentArchiveDirPath, fileName);
                 CleanupLegacyArchiveFiles(archive.PawnLoadId, fileName);
                 string json = RpgNpcDialogueArchiveJsonCodec.ConvertToJson(archive);
-                File.WriteAllText(filePath, json);
+                string tempPath = filePath + ".tmp";
+                File.WriteAllText(tempPath, json);
+                File.Move(tempPath, filePath);
             }
             catch (Exception ex)
             {
@@ -1991,7 +1993,7 @@ namespace RimChat.Memory
                     {
                         existingSession.SummaryState = incomingSession.SummaryState;
                     }
-                    existingSession.IsFinalized = existingSession.IsFinalized && incomingSession.IsFinalized;
+                    existingSession.IsFinalized = existingSession.IsFinalized || incomingSession.IsFinalized;
                     existingSession.LastSummaryAttemptTick = Math.Max(existingSession.LastSummaryAttemptTick, incomingSession.LastSummaryAttemptTick);
                     if (incomingSession.Turns != null && incomingSession.Turns.Count > 0)
                     {

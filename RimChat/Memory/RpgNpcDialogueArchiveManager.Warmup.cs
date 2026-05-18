@@ -66,6 +66,11 @@ namespace RimChat.Memory
                     return;
                 }
 
+                if (_cacheLoaded)
+                {
+                    return;
+                }
+
                 _archiveCache.Clear();
                 foreach (KeyValuePair<int, RpgNpcDialogueArchive> pair in loaded)
                 {

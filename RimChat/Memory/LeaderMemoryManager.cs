@@ -102,6 +102,7 @@ namespace RimChat.Memory
  ///</summary>
         private bool _cacheLoaded = false;
         private readonly object _summarySyncRoot = new object();
+        private readonly object _cacheSyncRoot = new object();
         private string _resolvedSaveKey = string.Empty;
 
         public int GetFactionMemoryRevision(Faction faction)
@@ -467,16 +468,32 @@ namespace RimChat.Memory
         {
             if (_cacheLoaded) return;
 
+            string currentSaveKey;
             try
             {
-                EnsureDataDirectoryExists();
-                TryMigrateLegacyMemories(CurrentSaveKey);
-                LoadAllMemoriesFromFiles();
-                _cacheLoaded = true;
+                currentSaveKey = CurrentSaveKey;
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                DebugLogger.Error($"Failed to load memory cache: {ex.Message}");
+                DebugLogger.Error($"Leader memory cache load blocked: {ex.Message}");
+                return;
+            }
+
+            lock (_cacheSyncRoot)
+            {
+                if (_cacheLoaded) return;
+
+                try
+                {
+                    EnsureDataDirectoryExists();
+                    TryMigrateLegacyMemories(currentSaveKey);
+                    LoadAllMemoriesFromFiles();
+                    _cacheLoaded = true;
+                }
+                catch (Exception ex)
+                {
+                    DebugLogger.Error($"Failed to load memory cache: {ex.Message}");
+                }
             }
         }
 
@@ -569,7 +586,9 @@ namespace RimChat.Memory
                 var filePath = Path.Combine(CurrentSaveDataPath, fileName);
 
                 var json = ConvertMemoryToJson(memory);
-                File.WriteAllText(filePath, json);
+                string tempPath = filePath + ".tmp";
+                File.WriteAllText(tempPath, json);
+                File.Move(tempPath, filePath);
             }
             catch (Exception ex)
             {

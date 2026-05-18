@@ -1,3 +1,11 @@
+1.4.3
+- [Fix] JSON deserialization escape replacement order: \\ moved first, preventing data corruption for AI replies containing code blocks
+- [Fix] Deserialization now supports \b/\f/\uXXXX Unicode escapes, ensuring control characters round-trip correctly
+- [Fix] LeaderMemoryManager.EnsureCacheLoaded no lock race condition: added double-check lock + SaveKey resolution error guard
+- [Fix] Non-atomic dialogue file writes: now write to .tmp then File.Move, preventing corruption on crash
+- [Fix] MergeArchiveData IsFinalized incorrectly used && causing finalized sessions to be downgraded: changed to ||
+- [Fix] WarmupCacheInBackground TOCTOU race: discard warmup results when main thread has already loaded cache
+
 1.4.2
 - [Fix] Caravan Adventures ruins exploration main quest overwritten by RimChat AI-generated quests: added faction exclusion list config, defaults to excluding CASacrilegHunters, preventing AI management system from hijacking story factions from other mods
 - [New] Mod Options → Mod Compat → faction exclusion list (comma-separated defNames), user-extensible

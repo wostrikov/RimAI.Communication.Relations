@@ -1,3 +1,11 @@
+1.4.3
+- [修复] 对话记录JSON反序列化转义替换顺序错误：\\ 替换移至最前，修正含代码块AI回复的数据损坏风险
+- [修复] 反序列化新增 \b/\f/\uXXXX Unicode转义支持，确保控制字符正确读回
+- [修复] LeaderMemoryManager.EnsureCacheLoaded 无锁多线程竞态：添加双重检查锁 + SaveKey解析异常保护
+- [修复] 对话记录文件非原子写入：改为先写.tmp再File.Move，防止崩溃时文件损坏
+- [修复] MergeArchiveData IsFinalized误用&&导致已压缩会话被错误降级：改为||单向状态机
+- [修复] WarmupCacheInBackground TOCTOU竞态：主线程已加载时丢弃预热结果，防止覆盖缓存
+
 1.4.2
 - [修复] 远行队大冒险(Caravan Adventures)遗迹探索主任务被覆盖为RimChat AI生成任务：新增派系排除列表配置，默认排除CASacrilegHunters，防止AI管理系统接管其他mod的故事派系
 - [新增] Mod选项→Mod兼容→派系排除列表（逗号分隔defName），用户可自行扩展
