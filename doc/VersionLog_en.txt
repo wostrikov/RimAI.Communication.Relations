@@ -1,3 +1,8 @@
+1.4.2
+- [Fix] Caravan Adventures ruins exploration main quest overwritten by RimChat AI-generated quests: added faction exclusion list config, defaults to excluding CASacrilegHunters, preventing AI management system from hijacking story factions from other mods
+- [New] Mod Options → Mod Compat → faction exclusion list (comma-separated defNames), user-extensible
+- [Tweak] NpcDialoguePushManager.IsValidTargetFaction and CleanupInvalidState now delegate to unified ShouldExcludeFactionFromAI check
+
 1.4.1
 - [Tweak] Social circle fact_lines now includes raw_text section with complete untruncated event text (up to 1500 chars), enabling AI to generate richer social news articles
 - [Tweak] Letter text preserved in OriginalFullText field; display-oriented Summary still uses 220-char limit for backward compatibility

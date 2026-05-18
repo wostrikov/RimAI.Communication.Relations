@@ -1,3 +1,8 @@
+1.4.2
+- [修复] 远行队大冒险(Caravan Adventures)遗迹探索主任务被覆盖为RimChat AI生成任务：新增派系排除列表配置，默认排除CASacrilegHunters，防止AI管理系统接管其他mod的故事派系
+- [新增] Mod选项→Mod兼容→派系排除列表（逗号分隔defName），用户可自行扩展
+- [调整] NpcDialoguePushManager.IsValidTargetFaction 和 CleanupInvalidState 统一委托到 ShouldExcludeFactionFromAI 检查
+
 1.4.1
 - [调整] 社交圈 fact_lines 现包含 raw_text 段落，提供完整未截断的事件文本（最长1500字符），使 AI 能生成更丰富的社交新闻文章
 - [调整] 信件原文保留在 OriginalFullText 字段中；面向显示的 Summary 保持 220 字符截断以确保向后兼容

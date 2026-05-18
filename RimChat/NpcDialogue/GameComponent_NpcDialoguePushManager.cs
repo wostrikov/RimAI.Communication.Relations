@@ -1256,7 +1256,8 @@ namespace RimChat.NpcDialogue
 
         private bool IsValidTargetFaction(Faction faction)
         {
-            return faction != null && !faction.IsPlayer && !faction.defeated && !(faction.def?.hidden ?? true);
+            if (faction == null) return false;
+            return !GameComponent_DiplomacyManager.ShouldExcludeFactionFromAI(faction);
         }
 
         private bool IsFactionPending(Faction faction)
@@ -1364,12 +1365,17 @@ namespace RimChat.NpcDialogue
 
         private void CleanupInvalidState()
         {
-            factionPushStates.RemoveAll(s => s == null || s.faction == null || s.faction.defeated);
+            factionPushStates.RemoveAll(s =>
+                s == null ||
+                s.faction == null ||
+                s.faction.defeated ||
+                GameComponent_DiplomacyManager.ShouldExcludeFactionFromAI(s.faction));
             queuedTriggers.RemoveAll(q =>
                 q == null ||
                 q.faction == null ||
                 q.faction.defeated ||
-                (q.category == NpcDialogueCategory.WarningThreat && !q.bypassCategoryGate));
+                (q.category == NpcDialogueCategory.WarningThreat && !q.bypassCategoryGate) ||
+                GameComponent_DiplomacyManager.ShouldExcludeFactionFromAI(q.faction));
         }
 
         private void RebuildAllRuntimeIndexes()

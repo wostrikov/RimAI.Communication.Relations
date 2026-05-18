@@ -93,11 +93,39 @@ namespace RimChat.DiplomacySystem
             DiplomacyPromptSnapshotCache.Instance.WarmupOnLoad();
         }
 
+        public static bool ShouldExcludeFactionFromAI(Faction faction)
+        {
+            if (faction == null) return true;
+            if (faction.IsPlayer || faction.defeated) return true;
+            if (faction.def?.hidden ?? true) return true;
+
+            string csv = RimChatMod.Settings?.FactionExclusionDefNamesCsv;
+            if (string.IsNullOrWhiteSpace(csv)) return false;
+
+            HashSet<string> excluded = ParseFactionExclusionCsv(csv);
+            return faction.def != null && excluded.Contains(faction.def.defName);
+        }
+
+        private static HashSet<string> ParseFactionExclusionCsv(string csv)
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(csv)) return set;
+
+            string[] tokens = csv.Split(new[] { ',', ';', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                string trimmed = tokens[i].Trim();
+                if (!string.IsNullOrWhiteSpace(trimmed))
+                    set.Add(trimmed);
+            }
+            return set;
+        }
+
         private void InitializeAIControlledFactions()
         {
             foreach (var f in Find.FactionManager.AllFactions)
             {
-                if (f.IsPlayer || f.defeated || f.def.hidden) continue;
+                if (ShouldExcludeFactionFromAI(f)) continue;
                 aiControlledFactions.Add(f);
             }
         }
@@ -106,7 +134,7 @@ namespace RimChat.DiplomacySystem
         {
             foreach (var f in Find.FactionManager.AllFactions)
             {
-                if (f.IsPlayer || f.defeated || f.def.hidden) continue;
+                if (ShouldExcludeFactionFromAI(f)) continue;
                 GetOrCreateSession(f);
             }
         }
@@ -115,7 +143,7 @@ namespace RimChat.DiplomacySystem
         {
             foreach (var f in Find.FactionManager.AllFactions)
             {
-                if (f.IsPlayer || f.defeated || f.def.hidden) continue;
+                if (ShouldExcludeFactionFromAI(f)) continue;
                 GetOrCreatePresenceState(f);
             }
         }
@@ -781,6 +809,20 @@ namespace RimChat.DiplomacySystem
                 delayedEventsPendingAdd.Clear();
                 isProcessingDelayedEvents = false;
                 lastProcessedDelayedEventsTick = -1;
+
+                // Clean up factions excluded by mod compatibility config
+                if (aiControlledFactions != null)
+                {
+                    var toRemove = new List<Faction>();
+                    foreach (var f in aiControlledFactions)
+                    {
+                        if (ShouldExcludeFactionFromAI(f))
+                            toRemove.Add(f);
+                    }
+                    foreach (var f in toRemove)
+                        aiControlledFactions.Remove(f);
+                }
+
                 EnsureHiddenFactionVisibilityState();
                 RebuildDialogueSessionIndex();
                 RebuildPresenceStateIndex();

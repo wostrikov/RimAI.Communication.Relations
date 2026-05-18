@@ -153,6 +153,7 @@ namespace RimChat.Config
         public int ItemAirdropMaxStacksPerDrop = 8;
         public int ItemAirdropMaxTotalItemsPerDrop = 200;
         public string ItemAirdropBlacklistDefNamesCsv = "VanometricPowerCell,PersonaCore,ArchotechArm,ArchotechLeg";
+        public string FactionExclusionDefNamesCsv = "CASacrilegHunters";
         public int ItemAirdropSelectionCandidateLimit = 30;
         public int ItemAirdropSecondPassTimeoutSeconds = 25;
         public int ItemAirdropSecondPassQueueTimeoutSeconds = 15;

@@ -1377,6 +1377,7 @@ ID：{5}
     <RimChat_SecuritySettingsTooltip>功能：限制 API 调用频率并记录调用日志。作用域：全局请求安全与节流控制。</RimChat_SecuritySettingsTooltip>
     <RimChat_ModCompatSettings>Mod 兼容</RimChat_ModCompatSettings>
     <RimChat_ModCompatRimTalkExpandMemory>RimTalk - ExpandMemory [常识库]</RimChat_ModCompatRimTalkExpandMemory>
+    <RimChat_FactionExclusionCsv>派系排除列表（逗号分隔的defName）</RimChat_FactionExclusionCsv>
     <RimChat_EnableAPICallLogging>启用API调用日志</RimChat_EnableAPICallLogging>
     <RimChat_MaxAPICallsPerHour>每小时最大API调用: {0}</RimChat_MaxAPICallsPerHour>
     <RimChat_Unlimited>无限制</RimChat_Unlimited>

@@ -876,6 +876,7 @@
     <RimChat_SecuritySettingsTooltip>Function: control API logging and rate limits. Scope: global request safety and throttling controls.</RimChat_SecuritySettingsTooltip>
     <RimChat_ModCompatSettings>Mod Compatibility</RimChat_ModCompatSettings>
     <RimChat_ModCompatRimTalkExpandMemory>RimTalk - ExpandMemory [Common Knowledge]</RimChat_ModCompatRimTalkExpandMemory>
+    <RimChat_FactionExclusionCsv>Faction exclusion list (comma-separated defNames)</RimChat_FactionExclusionCsv>
     <RimChat_EnableAPICallLogging>Enable API Call Logging</RimChat_EnableAPICallLogging>
     <RimChat_MaxAPICallsPerHour>Max API calls per hour: {0}</RimChat_MaxAPICallsPerHour>
     <RimChat_Unlimited>Unlimited</RimChat_Unlimited>

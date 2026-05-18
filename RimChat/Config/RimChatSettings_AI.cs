@@ -69,6 +69,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref ItemAirdropMaxStacksPerDrop, "ItemAirdropMaxStacksPerDrop", 8);
             Scribe_Values.Look(ref ItemAirdropMaxTotalItemsPerDrop, "ItemAirdropMaxTotalItemsPerDrop", 200);
             Scribe_Values.Look(ref ItemAirdropBlacklistDefNamesCsv, "ItemAirdropBlacklistDefNamesCsv", "VanometricPowerCell,PersonaCore,ArchotechArm,ArchotechLeg");
+            Scribe_Values.Look(ref FactionExclusionDefNamesCsv, "FactionExclusionDefNamesCsv", "CASacrilegHunters");
             Scribe_Values.Look(ref ItemAirdropSelectionCandidateLimit, "ItemAirdropSelectionCandidateLimit", 30);
             Scribe_Values.Look(ref ItemAirdropSecondPassTimeoutSeconds, "ItemAirdropSecondPassTimeoutSeconds", 25);
             Scribe_Values.Look(ref ItemAirdropSecondPassQueueTimeoutSeconds, "ItemAirdropSecondPassQueueTimeoutSeconds", 15);
@@ -220,6 +221,7 @@ namespace RimChat.Config
             NpcFactionCooldownMaxDays = Mathf.Clamp(NpcFactionCooldownMaxDays, NpcFactionCooldownMinDays, 30);
             PawnRpgProtagonistCap = Mathf.Clamp(PawnRpgProtagonistCap, 1, 100);
             DialogueActionGoodwillCostMultiplier = Mathf.Clamp(DialogueActionGoodwillCostMultiplier, 0f, 1f);
+            if (FactionExclusionDefNamesCsv == null) FactionExclusionDefNamesCsv = "CASacrilegHunters";
             NormalizeRaidPointSettings();
         }
 
@@ -1342,6 +1344,10 @@ namespace RimChat.Config
                 ExpandMemoryPawnMemoryMaxEntries,
                 Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxEntriesMin,
                 Persistence.PromptPersistenceService.ExpandMemoryPawnMemoryMaxEntriesMax);
+
+            listing.GapLine();
+            listing.Label("RimChat_FactionExclusionCsv".Translate());
+            FactionExclusionDefNamesCsv = listing.TextEntry(FactionExclusionDefNamesCsv ?? string.Empty);
         }
 
         private void ResetModCompatSettingsToDefault()
@@ -1350,6 +1356,7 @@ namespace RimChat.Config
             ExpandMemoryInjectPawnMemory = true;
             ExpandMemoryPawnMemoryMaxChars = 1200;
             ExpandMemoryPawnMemoryMaxEntries = 50;
+            FactionExclusionDefNamesCsv = "CASacrilegHunters";
         }
 
         #endregion
