@@ -895,6 +895,8 @@ namespace RimChat.Memory
                 string json = RpgNpcDialogueArchiveJsonCodec.ConvertToJson(archive);
                 string tempPath = filePath + ".tmp";
                 File.WriteAllText(tempPath, json);
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
                 File.Move(tempPath, filePath);
             }
             catch (Exception ex)

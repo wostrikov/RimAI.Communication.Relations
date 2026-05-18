@@ -588,6 +588,8 @@ namespace RimChat.Memory
                 var json = ConvertMemoryToJson(memory);
                 string tempPath = filePath + ".tmp";
                 File.WriteAllText(tempPath, json);
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
                 File.Move(tempPath, filePath);
             }
             catch (Exception ex)
