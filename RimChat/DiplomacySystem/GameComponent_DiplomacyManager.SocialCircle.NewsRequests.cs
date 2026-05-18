@@ -476,6 +476,7 @@ namespace RimChat.DiplomacySystem
             if (!string.IsNullOrWhiteSpace(post.OriginKey))
                 socialCircleState.PublishedPostOriginKeys.Add($"{(int)post.OriginType}:{post.OriginKey}");
             socialPostsCacheDirty = true;
+            socialPostListVersion++;
             TrimSocialPosts();
             if (seed.ApplyDiplomaticImpact)
             {

@@ -28,6 +28,17 @@ namespace RimChat.UI
         private string socialToast = string.Empty;
         private float socialToastUntil = -100f;
 
+        // Post card height cache: keyed by PostId, cleared when list version changes
+        private Dictionary<string, float> _postCardHeightCache = new Dictionary<string, float>();
+        // Narrative body text cache: avoids building rich text string twice
+        private Dictionary<string, string> _narrativeBodyCache = new Dictionary<string, string>();
+        // Version tracker for cache invalidation
+        private int _cachedPostListVersion = -1;
+        // Filtered post list cache
+        private List<PublicSocialPost> _cachedFilteredPosts;
+        private int _cachedFilteredPostsVersion = -1;
+        private SocialPostCategory? _cachedFilterCategory;
+
         private float DrawDialogueMainTabs(Rect rect)
         {
             int unreadCount = GameComponent_DiplomacyManager.Instance?.GetUnreadSocialPostCount() ?? 0;
@@ -185,7 +196,7 @@ namespace RimChat.UI
 
             GUI.color = new Color(0.75f, 0.8f, 0.86f);
             Text.Anchor = TextAnchor.UpperRight;
-            Widgets.Label(countRect, "RimChat_SocialNewsCount".Translate(GetVisibleSocialPosts(manager).Count));
+            Widgets.Label(countRect, "RimChat_SocialNewsCount".Translate(GetCachedFilteredPosts(manager).Count));
             Text.Anchor = TextAnchor.UpperLeft;
             GUI.color = Color.white;
         }
@@ -216,7 +227,7 @@ namespace RimChat.UI
 
         private void DrawSocialPosts(Rect rect, GameComponent_DiplomacyManager manager)
         {
-            List<PublicSocialPost> posts = GetVisibleSocialPosts(manager);
+            List<PublicSocialPost> posts = GetCachedFilteredPosts(manager);
             if (posts.Count == 0)
             {
                 GUI.color = new Color(0.8f, 0.82f, 0.88f);
@@ -225,50 +236,128 @@ namespace RimChat.UI
                 return;
             }
 
+            int listVersion = manager.GetSocialPostListVersion();
+            if (listVersion != _cachedPostListVersion)
+            {
+                _postCardHeightCache.Clear();
+                _narrativeBodyCache.Clear();
+                _cachedPostListVersion = listVersion;
+            }
+
             float viewWidth = rect.width - 16f;
             float cardWidth = viewWidth - 6f;
+            float contentWidth = cardWidth - 20f;
+
+            // Compute all Y positions using cached heights
             float totalHeight = 0f;
-            foreach (PublicSocialPost post in posts)
+            float[] cardYPositions = new float[posts.Count];
+            for (int i = 0; i < posts.Count; i++)
             {
-                totalHeight += GetSocialPostCardHeight(post, cardWidth - 20f) + 4f;
+                cardYPositions[i] = totalHeight;
+                totalHeight += GetOrComputeCardHeight(posts[i], contentWidth) + 4f;
+            }
+
+            // Determine visible range with overscan
+            float viewTop = socialPostScrollPosition.y;
+            float viewBottom = viewTop + rect.height;
+            float overscanTop = viewTop - rect.height * 0.5f;
+            float overscanBottom = viewBottom + rect.height * 0.5f;
+
+            int firstVisible = 0;
+            int lastVisible = posts.Count - 1;
+            for (int i = 0; i < posts.Count; i++)
+            {
+                float cardBottom = cardYPositions[i] + GetOrComputeCardHeight(posts[i], contentWidth);
+                if (cardBottom < overscanTop)
+                    firstVisible = i + 1;
+                if (cardYPositions[i] > overscanBottom)
+                {
+                    lastVisible = i - 1;
+                    break;
+                }
+            }
+            firstVisible = Math.Max(0, firstVisible);
+            lastVisible = Math.Min(posts.Count - 1, lastVisible);
+            if (firstVisible > lastVisible)
+            {
+                firstVisible = 0;
+                lastVisible = Math.Min(posts.Count - 1, 3);
             }
 
             Rect viewRect = new Rect(0f, 0f, viewWidth, Mathf.Max(rect.height, totalHeight));
             Widgets.BeginScrollView(rect, ref socialPostScrollPosition, viewRect);
-            float cursorY = 0f;
-            foreach (PublicSocialPost post in posts)
+
+            // Top spacer for off-screen cards
+            if (firstVisible > 0)
+                GUILayout.Space(cardYPositions[firstVisible]);
+
+            for (int i = firstVisible; i <= lastVisible; i++)
             {
-                float cardHeight = GetSocialPostCardHeight(post, cardWidth - 20f);
-                DrawSocialPostCard(new Rect(0f, cursorY, cardWidth, cardHeight), post);
-                cursorY += cardHeight + 4f;
+                PublicSocialPost post = posts[i];
+                float cardHeight = GetOrComputeCardHeight(post, contentWidth);
+                DrawSocialPostCard(new Rect(0f, cardYPositions[i], cardWidth, cardHeight), post);
             }
 
             Widgets.EndScrollView();
         }
 
-        private List<PublicSocialPost> GetVisibleSocialPosts(GameComponent_DiplomacyManager manager)
+        private List<PublicSocialPost> GetCachedFilteredPosts(GameComponent_DiplomacyManager manager)
         {
-            IEnumerable<PublicSocialPost> posts = manager.GetSocialPosts();
-            if (socialCategoryFilter.HasValue)
-            {
-                posts = posts.Where(post => post.Category == socialCategoryFilter.Value);
-            }
+            int version = manager.GetSocialPostListVersion();
+            if (_cachedFilteredPosts != null && _cachedFilteredPostsVersion == version
+                && _cachedFilterCategory == socialCategoryFilter)
+                return _cachedFilteredPosts;
 
-            return posts.ToList();
+            List<PublicSocialPost> allPosts = manager.GetSocialPosts();
+            if (!socialCategoryFilter.HasValue)
+            {
+                _cachedFilteredPosts = allPosts;
+            }
+            else
+            {
+                _cachedFilteredPosts = new List<PublicSocialPost>(allPosts.Count);
+                for (int i = 0; i < allPosts.Count; i++)
+                {
+                    if (allPosts[i].Category == socialCategoryFilter.Value)
+                        _cachedFilteredPosts.Add(allPosts[i]);
+                }
+            }
+            _cachedFilteredPostsVersion = version;
+            _cachedFilterCategory = socialCategoryFilter;
+            return _cachedFilteredPosts;
         }
 
-        private float GetSocialPostCardHeight(PublicSocialPost post, float contentWidth)
+        private float GetOrComputeCardHeight(PublicSocialPost post, float contentWidth)
+        {
+            string key = post.PostId ?? string.Empty;
+            if (!_postCardHeightCache.TryGetValue(key, out float height))
+            {
+                height = ComputeCardHeight(post, contentWidth);
+                _postCardHeightCache[key] = height;
+            }
+            return height;
+        }
+
+        private float ComputeCardHeight(PublicSocialPost post, float contentWidth)
         {
             float height = 54f;
             height += GetTextHeight(post?.Headline, contentWidth, GameFont.Medium) + 6f;
             height += GetActorsLineHeight(post, contentWidth);
-            height += GetTextHeight(BuildNarrativeBody(post), contentWidth, GameFont.Small) + 4f;
+            height += GetTextHeight(GetOrComputeNarrativeBody(post), contentWidth, GameFont.Small) + 4f;
             if (!string.IsNullOrWhiteSpace(post?.Quote))
-            {
                 height += GetQuoteHeight(post, contentWidth);
-            }
-
             return Mathf.Max(120f, height + 2f);
+        }
+
+        private string GetOrComputeNarrativeBody(PublicSocialPost post)
+        {
+            string key = post.PostId ?? string.Empty;
+            if (!_narrativeBodyCache.TryGetValue(key, out string body))
+            {
+                body = BuildNarrativeBody(post);
+                _narrativeBodyCache[key] = body;
+            }
+            return body;
         }
 
         private float GetActorsLineHeight(PublicSocialPost post, float width)
@@ -371,7 +460,7 @@ namespace RimChat.UI
 
         private float DrawNarrativeBody(Rect rect, PublicSocialPost post)
         {
-            string body = BuildNarrativeBody(post);
+            string body = GetOrComputeNarrativeBody(post);
             float height = GetTextHeight(body, rect.width, GameFont.Small);
             Rect drawRect = new Rect(rect.x, rect.y, rect.width, height);
             GUI.color = new Color(0.88f, 0.9f, 0.95f);

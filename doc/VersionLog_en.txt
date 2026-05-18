@@ -1,3 +1,12 @@
+1.4.5
+- [Opt] Social circle news list viewport clipping: only render visible post cards, skip CalcHeight and drawing for off-screen posts
+- [Opt] Post card height cache (Dictionary<PostId, float>): invalidated when list version changes
+- [Opt] Narrative body rich-text cache (Dictionary<PostId, string>): avoids duplicate string building in height-calc vs draw phases
+- [Opt] Filtered post list cache: keyed by version + category filter, eliminates per-frame List allocation
+
+1.4.4
+- [Fix] File.Move throws IOException when destination exists on .NET 4.8: delete target before Move
+
 1.4.3
 - [Fix] JSON deserialization escape replacement order: \\ moved first, preventing data corruption for AI replies containing code blocks
 - [Fix] Deserialization now supports \b/\f/\uXXXX Unicode escapes, ensuring control characters round-trip correctly

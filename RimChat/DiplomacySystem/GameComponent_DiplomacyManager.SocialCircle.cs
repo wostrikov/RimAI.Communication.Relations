@@ -17,6 +17,7 @@ namespace RimChat.DiplomacySystem
         private SocialCircleState socialCircleState = new SocialCircleState();
         private List<PublicSocialPost> cachedSortedPosts = new List<PublicSocialPost>();
         private bool socialPostsCacheDirty = true;
+        private int socialPostListVersion = 0;
         private List<Faction> cachedEligibleFactions;
         private int eligibleFactionsCacheTick = -1;
         private const int EligibleFactionsCacheIntervalTicks = 60000;
@@ -32,6 +33,7 @@ namespace RimChat.DiplomacySystem
             socialCircleState.LastReadPostId = string.Empty;
             ClearSocialTransientState();
             socialPostsCacheDirty = true;
+            socialPostListVersion++;
             ScheduleNextSocialPost(Find.TickManager?.TicksGame ?? 0);
         }
 
@@ -42,6 +44,7 @@ namespace RimChat.DiplomacySystem
             socialCircleState.ClearPendingOrigins();
             ClearSocialTransientState();
             socialPostsCacheDirty = true;
+            socialPostListVersion++;
             EnsureNextSocialPostTick(Find.TickManager?.TicksGame ?? 0);
         }
 
@@ -324,6 +327,11 @@ namespace RimChat.DiplomacySystem
             return cachedSortedPosts.GetRange(0, count);
         }
 
+        public int GetSocialPostListVersion()
+        {
+            return socialPostListVersion;
+        }
+
         public int GetUnreadSocialPostCount()
         {
             EnsureSocialCircleState();
@@ -412,6 +420,7 @@ namespace RimChat.DiplomacySystem
             int removeCount = socialCircleState.Posts.Count - MaxSocialPosts;
             socialCircleState.Posts.RemoveRange(0, removeCount);
             socialPostsCacheDirty = true;
+            socialPostListVersion++;
         }
 
         private List<Faction> GetEligibleSocialFactions()
