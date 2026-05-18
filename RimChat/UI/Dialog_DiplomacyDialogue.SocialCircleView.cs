@@ -287,10 +287,6 @@ namespace RimChat.UI
             Rect viewRect = new Rect(0f, 0f, viewWidth, Mathf.Max(rect.height, totalHeight));
             Widgets.BeginScrollView(rect, ref socialPostScrollPosition, viewRect);
 
-            // Top spacer for off-screen cards
-            if (firstVisible > 0)
-                GUILayout.Space(cardYPositions[firstVisible]);
-
             for (int i = firstVisible; i <= lastVisible; i++)
             {
                 PublicSocialPost post = posts[i];
