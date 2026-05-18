@@ -1,3 +1,9 @@
+1.4.6
+- [Fix] IsConcreteDialogueFact blocked-fragment check took priority over concrete-fragment check, causing false rejection of AI replies containing both meta words ("discussion") and action words ("trade"), leading to invalid seeds
+- [Fix] CreateDialogueSeed lacked fallback claim: explicit AI action path had no degradation, while keyword path already had fallback — now aligned
+- [Fix] TryGenerateRandomDialogueSocialPost called TryBuildFactionDialoguePublicClaim twice (once to pre-compute summary, once inside CreateDialogueSeed), redundant and increased failure surface
+- [Fix] Missing concrete fragments "警告"/"warn" in action word list could cause already-structured claims to be rejected on second validation
+
 1.4.5
 - [Opt] Social circle news list viewport clipping: only render visible post cards, skip CalcHeight and drawing for off-screen posts
 - [Opt] Post card height cache (Dictionary<PostId, float>): invalidated when list version changes

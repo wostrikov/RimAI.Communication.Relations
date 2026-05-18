@@ -34,7 +34,10 @@ namespace RimChat.DiplomacySystem
                 sourceFaction, category, sentiment, trimmedSummary, trimmedIntent, targetFaction);
             if (string.IsNullOrWhiteSpace(publicClaim))
             {
-                return null;
+                string targetName = targetFaction?.Name?.Trim();
+                publicClaim = string.IsNullOrWhiteSpace(targetName)
+                    ? $"{sourceFaction.Name}就当前局势发表了公开声明。"
+                    : $"{sourceFaction.Name}就与{targetName}的关系发表了公开声明。";
             }
 
             return new SocialNewsSeed
@@ -334,6 +337,67 @@ namespace RimChat.DiplomacySystem
             }
 
             string lowered = text.ToLowerInvariant();
+            string[] concreteFragments =
+            {
+                "要求",
+                "主张",
+                "表示",
+                "宣布",
+                "拒绝",
+                "支持",
+                "反对",
+                "停止",
+                "继续",
+                "允许",
+                "禁止",
+                "开放",
+                "封锁",
+                "停火",
+                "谈判",
+                "贸易",
+                "援助",
+                "袭击",
+                "进攻",
+                "威胁",
+                "撤军",
+                "增兵",
+                "赔偿",
+                "合作",
+                "结盟",
+                "归还",
+                "交付",
+                "释放",
+                "警告",
+                "trade",
+                "truce",
+                "aid",
+                "raid",
+                "attack",
+                "threaten",
+                "withdraw",
+                "deploy",
+                "compensation",
+                "cooperate",
+                "alliance",
+                "return",
+                "deliver",
+                "release",
+                "ban",
+                "allow",
+                "refuse",
+                "reject",
+                "support",
+                "oppose",
+                "demand",
+                "claim",
+                "announce",
+                "warn"
+            };
+            if (concreteFragments.Any(fragment => lowered.Contains(fragment)))
+            {
+                return true;
+            }
+
             string[] blockedFragments =
             {
                 "引发讨论",
@@ -366,65 +430,6 @@ namespace RimChat.DiplomacySystem
             if (blockedFragments.Any(fragment => lowered.Contains(fragment)))
             {
                 return false;
-            }
-
-            string[] concreteFragments =
-            {
-                "要求",
-                "主张",
-                "表示",
-                "宣布",
-                "拒绝",
-                "支持",
-                "反对",
-                "停止",
-                "继续",
-                "允许",
-                "禁止",
-                "开放",
-                "封锁",
-                "停火",
-                "谈判",
-                "贸易",
-                "援助",
-                "袭击",
-                "进攻",
-                "威胁",
-                "撤军",
-                "增兵",
-                "赔偿",
-                "合作",
-                "结盟",
-                "归还",
-                "交付",
-                "释放",
-                "trade",
-                "truce",
-                "aid",
-                "raid",
-                "attack",
-                "threaten",
-                "withdraw",
-                "deploy",
-                "compensation",
-                "cooperate",
-                "alliance",
-                "return",
-                "deliver",
-                "release",
-                "ban",
-                "allow",
-                "refuse",
-                "reject",
-                "support",
-                "oppose",
-                "demand",
-                "claim",
-                "announce"
-            };
-            if (concreteFragments.Any(fragment => lowered.Contains(fragment)))
-            {
-                return true;
             }
 
             return text.Contains("：")

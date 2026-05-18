@@ -1,3 +1,9 @@
+1.4.6
+- [修复] IsConcreteDialogueFact阻断词检查优先于动作词，导致AI回复含"讨论贸易"等文本被误杀，种子无效
+- [修复] CreateDialogueSeed缺少兜底声明：显式AI动作路径无降级，关键词路径已有但另一路径未对齐
+- [修复] TryGenerateRandomDialogueSocialPost对TryBuildFactionDialoguePublicClaim重复调用，冗余增加失败面
+- [修复] 动作词列表缺失"警告"/"warn"，已结构声明二次校验可能被拒绝
+
 1.4.5
 - [优化] 社交圈新闻列表视口裁剪渲染：仅绘制可见区域内的帖子卡片，不可见帖子跳过CalcHeight和绘制
 - [优化] 帖子卡片高度缓存（Dictionary<PostId, float>）：列表版本号变化时失效重建

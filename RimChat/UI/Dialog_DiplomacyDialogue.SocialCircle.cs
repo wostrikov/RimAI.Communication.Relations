@@ -140,20 +140,13 @@ namespace RimChat.UI
             }
 
             Faction targetFaction = GameComponent_DiplomacyManager.Instance?.ResolveSocialTargetFaction(string.Empty, currentFaction);
-            string summary = SocialNewsSeedFactory.TryBuildFactionDialoguePublicClaim(
-                currentFaction,
-                category,
-                sentiment,
-                aiText,
-                string.Empty,
-                targetFaction);
             bool queued = GameComponent_DiplomacyManager.Instance != null &&
                           GameComponent_DiplomacyManager.Instance.EnqueuePublicPost(
                               currentFaction,
                               targetFaction,
                               category,
                               sentiment,
-                              summary,
+                              aiTextOnly,
                               true,
                               out SocialPostEnqueueResult enqueueResult,
                               string.Empty,
