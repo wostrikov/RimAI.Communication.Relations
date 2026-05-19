@@ -1,3 +1,8 @@
+1.4.8
+- [修复] NPC主动对话无端推送虫巢威胁：PlayerGameStateCache校验虫巢Destroyed状态，过滤死虫巢残骸误判为活跃威胁
+- [修复] 殖民者对讲威胁路径缺少边缘触发门控：添加_colonistPairHadThreat状态，与逐派系hadThreat模式对齐，防止同波威胁重复推送
+- [修复] CleanupInvalidState未剥离过期WarningThreat队列项：加载存档时清除无bypassCategoryGate的警告类触发器，对齐旧NPC系统防御逻辑
+
 1.4.7
 - [修复] File.Delete + File.Move TOCTOU竞态：替换为File.Replace原子写入 + fallback，彻底修复"文件已存在无法创建"持久化异常（杀毒/OneDrive等过滤驱动持有句柄时File.Delete延迟删除）
 

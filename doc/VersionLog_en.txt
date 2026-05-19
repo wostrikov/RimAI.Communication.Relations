@@ -1,3 +1,8 @@
+1.4.8
+- [Fix] NPC proactive dialogue falsely pushing hive threat warnings: PlayerGameStateCache now checks hive Destroyed state, filtering dead hive husks misidentified as active threats
+- [Fix] Colonist-pair threat path missing edge-trigger gate: added _colonistPairHadThreat state aligned with per-faction hadThreat pattern, preventing repeated pushes for the same threat wave
+- [Fix] CleanupInvalidState not stripping stale WarningThreat queued items: remove warning triggers without bypassCategoryGate on load, aligned with old NPC system defense logic
+
 1.4.7
 - [Fix] File.Delete + File.Move TOCTOU race: replaced with File.Replace atomic write + fallback, definitively fixing "Cannot create a file when that file already exists" persistence exception (File.Delete deferred when AV/OneDrive filter drivers hold handles)
 

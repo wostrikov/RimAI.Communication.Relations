@@ -19,6 +19,7 @@ namespace RimChat.PawnRpgPush
         public int Severity = 1;
         public int CreatedTick;
         public string Metadata = string.Empty;
+        public bool BypassCategoryGate;
     }
 
     /// <summary>/// Dependencies: RimWorld.Faction, Verse.Scribe.
@@ -37,6 +38,7 @@ namespace RimChat.PawnRpgPush
         public int dueTick;
         public int expireTick;
         public string metadata = string.Empty;
+        public bool bypassCategoryGate;
 
         public PawnRpgTriggerContext ToContext()
         {
@@ -49,7 +51,8 @@ namespace RimChat.PawnRpgPush
                 Reason = reason,
                 Severity = severity,
                 CreatedTick = createdTick,
-                Metadata = metadata
+                Metadata = metadata,
+                BypassCategoryGate = bypassCategoryGate
             };
         }
 
@@ -67,7 +70,8 @@ namespace RimChat.PawnRpgPush
                 enqueuedTick = nowTick,
                 dueTick = dueTickValue,
                 expireTick = expireTickValue,
-                metadata = context?.Metadata ?? string.Empty
+                metadata = context?.Metadata ?? string.Empty,
+                bypassCategoryGate = context?.BypassCategoryGate ?? false
             };
         }
 
@@ -95,6 +99,7 @@ namespace RimChat.PawnRpgPush
             Scribe_Values.Look(ref dueTick, "dueTick", 0);
             Scribe_Values.Look(ref expireTick, "expireTick", 0);
             Scribe_Values.Look(ref metadata, "metadata", string.Empty);
+            Scribe_Values.Look(ref bypassCategoryGate, "bypassCategoryGate", false);
         }
     }
 

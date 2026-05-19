@@ -122,7 +122,14 @@ namespace RimChat.WorldState
                     List<Thing> hives = map.listerThings?.ThingsOfDef(hiveDef);
                     if (hives != null && hives.Count > 0)
                     {
-                        _hasHiveThreat = true;
+                        for (int i = 0; i < hives.Count; i++)
+                        {
+                            if (!hives[i].Destroyed)
+                            {
+                                _hasHiveThreat = true;
+                                break;
+                            }
+                        }
                     }
                 }
             }

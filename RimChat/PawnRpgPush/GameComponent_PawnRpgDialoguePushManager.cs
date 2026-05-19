@@ -70,6 +70,7 @@ namespace RimChat.PawnRpgPush
         private int lastHomeEventTriggerTick = -1;
         private int lastColonyDeliveredTick = -ColonyDeliveryCooldownTicks;
         private int lastColonistPairDeliveredTick = -ColonyDeliveryCooldownTicks;
+        private bool _colonistPairHadThreat;
         private int lastMissingProtagonistLogTick = -MissingProtagonistLogIntervalTicks;
 
         // Per-tick cache to avoid repeated ResolveConfiguredProtagonists() allocations
@@ -117,6 +118,7 @@ namespace RimChat.PawnRpgPush
                 Scribe_Collections.Look(ref proactiveProtagonists, "pawnRpgProactiveProtagonists", LookMode.Deep);
                 Scribe_Values.Look(ref lastColonyDeliveredTick, "pawnRpgLastColonyDeliveredTick", -ColonyDeliveryCooldownTicks);
                 Scribe_Values.Look(ref lastColonistPairDeliveredTick, "pawnRpgLastColonistPairDeliveredTick", -ColonyDeliveryCooldownTicks);
+                Scribe_Values.Look(ref _colonistPairHadThreat, "pawnRpgColonistPairHadThreat", false);
                 Scribe_Values.Look(ref lastHomeEventTriggerTick, "lastHomeEventTriggerTick", -1);
                 Scribe_Collections.Look(ref recentEventDeliveries, "recentEventDeliveries", LookMode.Value, LookMode.Value);
                 if (Scribe.mode == LoadSaveMode.Saving)
@@ -737,6 +739,12 @@ namespace RimChat.PawnRpgPush
             bool hasHostiles = PlayerGameStateCache.Instance.HasHostiles;
             bool hasHive = PlayerGameStateCache.Instance.HasHiveThreat;
             bool hasThreat = hasHostiles || hasHive;
+
+            if (!hasThreat)
+            {
+                _colonistPairHadThreat = false;
+            }
+
             foreach (Faction faction in GetActiveCandidateFactionsOnPlayerMaps(currentTick))
             {
                 PawnRpgThreatState state = GetOrCreateThreatState(faction);
@@ -755,9 +763,10 @@ namespace RimChat.PawnRpgPush
                 state.hadThreat = true;
             }
 
-            if (hasThreat)
+            if (hasThreat && !_colonistPairHadThreat)
             {
                 EvaluateColonistPairThreatTriggers(currentTick, hasHive, hasHostiles);
+                _colonistPairHadThreat = true;
             }
         }
 
@@ -989,7 +998,8 @@ namespace RimChat.PawnRpgPush
                     _npcStateByPawn.Remove(p);
             }
             threatStates.RemoveAll(s => s == null || s.faction == null || s.faction.defeated);
-            queuedTriggers.RemoveAll(q => q == null || q.faction == null || q.faction.defeated);
+            queuedTriggers.RemoveAll(q => q == null || q.faction == null || q.faction.defeated
+                || (q.category == NpcDialogueCategory.WarningThreat && !q.bypassCategoryGate));
             proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
             proactiveProtagonists.RemoveAll(e => e == null || !e.HasConfiguredIdentifier);
             _cachedProtagonists = null;
