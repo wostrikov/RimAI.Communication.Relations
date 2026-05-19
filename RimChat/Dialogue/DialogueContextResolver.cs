@@ -85,10 +85,15 @@ namespace RimChat.Dialogue
                     return false;
                 }
 
-                if (!TryResolvePawn(runtimeContext.TargetPawnId, out target))
+                // Group chat: skip single-target resolution when participants list is populated
+                bool isGroupChat = runtimeContext.ParticipantPawnIds != null && runtimeContext.ParticipantPawnIds.Count > 0;
+                if (!isGroupChat)
                 {
-                    reason = "target_unresolvable";
-                    return false;
+                    if (!TryResolvePawn(runtimeContext.TargetPawnId, out target))
+                    {
+                        reason = "target_unresolvable";
+                        return false;
+                    }
                 }
 
                 live.Initiator = initiator;

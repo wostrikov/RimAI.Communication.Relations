@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using RimChat.UI;
+using RimWorld;
 using Verse;
 
 namespace RimChat.Dialogue
@@ -20,6 +22,13 @@ namespace RimChat.Dialogue
             }
 
             DialogueRuntimeContext snapshot = intent.RuntimeContext.WithCurrentRuntimeMarkers();
+
+            // Group chat path: skip single-target resolver/validator
+            if (snapshot.ParticipantPawnIds != null && snapshot.ParticipantPawnIds.Count > 0)
+            {
+                return TryOpenGroupChat(snapshot, intent, out reason);
+            }
+
             if (!DialogueContextResolver.TryResolveLiveContext(snapshot, out DialogueLiveContext liveContext, out reason))
             {
                 return false;
@@ -58,6 +67,66 @@ namespace RimChat.Dialogue
             return true;
         }
 
+        private static bool TryOpenGroupChat(DialogueRuntimeContext snapshot, DialogueOpenIntent intent, out string reason)
+        {
+            reason = string.Empty;
+
+            if (Current.ProgramState != ProgramState.Playing)
+            {
+                reason = "program_state_not_playing";
+                return false;
+            }
+
+            if (Current.Game == null || Find.WindowStack == null)
+            {
+                reason = "game_or_window_stack_null";
+                return false;
+            }
+
+            if (!DialogueContextResolver.TryResolvePawn(snapshot.InitiatorPawnId, out Pawn initiator))
+            {
+                reason = "initiator_unresolvable";
+                return false;
+            }
+
+            Map map = initiator.Map;
+            if (snapshot.MapUniqueId > 0 && (map == null || map.uniqueID != snapshot.MapUniqueId))
+            {
+                reason = "map_invalid";
+                return false;
+            }
+
+            List<Pawn> participants = new List<Pawn>();
+            foreach (string pawnId in snapshot.ParticipantPawnIds)
+            {
+                if (DialogueContextResolver.TryResolvePawn(pawnId, out Pawn participant)
+                    && participant != initiator)
+                {
+                    participants.Add(participant);
+                }
+            }
+
+            if (participants.Count == 0)
+            {
+                reason = "no_valid_participants";
+                return false;
+            }
+
+            if (IsDuplicateWindow(snapshot))
+            {
+                reason = "duplicate_window";
+                return false;
+            }
+
+            var groupWindow = new Dialog_RPGPawnGroupChat(
+                initiator,
+                participants,
+                snapshot,
+                snapshot.WindowKey);
+            Find.WindowStack.Add(groupWindow);
+            return true;
+        }
+
         private static bool IsDuplicateWindow(DialogueRuntimeContext runtimeContext)
         {
             if (Find.WindowStack?.Windows == null || runtimeContext == null)
@@ -75,6 +144,11 @@ namespace RimChat.Dialogue
                 if (window is Dialog_RPGPawnDialogue rpgWindow)
                 {
                     return rpgWindow.MatchesWindowLifecycleKey(runtimeContext.WindowKey);
+                }
+
+                if (window is Dialog_RPGPawnGroupChat groupWindow)
+                {
+                    return groupWindow.MatchesWindowLifecycleKey(runtimeContext.WindowKey);
                 }
 
                 return false;

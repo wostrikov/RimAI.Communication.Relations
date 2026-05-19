@@ -1,3 +1,12 @@
+1.5.0
+- [New] Group Discussion mode: right-click colonist → Start Group Discussion, detects up to 6 NPCs within 12-tile radius (6 tiles for animals/mechanoids) centered on target pawn
+- [New] Cascading portraits (400×500 matching 1v1), round-robin speaker animation (scale + lift), serial queue AI requests (next request fires immediately on response)
+- [New] Dialogue box color shifts by speaker relationship (lover pink / prisoner brown / hostile red / neutral blue), floating action feedback toasts, text pagination
+- [New] Click player portrait for forced action menu (Romance/Marry/Breakup/Divorce/Date/Gift/Recruit/ReduceResist/ReduceWill/Inspiration/Incident/ConvertIdeo/AdjustCertainty)
+- [New] Center history panel with scrollable turn-by-turn dialogue records
+- [Fix] Multiple race conditions after player reply: AI response not displaying, stuck on "thinking", right-aligned truncation
+- [Opt] Portrait render-on-demand (non-speakers at 0.5s intervals), GUI.matrix scaling to prevent flicker
+
 1.4.8
 - [Fix] NPC proactive dialogue falsely pushing hive threat warnings: PlayerGameStateCache now checks hive Destroyed state, filtering dead hive husks misidentified as active threats
 - [Fix] Colonist-pair threat path missing edge-trigger gate: added _colonistPairHadThreat state aligned with per-faction hadThreat pattern, preventing repeated pushes for the same threat wave

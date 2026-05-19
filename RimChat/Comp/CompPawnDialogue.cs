@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse;
 using Verse.AI;
 using RimWorld;
 using RimChat.Dialogue;
-using RimChat.UI;
 using RimChat.Core;
 using RimChat.WorldState;
 
@@ -119,6 +120,29 @@ namespace RimChat.Comp
 
                 selPawn.jobs.TryTakeOrderedJob(dialogueJob, JobTag.Misc);
             }, MenuOptionPriority.Low);
+
+            // Group chat option: detect nearby pawns around the right-clicked pawn
+            List<Pawn> nearbyPawns = DetectNearbyPawns(targetPawn, selPawn);
+            if (nearbyPawns.Count >= 1)
+            {
+                int maxNpcSlots = Math.Min(6, 1 + nearbyPawns.Count);
+                List<Pawn> groupParticipants = new List<Pawn> { targetPawn };
+                groupParticipants.AddRange(nearbyPawns.Take(maxNpcSlots - 1));
+
+                string groupLabel = "RimChat_GroupConverse".Translate()
+                    + " (" + string.Join(", ", groupParticipants.Select(p => p.LabelShort)) + ")";
+
+                List<Pawn> captured = new List<Pawn>(groupParticipants);
+                yield return new FloatMenuOption(groupLabel, () =>
+                {
+                    RimChatTrackedEntityRegistry.TrackPawn(selPawn);
+                    foreach (Pawn p in captured)
+                        RimChatTrackedEntityRegistry.TrackPawn(p);
+                    DialogueWindowCoordinator.TryOpen(
+                        DialogueOpenIntent.CreateRpgGroup(selPawn, captured, selPawn.Map),
+                        out _);
+                });
+            }
         }
 
         /// <summary>
@@ -129,6 +153,39 @@ namespace RimChat.Comp
             string label = "RimChat_Converse_Disabled".Translate(reasonKey.Translate());
             return new FloatMenuOption(label, null);
         }
+
+        private static List<Pawn> DetectNearbyPawns(Pawn center, Pawn excludePawn)
+        {
+            const float BaseRadius = 12f;
+            const float HalfRadius = 6f;
+            var excluded = new HashSet<Pawn> { center, excludePawn };
+            var result = new List<Pawn>();
+
+            Map map = center.Map;
+            if (map == null) return result;
+
+            foreach (Pawn candidate in map.mapPawns.AllPawnsSpawned)
+            {
+                if (excluded.Contains(candidate)) continue;
+                if (candidate.Dead || candidate.Destroyed || !candidate.Spawned) continue;
+                // Animal/Mechanoid: half detection range
+                float radius = (candidate.RaceProps?.Animal == true || candidate.RaceProps?.IsMechanoid == true)
+                    ? HalfRadius : BaseRadius;
+                if (center.Position.DistanceTo(candidate.Position) > radius) continue;
+                if (!PawnDialogueRoutingPolicy.IsRpgDialogueEligibleRace(candidate)) continue;
+                if (!center.CanReach(candidate, PathEndMode.InteractionCell, Danger.Deadly)) continue;
+                if (!RestUtility.Awake(candidate) || candidate.Downed) continue;
+                if (PawnCombatStateUtility.IsPawnInCombat(candidate)) continue;
+                if (PawnCombatStateUtility.IsPawnDrafted(candidate)) continue;
+                result.Add(candidate);
+            }
+
+            result.Sort((a, b) =>
+                center.Position.DistanceToSquared(a.Position)
+                    .CompareTo(center.Position.DistanceToSquared(b.Position)));
+            return result;
+        }
+
     }
 
     public class CompProperties_PawnDialogue : CompProperties

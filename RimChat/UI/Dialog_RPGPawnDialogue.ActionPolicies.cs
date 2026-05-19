@@ -132,7 +132,7 @@ namespace RimChat.UI
             return stage?.baseMoodEffect ?? 0f;
         }
 
-        private string NormalizeRpgActionName(string actionName)
+        internal static string NormalizeRpgActionName(string actionName)
         {
             if (string.IsNullOrWhiteSpace(actionName))
             {

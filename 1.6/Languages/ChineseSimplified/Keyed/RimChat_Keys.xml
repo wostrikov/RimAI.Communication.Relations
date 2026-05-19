@@ -2727,4 +2727,12 @@ ID：{5}
     <RimChat_ModuleSelectNone>全不选</RimChat_ModuleSelectNone>
     <RimChat_ModuleImportCount>文件中发现 {0} 个模块</RimChat_ModuleImportCount>
     <RimChat_ModuleImportMultiSuccess>已导入 {0} 个模块</RimChat_ModuleImportMultiSuccess>
+
+    <!-- 多人群聊 -->
+    <RimChat_GroupConverse>发起多人讨论</RimChat_GroupConverse>
+    <RimChat_ClickToContinue>点击继续...</RimChat_ClickToContinue>
+    <RimChat_GroupConverse_Error>错误：{0} - {1}</RimChat_GroupConverse_Error>
+    <RimChat_GroupConverse_Skipped>{0} 暂时无法回应...</RimChat_GroupConverse_Skipped>
+    <RimChat_GroupHistory_Live>实时</RimChat_GroupHistory_Live>
+    <RimChat_GroupHistory_View>记录</RimChat_GroupHistory_View>
 </LanguageData>

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using RimChat.AI;
 using RimWorld;
 using Verse;
@@ -27,6 +29,7 @@ namespace RimChat.Dialogue
         public int MapUniqueId { get; }
         public int GameContextId { get; }
         public int ContextVersion { get; }
+        public List<string> ParticipantPawnIds { get; internal set; }
 
         private DialogueRuntimeContext(
             DialogueChannel channel,
@@ -50,6 +53,7 @@ namespace RimChat.Dialogue
             MapUniqueId = mapUniqueId;
             GameContextId = gameContextId;
             ContextVersion = contextVersion;
+            ParticipantPawnIds = new List<string>();
         }
 
         public static DialogueRuntimeContext CreateDiplomacy(
@@ -112,9 +116,46 @@ namespace RimChat.Dialogue
                 GetCurrentContextVersion());
         }
 
+        public static DialogueRuntimeContext CreateRpgGroup(
+            Pawn initiator,
+            List<Pawn> participants,
+            Map map,
+            string dialogueSessionId = null,
+            string windowKey = null)
+        {
+            string initiatorId = initiator?.GetUniqueLoadID() ?? string.Empty;
+            int mapId = map?.uniqueID ?? initiator?.Map?.uniqueID ?? -1;
+            List<string> participantIds = participants?
+                .Where(p => p != null)
+                .Select(p => p.GetUniqueLoadID())
+                .ToList() ?? new List<string>();
+            string idHash = string.Join(",", participantIds.OrderBy(id => id));
+            int hash = idHash.GetHashCode();
+            string sessionId = string.IsNullOrWhiteSpace(dialogueSessionId)
+                ? $"rpggroup:{initiatorId}:{mapId}:{hash}"
+                : dialogueSessionId.Trim();
+            string key = string.IsNullOrWhiteSpace(windowKey)
+                ? $"window:{sessionId}"
+                : windowKey.Trim();
+
+            var context = new DialogueRuntimeContext(
+                DialogueChannel.Rpg,
+                sessionId,
+                key,
+                initiatorId,
+                string.Empty,
+                string.Empty,
+                -1,
+                mapId,
+                GetCurrentGameContextId(),
+                GetCurrentContextVersion());
+            context.ParticipantPawnIds = participantIds;
+            return context;
+        }
+
         public DialogueRuntimeContext WithCurrentRuntimeMarkers()
         {
-            return new DialogueRuntimeContext(
+            var ctx = new DialogueRuntimeContext(
                 Channel,
                 DialogueSessionId,
                 WindowKey,
@@ -125,6 +166,10 @@ namespace RimChat.Dialogue
                 MapUniqueId,
                 GetCurrentGameContextId(),
                 GetCurrentContextVersion());
+            ctx.ParticipantPawnIds = ParticipantPawnIds != null
+                ? new List<string>(ParticipantPawnIds)
+                : new List<string>();
+            return ctx;
         }
 
         private static int GetCurrentContextVersion()

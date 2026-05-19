@@ -81,13 +81,13 @@ namespace RimChat.UI
         private bool isViewingHistory = false;
         private int historyViewIndex = 0;
         
-        private const float DialogueBoxHeight = 260f;
-        private const float PortraitWidth = 400f;
-        private const float PortraitHeight = 500f;
+        internal const float DialogueBoxHeight = 260f;
+        internal const float PortraitWidth = 400f;
+        internal const float PortraitHeight = 500f;
 
-        private static float GetPortraitWidthScale(float bodySize) => Mathf.Clamp(Mathf.Sqrt(Mathf.Max(bodySize, 0.5f)), 0.7f, 1.5f);
-        private static float GetPortraitHeightScale(float bodySize) => Mathf.Clamp(Mathf.Max(bodySize, 0.5f), 0.7f, 2.0f);
-        private static float GetPortraitZoom(float bodySize, bool humanlike)
+        internal static float GetPortraitWidthScale(float bodySize) => Mathf.Clamp(Mathf.Sqrt(Mathf.Max(bodySize, 0.5f)), 0.7f, 1.5f);
+        internal static float GetPortraitHeightScale(float bodySize) => Mathf.Clamp(Mathf.Max(bodySize, 0.5f), 0.7f, 2.0f);
+        internal static float GetPortraitZoom(float bodySize, bool humanlike)
         {
             float b = humanlike ? 1.35f : 1.0f;
             return Mathf.Clamp(b / Mathf.Pow(Mathf.Max(bodySize, 0.5f), 0.3f), 0.5f, 1.35f);
@@ -517,51 +517,52 @@ namespace RimChat.UI
 
         private void DrawPawnPortrait(Rect rect, Pawn pawn, bool flip)
         {
+            RenderTexture rt = flip ? initiatorRT : targetRT;
+            bool created;
+            DrawPawnPortrait(rect, pawn, flip, ref rt, out created);
+            if (flip) initiatorRT = rt;
+            else targetRT = rt;
+        }
+
+        internal static void DrawPawnPortrait(Rect rect, Pawn pawn, bool flip, ref RenderTexture cachedRT, out bool created)
+        {
+            created = false;
             if (pawn == null) return;
 
-            // 3x Super-resolution for extreme clarity (1200x1500 per portrait)
             int texWidth = (int)(rect.width * 3f);
             int texHeight = (int)(rect.height * 3f);
 
-            RenderTexture rt = flip ? initiatorRT : targetRT;
-
-            if (rt == null || rt.width != texWidth || rt.height != texHeight)
+            if (cachedRT == null || cachedRT.width != texWidth || cachedRT.height != texHeight)
             {
-                if (rt != null) { rt.Release(); UnityEngine.Object.Destroy(rt); }
-                rt = new RenderTexture(texWidth, texHeight, 24, RenderTextureFormat.ARGB32);
-                rt.antiAliasing = (QualitySettings.antiAliasing > 0) ? QualitySettings.antiAliasing : 8;
-                rt.filterMode = FilterMode.Bilinear;
-                rt.useMipMap = false; // Disable MipMaps to avoid fuzziness
-                rt.Create();
-                
-                if (flip) initiatorRT = rt;
-                else targetRT = rt;
+                if (cachedRT != null) { cachedRT.Release(); UnityEngine.Object.Destroy(cachedRT); }
+                cachedRT = new RenderTexture(texWidth, texHeight, 24, RenderTextureFormat.ARGB32);
+                cachedRT.antiAliasing = (QualitySettings.antiAliasing > 0) ? QualitySettings.antiAliasing : 8;
+                cachedRT.filterMode = FilterMode.Bilinear;
+                cachedRT.useMipMap = false;
+                cachedRT.Create();
+                created = true;
             }
 
-            // Only perform the expensive 3D render during Repaint event
             if (Event.current.type == EventType.Repaint)
             {
                 Vector3 cameraOffset = new Vector3(0f, 0f, 0.15f);
                 float zoom = GetPortraitZoom(pawn.BodySize, pawn.RaceProps.Humanlike);
-
-                // Directly Render pawn onto our custom high-res buffer every frame
-                Find.PawnCacheRenderer.RenderPawn(pawn, rt, cameraOffset, zoom, 0f, Rot4.South, true, true, true, true, default(Vector3), null, null, true);
+                Find.PawnCacheRenderer.RenderPawn(pawn, cachedRT, cameraOffset, zoom, 0f, Rot4.South, true, true, true, true, default(Vector3), null, null, true);
             }
 
-            if (rt != null)
+            if (cachedRT != null)
             {
                 if (flip)
                 {
-                    // Horizontal flip using scale matrix
                     Matrix4x4 savedMatrix = GUI.matrix;
                     Vector2 center = rect.center;
                     GUIUtility.ScaleAroundPivot(new Vector2(-1f, 1f), center);
-                    GUI.DrawTexture(rect, rt, ScaleMode.StretchToFill, true);
+                    GUI.DrawTexture(rect, cachedRT, ScaleMode.StretchToFill, true);
                     GUI.matrix = savedMatrix;
                 }
                 else
                 {
-                    GUI.DrawTexture(rect, rt, ScaleMode.StretchToFill, true);
+                    GUI.DrawTexture(rect, cachedRT, ScaleMode.StretchToFill, true);
                 }
             }
         }

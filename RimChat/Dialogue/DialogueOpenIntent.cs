@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
@@ -25,6 +26,12 @@ namespace RimChat.Dialogue
         public static DialogueOpenIntent CreateRpg(Pawn initiator, Pawn target, Map map = null, string proactiveOpening = null)
         {
             DialogueRuntimeContext context = DialogueRuntimeContext.CreateRpg(initiator, target, map);
+            return new DialogueOpenIntent(context, false, proactiveOpening);
+        }
+
+        public static DialogueOpenIntent CreateRpgGroup(Pawn initiator, List<Pawn> participants, Map map = null, string proactiveOpening = null)
+        {
+            DialogueRuntimeContext context = DialogueRuntimeContext.CreateRpgGroup(initiator, participants, map);
             return new DialogueOpenIntent(context, false, proactiveOpening);
         }
     }

@@ -137,26 +137,32 @@ namespace RimChat.Dialogue
                 return false;
             }
 
-            if (!DialogueContextResolver.IsPawnValid(liveContext.Target))
-            {
-                reason = "target_invalid";
-                return false;
-            }
+            // Group chat: skip single-target validation when participants list is populated
+            bool isGroupChat = runtimeContext.ParticipantPawnIds != null && runtimeContext.ParticipantPawnIds.Count > 0;
 
-            if (!PawnDialogueRoutingPolicy.ShouldUseRpgDialogue(liveContext.Initiator, liveContext.Target, out string routingReason))
+            if (!isGroupChat)
             {
-                reason = routingReason == "target_trade_caravan"
-                    ? "rpg_target_is_trade_caravan"
-                    : routingReason;
-                return false;
-            }
+                if (!DialogueContextResolver.IsPawnValid(liveContext.Target))
+                {
+                    reason = "target_invalid";
+                    return false;
+                }
 
-            if (liveContext.Initiator.Map == null ||
-                liveContext.Target.Map == null ||
-                liveContext.Initiator.Map != liveContext.Target.Map)
-            {
-                reason = "rpg_map_mismatch";
-                return false;
+                if (!PawnDialogueRoutingPolicy.ShouldUseRpgDialogue(liveContext.Initiator, liveContext.Target, out string routingReason))
+                {
+                    reason = routingReason == "target_trade_caravan"
+                        ? "rpg_target_is_trade_caravan"
+                        : routingReason;
+                    return false;
+                }
+
+                if (liveContext.Initiator.Map == null ||
+                    liveContext.Target.Map == null ||
+                    liveContext.Initiator.Map != liveContext.Target.Map)
+                {
+                    reason = "rpg_map_mismatch";
+                    return false;
+                }
             }
 
             if (liveContext.Map != null && liveContext.Initiator.Map != liveContext.Map)

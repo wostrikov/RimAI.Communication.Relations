@@ -96,14 +96,19 @@ namespace RimChat.UI
 
         private void ShowPawnMenu(Pawn pawn)
         {
-            var self = this;
+            ShowPawnMenuStatic(pawn);
+            inspectPaneOpenedByMenu = true;
+        }
+
+        internal static void ShowPawnMenuStatic(Pawn pawn)
+        {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
             foreach (var (labelKey, itabType) in PawnMenuOptions)
             {
                 Type capturedType = itabType;
                 options.Add(new FloatMenuOption(labelKey.Translate(), () =>
                 {
-                    self.OpenPawnTab(pawn, capturedType);
+                    OpenPawnTabStatic(pawn, capturedType);
                 }));
             }
             Find.WindowStack.Add(new FloatMenu(options));
@@ -111,11 +116,16 @@ namespace RimChat.UI
 
         private void OpenPawnTab(Pawn pawn, Type itabType)
         {
+            OpenPawnTabStatic(pawn, itabType);
+            inspectPaneOpenedByMenu = true;
+        }
+
+        private static void OpenPawnTabStatic(Pawn pawn, Type itabType)
+        {
             Find.Selector.ClearSelection();
             Find.Selector.Select(pawn);
             Find.MainTabsRoot.SetCurrentTab(MainButtonDefOf.Inspect, true);
             InspectPaneUtility.OpenTab(itabType);
-            inspectPaneOpenedByMenu = true;
         }
     }
 }
