@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RimChat.Util;
 using RimWorld;
 using Verse;
 
@@ -442,7 +443,7 @@ namespace RimChat.DiplomacySystem
 
         private static List<string> ResolveQuestFactionIds(Quest quest)
         {
-            return (quest?.InvolvedFactions ?? new List<Faction>())
+            return QuestInvolvedFactionsGuard.GetInvolvedFactionsSafe(quest)
                 .Where(faction => faction != null)
                 .Select(GetFactionUniqueId)
                 .Where(id => !string.IsNullOrWhiteSpace(id))
@@ -452,7 +453,7 @@ namespace RimChat.DiplomacySystem
 
         private static List<string> ResolveQuestFactionDefNames(Quest quest)
         {
-            return (quest?.InvolvedFactions ?? new List<Faction>())
+            return QuestInvolvedFactionsGuard.GetInvolvedFactionsSafe(quest)
                 .Where(faction => faction != null && !string.IsNullOrWhiteSpace(faction.def?.defName))
                 .Select(faction => faction.def.defName)
                 .Distinct(StringComparer.OrdinalIgnoreCase)

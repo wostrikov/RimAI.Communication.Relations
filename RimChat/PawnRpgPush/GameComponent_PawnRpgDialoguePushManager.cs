@@ -857,7 +857,7 @@ namespace RimChat.PawnRpgPush
 
             Quest quest = Find.QuestManager.QuestsListForReading
                 .Where(q => q != null && q.State == QuestState.Ongoing && q.EverAccepted && q.TicksUntilExpiry > 0)
-                .Where(q => q.TicksUntilExpiry <= QuestDeadlineWindowTicks && q.InvolvedFactions != null && q.InvolvedFactions.Contains(faction))
+                .Where(q => q.TicksUntilExpiry <= QuestDeadlineWindowTicks && QuestInvolvedFactionsGuard.HasInvolvedFaction(q, faction))
                 .OrderBy(q => q.TicksUntilExpiry)
                 .FirstOrDefault();
             if (quest == null)

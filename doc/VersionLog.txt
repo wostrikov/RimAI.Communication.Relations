@@ -1,3 +1,6 @@
+1.5.2
+- [修复] 第三方Mod QuestPart异常导致外交Prompt构建崩溃：添加QuestInvolvedFactionsGuard安全工具类，try/catch包裹InvolvedFactions惰性迭代，防止Ratkin等Mod的QuestPart.get_InvolvedFactions内部NullReferenceException传播导致外交对话不可用
+
 1.5.1
 - [优化] RPG对话ExitDialogueCooldown冷却从1天缩短为2小时，减少NPC长期封锁对话
 - [修复] 远古遗迹虫巢威胁：添加IsHiveInSealedRoom密封房间检测，未破墙的远古遗迹虫巢不再触发殖民者警告对话

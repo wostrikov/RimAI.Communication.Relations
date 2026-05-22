@@ -1,3 +1,6 @@
+1.5.2
+- [Fix] Third-party mod QuestPart crash during diplomacy prompt build: added QuestInvolvedFactionsGuard utility with try/catch wrapping InvolvedFactions lazy iteration, preventing NullReferenceException from mods like Ratkin (QuestPart_InitiateEspionage.get_InvolvedFactions) from breaking diplomacy dialogue
+
 1.5.1
 - [Opt] RPG dialogue ExitDialogueCooldown reduced from 1 day to 2 hours, reducing NPC long-term dialogue lockout
 - [Fix] Ancient ruin hive threats: added IsHiveInSealedRoom sealed-room detection, hives behind unbreached ancient danger walls no longer trigger colonist warning dialogues

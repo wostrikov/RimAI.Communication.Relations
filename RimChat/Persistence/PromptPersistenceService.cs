@@ -1843,8 +1843,7 @@ namespace RimChat.Persistence
             bool hasQuestWithFaction = Find.QuestManager?.QuestsListForReading?.Any(q =>
                 q != null &&
                 q.State == QuestState.Ongoing &&
-                q.InvolvedFactions != null &&
-                q.InvolvedFactions.Contains(faction)) == true;
+                QuestInvolvedFactionsGuard.HasInvolvedFaction(q, faction)) == true;
             if (hasQuestWithFaction)
             {
                 AddNormalizedTag(tags, "scene:task");
@@ -4133,7 +4132,7 @@ namespace RimChat.Persistence
 
             List<Quest> ongoingQuests = (Find.QuestManager?.QuestsListForReading ?? new List<Quest>())
                 .Where(quest => quest != null && quest.State == QuestState.Ongoing)
-                .Where(quest => quest.InvolvedFactions != null && quest.InvolvedFactions.Contains(faction))
+                .Where(quest => QuestInvolvedFactionsGuard.HasInvolvedFaction(quest, faction))
                 .OrderByDescending(quest => quest.id)
                 .ToList();
 

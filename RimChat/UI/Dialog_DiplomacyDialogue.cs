@@ -1314,7 +1314,7 @@ namespace RimChat.UI
                 _cachedQuestsTick = currentTick;
                 _cachedQuests = Find.QuestManager.QuestsListForReading
                     .Where(q => q.State == QuestState.Ongoing && !q.hidden
-                        && q.InvolvedFactions.Contains(targetFaction))
+                        && QuestInvolvedFactionsGuard.HasInvolvedFaction(q, targetFaction))
                     .ToList();
             }
 
