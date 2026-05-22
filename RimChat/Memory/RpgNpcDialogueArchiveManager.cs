@@ -49,6 +49,7 @@ namespace RimChat.Memory
         private readonly HashSet<int> _pendingWarmupCompressionTargets = new HashSet<int>();
         private readonly object _syncRoot = new object();
         private bool _cacheLoaded;
+        private bool _diplomacyMemorySubscribed;
         private string _loadedSaveKey = string.Empty;
         private string _resolvedSaveKey = string.Empty;
         private string _lastResolvedSaveName = string.Empty;
@@ -64,6 +65,7 @@ namespace RimChat.Memory
                 _loadedSaveKey = string.Empty;
                 _resolvedSaveKey = string.Empty;
                 EnsureCacheLoaded();
+                SubscribeToDiplomacyMemoryEvents();
             }
         }
 
@@ -88,7 +90,83 @@ namespace RimChat.Memory
             {
                 EnsureCacheLoaded();
                 ApplyArchivesToRuntime();
+                SubscribeToDiplomacyMemoryEvents();
             }
+        }
+
+        private void SubscribeToDiplomacyMemoryEvents()
+        {
+            if (_diplomacyMemorySubscribed || LeaderMemoryManager.Instance == null)
+                return;
+
+            LeaderMemoryManager.Instance.DiplomacyMemoryChanged += OnDiplomacyMemoryChanged;
+            _diplomacyMemorySubscribed = true;
+        }
+
+        private void OnDiplomacyMemoryChanged(DiplomacyMemoryChangedEventArgs args)
+        {
+            if (args == null || !args.AffectsAiPrompt)
+                return;
+
+            string affectedFactionId = args.FactionId ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(affectedFactionId))
+                return;
+
+            lock (_syncRoot)
+            {
+                EnsureCacheLoaded();
+                bool anyMutated = false;
+
+                foreach (int pawnId in new List<int>(_archiveCache.Keys))
+                {
+                    if (!_archiveCache.TryGetValue(pawnId, out RpgNpcDialogueArchive archive)
+                        || archive == null)
+                        continue;
+
+                    if (!string.Equals(archive.FactionId, affectedFactionId, StringComparison.Ordinal))
+                        continue;
+
+                    if (RemoveDiplomacySummaryTurnsFromArchive(archive))
+                    {
+                        NormalizeArchiveTurns(archive);
+                        SaveArchiveToFile(archive);
+                        anyMutated = true;
+                    }
+                }
+
+                if (anyMutated)
+                    InvalidatePromptMemoryCacheLockless();
+            }
+        }
+
+        private static bool RemoveDiplomacySummaryTurnsFromArchive(RpgNpcDialogueArchive archive)
+        {
+            if (archive?.Sessions == null || archive.Sessions.Count == 0)
+                return false;
+
+            bool anyRemoved = false;
+            for (int i = archive.Sessions.Count - 1; i >= 0; i--)
+            {
+                RpgNpcDialogueSessionArchive session = archive.Sessions[i];
+                if (session?.Turns == null || session.Turns.Count == 0)
+                    continue;
+
+                int removedCount = session.Turns.RemoveAll(
+                    turn => turn != null && IsDiplomacySummaryTurn(turn.Text));
+                if (removedCount <= 0)
+                    continue;
+
+                session.TurnCount = CountDialogueTurns(session.Turns);
+                anyRemoved = true;
+
+                if (session.Turns.Count == 0
+                    && !string.Equals(session.SummaryState, "Compressed", StringComparison.OrdinalIgnoreCase))
+                {
+                    archive.Sessions.RemoveAt(i);
+                }
+            }
+
+            return anyRemoved;
         }
 
         public void OnBeforeGameSave()

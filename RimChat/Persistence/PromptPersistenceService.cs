@@ -4936,6 +4936,7 @@ namespace RimChat.Persistence
             {
                 sb.AppendLine("PawnLend 严格约束：仅当当前殖民地确实有可借调殖民者，且系统能在运行时构建完整借调合同（人数、天数、职责、目标、是否派穿梭机）时，才可选择 PawnLend。若无法满足，必须改选其他可用模板。");
             }
+            sb.AppendLine("方向匹配提醒：请仔细阅读每个任务模板描述中的【玩家→派系】或【派系→玩家】方向标记。方向选择错误等于功能执行错误，会破坏沉浸感。");
             sb.AppendLine();
         }
 
@@ -4945,6 +4946,7 @@ namespace RimChat.Persistence
             sb.AppendLine("你必须将“动态任务可用性（按当前派系自动生成）”视为唯一有效任务来源。");
             sb.AppendLine("禁止使用其他分段中的静态/回忆型任务推荐。");
             sb.AppendLine("若任务出现在 blocked templates 或 blocked actions 中，必须禁止调用 create_quest。");
+            sb.AppendLine("任务方向匹配规则：【玩家→派系】=玩家出人/出物资/出力；【派系→玩家】=派系出人/出任务/出情报；【双向】=双方共同参与。所选 questDefName 的方向必须与会话上下文一致。例如：玩家说'我可以借人给你'→PawnLend【玩家→派系】；玩家说'能不能派人过来帮忙'≠PawnLend，非帝国派系无人派模板，应引导到 request_aid 或其他可用动作。");
             sb.AppendLine("安全策略可能禁用高风险模板（例如 OpportunitySite_ItemStash）。如被禁用，必须以角色内方式拒绝并说明约束。");
             sb.AppendLine("若当前是轨道商通信，禁止使用 create_quest 生成要求玩家携带指定物资进入地面定居点的订单任务；遇到这类请求时，必须说明轨道商没有该履约链路，并引导玩家改用 request_item_airdrop。");
             sb.AppendLine("若当前派系是商会派系（OutlanderCivil / OutlanderRough），禁止使用 create_quest 生成 TradeRequest；涉及物资交换时，必须直接改用 request_item_airdrop。");
@@ -4957,17 +4959,17 @@ namespace RimChat.Persistence
             switch (questDefName)
             {
                 case "TradeRequest":
-                    return "（贸易订单：派系向玩家请求物资交换，给予银币或物品报酬）";
+                    return "（贸易订单：【玩家→派系】派系发起物资请求，玩家提供指定物资换取报酬）";
                 case "OpportunitySite_PeaceTalks":
-                    return "（和平谈判：敌对派系邀请玩家代表出席和谈，可能化解敌对关系）";
+                    return "（和平谈判：【双向】派系邀请玩家代表出席和谈，可能化解敌对关系）";
                 case "PawnLend":
-                    return "（借调请求：派系请求借用玩家殖民者一段时间，派穿梭机接送，完成后给予报酬和好感）";
+                    return "（借调请求：【玩家→派系】派系请求借用玩家的殖民者。玩家出人→派系接收。派穿梭机接送，完成后给予报酬和好感）";
                 case "ThreatReward_Raid_MiscReward":
-                    return "（威胁悬赏：帝国派系悬赏消灭敌对势力，完成后给予皇家声望或物品奖励）";
+                    return "（威胁悬赏：【派系→玩家】帝国派系发布悬赏令，玩家消灭目标后获得皇家声望或物品奖励）";
                 case "Hospitality_Refugee":
-                    return "（难民接待：帝国派系派遣难民到玩家基地暂住一段时间，接待完成后给予奖励）";
+                    return "（难民接待：【派系→玩家】帝国派系派遣难民到玩家基地暂住。派系出人→玩家接收。接待期结束后帝国给予奖励）";
                 case "OpportunitySite_ItemStash":
-                    return "（物品藏匿点：发现一个藏有物资的敌对据点，前往清理并获取战利品）";
+                    return "（物品藏匿点：【派系→玩家】派系提供敌占据点情报，玩家前往清剿获取战利品）";
                 default:
                     return string.Empty;
             }
@@ -6122,6 +6124,7 @@ namespace RimChat.Persistence
             string[] lines =
             {
                 "- [Highest Priority] Your entire reply MUST be a single top-level JSON object. First char {, last char }. No text, explanation, reasoning, or Markdown outside the JSON object. Violation will cause the reply to be discarded.",
+                "- [Action engagement -- critical] You are a faction leader with real gameplay agency. Text-only responses produce ZERO effect. When the player makes a request matching an available action, you MUST include it in your JSON response. Skipping actions when the player expects them makes the interaction feel broken and unresponsive.",
                 "- 必填键：visible_dialogue。",
                 "- 可选键：actions、meta、debug。",
                 "- 若存在 actions，则必填键为 actions[].action；actions[].parameters 可选。",
@@ -6129,6 +6132,7 @@ namespace RimChat.Persistence
                 PromptTextConstants.OutputSpecificationAuthorityLegacyRule,
                 PromptTextConstants.OutputSpecificationAuthorityBoundaryRule,
                 PromptTextConstants.OutputSpecificationAuthorityHistoryStyleRule,
+                "- [Caravan role direction -- highest priority] When you dispatch request_caravan, the caravan travels to the player colony. You (the AI faction) are the SELLER: the caravan carries goods from YOUR faction's trade list for the player to buy with silver. The player is the BUYER. Direction is NEVER reversible -- you are NOT buying from the player, and the player is NOT selling to the caravan.",
                 "- [Direction constraint -- highest priority] need is what YOU (the AI faction) sell and airdrop to the PLAYER colony (AI -> player). payment_items is what the PLAYER pays to YOU, deducted from player beacon inventory (player -> AI). The direction of need and payment_items is NEVER reversible -- you are NOT the buyer. If the player says they want 1000 wood, need is 1000 wood (YOU send to PLAYER), NOT something you receive.",
                 "- 除非同条回复包含匹配 actions 动作，否则禁止把 gameplay 效果叙述为“已执行”。",
                 "- request_caravan/request_visitor/request_aid/request_raid/request_item_airdrop/request_info/pay_prisoner_ransom/create_quest/trigger_incident 属于延迟或系统调度动作；表述应是意图或安排，不是已到达/已完成结果。",
@@ -6179,6 +6183,7 @@ namespace RimChat.Persistence
             }
 
             sb.AppendLine(PromptTextConstants.ActionsHeader);
+            sb.AppendLine("Use these actions actively. A response with actions creates gameplay impact; text-only responses do nothing.");
             foreach (ApiActionConfig action in availableActions)
             {
                 if (!IsPromptActionAllowedInCurrentBuild(action?.ActionName))
@@ -6575,7 +6580,10 @@ namespace RimChat.Persistence
 
             if (!blocked.Any()) return;
 
-            sb.AppendLine("BLOCKED ACTIONS FOR CURRENT FACTION:");
+            sb.AppendLine("=== TEMPORARILY UNAVAILABLE ACTIONS ===");
+            sb.AppendLine("Informational only — do NOT avoid ALL actions because some are unavailable.");
+            sb.AppendLine("You MUST still use the AVAILABLE actions listed above when the player's intent is actionable.");
+            sb.AppendLine();
             foreach (var item in blocked)
             {
                 if (!string.IsNullOrWhiteSpace(item.ProjectedGoodwillReason))

@@ -1,3 +1,9 @@
+1.5.4
+- [Fix] Deleted diplomatic history still accessible by AI: LeaderMemoryManager deletion now syncs to RpgNpcDialogueArchiveManager, removing [DiplomacySummary] archive turns and invalidating PromptMemoryCache
+- [Fix] AI quest creation confuses assign vs request scenarios: quest template descriptions now include 【玩家→派系】/【派系→玩家】 direction markers, with reinforced direction-matching rules for create_quest
+- [Fix] AI trade confuses buyer vs seller role: added seller/buyer role direction constraint for request_caravan, consistent with request_item_airdrop
+- [Opt] AI frequently not triggering actions: softened BLOCKED ACTIONS tone to TEMPORARILY UNAVAILABLE, added action engagement rule and catalog usage guidance
+
 1.5.3
 - [Opt] ThingDef fuzzy match engine refactor: pre-cached normalized fields in ThingDefRecord eliminating ~18K allocations per query; Levenshtein two-row rolling + Damerau-Levenshtein transposition support; NormalizeToken LINQ→StringBuilder; RankCandidates LINQ→manual loop; word-boundary-aware matching replacing bare Contains to prevent "steel" false-matching "Plasteel"; fixed CJK single-char tokens (钢/药/枪) being skipped; ResolveFamily changed from first-match-wins to score-based with tie-breaking; negation handling for exclusion tokens after "not/except/除了"; ContainsAny minimum match length constraint; StopTokens extended with pronouns; Family alias injection removed; NormalizeToken unified with ExtractSemanticTokens separator set
 

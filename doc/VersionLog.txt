@@ -1,3 +1,9 @@
+1.5.4
+- [修复] 外交历史删除后AI仍能读取已删记录：LeaderMemoryManager删除操作同步到RpgNpcDialogueArchiveManager，清理[DiplomacySummary]归档回合并失效PromptMemoryCache
+- [修复] AI任务创建分不清指派/需求情景：任务模板描述添加【玩家→派系】/【派系→玩家】方向标记，强化create_quest方向匹配规则
+- [修复] AI交易分不清买卖角色：为request_caravan补充卖方/买方角色方向约束，与request_item_airdrop保持一致
+- [优化] AI不触发action：软化BLOCKED ACTIONS提示语气为TEMPORARILY UNAVAILABLE，增加Action参与规则和动作目录调用引导
+
 1.5.3
 - [优化] ThingDef模糊匹配引擎重构：ThingDefRecord预缓存标准化字段消除每查询~18K分配；Levenshtein改两行滚动+支持字符转置；NormalizeToken去LINQ用StringBuilder；RankCandidates去LINQ手动循环；词边界感知匹配替代裸Contains防止"steel"误匹配Plasteel；修复CJK单字(钢/药/枪)被跳过问题；ResolveFamily从先匹配先得改为打分制；否定词处理排除"not/except/除了"后token；ContainsAny收紧最小匹配长度限制；StopTokens补全代词；Family别名瘦身；NormalizeToken与ExtractSemanticTokens分隔符统一
 
