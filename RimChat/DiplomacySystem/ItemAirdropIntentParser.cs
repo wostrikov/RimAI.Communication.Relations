@@ -45,6 +45,7 @@ namespace RimChat.DiplomacySystem
         {
             "the", "a", "an", "please", "need", "want", "some", "for", "to", "of", "and",
             "give", "send", "drop", "supply",
+            "me", "my", "our", "us", "it", "is", "are", "be", "we", "he", "she", "they",
             "给", "需要", "想要", "一些", "用于", "的", "和", "我", "你", "空投", "请求"
         };
 
@@ -90,6 +91,54 @@ namespace RimChat.DiplomacySystem
             return result;
         }
 
+        private static readonly HashSet<string> NegationPrefixes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "not", "except", "without", "no",
+            "除了", "不要", "排除", "不含", "不需要", "别"
+        };
+
+        public static void TokenizeWithExclusions(string text, out List<string> tokens, out List<string> exclusionTokens)
+        {
+            tokens = Tokenize(text);
+            exclusionTokens = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(text) || tokens.Count == 0)
+            {
+                return;
+            }
+
+            string lower = text.ToLowerInvariant();
+            string[] raw = lower.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < raw.Length; i++)
+            {
+                string word = raw[i].Trim();
+                if (NegationPrefixes.Contains(word) && i + 1 < raw.Length)
+                {
+                    // Collect up to 2 tokens after the negation prefix as exclusions.
+                    for (int k = 1; k <= 2 && i + k < raw.Length; k++)
+                    {
+                        string excluded = raw[i + k].Trim().ToLowerInvariant();
+                        if (!string.IsNullOrWhiteSpace(excluded) && !IsNoiseToken(excluded))
+                        {
+                            exclusionTokens.Add(excluded);
+                        }
+                    }
+                }
+            }
+
+            if (exclusionTokens.Count > 0)
+            {
+                exclusionTokens = exclusionTokens.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                // Remove exclusion tokens from the positive token list.
+                var exclusionsCapture = exclusionTokens;
+                tokens = tokens
+                    .Where(t => !exclusionsCapture.Contains(t))
+                    .ToList();
+                Log.Message($"[RimChat][TokenizeWithExclusions] exclusions=[{string.Join(",", exclusionTokens)}], tokens=[{string.Join(",", tokens)}]");
+            }
+        }
+
         public static ItemAirdropNeedFamily ResolveFamily(List<string> tokens)
         {
             if (tokens == null || tokens.Count == 0)
@@ -97,37 +146,94 @@ namespace RimChat.DiplomacySystem
                 return ItemAirdropNeedFamily.Unknown;
             }
 
-            if (ContainsAny(tokens, MedicineKeywords))
+            // Score-based family resolution: each family gets points per matched keyword,
+            // highest score wins. Ties return Unknown to keep the candidate pool open.
+            int foodScore = CountKeywordMatches(tokens, FoodKeywords);
+            int medicineScore = CountKeywordMatches(tokens, MedicineKeywords);
+            int weaponScore = CountKeywordMatches(tokens, WeaponKeywords);
+            int apparelScore = CountKeywordMatches(tokens, ApparelKeywords);
+            int resourceScore = CountKeywordMatches(tokens, ResourceKeywords);
+            int implantScore = CountImplantKeywordMatches(tokens);
+            resourceScore += implantScore;
+
+            int bestScore = 0;
+            ItemAirdropNeedFamily bestFamily = ItemAirdropNeedFamily.Unknown;
+            bool tie = false;
+
+            void Consider(ItemAirdropNeedFamily family, int score)
             {
-                return ItemAirdropNeedFamily.Medicine;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestFamily = family;
+                    tie = false;
+                }
+                else if (score == bestScore && score > 0)
+                {
+                    tie = true;
+                }
             }
 
-            if (ContainsAny(tokens, WeaponKeywords))
+            Consider(ItemAirdropNeedFamily.Food, foodScore);
+            Consider(ItemAirdropNeedFamily.Medicine, medicineScore);
+            Consider(ItemAirdropNeedFamily.Weapon, weaponScore);
+            Consider(ItemAirdropNeedFamily.Apparel, apparelScore);
+            Consider(ItemAirdropNeedFamily.Resource, resourceScore);
+
+            if (tie || bestScore == 0)
             {
-                return ItemAirdropNeedFamily.Weapon;
+                return ItemAirdropNeedFamily.Unknown;
             }
 
-            if (ContainsImplantResourceKeyword(tokens))
+            return bestFamily;
+        }
+
+        private static int CountKeywordMatches(List<string> tokens, string[] keywords)
+        {
+            int count = 0;
+            for (int i = 0; i < keywords.Length; i++)
             {
-                return ItemAirdropNeedFamily.Resource;
+                string keyword = keywords[i];
+                if (string.IsNullOrWhiteSpace(keyword))
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < tokens.Count; j++)
+                {
+                    string token = tokens[j];
+                    if (string.IsNullOrWhiteSpace(token))
+                    {
+                        continue;
+                    }
+
+                    if (token.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                        break;
+                    }
+
+                    if (keyword.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        if (token.Length >= 3 || token.Length * 2 >= keyword.Length)
+                        {
+                            count++;
+                            break;
+                        }
+                    }
+                }
             }
 
-            if (ContainsAny(tokens, ApparelKeywords))
-            {
-                return ItemAirdropNeedFamily.Apparel;
-            }
+            return count;
+        }
 
-            if (ContainsAny(tokens, ResourceKeywords))
+        private static int CountImplantKeywordMatches(List<string> tokens)
+        {
+            return CountKeywordMatches(tokens, new string[]
             {
-                return ItemAirdropNeedFamily.Resource;
-            }
-
-            if (ContainsAny(tokens, FoodKeywords))
-            {
-                return ItemAirdropNeedFamily.Food;
-            }
-
-            return ItemAirdropNeedFamily.Unknown;
+                "bionic", "prosthetic", "implant", "artificial", "bodypart", "cybernetic",
+                "仿生", "义体", "假肢", "植入", "人工"
+            });
         }
 
         private static bool ContainsAny(List<string> tokens, params string[] values)
@@ -148,22 +254,24 @@ namespace RimChat.DiplomacySystem
                         continue;
                     }
 
-                    if (token.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (token.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         return true;
+                    }
+
+                    // Keyword contains token: require minimum token length to prevent
+                    // short tokens like "me", "arm", "art" from triggering false matches.
+                    if (value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        if (token.Length >= 3 || token.Length * 2 >= value.Length)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
 
             return false;
-        }
-
-        private static bool ContainsImplantResourceKeyword(List<string> tokens)
-        {
-            return ContainsAny(tokens,
-                "bionic", "prosthetic", "implant", "artificial", "bodypart", "cybernetic",
-                "仿生", "义体", "假肢", "植入", "人工");
         }
 
         private static string NormalizeDelimiters(string text)

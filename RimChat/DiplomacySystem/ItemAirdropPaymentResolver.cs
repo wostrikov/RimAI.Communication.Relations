@@ -53,7 +53,7 @@ namespace RimChat.DiplomacySystem
 
             ItemAirdropIntent intent = ItemAirdropIntent.Create(query, string.Empty, "trade");
             ThingDefMatchRequest request = ThingDefResolver.BuildMatchRequest(intent, 180, 3);
-            ThingDefMatchResult resolution = ThingDefMatchEngine.ResolveSingle(records, request);
+            ThingDefMatchResult resolution = ThingDefMatchEngine.ResolveSingle(records, request, 40);
             if (resolution == null || resolution.Candidates.Count == 0)
             {
                 return ItemAirdropPaymentResolveResult.Fail(

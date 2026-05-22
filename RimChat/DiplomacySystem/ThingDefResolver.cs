@@ -67,25 +67,6 @@ namespace RimChat.DiplomacySystem
                 }
             }
 
-            switch (intent.Family)
-            {
-                case ItemAirdropNeedFamily.Food:
-                    result.AddRange(new[] { "food", "meal", "食物", "口粮" });
-                    break;
-                case ItemAirdropNeedFamily.Medicine:
-                    result.AddRange(new[] { "medicine", "medical", "药品", "医疗" });
-                    break;
-                case ItemAirdropNeedFamily.Weapon:
-                    result.AddRange(new[] { "weapon", "gun", "武器", "枪械" });
-                    break;
-                case ItemAirdropNeedFamily.Apparel:
-                    result.AddRange(new[] { "apparel", "armor", "服装", "护甲" });
-                    break;
-                case ItemAirdropNeedFamily.Resource:
-                    result.AddRange(new[] { "resource", "material", "chemfuel", "steel", "component", "资源", "材料", "化合燃料" });
-                    break;
-            }
-
             return result
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.Trim())
@@ -104,12 +85,34 @@ namespace RimChat.DiplomacySystem
                 semanticTokens.UnionWith(ThingDefMatchEngine.ExtractSemanticTokens(alias));
             }
 
+            var normalizedTokens = new List<string>(tokens.Count);
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                string nt = ThingDefMatchEngine.NormalizeToken(tokens[i]);
+                if (!string.IsNullOrWhiteSpace(nt))
+                {
+                    normalizedTokens.Add(nt);
+                }
+            }
+
+            var normalizedAliases = new List<string>(aliases.Count);
+            for (int i = 0; i < aliases.Count; i++)
+            {
+                string na = ThingDefMatchEngine.NormalizeToken(aliases[i]);
+                if (!string.IsNullOrWhiteSpace(na))
+                {
+                    normalizedAliases.Add(na);
+                }
+            }
+
             return new ThingDefMatchRequest
             {
                 Query = intent?.NeedText ?? string.Empty,
                 Tokens = tokens,
                 Aliases = aliases,
                 SemanticTokens = semanticTokens,
+                NormalizedTokens = normalizedTokens,
+                NormalizedAliases = normalizedAliases,
                 MinScore = minScore,
                 MaxResults = maxResults
             };
@@ -188,6 +191,16 @@ namespace RimChat.DiplomacySystem
                     if (collectRejectionCounters)
                     {
                         AccumulateRejectCounter(diagnostics, rejectReason);
+                    }
+
+                    continue;
+                }
+
+                if (IsExcludedByTokens(record, intent.ExclusionTokens))
+                {
+                    if (collectRejectionCounters)
+                    {
+                        diagnostics.RejectedByMatchScore++;
                     }
 
                     continue;
@@ -293,6 +306,41 @@ namespace RimChat.DiplomacySystem
                 .ThenBy(c => c.Record.DefName, StringComparer.Ordinal)
                 .Take(limit)
                 .ToList();
+        }
+
+        private static bool IsExcludedByTokens(ThingDefRecord record, List<string> exclusionTokens)
+        {
+            if (exclusionTokens == null || exclusionTokens.Count == 0 || record?.Def == null)
+            {
+                return false;
+            }
+
+            string normalizedDef = record.NormalizedDefName ?? ThingDefMatchEngine.NormalizeToken(record.DefName);
+            string normalizedLabel = record.NormalizedLabel ?? ThingDefMatchEngine.NormalizeToken(record.Label);
+            string search = (record.SearchText ?? string.Empty).ToLowerInvariant();
+
+            for (int i = 0; i < exclusionTokens.Count; i++)
+            {
+                string token = exclusionTokens[i];
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    continue;
+                }
+
+                string normalizedToken = ThingDefMatchEngine.NormalizeToken(token);
+                if (!string.IsNullOrWhiteSpace(normalizedToken) &&
+                    (normalizedDef.Contains(normalizedToken) || normalizedLabel.Contains(normalizedToken)))
+                {
+                    return true;
+                }
+
+                if (search.Contains(token))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static CandidateRejectReason GetRejectReason(

@@ -1,3 +1,6 @@
+1.5.3
+- [Opt] ThingDef fuzzy match engine refactor: pre-cached normalized fields in ThingDefRecord eliminating ~18K allocations per query; Levenshtein two-row rolling + Damerau-Levenshtein transposition support; NormalizeToken LINQ→StringBuilder; RankCandidates LINQ→manual loop; word-boundary-aware matching replacing bare Contains to prevent "steel" false-matching "Plasteel"; fixed CJK single-char tokens (钢/药/枪) being skipped; ResolveFamily changed from first-match-wins to score-based with tie-breaking; negation handling for exclusion tokens after "not/except/除了"; ContainsAny minimum match length constraint; StopTokens extended with pronouns; Family alias injection removed; NormalizeToken unified with ExtractSemanticTokens separator set
+
 1.5.2
 - [Fix] Third-party mod QuestPart crash during diplomacy prompt build: added QuestInvolvedFactionsGuard utility with try/catch wrapping InvolvedFactions lazy iteration, preventing NullReferenceException from mods like Ratkin (QuestPart_InitiateEspionage.get_InvolvedFactions) from breaking diplomacy dialogue
 

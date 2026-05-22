@@ -179,9 +179,19 @@ namespace RimChat.DiplomacySystem
         public string TechLevelName { get; private set; }
         public string SearchText { get; private set; }
         public bool EverPlayerSellable { get; private set; }
+        public string NormalizedDefName { get; private set; }
+        public string NormalizedLabel { get; private set; }
+        public HashSet<string> SemanticTokens { get; private set; }
 
         public static ThingDefRecord From(ThingDef def)
         {
+            string searchText = BuildSearchText(def);
+            string normalizedDefName = ThingDefMatchEngine.NormalizeToken(def.defName);
+            string normalizedLabel = ThingDefMatchEngine.NormalizeToken(def.label ?? def.defName ?? string.Empty);
+            var semanticTokens = ThingDefMatchEngine.ExtractSemanticTokens(def.defName);
+            semanticTokens.UnionWith(ThingDefMatchEngine.ExtractSemanticTokens(def.label));
+            semanticTokens.UnionWith(ThingDefMatchEngine.ExtractSemanticTokens(searchText));
+
             return new ThingDefRecord
             {
                 Def = def,
@@ -191,7 +201,10 @@ namespace RimChat.DiplomacySystem
                 StackLimit = Math.Max(1, def.stackLimit),
                 TechLevelName = def.techLevel.ToString(),
                 EverPlayerSellable = TradeUtility.EverPlayerSellable(def),
-                SearchText = BuildSearchText(def)
+                SearchText = searchText,
+                NormalizedDefName = normalizedDefName,
+                NormalizedLabel = normalizedLabel,
+                SemanticTokens = semanticTokens
             };
         }
 
@@ -202,8 +215,8 @@ namespace RimChat.DiplomacySystem
             {
                 def.defName ?? string.Empty,
                 def.label ?? string.Empty,
-                ExpandCamelCase(def.defName),
-                ExpandCamelCase(def.label),
+                ThingDefMatchEngine.ExpandCamelCase(def.defName),
+                ThingDefMatchEngine.ExpandCamelCase(def.label),
                 def.techLevel.ToString(),
                 def.IsMedicine ? "medicine heal medical" : string.Empty,
                 def.IsDrug ? "drug medicine" : string.Empty,
@@ -241,7 +254,7 @@ namespace RimChat.DiplomacySystem
                     if (!string.IsNullOrWhiteSpace(current.defName) && seen.Add(current.defName))
                     {
                         yield return current.defName;
-                        yield return ExpandCamelCase(current.defName);
+                        yield return ThingDefMatchEngine.ExpandCamelCase(current.defName);
                     }
 
                     if (!string.IsNullOrWhiteSpace(current.label) && seen.Add($"label:{current.label}"))
@@ -282,30 +295,6 @@ namespace RimChat.DiplomacySystem
             }
 
             return false;
-        }
-
-        private static string ExpandCamelCase(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return string.Empty;
-            }
-
-            var chars = new List<char>(text.Length * 2);
-            for (int i = 0; i < text.Length; i++)
-            {
-                char current = text[i];
-                if (i > 0 &&
-                    char.IsUpper(current) &&
-                    (char.IsLower(text[i - 1]) || char.IsDigit(text[i - 1])))
-                {
-                    chars.Add(' ');
-                }
-
-                chars.Add(current);
-            }
-
-            return new string(chars.ToArray());
         }
     }
 }

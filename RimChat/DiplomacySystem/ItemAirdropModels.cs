@@ -27,6 +27,7 @@ namespace RimChat.DiplomacySystem
         public string Scenario { get; private set; }
         public ItemAirdropNeedFamily Family { get; private set; }
         public List<string> Tokens { get; private set; }
+        public List<string> ExclusionTokens { get; private set; }
 
         public static ItemAirdropIntent Create(string need, string constraints, string scenario)
         {
@@ -48,7 +49,7 @@ namespace RimChat.DiplomacySystem
                     .Select(x => x.Trim()));
 
             string mergedText = $"{safeNeed} {safeConstraints} {appendedTerms}".Trim();
-            List<string> tokens = ItemAirdropIntentParser.Tokenize(mergedText);
+            ItemAirdropIntentParser.TokenizeWithExclusions(mergedText, out List<string> tokens, out List<string> exclusionTokens);
             ItemAirdropNeedFamily family = ItemAirdropIntentParser.ResolveFamily(tokens);
 
             return new ItemAirdropIntent
@@ -57,7 +58,8 @@ namespace RimChat.DiplomacySystem
                 ConstraintsText = safeConstraints,
                 Scenario = (scenario ?? "general").Trim(),
                 Family = family,
-                Tokens = tokens
+                Tokens = tokens,
+                ExclusionTokens = exclusionTokens ?? new List<string>()
             };
         }
     }

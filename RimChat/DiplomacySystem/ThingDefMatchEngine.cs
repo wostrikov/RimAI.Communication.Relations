@@ -10,6 +10,8 @@ namespace RimChat.DiplomacySystem
         public IReadOnlyCollection<string> Tokens { get; set; } = Array.Empty<string>();
         public IReadOnlyCollection<string> Aliases { get; set; } = Array.Empty<string>();
         public IReadOnlyCollection<string> SemanticTokens { get; set; } = Array.Empty<string>();
+        public IReadOnlyCollection<string> NormalizedTokens { get; set; } = Array.Empty<string>();
+        public IReadOnlyCollection<string> NormalizedAliases { get; set; } = Array.Empty<string>();
         public int MinScore { get; set; } = 1;
         public int MaxResults { get; set; } = 6;
     }
@@ -40,14 +42,37 @@ namespace RimChat.DiplomacySystem
                 return Array.Empty<ThingDefMatchCandidate>();
             }
 
-            var candidates = records
-                .Select(record => ScoreRecord(record, request))
-                .Where(candidate => candidate != null && candidate.Score >= Math.Max(1, request.MinScore))
-                .OrderByDescending(candidate => candidate.Score)
-                .ThenByDescending(candidate => candidate.Record?.MarketValue ?? 0f)
-                .ThenBy(candidate => candidate.Record?.DefName ?? string.Empty, StringComparer.Ordinal)
-                .Take(Math.Max(1, request.MaxResults))
-                .ToList();
+            int minScore = Math.Max(1, request.MinScore);
+            var candidates = new List<ThingDefMatchCandidate>(records.Count);
+            for (int i = 0; i < records.Count; i++)
+            {
+                ThingDefMatchCandidate candidate = ScoreRecord(records[i], request);
+                if (candidate != null && candidate.Score >= minScore)
+                {
+                    candidates.Add(candidate);
+                }
+            }
+
+            candidates.Sort((a, b) =>
+            {
+                int scoreCompare = b.Score.CompareTo(a.Score);
+                if (scoreCompare != 0) return scoreCompare;
+                float marketA = a.Record?.MarketValue ?? 0f;
+                float marketB = b.Record?.MarketValue ?? 0f;
+                int marketCompare = marketB.CompareTo(marketA);
+                if (marketCompare != 0) return marketCompare;
+                return string.Compare(
+                    a.Record?.DefName ?? string.Empty,
+                    b.Record?.DefName ?? string.Empty,
+                    StringComparison.Ordinal);
+            });
+
+            int limit = Math.Max(1, request.MaxResults);
+            if (candidates.Count > limit)
+            {
+                candidates.RemoveRange(limit, candidates.Count - limit);
+            }
+
             return candidates;
         }
 
@@ -88,12 +113,16 @@ namespace RimChat.DiplomacySystem
 
             string rawQuery = query.ToLowerInvariant();
             string normalizedQuery = NormalizeToken(query);
-            string normalizedDef = NormalizeToken(record.DefName);
-            string normalizedLabel = NormalizeToken(record.Label);
+            string normalizedDef = record.NormalizedDefName ?? NormalizeToken(record.DefName);
+            string normalizedLabel = record.NormalizedLabel ?? NormalizeToken(record.Label);
             string search = (record.SearchText ?? string.Empty).ToLowerInvariant();
-            HashSet<string> semanticTargetTokens = ExtractSemanticTokens(record.DefName);
-            semanticTargetTokens.UnionWith(ExtractSemanticTokens(record.Label));
-            semanticTargetTokens.UnionWith(ExtractSemanticTokens(record.SearchText));
+            HashSet<string> semanticTargetTokens = record.SemanticTokens ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (record.SemanticTokens == null)
+            {
+                semanticTargetTokens.UnionWith(ExtractSemanticTokens(record.DefName));
+                semanticTargetTokens.UnionWith(ExtractSemanticTokens(record.Label));
+                semanticTargetTokens.UnionWith(ExtractSemanticTokens(record.SearchText));
+            }
 
             int score = 0;
             var breakdown = new List<string>();
@@ -127,13 +156,20 @@ namespace RimChat.DiplomacySystem
                 breakdown.Add("normalized_label");
             }
 
+            IReadOnlyCollection<string> normalizedAliases = request.NormalizedAliases ?? request.Aliases;
+            int aliasIdx = 0;
             foreach (string alias in aliasSet)
             {
-                string normalizedAlias = NormalizeToken(alias);
                 if (string.IsNullOrWhiteSpace(alias))
                 {
+                    aliasIdx++;
                     continue;
                 }
+
+                string normalizedAlias = aliasIdx < normalizedAliases.Count
+                    ? ((List<string>)normalizedAliases)[aliasIdx]
+                    : NormalizeToken(alias);
+                aliasIdx++;
 
                 if (string.Equals(record.DefName, alias, StringComparison.OrdinalIgnoreCase) ||
                     (!string.IsNullOrWhiteSpace(normalizedAlias) && string.Equals(normalizedDef, normalizedAlias, StringComparison.OrdinalIgnoreCase)))
@@ -164,12 +200,26 @@ namespace RimChat.DiplomacySystem
                 breakdown.Add("semantic_all");
             }
 
-            if (!string.IsNullOrWhiteSpace(normalizedQuery) &&
-                ((normalizedDef.Contains(normalizedQuery) || normalizedQuery.Contains(normalizedDef)) ||
-                 (normalizedLabel.Contains(normalizedQuery) || normalizedQuery.Contains(normalizedLabel))))
+            // Word-boundary-based contains check: prevents false positives like "steel" in "Plasteel".
+            if (!string.IsNullOrWhiteSpace(normalizedQuery))
             {
-                score += 260;
-                breakdown.Add("normalized_contains");
+                bool boundaryMatch = ContainsWithWordBoundary(semanticTargetTokens, normalizedQuery);
+                if (!boundaryMatch && normalizedQuery.Length < 4)
+                {
+                    // Short query fallback: keep original Contains behavior at reduced score.
+                    boundaryMatch = normalizedDef.Contains(normalizedQuery) || normalizedQuery.Contains(normalizedDef) ||
+                                    normalizedLabel.Contains(normalizedQuery) || normalizedQuery.Contains(normalizedLabel);
+                    if (boundaryMatch)
+                    {
+                        score += 80;
+                        breakdown.Add("normalized_contains_fb");
+                    }
+                }
+                else if (boundaryMatch)
+                {
+                    score += 260;
+                    breakdown.Add("normalized_contains");
+                }
             }
 
             if (search.Contains(rawQuery))
@@ -178,21 +228,37 @@ namespace RimChat.DiplomacySystem
                 breakdown.Add("search_query");
             }
 
+            IReadOnlyCollection<string> normalizedTokens = request.NormalizedTokens ?? request.Tokens;
             int tokenCoverage = 0;
+            int tokenIdx = 0;
             foreach (string token in request.Tokens ?? Array.Empty<string>())
             {
-                if (string.IsNullOrWhiteSpace(token) || token.Length < 2)
+                if (string.IsNullOrWhiteSpace(token) || (token.Length < 2 && !IsCjkToken(token)))
                 {
+                    tokenIdx++;
                     continue;
                 }
 
-                string normalizedToken = NormalizeToken(token);
+                string normalizedToken = tokenIdx < normalizedTokens.Count
+                    ? ((List<string>)normalizedTokens)[tokenIdx]
+                    : NormalizeToken(token);
+                tokenIdx++;
+
                 bool tokenMatched = false;
+                // Word-boundary match: token appears as a complete semantic token in the target.
                 if (!string.IsNullOrWhiteSpace(normalizedToken) &&
-                    (normalizedDef.Contains(normalizedToken) || normalizedLabel.Contains(normalizedToken)))
+                    ContainsWithWordBoundary(semanticTargetTokens, normalizedToken))
                 {
                     score += 120;
                     tokenCoverage++;
+                    tokenMatched = true;
+                }
+
+                // Fallback: substring match on normalized def/label (reduced score to limit false positives).
+                if (!tokenMatched && !string.IsNullOrWhiteSpace(normalizedToken) &&
+                    (normalizedDef.Contains(normalizedToken) || normalizedLabel.Contains(normalizedToken)))
+                {
+                    score += 40;
                     tokenMatched = true;
                 }
 
@@ -242,9 +308,26 @@ namespace RimChat.DiplomacySystem
                 return string.Empty;
             }
 
-            return new string(text.Where(c => !char.IsWhiteSpace(c) && c != '_' && c != '-').ToArray())
-                .ToLowerInvariant();
+            var sb = new System.Text.StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (!char.IsWhiteSpace(c) && c != '_' && c != '-' &&
+                    c != '/' && c != '\\' && c != '(' && c != ')' &&
+                    c != '[' && c != ']' && c != '{' && c != '}' &&
+                    c != ',' && c != '.' && c != ':' && c != ';' && c != '|')
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString().ToLowerInvariant();
         }
+
+        private static readonly char[] SemanticTokenSeparators =
+        {
+            ' ', '\t', '\r', '\n', '_', '-', '/', '\\', ',', '.', ':', ';', '|', '(', ')', '[', ']', '{', '}'
+        };
 
         public static HashSet<string> ExtractSemanticTokens(string text)
         {
@@ -255,12 +338,8 @@ namespace RimChat.DiplomacySystem
             }
 
             string expanded = ExpandCamelCase(text).ToLowerInvariant();
-            char[] separators =
-            {
-                ' ', '\t', '\r', '\n', '_', '-', '/', '\\', ',', '.', ':', ';', '|', '(', ')', '[', ']', '{', '}'
-            };
 
-            foreach (string part in expanded.Split(separators, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string part in expanded.Split(SemanticTokenSeparators, StringSplitOptions.RemoveEmptyEntries))
             {
                 string token = part.Trim();
                 if (token.Length >= 2)
@@ -272,7 +351,7 @@ namespace RimChat.DiplomacySystem
             return tokens;
         }
 
-        private static string ExpandCamelCase(string text)
+        public static string ExpandCamelCase(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -294,6 +373,39 @@ namespace RimChat.DiplomacySystem
             }
 
             return new string(chars.ToArray());
+        }
+
+        private static bool IsCjkToken(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < token.Length; i++)
+            {
+                char ch = token[i];
+                if ((ch >= 0x4E00 && ch <= 0x9FFF) ||
+                    (ch >= 0x3400 && ch <= 0x4DBF) ||
+                    (ch >= 0xF900 && ch <= 0xFAFF) ||
+                    (ch >= 0x2E80 && ch <= 0x2EFF))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Checks whether needle is a word-boundary token in haystack's semantic tokens.
+        private static bool ContainsWithWordBoundary(HashSet<string> semanticTokens, string normalizedNeedle)
+        {
+            if (string.IsNullOrWhiteSpace(normalizedNeedle) || semanticTokens == null || semanticTokens.Count == 0)
+            {
+                return false;
+            }
+
+            return semanticTokens.Contains(normalizedNeedle);
         }
 
         private static int ScoreNearMatch(string normalizedQuery, string normalizedTarget, int maxScore, List<string> breakdown, string tag)
@@ -331,6 +443,7 @@ namespace RimChat.DiplomacySystem
             return 0;
         }
 
+        // Damerau-Levenshtein with transposition support.
         private static int ComputeLevenshteinDistance(string left, string right)
         {
             int leftLength = left.Length;
@@ -345,29 +458,42 @@ namespace RimChat.DiplomacySystem
                 return leftLength;
             }
 
-            var matrix = new int[leftLength + 1, rightLength + 1];
-            for (int i = 0; i <= leftLength; i++)
-            {
-                matrix[i, 0] = i;
-            }
-
+            var prevPrev = new int[rightLength + 1];
+            var prev = new int[rightLength + 1];
+            var curr = new int[rightLength + 1];
             for (int j = 0; j <= rightLength; j++)
             {
-                matrix[0, j] = j;
+                prev[j] = j;
             }
 
             for (int i = 1; i <= leftLength; i++)
             {
+                curr[0] = i;
                 for (int j = 1; j <= rightLength; j++)
                 {
                     int cost = left[i - 1] == right[j - 1] ? 0 : 1;
-                    matrix[i, j] = Math.Min(
-                        Math.Min(matrix[i - 1, j] + 1, matrix[i, j - 1] + 1),
-                        matrix[i - 1, j - 1] + cost);
+                    int min = Math.Min(
+                        Math.Min(prev[j] + 1, curr[j - 1] + 1),
+                        prev[j - 1] + cost);
+
+                    // Transposition: swap adjacent characters costs 1 instead of 2.
+                    if (i > 1 && j > 1 &&
+                        left[i - 1] == right[j - 2] &&
+                        left[i - 2] == right[j - 1])
+                    {
+                        min = Math.Min(min, prevPrev[j - 2] + 1);
+                    }
+
+                    curr[j] = min;
                 }
+
+                var tmp = prevPrev;
+                prevPrev = prev;
+                prev = curr;
+                curr = tmp;
             }
 
-            return matrix[leftLength, rightLength];
+            return prev[rightLength];
         }
     }
 }

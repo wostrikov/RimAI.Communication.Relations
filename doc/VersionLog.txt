@@ -1,3 +1,6 @@
+1.5.3
+- [优化] ThingDef模糊匹配引擎重构：ThingDefRecord预缓存标准化字段消除每查询~18K分配；Levenshtein改两行滚动+支持字符转置；NormalizeToken去LINQ用StringBuilder；RankCandidates去LINQ手动循环；词边界感知匹配替代裸Contains防止"steel"误匹配Plasteel；修复CJK单字(钢/药/枪)被跳过问题；ResolveFamily从先匹配先得改为打分制；否定词处理排除"not/except/除了"后token；ContainsAny收紧最小匹配长度限制；StopTokens补全代词；Family别名瘦身；NormalizeToken与ExtractSemanticTokens分隔符统一
+
 1.5.2
 - [修复] 第三方Mod QuestPart异常导致外交Prompt构建崩溃：添加QuestInvolvedFactionsGuard安全工具类，try/catch包裹InvolvedFactions惰性迭代，防止Ratkin等Mod的QuestPart.get_InvolvedFactions内部NullReferenceException传播导致外交对话不可用
 
