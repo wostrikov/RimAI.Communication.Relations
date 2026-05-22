@@ -1,3 +1,7 @@
+1.5.6
+- [Balance] AI offline time reduced 50%: forced offline 2h→1h, DND 4h→2h, exit_dialogue cooldown 2h→1h
+- [Balance] Night offline bias adjusted: window 22:00-06:00→00:00-05:00, force-offline probability 65%→85%
+
 1.5.5
 - [Fix] AI not triggering airdrop action root cause: reversed "omit actions instead of exposing internal instructions" → "MUST include actions when player expects gameplay"; changed "省略actions" → "必须包含action" in PawnDialoguePrompt_Default.json
 

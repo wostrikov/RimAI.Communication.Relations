@@ -236,9 +236,9 @@ namespace RimChat.Config
         // Legacy compatibility field only. Runtime forced-offline duration is fixed in manager logic and this value is no longer exposed in UI.
         public float PresenceForcedOfflineHours = 24f;
         public bool PresenceNightBiasEnabled = true;
-        public int PresenceNightStartHour = 22;
-        public int PresenceNightEndHour = 6;
-        public float PresenceNightOfflineBias = 0.65f;
+        public int PresenceNightStartHour = 0;
+        public int PresenceNightEndHour = 5;
+        public float PresenceNightOfflineBias = 0.85f;
         public bool PresenceUseAdvancedProfiles = true;
         public int PresenceOnlineStart_Default = 7;
         public int PresenceOnlineDuration_Default = 12;

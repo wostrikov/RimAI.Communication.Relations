@@ -25,8 +25,8 @@ namespace RimChat.DiplomacySystem
         private Dictionary<Faction, FactionPresenceState> presenceStatesByFaction = new Dictionary<Faction, FactionPresenceState>();
         private List<DelayedDiplomacyEvent> delayedEvents = new List<DelayedDiplomacyEvent>();
         private int lastNegotiatorThingId = -1;
-        private const int ForcedOfflineDurationHours = 2;
-        private const int ForcedDoNotDisturbDurationHours = 4;
+        private const int ForcedOfflineDurationHours = 1;
+        private const int ForcedDoNotDisturbDurationHours = 2;
         private readonly List<DelayedDiplomacyEvent> delayedEventsPendingAdd = new List<DelayedDiplomacyEvent>();
         private bool isProcessingDelayedEvents = false;
         private int lastProcessedDelayedEventsTick = -1;
@@ -487,7 +487,7 @@ namespace RimChat.DiplomacySystem
                 case "exit_dialogue":
                     if (session == null || !session.isConversationEndedByNpc)
                     {
-                        session?.MarkConversationEnded(normalizedReason, true, 2 * GenDate.TicksPerHour);
+                        session?.MarkConversationEnded(normalizedReason, true, 1 * GenDate.TicksPerHour);
                     }
                     break;
                 case "go_offline":
