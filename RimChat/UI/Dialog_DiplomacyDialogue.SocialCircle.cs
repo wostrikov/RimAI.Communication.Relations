@@ -89,6 +89,7 @@ namespace RimChat.UI
                                playerMessage,
                                aiText,
                                out enqueueResult);
+            Log.Message($"[RimChat] Player-influenced post attempt: faction={currentFaction?.Name}, created={created}, triggered={enqueueResult.Triggered}, failureReason={enqueueResult.FailureReason}");
             if (!enqueueResult.Triggered)
             {
                 TryGenerateRandomDialogueSocialPost(playerMessage, aiText, currentFaction, currentSession);

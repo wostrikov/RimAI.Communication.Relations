@@ -145,6 +145,7 @@ namespace RimChat.UI
             lease.Dispose();
             ResetAirdropConfirmationRuntime(currentSession, "prepared_trade_ready", true, true);
             TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.PreparedAwaitingConfirm, preparedTrade.SelectedDefName ?? "prepared_trade");
+            currentSession.airdropPreparedAwaitingConfirmTick = Find.TickManager?.TicksGame ?? 0;
             List<PendingAirdropSelectionCandidate> pendingCandidates = null;
             Dictionary<string, object> baseParameters = CloneParameters(actionSnapshot.Parameters);
             if (!TryReadPendingAirdropCandidates(baseParameters, out pendingCandidates))

@@ -150,49 +150,60 @@ namespace RimChat.UI
         {
             if (currentSession == null || currentFaction == null || currentFaction.defeated || lease == null)
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=session_null_or_faction_defeated_or_lease_null sessionNull={currentSession == null} factionNull={currentFaction == null} factionDefeated={currentFaction?.defeated} leaseNull={lease == null}");
                 return false;
             }
 
             if (expectedGeneration != currentSession.airdropRequestGeneration)
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=generation_mismatch expected={expectedGeneration} actual={currentSession.airdropRequestGeneration}");
                 return false;
             }
 
             string requestId = lease.RequestId;
             if (string.IsNullOrWhiteSpace(requestId))
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=request_id_empty");
                 return false;
             }
 
             if (!string.Equals(currentSession.pendingAirdropRequestId, requestId, StringComparison.Ordinal))
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=request_id_mismatch sessionId={currentSession.pendingAirdropRequestId} leaseId={requestId}");
                 return false;
             }
 
             if (currentSession.pendingAirdropRequestLease == null ||
                 !ReferenceEquals(currentSession.pendingAirdropRequestLease, lease))
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=lease_reference_mismatch sessionLeaseNull={currentSession.pendingAirdropRequestLease == null}");
                 return false;
             }
 
             if (!lease.IsValidFor(requestId, requestContext?.DialogueSessionId ?? string.Empty, requestContext?.ContextVersion ?? -1))
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=lease_not_valid sessionId={requestContext?.DialogueSessionId} version={requestContext?.ContextVersion}");
                 return false;
             }
 
             DialogueRuntimeContext resolveContext = requestContext?.WithCurrentRuntimeMarkers();
             if (!DialogueContextResolver.TryResolveLiveContext(resolveContext, out DialogueLiveContext liveContext, out _))
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=resolve_live_context_failed");
                 return false;
             }
 
             if (!DialogueContextValidator.ValidateCallbackApply(requestContext, liveContext, requestContext?.DialogueSessionId, out _))
             {
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=callback_validate_failed");
                 return false;
             }
 
             FactionDialogueSession liveSession = GameComponent_DiplomacyManager.Instance?.GetSession(currentFaction);
-            return ReferenceEquals(liveSession, currentSession);
+            bool sessionMatch = ReferenceEquals(liveSession, currentSession);
+            if (!sessionMatch)
+                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=session_reference_mismatch");
+            return sessionMatch;
         }
 
         private void CancelPendingAirdropSelectionRequest()

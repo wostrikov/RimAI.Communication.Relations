@@ -1,4 +1,5 @@
 using RimChat.Memory;
+using RimWorld;
 using Verse;
 
 namespace RimChat.UI
@@ -55,6 +56,7 @@ namespace RimChat.UI
             if (resetStageToIdle)
             {
                 currentSession.airdropExecutionStage = AirdropExecutionStage.Idle;
+                currentSession.airdropPreparedAwaitingConfirmTick = 0;
             }
 
             if (clearedPendingIntent || clearedAirdropIntent || hadAsyncState || clearTradeCardReference || resetStageToIdle)
@@ -89,6 +91,25 @@ namespace RimChat.UI
                 $"stage={currentSession.airdropExecutionStage},hasPendingIntent={hasPendingIntent},isWaitingForSelection={currentSession.isWaitingForAirdropSelection}," +
                 $"requestId={currentSession.pendingAirdropRequestId ?? "none"},hasLease={(currentSession.pendingAirdropRequestLease != null)}";
             return true;
+        }
+
+        private const int AirdropPreparedAwaitingConfirmTimeoutTicks = 5000; // 2 game hours
+
+        private void TryAutoCleanupStaleAirdropConfirmation(FactionDialogueSession session, Faction faction)
+        {
+            if (session == null || faction == null) return;
+            if (session.airdropExecutionStage != AirdropExecutionStage.PreparedAwaitingConfirm) return;
+            if (session.airdropPreparedAwaitingConfirmTick <= 0) return;
+
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            int elapsed = currentTick - session.airdropPreparedAwaitingConfirmTick;
+            if (elapsed < AirdropPreparedAwaitingConfirmTimeoutTicks) return;
+
+            Log.Warning($"[RimChat] Airdrop auto-cleanup: PreparedAwaitingConfirm stale for {elapsed} ticks (> {AirdropPreparedAwaitingConfirmTimeoutTicks}). Resetting for faction={faction.Name}.");
+            ResetAirdropConfirmationRuntime(session, "auto_cleanup_stale_confirmation", true, true, true);
+            session.AddMessage("System", "RimChat_ItemAirdropCancelledSystem".Translate().ToString(), false, DialogueMessageType.System);
+            ClearPendingAirdropDialogState("auto_cleanup", true);
+            SaveFactionMemory(session, faction);
         }
     }
 }

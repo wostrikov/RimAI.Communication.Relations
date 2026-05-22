@@ -126,7 +126,7 @@ namespace RimChat.DiplomacySystem
                         continue;
                     }
 
-                    Log.Warning($"[RimChat] image request failed. code={requestWeb.responseCode}, error='{requestWeb.error}', responsePreview={BuildRequestBodyPreview(responseBody)}");
+                    Log.Warning($"[RimChat] image request failed. code={requestWeb.responseCode}, error='{requestWeb.error}', responseBodyFull={responseBody}");
                     string error = ComposeWebError("image generation", requestWeb, responseBody);
                     onCompleted?.Invoke(DiplomacyImageGenerationResult.Fail(error));
                     yield break;

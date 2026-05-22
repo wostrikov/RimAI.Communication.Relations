@@ -124,7 +124,7 @@ namespace RimChat.WorldState
                     {
                         for (int i = 0; i < hives.Count; i++)
                         {
-                            if (!hives[i].Destroyed)
+                            if (!hives[i].Destroyed && !IsHiveInSealedRoom(hives[i]))
                             {
                                 _hasHiveThreat = true;
                                 break;
@@ -156,6 +156,25 @@ namespace RimChat.WorldState
             {
                 // Silently ignore reflection failures
             }
+        }
+
+        private static bool IsHiveInSealedRoom(Thing hive)
+        {
+            if (hive == null || !hive.Spawned) return false;
+
+            Room room = hive.GetRoom();
+            if (room == null || room.IsHuge || room.CellCount == 0)
+                return false;
+
+            if (room.OpenRoofCount > 0) return false;
+            if (room.PsychologicallyOutdoors) return false;
+
+            foreach (IntVec3 cell in room.Cells)
+            {
+                Building_Door door = cell.GetDoor(hive.Map);
+                if (door != null) return false;
+            }
+            return true;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using RimChat.Config;
 using UnityEngine;
 using UnityEngine.Networking;
+using Verse;
 
 namespace RimChat.DiplomacySystem
 {
@@ -280,6 +281,13 @@ namespace RimChat.DiplomacySystem
             string imageInput = ResolveSourceImageInput(request);
             if (string.IsNullOrWhiteSpace(imageInput))
             {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Endpoint)
+                && request.Endpoint.ToLowerInvariant().Contains("siliconflow"))
+            {
+                Log.Warning("[RimChat] SiliconFlow img2img not fully supported; falling back to text-to-image for this request. If SiliconFlow supports img2img, check the API field name.");
                 return string.Empty;
             }
 

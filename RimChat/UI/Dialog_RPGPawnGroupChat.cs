@@ -631,7 +631,7 @@ namespace RimChat.UI
             GameFont prevFont = Text.Font;
             Text.Font = GameFont.Medium;
             float measureWidth = Math.Max(1f, textArea.width - 8f);
-            float height = Text.CalcHeight(fullText, measureWidth) * (34f / 22f) + 8f;
+            float height = Text.CalcHeight(fullText, measureWidth) + 4f;
             Text.Font = prevFont;
             return height > textArea.height - 40f;
         }
@@ -659,7 +659,7 @@ namespace RimChat.UI
                 {
                     int mid = low + (high - low) / 2;
                     string candidate = fullText.Substring(startIndex, mid);
-                    float h = Text.CalcHeight(candidate, measureWidth) * (34f / 22f);
+                    float h = Text.CalcHeight(candidate, measureWidth) + 4f;
                     if (h <= height) { best = mid; low = mid + 1; }
                     else high = mid - 1;
                 }

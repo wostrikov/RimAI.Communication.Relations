@@ -58,24 +58,32 @@ namespace RimChat.UI
                 return;
             }
 
-            // Body — scrollable records
+            // Body — scrollable records, dynamic row height (mirrors 1v1 history pattern)
             Rect bodyRect = new Rect(panelRect.x + 12f, panelRect.y + 44f, panelRect.width - 24f, panelRect.height - 54f);
-            float rowH = 28f;
-            float totalH = dialogPages.Count * rowH + 4f;
-            Rect viewRect = new Rect(0f, 0f, bodyRect.width - 18f, totalH);
+            float viewWidth = bodyRect.width - 18f;
+            float totalH = 4f;
+            GameFont prevFont = Text.Font;
+            Text.Font = GameFont.Tiny;
+            for (int i = 0; i < dialogPages.Count; i++)
+            {
+                string entry = dialogPages[i].speakerName + ": " + dialogPages[i].text;
+                totalH += MeasureGroupHistoryEntryHeight(entry, viewWidth) + 2f;
+            }
+            Text.Font = prevFont;
+            Rect viewRect = new Rect(0f, 0f, viewWidth, Mathf.Max(totalH, 40f));
             historyScrollPos = GUI.BeginScrollView(bodyRect, historyScrollPos, viewRect);
 
             float y = 1f;
             for (int i = 0; i < dialogPages.Count; i++)
             {
-                Rect rowRect = new Rect(5f, y, viewRect.width - 10f, rowH - 2f);
+                string entry = dialogPages[i].speakerName + ": " + dialogPages[i].text;
+                float entryH = MeasureGroupHistoryEntryHeight(entry, viewWidth);
+                Rect rowRect = new Rect(5f, y, viewWidth - 10f, entryH);
                 Widgets.DrawBoxSolid(rowRect, i % 2 == 0 ? new Color(1f, 1f, 1f, 0.025f) : new Color(1f, 1f, 1f, 0.055f));
                 Text.Font = GameFont.Tiny;
                 Text.Anchor = TextAnchor.MiddleLeft;
-                string entry = dialogPages[i].speakerName + ": " + dialogPages[i].text;
-                if (entry.Length > 120) entry = entry.Substring(0, 117) + "...";
                 Widgets.Label(rowRect, entry);
-                y += rowH;
+                y += entryH + 2f;
             }
             Text.Anchor = TextAnchor.UpperLeft;
             GUI.EndScrollView();
@@ -87,6 +95,16 @@ namespace RimChat.UI
             // Click outside the panel closes it — handled in DrawHistoryPanel via close button,
             // or you can click outside. We handle the outside click in DoWindowContents.
             return false;
+        }
+
+        private static float MeasureGroupHistoryEntryHeight(string text, float width)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return 20f;
+            GameFont prev = Text.Font;
+            Text.Font = GameFont.Tiny;
+            float h = Text.CalcHeight(text, width);
+            Text.Font = prev;
+            return Mathf.Max(20f, h + 4f);
         }
     }
 }

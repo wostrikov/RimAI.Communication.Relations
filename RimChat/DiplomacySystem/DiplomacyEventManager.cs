@@ -1133,15 +1133,25 @@ namespace RimChat.DiplomacySystem
                 }
 
                 int currentTick = Find.TickManager.TicksGame;
-                int windowStartTick = currentTick + (16 * 2500);
-                int windowTicks = 14 * 2500; // 16-30 hours
+                int windowStartTick = currentTick + (8 * 2500);
+                int windowTicks = 4 * 2500; // 8-12 hours
                 List<Faction> effectiveFactions = BalanceCallEveryoneParticipants(targetFactions);
                 if (effectiveFactions.Count == 0)
                 {
                     DebugLogger.WarningGated("ScheduleRaidCallEveryone: No effective factions after balancing.");
                     return false;
                 }
-                
+
+                int peaceUntilTick = windowStartTick + windowTicks + (12 * 2500);
+                for (int i = 0; i < effectiveFactions.Count; i++)
+                {
+                    for (int j = i + 1; j < effectiveFactions.Count; j++)
+                    {
+                        if (effectiveFactions[i].RelationKindWith(effectiveFactions[j]) == FactionRelationKind.Hostile)
+                            GameComponent_DiplomacyManager.Instance?.ApplyTempCrossFactionPeace(effectiveFactions[i], effectiveFactions[j], peaceUntilTick);
+                    }
+                }
+
                 // 收集目标派系 defName
                 var targetDefNames = effectiveFactions.Select(f => f.def?.defName).Where(n => !string.IsNullOrEmpty(n)).ToList();
                 
@@ -1184,7 +1194,7 @@ namespace RimChat.DiplomacySystem
                 Faction notifyFaction = sourceFaction ?? effectiveFactions.FirstOrDefault();
                 if (notifyFaction != null)
                 {
-                    string detail = $"{hostileCount}|{friendlyCount}|16|30";
+                    string detail = $"{hostileCount}|{friendlyCount}|8|12";
                     DiplomacyNotificationManager.SendDelayedEventScheduledNotification(
                         notifyFaction,
                         DelayedEventType.RaidCallEveryone,

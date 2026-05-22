@@ -49,6 +49,7 @@ namespace RimChat.Memory
         public int pendingAirdropRequestTimeoutSeconds = 0;
         public int airdropRequestGeneration = 0;
         public AirdropExecutionStage airdropExecutionStage = AirdropExecutionStage.Idle;
+        public int airdropPreparedAwaitingConfirmTick = 0;
         public bool isWaitingForRansomTargetSelection = false;
         public int boundRansomTargetPawnLoadId = 0;
         public string boundRansomTargetFactionId = string.Empty;

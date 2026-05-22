@@ -566,6 +566,9 @@ namespace RimChat.UI
             speakerHoverRequestThisFrame = false;
             UpdateTypewriterEffect();
 
+            if (session != null && faction != null)
+                TryAutoCleanupStaleAirdropConfirmation(session, faction);
+
             DrawTitleBar(crtContent);
             long t1 = System.Diagnostics.Stopwatch.GetTimestamp();
 

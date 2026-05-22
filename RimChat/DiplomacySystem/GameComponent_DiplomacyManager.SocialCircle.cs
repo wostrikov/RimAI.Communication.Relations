@@ -65,6 +65,7 @@ namespace RimChat.DiplomacySystem
             EnsureNextSocialPostTick(currentTick);
             TryGenerateScheduledSocialPost(currentTick);
             SocialCircleActionResolver.ResolveAndExecute(this, socialCircleState, currentTick);
+            TryProcessAiToAiInteraction(currentTick);
         }
 
         private void OnSocialCircleDailyReset()
@@ -261,6 +262,7 @@ namespace RimChat.DiplomacySystem
                 out string intentHint);
             if (!matched)
             {
+                Log.Message($"[RimChat] KeywordDialoguePost skipped: keywords not matched. playerMsgLen={playerMessage?.Length ?? 0}, aiResponseLen={aiResponse?.Length ?? 0}");
                 return false;
             }
 
@@ -275,10 +277,11 @@ namespace RimChat.DiplomacySystem
                 targetFaction);
             if (string.IsNullOrWhiteSpace(summary))
             {
+                Log.Warning($"[RimChat] KeywordDialoguePost: summary is null/empty after matching keywords. category={category}, sentiment={sentiment}");
                 string targetLabel = targetFaction != null ? $"与{targetFaction.Name}" : string.Empty;
                 summary = $"{sourceFaction.Name}{targetLabel}就当前局势发表了公开声明。";
             }
-            return EnqueuePublicPost(
+            bool postResult = EnqueuePublicPost(
                 sourceFaction,
                 targetFaction,
                 category,
@@ -288,6 +291,8 @@ namespace RimChat.DiplomacySystem
                 out enqueueResult,
                 intentHint,
                 DebugGenerateReason.DialogueKeyword);
+            Log.Message($"[RimChat] KeywordDialoguePost enqueue: result={postResult}, category={category}, sentiment={sentiment}, failureReason={enqueueResult.FailureReason}");
+            return postResult;
         }
 
         public Faction ResolveSocialTargetFaction(string token, Faction sourceFaction = null)
@@ -596,6 +601,82 @@ namespace RimChat.DiplomacySystem
                 default:
                     return "RimChat_SocialFailureReason_unknown";
             }
+        }
+
+        // ── AI-to-AI faction interaction ──
+
+        private void TryProcessAiToAiInteraction(int currentTick)
+        {
+            if (currentTick - _lastAiToAiGenerationTick < AiToAiGenerationIntervalTicks) return;
+            _lastAiToAiGenerationTick = currentTick;
+
+            if (Rand.Value < 0.15f)
+                TryGenerateAiToAiSocialPost(DebugGenerateReason.Scheduled, currentTick);
+        }
+
+        public bool TryGenerateAiToAiSocialPost(DebugGenerateReason reason, int currentTick)
+        {
+            if (!IsSocialCircleEnabled()) return false;
+            if (!CanGenerateSocialNews()) return false;
+
+            List<Faction> candidates = GetEligibleSocialFactions()
+                .Where(f => !f.IsPlayer && !f.defeated)
+                .ToList();
+            if (candidates.Count < 2) return false;
+
+            Faction sourceFaction = candidates.RandomElement();
+            Faction targetFaction = candidates
+                .Where(f => f != sourceFaction)
+                .RandomElement();
+            if (sourceFaction == null || targetFaction == null) return false;
+
+            SocialPostCategory category = PickRandomAiToAiCategory(sourceFaction, targetFaction);
+            int sentiment = PickRandomAiToAiSentiment(sourceFaction, targetFaction, category);
+            string summary = BuildAiToAiSummary(sourceFaction, targetFaction, category, sentiment);
+
+            bool success = EnqueuePublicPost(
+                sourceFaction,
+                targetFaction,
+                category,
+                sentiment,
+                summary,
+                false,
+                out _,
+                "ai_to_ai_interaction",
+                reason);
+
+            if (success)
+                Log.Message($"[RimChat] AI-to-AI post generated: {sourceFaction.Name} -> {targetFaction.Name}, category={category}, sentiment={sentiment}");
+
+            return success;
+        }
+
+        private static SocialPostCategory PickRandomAiToAiCategory(Faction source, Faction target)
+        {
+            var relation = source.RelationKindWith(target);
+            float roll = Rand.Value;
+            if (relation == FactionRelationKind.Hostile)
+                return roll < 0.6f ? SocialPostCategory.Military : SocialPostCategory.Diplomatic;
+            if (relation == FactionRelationKind.Ally)
+                return roll < 0.4f ? SocialPostCategory.Diplomatic : (roll < 0.75f ? SocialPostCategory.Economic : SocialPostCategory.Military);
+            return SocialPostCategory.Diplomatic;
+        }
+
+        private static int PickRandomAiToAiSentiment(Faction source, Faction target, SocialPostCategory category)
+        {
+            var relation = source.RelationKindWith(target);
+            if (relation == FactionRelationKind.Hostile) return Rand.RangeInclusive(-2, -1);
+            if (relation == FactionRelationKind.Ally) return Rand.RangeInclusive(0, 2);
+            return Rand.RangeInclusive(-1, 1);
+        }
+
+        private static string BuildAiToAiSummary(Faction source, Faction target, SocialPostCategory category, int sentiment)
+        {
+            if (sentiment >= 1)
+                return $"{source.Name} and {target.Name} strengthen their ties amidst the shifting balance of power.";
+            if (sentiment <= -1)
+                return $"{source.Name} condemns {target.Name}'s actions, further straining relations between the two factions.";
+            return $"{source.Name} and {target.Name} are engaged in quiet diplomatic maneuvering.";
         }
     }
 }

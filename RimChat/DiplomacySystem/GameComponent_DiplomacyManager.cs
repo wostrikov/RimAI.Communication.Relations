@@ -31,6 +31,12 @@ namespace RimChat.DiplomacySystem
         private bool isProcessingDelayedEvents = false;
         private int lastProcessedDelayedEventsTick = -1;
 
+        // Temporary cross-faction peace during CallEveryone windows (persisted)
+        public TempFactionRelationState tempFactionRelations = new TempFactionRelationState();
+
+        private int _lastAiToAiGenerationTick = 0;
+        private const int AiToAiGenerationIntervalTicks = 120000; // 2 game days
+
         public static GameComponent_DiplomacyManager Instance = null;
 
         public GameComponent_DiplomacyManager(Game game)
@@ -572,6 +578,8 @@ namespace RimChat.DiplomacySystem
                 FactionSpecialItemsManager.Instance.Tick();
             }
 
+            TryRestoreTempFactionRelations(currentTick);
+
         }
 
         private void ProcessPeriodicDiplomacySnapshots()
@@ -769,6 +777,8 @@ namespace RimChat.DiplomacySystem
                 Scribe_Deep.Look(ref socialCircleState, "socialCircleState");
                 Scribe_Values.Look(ref lastDailyResetTick, "lastDailyResetTick", 0);
                 Scribe_Values.Look(ref lastNegotiatorThingId, "lastNegotiatorThingId", -1);
+                Scribe_Values.Look(ref _lastAiToAiGenerationTick, "lastAiToAiGenerationTick", 0);
+                Scribe_Deep.Look(ref tempFactionRelations, "tempFactionRelations");
 
                 // Save/load GameAIInterface data
                 GameAIInterface.Instance?.ExposeData();
@@ -853,6 +863,24 @@ namespace RimChat.DiplomacySystem
                     }
 
                     MigrateLegacyRaidCallEveryoneEvents(currentTick);
+
+                    // Re-apply temp faction peace after save load
+                    if (tempFactionRelations != null
+                        && tempFactionRelations.originalRelations.Count > 0
+                        && tempFactionRelations.restoreAtTick > currentTick)
+                    {
+                        Log.Message($"[RimChat] Re-applying {tempFactionRelations.originalRelations.Count} temp faction peace overrides after load (restoreAtTick={tempFactionRelations.restoreAtTick})");
+                        foreach (var kv in tempFactionRelations.originalRelations)
+                        {
+                            string[] ids = kv.Key.Split(':');
+                            if (ids.Length != 2) continue;
+                            Faction fa = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[0]);
+                            Faction fb = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[1]);
+                            if (fa == null || fb == null || fa.defeated || fb.defeated) continue;
+                            fa.SetRelationDirect(fb, FactionRelationKind.Neutral);
+                            Log.Message($"[RimChat] Re-applied temp peace: {fa.Name} <-> {fb.Name} (was {kv.Value})");
+                        }
+                    }
                 }
             }
 
@@ -1148,6 +1176,49 @@ namespace RimChat.DiplomacySystem
                 default:
                     return 0.10f;
             }
+        }
+
+        // ── Temporary cross-faction peace for CallEveryone windows ──
+
+        private static string GetTempPeaceKey(Faction a, Faction b)
+        {
+            var ids = new[] { a.loadID.ToString(), b.loadID.ToString() };
+            Array.Sort(ids);
+            return string.Join(":", ids);
+        }
+
+        public void ApplyTempCrossFactionPeace(Faction a, Faction b, int untilTick)
+        {
+            if (a == null || b == null || a == b) return;
+            FactionRelationKind currentKind = a.RelationKindWith(b);
+            if (currentKind != FactionRelationKind.Hostile) return;
+
+            string key = GetTempPeaceKey(a, b);
+            if (!tempFactionRelations.originalRelations.ContainsKey(key))
+                tempFactionRelations.originalRelations[key] = currentKind;
+
+            a.SetRelationDirect(b, FactionRelationKind.Neutral);
+            tempFactionRelations.restoreAtTick = Math.Max(tempFactionRelations.restoreAtTick, untilTick);
+        }
+
+        public void TryRestoreTempFactionRelations(int currentTick)
+        {
+            if (tempFactionRelations.originalRelations.Count == 0) return;
+            if (tempFactionRelations.restoreAtTick <= 0) return;
+            if (currentTick < tempFactionRelations.restoreAtTick) return;
+
+            Log.Message($"[RimChat] Restoring {tempFactionRelations.originalRelations.Count} temporary faction peace overrides at tick {currentTick}");
+            foreach (var kv in tempFactionRelations.originalRelations)
+            {
+                string[] ids = kv.Key.Split(':');
+                if (ids.Length != 2) continue;
+                Faction fa = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[0]);
+                Faction fb = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[1]);
+                if (fa == null || fb == null || fa.defeated || fb.defeated) continue;
+                fa.SetRelationDirect(fb, kv.Value);
+            }
+            tempFactionRelations.originalRelations.Clear();
+            tempFactionRelations.restoreAtTick = 0;
         }
 
     }

@@ -35,7 +35,7 @@ namespace RimChat.DiplomacySystem
         private readonly HashSet<int> pawnPersonaSyncGuards = new HashSet<int>();
         private string persistentRpgSaveSlotId = string.Empty;
 
-        private const float DefaultExitCooldownHours = 24f;
+        private const float DefaultExitCooldownHours = 2f;
         private const string PersistentRpgSaveSlotPrefix = "slot";
 
         public GameComponent_RPGManager(Game game)

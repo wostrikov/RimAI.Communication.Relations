@@ -321,7 +321,7 @@ namespace RimChat.Config
                 || string.Equals(preset, ProviderPresetSiliconFlow, StringComparison.OrdinalIgnoreCase);
             SchemaPreset = useOpenAiSchema ? SchemaPresetOpenAI : SchemaPresetArk;
             Mode = string.Equals(preset, ProviderPresetSiliconFlow, StringComparison.OrdinalIgnoreCase)
-                ? ModeSyncPayload
+                ? ModeSyncUrl
                 : (string.Equals(preset, ProviderPresetOpenAI, StringComparison.OrdinalIgnoreCase)
                     ? ModeSyncPayload
                     : ModeSyncUrl);

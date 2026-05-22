@@ -1,3 +1,11 @@
+1.5.1
+- [Opt] RPG dialogue ExitDialogueCooldown reduced from 1 day to 2 hours, reducing NPC long-term dialogue lockout
+- [Fix] Ancient ruin hive threats: added IsHiveInSealedRoom sealed-room detection, hives behind unbreached ancient danger walls no longer trigger colonist warning dialogues
+- [Fix] Multi-person RPG history panel fixed row height causing multi-line text truncation: replaced with dynamic row height measurement, removed 120-char hard truncation
+- [Fix] Multi-person RPG dialogue text clipping beyond 2 lines: fixed paging height calculation fudge factor (removed 34f/22f error multiplier)
+- [Opt] CallEveryone joint raid window shortened from 16-30h to 8-12h; participating factions temporarily set to Neutral via SetRelationDirect so they don't attack each other, auto-restore original relations 12h after window ends
+- [New] AI-to-AI social circle interaction: non-player AI factions have 15% chance per 2 game days to auto-generate public social posts targeting other AI factions
+
 1.5.0
 - [New] Group Discussion mode: right-click colonist → Start Group Discussion, detects up to 6 NPCs within 12-tile radius (6 tiles for animals/mechanoids) centered on target pawn
 - [New] Cascading portraits (400×500 matching 1v1), round-robin speaker animation (scale + lift), serial queue AI requests (next request fires immediately on response)
