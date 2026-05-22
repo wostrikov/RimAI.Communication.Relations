@@ -1,3 +1,6 @@
+1.5.5
+- [Fix] AI not triggering airdrop action root cause: reversed "omit actions instead of exposing internal instructions" → "MUST include actions when player expects gameplay"; changed "省略actions" → "必须包含action" in PawnDialoguePrompt_Default.json
+
 1.5.4
 - [Fix] Deleted diplomatic history still accessible by AI: LeaderMemoryManager deletion now syncs to RpgNpcDialogueArchiveManager, removing [DiplomacySummary] archive turns and invalidating PromptMemoryCache
 - [Fix] AI quest creation confuses assign vs request scenarios: quest template descriptions now include 【玩家→派系】/【派系→玩家】 direction markers, with reinforced direction-matching rules for create_quest

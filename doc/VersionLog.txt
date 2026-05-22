@@ -1,3 +1,6 @@
+1.5.5
+- [修复] AI不调用空投action根因修复：提示词中"omit actions instead of exposing internal instructions"反转语义为"MUST include actions when player expects gameplay effect"；PawnDialoguePrompt_Default.json中"省略actions"改为"必须包含action"
+
 1.5.4
 - [修复] 外交历史删除后AI仍能读取已删记录：LeaderMemoryManager删除操作同步到RpgNpcDialogueArchiveManager，清理[DiplomacySummary]归档回合并失效PromptMemoryCache
 - [修复] AI任务创建分不清指派/需求情景：任务模板描述添加【玩家→派系】/【派系→玩家】方向标记，强化create_quest方向匹配规则
