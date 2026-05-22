@@ -1,3 +1,6 @@
+1.5.7
+- [修复] 旧存档加载后tempFactionRelations为null导致每tick NRE崩溃：TryRestoreTempFactionRelations添加null守卫，ExposeData catch补齐字段恢复，Tick调用加2500tick间隔门控防止性能浪费
+
 1.5.6
 - [平衡] AI离线时间缩短50%：强制离线2h→1h，DND 4h→2h，exit_dialogue冷却2h→1h
 - [平衡] 深夜离线偏向调整：窗口22:00-06:00→00:00-05:00，强制离线概率65%→85%

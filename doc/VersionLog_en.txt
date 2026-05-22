@@ -1,3 +1,6 @@
+1.5.7
+- [Fix] Old save NRE crash from null tempFactionRelations every tick: added null guard in TryRestoreTempFactionRelations, added field recovery in ExposeData catch, gated per-tick call to 2500-tick interval
+
 1.5.6
 - [Balance] AI offline time reduced 50%: forced offline 2h→1h, DND 4h→2h, exit_dialogue cooldown 2h→1h
 - [Balance] Night offline bias adjusted: window 22:00-06:00→00:00-05:00, force-offline probability 65%→85%

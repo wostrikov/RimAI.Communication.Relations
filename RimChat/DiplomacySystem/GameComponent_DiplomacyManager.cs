@@ -578,7 +578,8 @@ namespace RimChat.DiplomacySystem
                 FactionSpecialItemsManager.Instance.Tick();
             }
 
-            TryRestoreTempFactionRelations(currentTick);
+            if (currentTick % 2500 == 0)
+                TryRestoreTempFactionRelations(currentTick);
 
         }
 
@@ -796,6 +797,7 @@ namespace RimChat.DiplomacySystem
                 manuallyVisibleHiddenFactions ??= new HashSet<Faction>();
                 albumEntries ??= new List<AlbumImageEntry>();
                 socialCircleState ??= new SocialCircleState();
+                tempFactionRelations ??= new TempFactionRelationState();
             }
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -1203,7 +1205,7 @@ namespace RimChat.DiplomacySystem
 
         public void TryRestoreTempFactionRelations(int currentTick)
         {
-            if (tempFactionRelations.originalRelations.Count == 0) return;
+            if (tempFactionRelations?.originalRelations == null || tempFactionRelations.originalRelations.Count == 0) return;
             if (tempFactionRelations.restoreAtTick <= 0) return;
             if (currentTick < tempFactionRelations.restoreAtTick) return;
 
