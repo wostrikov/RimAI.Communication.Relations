@@ -687,7 +687,7 @@ namespace RimChat.DiplomacySystem
                     else
                     {
                         string policyNote = noRetryPolicy ? " (no-retry policy)" : string.Empty;
-                        Log.Error($"[RimChat] Delayed {evt.EventType} from {evt.Faction?.Name} failed after {evt.RetryCount} retries and was discarded{policyNote}.");
+                        Log.Error($"[RimChat] Delayed {evt.EventType} from {evt.Faction?.Name ?? "null"} failed after {evt.RetryCount} retries and was discarded{policyNote}. ExecuteTick={evt.ExecuteTick}, CurrentTick={currentTick}, Faction.defeated={evt.Faction?.defeated}, Faction.def={evt.Faction?.def?.defName}.");
                         delayedEvents.RemoveAt(i);
                     }
                 }

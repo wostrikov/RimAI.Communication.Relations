@@ -122,6 +122,9 @@ namespace RimChat.UI
             var sp = participants[pawnIndex];
             turnRecords.Add(new GroupTurnRecord { SpeakerPawnId = sp.PawnId, SpeakerName = sp.DisplayName, DialogueText = text, IsPlayer = false });
             dialogPages.Add(new DialoguePage { speakerName = sp.DisplayName, text = text });
+
+            if (!string.IsNullOrWhiteSpace(text) && text != "…")
+                RpgDialogueTraceTracker.RegisterTurn(initiator, sp.Pawn, false, text, dialogueSessionId);
         }
 
         // ── Constructor entry ──
@@ -169,6 +172,9 @@ namespace RimChat.UI
                 var sp = participants[nextIdx];
                 turnRecords.Add(new GroupTurnRecord { SpeakerPawnId = sp.PawnId, SpeakerName = sp.DisplayName, DialogueText = text, IsPlayer = false });
                 dialogPages.Add(new DialoguePage { speakerName = sp.DisplayName, text = text });
+
+                if (!string.IsNullOrWhiteSpace(text) && text != "…")
+                    RpgDialogueTraceTracker.RegisterTurn(initiator, sp.Pawn, false, text, dialogueSessionId);
             }
             else
             {
@@ -203,6 +209,9 @@ namespace RimChat.UI
             var sp = participants[idx];
             turnRecords.Add(new GroupTurnRecord { SpeakerPawnId = sp.PawnId, SpeakerName = sp.DisplayName, DialogueText = text, IsPlayer = false });
             dialogPages.Add(new DialoguePage { speakerName = sp.DisplayName, text = text });
+
+            if (!string.IsNullOrWhiteSpace(text) && text != "…")
+                RpgDialogueTraceTracker.RegisterTurn(initiator, sp.Pawn, false, text, dialogueSessionId);
         }
 
         // ── Player turn ──
@@ -228,6 +237,9 @@ namespace RimChat.UI
 
             turnRecords.Add(new GroupTurnRecord { SpeakerPawnId = initiator.GetUniqueLoadID(), SpeakerName = initiator.LabelShort, DialogueText = textToSend, IsPlayer = true });
             dialogPages.Add(new DialoguePage { speakerName = initiator.LabelShort, text = textToSend });
+
+            foreach (var p in participants)
+                RpgDialogueTraceTracker.RegisterTurn(initiator, p.Pawn, true, textToSend, dialogueSessionId);
 
             currentDialogueText = textToSend;
             displayedText = "";
@@ -307,6 +319,9 @@ namespace RimChat.UI
                 var sp = participants[idx];
                 turnRecords.Add(new GroupTurnRecord { SpeakerPawnId = sp.PawnId, SpeakerName = sp.DisplayName, DialogueText = currentDialogueText, IsPlayer = false });
                 dialogPages.Add(new DialoguePage { speakerName = sp.DisplayName, text = currentDialogueText });
+
+                if (!string.IsNullOrWhiteSpace(text) && text != "…")
+                    RpgDialogueTraceTracker.RegisterTurn(initiator, sp.Pawn, false, text, dialogueSessionId);
             }
         }
 

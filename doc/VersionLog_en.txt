@@ -1,3 +1,9 @@
+1.5.9
+- [Fix] Multi-player RPG dialogue memory not persisted: added RegisterTurn calls in group chat window so NPC memories and dialogue archives are properly saved to JSON
+- [Fix] Old social news accumulating indefinitely: news older than 7 in-game days excluded from dialogue injection and social circle display, auto-cleaned on save load
+- [Fix] Terminal bezel theme reset on game restart: moved ActiveBezelIndex from static field to RimChatSettings persistence, user theme choice survives across sessions
+- [Fix] Military aid and trade caravans not arriving: caravan settlement check changed from hard fail to soft warning with continuation, added faction health diagnostic logging for military aid
+
 1.5.8
 - [Perf] Eliminate intermittent stutter caused by stale legacy config files: FileSystemWatcher now filters to tracked files only, auto-migrates unrecognized JSON files to .legacy/ on startup, PromptTextConstants uses lazy caching to avoid per-access file I/O, DefaultsProvider removed file-timestamp checks in favor of permanent caching, and LoadConfigInternal duplicate file scan removed
 

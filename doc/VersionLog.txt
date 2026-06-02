@@ -1,3 +1,9 @@
+1.5.9
+- [修复] 多人RPG对话记忆未持久化：组聊窗口补全RegisterTurn调用，NPC回忆和对话归档正常存入JSON
+- [修复] 社交圈旧新闻无限堆积：7游戏日前新闻不再注入对话也不在社交圈显示，存档加载时自动清理
+- [修复] 终端界面风格大退重置：ActiveBezelIndex从static字段改为RimChatSettings持久化，重启保持用户选择的主题
+- [修复] 呼叫军事支援/商队未到达：商队无定居点时改为软警告继续尝试而非硬失败，军事援助增加派系状态诊断日志
+
 1.5.8
 - [性能] 消除旧配置文件导致的游戏间歇性卡顿：FileSystemWatcher精确过滤只响应被追踪文件、启动时自动将旧版残留JSON移入.legacy/目录、PrompTextConstants添加懒缓存避免每次getter做文件I/O、各DefaultsProvider去掉默认文件时间戳检查改为永久缓存、消除LoadConfigInternal重复文件扫描
 

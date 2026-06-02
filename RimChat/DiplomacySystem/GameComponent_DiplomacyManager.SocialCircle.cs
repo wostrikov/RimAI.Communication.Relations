@@ -317,11 +317,13 @@ namespace RimChat.DiplomacySystem
             int count = Math.Max(1, maxCount);
             if (socialPostsCacheDirty)
             {
+                int currentTick = Find.TickManager?.TicksGame ?? 0;
+                int cutoffTick = currentTick - SocialCircleState.MaxPostAgeTicks;
                 cachedSortedPosts.Clear();
                 for (int i = 0; i < socialCircleState.Posts.Count; i++)
                 {
                     var post = socialCircleState.Posts[i];
-                    if (post != null)
+                    if (post != null && post.CreatedTick >= cutoffTick)
                         cachedSortedPosts.Add(post);
                 }
                 cachedSortedPosts.Sort((a, b) => (b?.CreatedTick ?? 0).CompareTo(a?.CreatedTick ?? 0));

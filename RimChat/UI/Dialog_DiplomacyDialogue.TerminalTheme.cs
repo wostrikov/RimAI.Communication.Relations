@@ -28,7 +28,15 @@ namespace RimChat.UI
         private static Texture2D TexCRTBezelFallout;
 
         // Active bezel index: 0=Standard, 1=Spacer, 2=Fallout
-        private static int _activeBezelIndex;
+        private static int ActiveBezelIndex
+        {
+            get => RimChatMod.Settings?.ActiveBezelIndex ?? 0;
+            set
+            {
+                var settings = RimChatMod.Settings;
+                if (settings != null) settings.ActiveBezelIndex = value;
+            }
+        }
         private const int BezelIndexStandard = 0;
         private const int BezelIndexSpacer = 1;
         private const int BezelIndexFallout = 2;
@@ -45,7 +53,6 @@ namespace RimChat.UI
         // Terminal UI scale override
         private float _originalUIScale;
         private bool _scaleOverridden;
-        private static bool _spacerAutoSwitched;
         private static bool _switchHotspotWasHovering;
 
         // CRT overlay material (barrel distortion + scanlines + green tint + vignette)
@@ -117,13 +124,6 @@ namespace RimChat.UI
             Texture2D tex = GetActiveBezelTexture();
             if (tex == null) return;
             GUI.DrawTexture(windowRect, tex);
-
-            // Auto-switch to spacer bezel on first Spacer research completion
-            if (!_spacerAutoSwitched && IsSpacerTechLevel())
-            {
-                _activeBezelIndex = BezelIndexSpacer;
-                _spacerAutoSwitched = true;
-            }
 
             // Texture switch hotspot — always visible (Fallout always unlocked, Spacer unlocks later)
             bool hasSpacer = IsSpacerTechLevel() && TexCRTBezelSpacer != null;
@@ -208,7 +208,7 @@ namespace RimChat.UI
 
         private static Texture2D GetActiveBezelTexture()
         {
-            switch (_activeBezelIndex)
+            switch (ActiveBezelIndex)
             {
                 case BezelIndexSpacer:
                     return TexCRTBezelSpacer ?? TexCRTBezel;
@@ -221,17 +221,17 @@ namespace RimChat.UI
 
         private static void CycleToNextBezel(bool hasSpacer, bool hasFallout)
         {
-            if (_activeBezelIndex == BezelIndexStandard)
+            if (ActiveBezelIndex == BezelIndexStandard)
             {
-                _activeBezelIndex = hasSpacer ? BezelIndexSpacer : BezelIndexFallout;
+                ActiveBezelIndex = hasSpacer ? BezelIndexSpacer : BezelIndexFallout;
             }
-            else if (_activeBezelIndex == BezelIndexSpacer)
+            else if (ActiveBezelIndex == BezelIndexSpacer)
             {
-                _activeBezelIndex = hasFallout ? BezelIndexFallout : BezelIndexStandard;
+                ActiveBezelIndex = hasFallout ? BezelIndexFallout : BezelIndexStandard;
             }
             else // Fallout
             {
-                _activeBezelIndex = BezelIndexStandard;
+                ActiveBezelIndex = BezelIndexStandard;
             }
         }
 

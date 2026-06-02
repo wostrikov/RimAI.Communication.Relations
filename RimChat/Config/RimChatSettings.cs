@@ -225,6 +225,7 @@ namespace RimChat.Config
         // Comms Console Settings
         public bool ReplaceCommsConsole = false;
         public TerminalScale TerminalScale = TerminalScale.Auto;
+        public int ActiveBezelIndex = 0; // 0=Standard, 1=Spacer, 2=Fallout
         [Obsolete("Thought chain feature removed")]
         public bool EnableThoughtChainNode = true;
         [Obsolete("Thought chain feature removed")]
@@ -470,6 +471,7 @@ namespace RimChat.Config
             // Comms Console Settings
             Scribe_Values.Look(ref ReplaceCommsConsole, "ReplaceCommsConsole", false);
             Scribe_Values.Look(ref TerminalScale, "TerminalScale", TerminalScale.Auto);
+            Scribe_Values.Look(ref ActiveBezelIndex, "ActiveBezelIndex", 0);
 #pragma warning disable CS0618 // Obsolete fields retained for save compatibility
             Scribe_Collections.Look(ref ThoughtChainByChannel, "ThoughtChainByChannel", LookMode.Deep);
             if (Scribe.mode == LoadSaveMode.LoadingVars)

@@ -48,8 +48,7 @@ namespace RimChat.DiplomacySystem
 
                 if (!TryFindNearestFactionSettlement(faction, map.Tile, out _))
                 {
-                    DebugLogger.WarningGated($"Caravan trigger skipped: {faction.Name} has no reachable settlement.");
-                    return false;
+                    DebugLogger.WarningGated($"Caravan trigger: {faction.Name} has no reachable settlement near tile {map.Tile}; attempting without settlement check.");
                 }
 
                 IncidentParms parms = new IncidentParms();
@@ -299,6 +298,8 @@ namespace RimChat.DiplomacySystem
 
         private static bool TriggerMilitaryAid(Faction faction, Map map)
         {
+            DebugLogger.Debug($"Military aid pre-check: faction={faction.Name}, defeated={faction.defeated}, def={faction.def?.defName}, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
+
             IncidentParms parms = new IncidentParms
             {
                 target = map,

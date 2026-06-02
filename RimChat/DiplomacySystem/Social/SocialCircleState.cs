@@ -13,6 +13,7 @@ namespace RimChat.DiplomacySystem
     {
         private const int MaxProcessedOrigins = 512;
         private const int MaxScheduledEvents = 512;
+        public const int MaxPostAgeTicks = 420000; // 7 in-game days
 
         public List<PublicSocialPost> Posts = new List<PublicSocialPost>();
         public List<SocialActionIntent> ActionIntents = new List<SocialActionIntent>();
@@ -65,6 +66,25 @@ namespace RimChat.DiplomacySystem
             TrimProcessedOrigins();
             TrimScheduledEvents();
             RebuildRuntimeIndexes();
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+            if (currentTick > 0)
+                CleanupOldPosts(currentTick);
+        }
+
+        public void CleanupOldPosts(int currentTick)
+        {
+            if (Posts == null || Posts.Count == 0) return;
+            int cutoff = currentTick - MaxPostAgeTicks;
+            int removed = Posts.RemoveAll(p => p != null && p.CreatedTick < cutoff);
+            if (removed > 0)
+            {
+                for (int i = 0; i < Posts.Count; i++)
+                {
+                    var post = Posts[i];
+                    if (post != null && !string.IsNullOrWhiteSpace(post.OriginKey))
+                        PublishedPostOriginKeys.Add(BuildOriginKey(post.OriginType, post.OriginKey));
+                }
+            }
         }
 
         public int GetFactionNextActionTick(Faction faction)
