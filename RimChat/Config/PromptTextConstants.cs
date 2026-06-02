@@ -1,3 +1,5 @@
+using RimChat.Persistence;
+
 namespace RimChat.Config
 {
     /// <summary>/// Dependencies: none.
@@ -5,14 +7,23 @@ namespace RimChat.Config
  ///</summary>
     internal static class PromptTextConstants
     {
+        private static RpgPromptDefaultsConfig _cachedRpgDefaults;
+        private static SocialCirclePromptDomainConfig _cachedSocialDefaults;
+
+        private static RpgPromptDefaultsConfig RpgDefaults =>
+            _cachedRpgDefaults ?? (_cachedRpgDefaults = RpgPromptDefaultsProvider.GetDefaults());
+
+        private static SocialCirclePromptDomainConfig SocialDefaults =>
+            _cachedSocialDefaults ?? (_cachedSocialDefaults = SocialCirclePromptDefaultsProvider.GetDefaults());
+
         public static string RpgRoleSettingDefault =>
-            RpgPromptDefaultsProvider.GetDefaults().RoleSetting;
+            RpgDefaults.RoleSetting;
 
         public static string RpgDialogueStyleDefault =>
-            RpgPromptDefaultsProvider.GetDefaults().DialogueStyle;
+            RpgDefaults.DialogueStyle;
 
         public static string RpgFormatConstraintDefault =>
-            RpgPromptDefaultsProvider.GetDefaults().FormatConstraint;
+            RpgDefaults.FormatConstraint;
 
         public const string RequestRaidActionDescription =
             "对玩家发起袭击（延迟到达）。可在受辱、受威胁或敌对期间作为战术决策使用。";
@@ -48,13 +59,13 @@ namespace RimChat.Config
             "切换为勿扰状态并停止消息往来";
 
         public static string PublishPublicPostActionDescription =>
-            SocialCirclePromptDefaultsProvider.GetDefaults().PublishPublicPostAction?.Description ?? string.Empty;
+            SocialDefaults.PublishPublicPostAction?.Description ?? string.Empty;
 
         public static string PublishPublicPostActionParameters =>
-            SocialCirclePromptDefaultsProvider.GetDefaults().PublishPublicPostAction?.Parameters ?? string.Empty;
+            SocialDefaults.PublishPublicPostAction?.Parameters ?? string.Empty;
 
         public static string PublishPublicPostActionRequirement =>
-            SocialCirclePromptDefaultsProvider.GetDefaults().PublishPublicPostAction?.Requirement ?? string.Empty;
+            SocialDefaults.PublishPublicPostAction?.Requirement ?? string.Empty;
 
         public const string SendImageActionDescription =
             "该动作已停用，图片功能仅允许玩家手动自拍入口触发。";
@@ -79,13 +90,13 @@ namespace RimChat.Config
             + "使用自然材质与实用装备，并保证面部清晰可辨。";
 
         public static string SocialCircleNewsStyleTemplateDefault =>
-            SocialCirclePromptDefaultsProvider.GetDefaults().SocialCircleNewsStyleTemplate ?? string.Empty;
+            SocialDefaults.SocialCircleNewsStyleTemplate ?? string.Empty;
 
         public static string SocialCircleNewsJsonContractTemplateDefault =>
-            SocialCirclePromptDefaultsProvider.GetDefaults().SocialCircleNewsJsonContractTemplate ?? string.Empty;
+            SocialDefaults.SocialCircleNewsJsonContractTemplate ?? string.Empty;
 
         public static string SocialCircleNewsFactTemplateDefault =>
-            SocialCirclePromptDefaultsProvider.GetDefaults().SocialCircleNewsFactTemplate ?? string.Empty;
+            SocialDefaults.SocialCircleNewsFactTemplate ?? string.Empty;
 
         public const string ApiLimitsNodeLiteralDefault =
             "{{ dialogue.api_limits_body }}";

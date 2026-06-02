@@ -1,3 +1,6 @@
+1.5.8
+- [性能] 消除旧配置文件导致的游戏间歇性卡顿：FileSystemWatcher精确过滤只响应被追踪文件、启动时自动将旧版残留JSON移入.legacy/目录、PrompTextConstants添加懒缓存避免每次getter做文件I/O、各DefaultsProvider去掉默认文件时间戳检查改为永久缓存、消除LoadConfigInternal重复文件扫描
+
 1.5.7
 - [修复] 旧存档加载后tempFactionRelations为null导致每tick NRE崩溃：TryRestoreTempFactionRelations添加null守卫，ExposeData catch补齐字段恢复，Tick调用加2500tick间隔门控防止性能浪费
 

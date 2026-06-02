@@ -13,7 +13,6 @@ namespace RimChat.Config
     {
         private static readonly object SyncRoot = new object();
         private static string _cachedPath = string.Empty;
-        private static DateTime _cachedWriteTimeUtc = DateTime.MinValue;
         private static SocialCirclePromptDomainConfig _cachedConfig;
 
         internal static SocialCirclePromptDomainConfig GetDefaults()
@@ -21,41 +20,16 @@ namespace RimChat.Config
             lock (SyncRoot)
             {
                 string path = PromptDomainFileCatalog.GetDefaultPath(PromptDomainFileCatalog.SocialCirclePromptDefaultFileName);
-                if (TryGetCached(path, out SocialCirclePromptDomainConfig cached))
+                if (_cachedConfig != null && string.Equals(_cachedPath, path, StringComparison.OrdinalIgnoreCase))
                 {
-                    return Clone(cached);
+                    return Clone(_cachedConfig);
                 }
 
                 SocialCirclePromptDomainConfig loaded = Load(path) ?? CreateFallback();
                 _cachedPath = path;
-                _cachedWriteTimeUtc = File.Exists(path) ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
                 _cachedConfig = loaded;
                 return Clone(loaded);
             }
-        }
-
-        private static bool TryGetCached(string path, out SocialCirclePromptDomainConfig config)
-        {
-            config = null;
-            if (_cachedConfig == null || !string.Equals(_cachedPath, path, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (!File.Exists(path))
-            {
-                config = _cachedConfig;
-                return true;
-            }
-
-            DateTime writeTime = File.GetLastWriteTimeUtc(path);
-            if (writeTime != _cachedWriteTimeUtc)
-            {
-                return false;
-            }
-
-            config = _cachedConfig;
-            return true;
         }
 
         private static SocialCirclePromptDomainConfig Load(string path)

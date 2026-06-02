@@ -14,14 +14,18 @@ namespace RimChat.Persistence
     public sealed class PromptFileStampCache : IDisposable
     {
         private const int CacheValidityTicks = 1500; // ~25 seconds at 60fps
+        private const string LegacySubFolderName = ".legacy";
 
         private long cachedStamp = -1;
         private int cachedAtTick = -1;
         private readonly object syncRoot = new object();
         private FileSystemWatcher watcher;
+        private HashSet<string> trackedFilePaths;
 
         public PromptFileStampCache()
         {
+            BuildTrackedPathSet();
+            CleanupLegacyCustomFiles();
             TryInitializeWatcher();
         }
 
@@ -73,6 +77,76 @@ namespace RimChat.Persistence
             }
         }
 
+        private void BuildTrackedPathSet()
+        {
+            trackedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string path in EnumeratePromptFilePaths())
+            {
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    trackedFilePaths.Add(Path.GetFullPath(path));
+                }
+            }
+        }
+
+        private void CleanupLegacyCustomFiles()
+        {
+            try
+            {
+                string customDir = Path.GetDirectoryName(
+                    PromptDomainFileCatalog.GetCustomPath(PromptDomainFileCatalog.SystemPromptCustomFileName));
+                if (string.IsNullOrWhiteSpace(customDir) || !Directory.Exists(customDir))
+                {
+                    return;
+                }
+
+                var legacyFiles = new List<string>();
+                foreach (string filePath in Directory.GetFiles(customDir, "*.json", SearchOption.TopDirectoryOnly))
+                {
+                    string fullPath = Path.GetFullPath(filePath);
+                    if (!trackedFilePaths.Contains(fullPath))
+                    {
+                        legacyFiles.Add(filePath);
+                    }
+                }
+
+                if (legacyFiles.Count == 0)
+                {
+                    return;
+                }
+
+                string legacyDir = Path.Combine(customDir, LegacySubFolderName);
+                if (!Directory.Exists(legacyDir))
+                {
+                    Directory.CreateDirectory(legacyDir);
+                }
+
+                foreach (string filePath in legacyFiles)
+                {
+                    string fileName = Path.GetFileName(filePath);
+                    string destPath = Path.Combine(legacyDir, fileName);
+                    try
+                    {
+                        if (File.Exists(destPath))
+                        {
+                            File.Delete(destPath);
+                        }
+
+                        File.Move(filePath, destPath);
+                        Log.Message($"[RimChat] PromptFileStampCache: moved legacy config file '{fileName}' to .legacy/");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning($"[RimChat] PromptFileStampCache: failed to move legacy file '{fileName}': {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimChat] PromptFileStampCache: legacy cleanup failed: {ex.Message}");
+            }
+        }
+
         private void TryInitializeWatcher()
         {
             try
@@ -104,7 +178,16 @@ namespace RimChat.Persistence
 
         private void OnPromptFileChanged(object sender, FileSystemEventArgs e)
         {
-            Invalidate();
+            if (string.IsNullOrWhiteSpace(e.FullPath))
+            {
+                return;
+            }
+
+            string fullPath = Path.GetFullPath(e.FullPath);
+            if (trackedFilePaths != null && trackedFilePaths.Contains(fullPath))
+            {
+                Invalidate();
+            }
         }
 
         private static string ResolvePromptDirectory()

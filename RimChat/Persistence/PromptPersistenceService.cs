@@ -298,14 +298,15 @@ namespace RimChat.Persistence
         }
 
 
-        private bool IsConfigCacheFresh()
+        private bool IsConfigCacheFresh(out DateTime writeTimeUtc)
         {
+            writeTimeUtc = DateTime.MinValue;
             if (_cachedConfig == null)
             {
                 return false;
             }
 
-            if (!TryGetConfigLastWriteTimeUtc(out DateTime writeTimeUtc))
+            if (!TryGetConfigLastWriteTimeUtc(out writeTimeUtc))
             {
                 return false;
             }
@@ -368,7 +369,7 @@ namespace RimChat.Persistence
                 {
                     EnsureDirectoryExists();
                 }
-                if (IsConfigCacheFresh() && !IsPlaceholderGlobalSystemPrompt(_cachedConfig))
+                if (IsConfigCacheFresh(out DateTime domainWriteTimeUtc) && !IsPlaceholderGlobalSystemPrompt(_cachedConfig))
                 {
                     if (saveRepairsWhenNeeded &&
                         _hasPendingPromptDomainRepairs &&
@@ -381,8 +382,6 @@ namespace RimChat.Persistence
 
                     return _cachedConfig;
                 }
-
-                TryGetConfigLastWriteTimeUtc(out DateTime domainWriteTimeUtc);
                 bool hasPromptCustomOverrides = HasAnyPromptCustomOverrideFile();
                 bool loadedFromDomains = TryLoadPromptDomains(
                     includeCustom: true,

@@ -27,17 +27,30 @@ namespace RimChat.Persistence
         public const string PromptUnifiedDefaultFileName = "PromptUnifiedCatalog_Default.json";
         public const string PromptUnifiedCustomFileName = "PromptUnifiedCatalog_Custom.json";
 
-        private const string FallbackRoot = "E:\\SteamLibrary\\steamapps\\common\\RimWorld\\Mods\\RimChat";
-
         public static string GetDefaultPath(string fileName)
         {
             string root = ResolveModRoot();
             if (string.IsNullOrWhiteSpace(root))
             {
-                root = FallbackRoot;
+                Log.Warning($"[RimChat] PromptDomainFileCatalog: unable to resolve mod root for default path '{fileName}'; falling back to assembly location.");
+                root = ResolveFromAssemblyFallback();
             }
 
             return Path.Combine(root, PromptFolderName, DefaultSubFolderName, fileName);
+        }
+
+        private static string ResolveFromAssemblyFallback()
+        {
+            try
+            {
+                string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string assemblyDir = Path.GetDirectoryName(assemblyPath);
+                return Directory.GetParent(assemblyDir)?.Parent?.FullName ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         public static string GetCustomPath(string fileName)

@@ -1,3 +1,6 @@
+1.5.8
+- [Perf] Eliminate intermittent stutter caused by stale legacy config files: FileSystemWatcher now filters to tracked files only, auto-migrates unrecognized JSON files to .legacy/ on startup, PromptTextConstants uses lazy caching to avoid per-access file I/O, DefaultsProvider removed file-timestamp checks in favor of permanent caching, and LoadConfigInternal duplicate file scan removed
+
 1.5.7
 - [Fix] Old save NRE crash from null tempFactionRelations every tick: added null guard in TryRestoreTempFactionRelations, added field recovery in ExposeData catch, gated per-tick call to 2500-tick interval
 

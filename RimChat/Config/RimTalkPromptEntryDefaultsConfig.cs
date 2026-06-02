@@ -511,7 +511,6 @@ namespace RimChat.Config
 
         private static readonly object SyncRoot = new object();
         private static string cachedPath = string.Empty;
-        private static DateTime cachedWriteTimeUtc = DateTime.MinValue;
         private static RimTalkPromptEntryDefaultsConfig cachedConfig;
 
         public static string ResolveContent(string promptChannel, string sectionId)
@@ -530,12 +529,12 @@ namespace RimChat.Config
             lock (SyncRoot)
             {
                 string path = GetDefaultConfigPath();
-                if (IsCached(path, out RimTalkPromptEntryDefaultsConfig config))
+                if (cachedConfig != null && string.Equals(cachedPath, path, StringComparison.OrdinalIgnoreCase))
                 {
-                    return config;
+                    return cachedConfig;
                 }
 
-                config = TryLoad(path);
+                RimTalkPromptEntryDefaultsConfig config = TryLoad(path);
                 if (config == null)
                 {
                     string legacyPath = GetLegacyFallbackConfigPath();
@@ -552,34 +551,9 @@ namespace RimChat.Config
                 config ??= RimTalkPromptEntryDefaultsConfig.CreateFallback();
                 config.NormalizeWith(RimTalkPromptEntryDefaultsConfig.CreateFallback());
                 cachedPath = path;
-                cachedWriteTimeUtc = File.Exists(path) ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
                 cachedConfig = config;
                 return config;
             }
-        }
-
-        private static bool IsCached(string path, out RimTalkPromptEntryDefaultsConfig config)
-        {
-            config = null;
-            if (cachedConfig == null || !string.Equals(cachedPath, path, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (!File.Exists(path))
-            {
-                config = cachedConfig;
-                return true;
-            }
-
-            DateTime writeTime = File.GetLastWriteTimeUtc(path);
-            if (writeTime != cachedWriteTimeUtc)
-            {
-                return false;
-            }
-
-            config = cachedConfig;
-            return true;
         }
 
         private static RimTalkPromptEntryDefaultsConfig TryLoad(string path)

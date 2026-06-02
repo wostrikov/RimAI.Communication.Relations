@@ -346,7 +346,6 @@ namespace RimChat.Config
 
         private static readonly object SyncRoot = new object();
         private static string cachedPath = string.Empty;
-        private static DateTime cachedWriteTimeUtc = DateTime.MinValue;
         private static RpgPromptDefaultsConfig cachedConfig;
         private static string loggedDefaultPath = string.Empty;
 
@@ -355,46 +354,21 @@ namespace RimChat.Config
             lock (SyncRoot)
             {
                 string path = GetDefaultConfigPath();
-                if (IsCached(path, out RpgPromptDefaultsConfig config))
+                if (cachedConfig != null && string.Equals(cachedPath, path, StringComparison.OrdinalIgnoreCase))
                 {
-                    return config;
+                    return cachedConfig;
                 }
 
                 var fallback = RpgPromptDefaultsConfig.CreateFallback();
-                if (!TryLoad(path, fallback, out config))
+                if (!TryLoad(path, fallback, out RpgPromptDefaultsConfig config))
                 {
                     config = fallback;
                 }
 
                 cachedPath = path;
-                cachedWriteTimeUtc = File.Exists(path) ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
                 cachedConfig = config;
                 return config;
             }
-        }
-
-        private static bool IsCached(string path, out RpgPromptDefaultsConfig config)
-        {
-            config = null;
-            if (cachedConfig == null || !string.Equals(cachedPath, path, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (!File.Exists(path))
-            {
-                config = cachedConfig;
-                return true;
-            }
-
-            DateTime writeTime = File.GetLastWriteTimeUtc(path);
-            if (writeTime != cachedWriteTimeUtc)
-            {
-                return false;
-            }
-
-            config = cachedConfig;
-            return true;
         }
 
         private static bool TryLoad(string path, RpgPromptDefaultsConfig fallback, out RpgPromptDefaultsConfig config)
