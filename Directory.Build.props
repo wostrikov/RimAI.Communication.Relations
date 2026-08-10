@@ -1,0 +1,1 @@
+<Project><PropertyGroup><BaseOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\bin\</BaseOutputPath><BaseIntermediateOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\obj\</BaseIntermediateOutputPath></PropertyGroup></Project>
