@@ -7,6 +7,8 @@
     <AssemblyName>RimChat</AssemblyName>
     <RootNamespace>RimChat</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <RimWorldDir Condition="'$(RimWorldDir)' == ''">$(RIMWORLD_DIR)</RimWorldDir>
     <RimWorldWorkshopDir Condition="'$(RimWorldWorkshopDir)' == ''">$(RIMWORLD_WORKSHOP_DIR)</RimWorldWorkshopDir>
     <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\bin\</BaseOutputPath>
