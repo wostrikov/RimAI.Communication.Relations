@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<LanguageData>
+  <RimChat_BriefJoy.stages.0.label>мить радості</RimChat_BriefJoy.stages.0.label>
+  <RimChat_BriefJoy.stages.0.description>Ця коротка мить радості підняла мені настрій.</RimChat_BriefJoy.stages.0.description>
+  <RimChat_BriefSadness.stages.0.label>короткий смуток</RimChat_BriefSadness.stages.0.label>
+  <RimChat_BriefSadness.stages.0.description>Цей швидкоплинний смуток усе ще трохи не відпускає.</RimChat_BriefSadness.stages.0.description>
+  <RimChat_SurpriseReaction.stages.0.label>здивований</RimChat_SurpriseReaction.stages.0.label>
+  <RimChat_SurpriseReaction.stages.0.description>Цей несподіваний обмін застав мене зненацька.</RimChat_SurpriseReaction.stages.0.description>
+  <RimChat_DisgustReaction.stages.0.label>відчуває огиду</RimChat_DisgustReaction.stages.0.label>
+  <RimChat_DisgustReaction.stages.0.description>Це зауваження викликало в мене огиду.</RimChat_DisgustReaction.stages.0.description>
+  <RimChat_Encouraged.stages.0.label>підбадьорений</RimChat_Encouraged.stages.0.label>
+  <RimChat_Encouraged.stages.0.description>Їхні слова підтримки підняли мені настрій.</RimChat_Encouraged.stages.0.description>
+  <RimChat_Comforted.stages.0.label>втішений</RimChat_Comforted.stages.0.label>
+  <RimChat_Comforted.stages.0.description>Чиясь розрада принесла мені трохи спокою.</RimChat_Comforted.stages.0.description>
+  <RimChat_Mocked.stages.0.label>висміяний</RimChat_Mocked.stages.0.label>
+  <RimChat_Mocked.stages.0.description>Вони насміхалися з мене, і це боляче.</RimChat_Mocked.stages.0.description>
+  <RimChat_Teased.stages.0.label>дражнили</RimChat_Teased.stages.0.label>
+  <RimChat_Teased.stages.0.description>Через дражнилки я почувався ніяково.</RimChat_Teased.stages.0.description>
+  <RimChat_Praised.stages.0.label>похвала</RimChat_Praised.stages.0.label>
+  <RimChat_Praised.stages.0.description>Їхня похвала дала мені відчути, що мене цінують.</RimChat_Praised.stages.0.description>
+  <RimChat_FeelingInsulted.stages.0.label>почуватися ображеним</RimChat_FeelingInsulted.stages.0.label>
+  <RimChat_FeelingInsulted.stages.0.description>Я був глибоко ображений цими словами.</RimChat_FeelingInsulted.stages.0.description>
+  <RimChat_FeelingIgnored.stages.0.label>почуватися проігнорованим</RimChat_FeelingIgnored.stages.0.label>
+  <RimChat_FeelingIgnored.stages.0.description>Ігнорування ранить сильніше, ніж можна висловити словами.</RimChat_FeelingIgnored.stages.0.description>
+</LanguageData>
