@@ -26,37 +26,37 @@ namespace RimChat.Config
             RpgDefaults.FormatConstraint;
 
         public const string RequestRaidActionDescription =
-            "对玩家发起袭击（延迟到达）。可在受辱、受威胁或敌对期间作为战术决策使用。";
+            "Здійснити напад на гравця (прибуття із затримкою). Можна використовувати як тактичне рішення після образи, погрози або під час ворожості.";
 
-        public const string RequestRaidActionRequirement = "仅在你的派系已对玩家敌对时使用";
+        public const string RequestRaidActionRequirement = "Використовуй лише тоді, коли твоя фракція вже вороже налаштована до гравця.";
 
         public const string RequestRaidActionParameters =
-            "strategy (string: 'ImmediateAttack', 'ImmediateAttackSmart', 'StageThenAttack', 'ImmediateAttackSappers', or 'Siege'), arrival (string: 'EdgeWalkIn', 'EdgeDrop', 'EdgeWalkInGroups', 'RandomDrop', or 'CenterDrop')";
+            "strategy (string: 'ImmediateAttack', 'ImmediateAttackSmart', 'StageThenAttack', 'ImmediateAttackSappers' або 'Siege'), arrival (string: 'EdgeWalkIn', 'EdgeDrop', 'EdgeWalkInGroups', 'RandomDrop' або 'CenterDrop')";
 
         public const string RequestRaidCallEveryoneActionDescription =
-            "向所有相关敌对派系发出总攻号召，组织一次跨派系联合袭击。" +
-            "这不是普通袭击的别名，而是更高一级的联合作战动作。" +
-            "玩家明确说出“call everyone”、“联合袭击”、“都叫来”、“全都叫来”、“everyone attack”或“all in”时，通常就是在主动要求发动这类总攻。" +
-            "部队将在16-30小时内陆续到达；若敌对派系数量不占优势，将按好感度从低到高剔除友好/中立派系，直到敌对数量高于友好/中立数量。";
+            "Закликати всі відповідні ворожі фракції до генерального наступу й організувати спільний міжфракційний рейд." +
+            "Це не синонім звичайного рейду, а спільна бойова дія вищого рівня." +
+            "Коли гравець явно каже 'call everyone', 'joint raid', 'everyone attack', 'all in', 'заклич усіх' або 'спільний напад', зазвичай це прямий запит на такий генеральний наступ." +
+            "Війська прибуватимуть поступово протягом 16-30 годин; якщо кількість ворожих фракцій не переважає дружні/нейтральні, дружні/нейтральні фракції вилучаються за прихильністю від нижчої до вищої, доки ворожих не стане більше.";
 
         public const string RequestRaidCallEveryoneActionRequirement =
-            "High-intensity joint assault action. Treat explicit player wording such as 'call everyone' or 'joint raid' as a direct request for a coordinated all-out attack, while still obeying global cooldown and runtime eligibility checks.";
+            "Дія спільного наступу високої інтенсивності. Явні формулювання гравця на кшталт 'call everyone' або 'joint raid' трактуй як прямий запит на скоординовану загальну атаку, водночас дотримуючись глобального часу відновлення та перевірок придатності під час виконання.";
 
         public const string RequestRaidWavesActionDescription =
-            "发动多波次持续袭击。参数 waves (int, 2-6) 指定波次数量，每波间隔12-20小时。" +
-            "它表示连续施压的多轮进攻，适合玩家主动要求持续挑战，或需要用多波次战斗替代联合总攻时使用。";
+            "Розгорнути тривалу атаку в кілька хвиль. Параметр waves (int, 2-6) визначає кількість хвиль; інтервал між хвилями 12-20 годин." +
+            "Це означає кілька послідовних атак для безперервного тиску й підходить, коли гравець прямо просить тривале випробування або коли замість спільного генерального наступу потрібні кілька хвиль.";
 
         public const string RequestRaidWavesActionRequirement =
-            "Faction cooldown: 5 days. Use when the player explicitly requests sustained pressure, or when multi-wave attacks are preferred over a coordinated all-out assault.";
+            "Час відновлення для фракції: 5 днів. Використовуй, коли гравець прямо просить тривалого тиску або коли атаки хвилями доречніші за скоординований загальний наступ.";
 
         public const string RequestRaidWavesActionParameters =
-            "waves (int, 2-6, 袭击波次数)";
+            "waves (int, 2-6, кількість хвиль рейду)";
 
         public const string GoOfflineActionDescription =
-            "结束对话并切换为离线状态";
+            "Завершити розмову й перемкнутися в офлайн-статус";
 
         public const string SetDndActionDescription =
-            "切换为勿扰状态并停止消息往来";
+            "Перемкнутися в статус 'не турбувати' й припинити обмін повідомленнями";
 
         public static string PublishPublicPostActionDescription =>
             SocialDefaults.PublishPublicPostAction?.Description ?? string.Empty;
@@ -68,13 +68,13 @@ namespace RimChat.Config
             SocialDefaults.PublishPublicPostAction?.Requirement ?? string.Empty;
 
         public const string SendImageActionDescription =
-            "该动作已停用，图片功能仅允许玩家手动自拍入口触发。";
+            "Цю дію вимкнено; функцію зображень дозволено запускати лише гравцеві вручну через вхід для селфі.";
 
         public const string SendImageActionParameters =
             "disabled";
 
         public const string SendImageActionRequirement =
-            "禁止 AI 主动触发 send_image。";
+            "AI заборонено самостійно запускати send_image.";
 
         public const string SendImageCaptionStylePromptDefault =
             "写一句生动的图片文案，像派系领袖在聊天中分享一张新照片。语气要自然、沉浸并带情绪表达。";

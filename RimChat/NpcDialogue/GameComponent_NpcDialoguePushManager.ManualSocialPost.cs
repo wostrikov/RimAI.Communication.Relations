@@ -23,13 +23,13 @@ namespace RimChat.NpcDialogue
             }
 
             string prompt =
-                "This proactive diplomacy message is a direct reaction to a player-authored public social-circle post.\n" +
-                "Public context: all factions can potentially see this post.\n" +
-                "Author: the player colony.\n" +
+                "Це проактивне дипломатичне повідомлення є прямою реакцією на публікацію в соціальному колі, написану гравцем.\n" +
+                "Публічний контекст: усі фракції потенційно можуть бачити цю публікацію.\n" +
+                "Автор: колонія гравця.\n" +
                 $"Post title: {title}\n" +
                 $"Post body: {body}\n" +
-                "Your reply must explicitly react to that post's content and stance instead of producing generic small talk.\n" +
-                "Allowed tones include support, skepticism, negotiation, warning, pressure, provocation, or recruitment, depending on the faction stance.\n";
+                "Твоя відповідь має явно реагувати на зміст і позицію цієї публікації, а не створювати загальну світську бесіду.\n" +
+                "Дозволені тони: підтримка, скепсис, переговори, попередження, тиск, провокація або вербування залежно від позиції фракції.\n";
             messages.Add(new ChatMessageData { role = "user", content = prompt });
         }
 

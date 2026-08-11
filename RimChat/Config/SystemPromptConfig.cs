@@ -757,10 +757,16 @@ namespace RimChat.Config
         /// <summary>/// 默认systempromptconfigurationfile名
  ///</summary>
         public const string DefaultConfigFileName = "SystemPrompt_Default.json";
+        private const string DefaultDiplomacyPromptFileName = "DiplomacyDialoguePrompt_Default.json";
 
         /// <summary>/// get默认configurationfilepath (Mod目录下的Prompt/Defaultfolder)
  ///</summary>
         private string GetDefaultConfigPath()
+        {
+            return GetDefaultPromptResourcePath(DefaultConfigFileName);
+        }
+
+        private string GetDefaultPromptResourcePath(string fileName)
         {
             // 尝试从 Mod pathget
             try
@@ -769,7 +775,7 @@ namespace RimChat.Config
                 if (mod?.Content != null)
                 {
                     string defaultDir = System.IO.Path.Combine(mod.Content.RootDir, PromptFolderName, DefaultSubFolderName);
-                    return System.IO.Path.Combine(defaultDir, DefaultConfigFileName);
+                    return System.IO.Path.Combine(defaultDir, fileName);
                 }
             }
             catch { }
@@ -783,13 +789,12 @@ namespace RimChat.Config
                 if (!string.IsNullOrEmpty(modDir))
                 {
                     string defaultDir = System.IO.Path.Combine(modDir, PromptFolderName, DefaultSubFolderName);
-                    return System.IO.Path.Combine(defaultDir, DefaultConfigFileName);
+                    return System.IO.Path.Combine(defaultDir, fileName);
                 }
             }
             catch { }
 
-            // 最终后备
-            return System.IO.Path.Combine("E:\\SteamLibrary\\steamapps\\common\\RimWorld\\Mods\\RimChat", PromptFolderName, DefaultSubFolderName, DefaultConfigFileName);
+            return System.IO.Path.Combine(PromptFolderName, DefaultSubFolderName, fileName);
         }
 
         /// <summary>/// 从另一个configuration复制数据
@@ -838,47 +843,71 @@ namespace RimChat.Config
                 GlobalSystemPrompt = defaultGlobalSystemPrompt;
             }
 
+            if (TryLoadDefaultDiplomacyPromptSections(out SystemPromptConfig diplomacyDefaults))
+            {
+                ApiActions = new List<ApiActionConfig>();
+                foreach (ApiActionConfig action in diplomacyDefaults.ApiActions)
+                {
+                    ApiActions.Add(action.Clone());
+                }
+
+                ResponseFormat = diplomacyDefaults.ResponseFormat?.Clone() ?? new ResponseFormatConfig();
+                DecisionRules = new List<DecisionRuleConfig>();
+                foreach (DecisionRuleConfig rule in diplomacyDefaults.DecisionRules)
+                {
+                    DecisionRules.Add(rule.Clone());
+                }
+
+                EnvironmentPrompt = diplomacyDefaults.EnvironmentPrompt?.Clone() ?? EnvironmentPromptConfig.CreateDefaultSeed();
+                DynamicDataInjection = diplomacyDefaults.DynamicDataInjection?.Clone() ?? new DynamicDataInjectionConfig();
+                PromptTemplates = diplomacyDefaults.PromptTemplates?.Clone() ?? new PromptTemplateTextConfig();
+                PromptSchemaVersion = CurrentPromptSchemaVersion;
+                PromptPolicySchemaVersion = CurrentPromptPolicySchemaVersion;
+                PromptPolicy = diplomacyDefaults.PromptPolicy?.Clone() ?? PromptPolicyConfig.CreateDefault();
+                return;
+            }
+
             ApiActions = new List<ApiActionConfig>
             {
-                new ApiActionConfig("adjust_goodwill", "Change faction relations", "amount (int), reason (string)", ""),
-                new ApiActionConfig("request_aid", "Request military/medical aid", "type (string)", "Only when relations are strong enough for aid, current goodwill meets the aid threshold shown in API limits, and this faction's RimChat aid request cooldown is ready (15 days per faction). Original comms-console requests are outside this cooldown."),
-                new ApiActionConfig("declare_war", "Declare war", "reason (string)", "Only when relations are already hostile enough for war declaration."),
-                new ApiActionConfig("make_peace", "Offer peace treaty (requires war). Evaluate player sincerity and only proceed when sincerity is very high.", "cost (int, silver)", "Only when already at war and the player's sincerity is very high."),
-                new ApiActionConfig("request_caravan", "Request a trade caravan to visit the player colony. Role: you (AI) are SELLER, player is BUYER. Caravan goods come from your faction's inventory; you cannot promise specific items. Use only allowed caravan types: General / BulkGoods / CombatSupplier / Exotic / Slaver.", "Only when relations are not hostile and this faction's RimChat caravan request cooldown is ready (7 days per faction). Original comms-console requests are outside this cooldown."),
-                new ApiActionConfig("request_visitor", "Request visitor group", "", "Only when relations are not hostile and this faction's RimChat visitor request cooldown is ready (7 days per faction). Dispatch uses delayed arrival and VisitorGroup event."),
+                new ApiActionConfig("adjust_goodwill", "Змінити відносини з фракцією", "amount (int), reason (string)", ""),
+                new ApiActionConfig("request_aid", "Запросити військову/медичну допомогу", "type (string)", "Лише коли відносини достатньо міцні для допомоги, поточна прихильність відповідає порогу допомоги з обмежень API, а час відновлення RimChat-запиту допомоги для цієї фракції готовий (15 днів на фракцію). Початкові запити через консоль зв'язку не входять до цього часу відновлення."),
+                new ApiActionConfig("declare_war", "Оголосити війну", "reason (string)", "Лише коли відносини вже достатньо ворожі для оголошення війни."),
+                new ApiActionConfig("make_peace", "Запропонувати мирний договір (потрібен стан війни). Оціни щирість гравця й переходь до дії лише за дуже високої щирості.", "cost (int, silver)", "Лише коли вже триває війна і щирість гравця дуже висока."),
+                new ApiActionConfig("request_caravan", "Запросити торговий караван до колонії гравця. Роль: ти (AI) є ПРОДАВЦЕМ, гравець є ПОКУПЦЕМ. Товари каравану походять зі складів твоєї фракції; не можна обіцяти конкретні предмети. Використовуй лише дозволені типи караванів: General / BulkGoods / CombatSupplier / Exotic / Slaver.", "goods (string, optional)", "Лише коли відносини не ворожі й час відновлення RimChat-запиту каравану для цієї фракції готовий (7 днів на фракцію). Початкові запити через консоль зв'язку не входять до цього часу відновлення."),
+                new ApiActionConfig("request_visitor", "Запросити групу відвідувачів", "", "Лише коли відносини не ворожі й час відновлення RimChat-запиту відвідувачів для цієї фракції готовий (7 днів на фракцію). Відправлення використовує затримане прибуття та подію VisitorGroup."),
                 new ApiActionConfig("request_raid", PromptTextConstants.RequestRaidActionDescription, PromptTextConstants.RequestRaidActionParameters, PromptTextConstants.RequestRaidActionRequirement),
                 new ApiActionConfig("request_raid_call_everyone", PromptTextConstants.RequestRaidCallEveryoneActionDescription, "", PromptTextConstants.RequestRaidCallEveryoneActionRequirement),
                 new ApiActionConfig("request_raid_waves", PromptTextConstants.RequestRaidWavesActionDescription, PromptTextConstants.RequestRaidWavesActionParameters, PromptTextConstants.RequestRaidWavesActionRequirement),
-                new ApiActionConfig("request_item_airdrop", "Resolve one real in-game ThingDef from need text and send it by vanilla drop pod after player confirmation. If a trade card already bound an exact need_def, execution must stay on that item unless the player explicitly reselects another one.", "need (string, required; MUST include player-specified quantity when present, e.g. '1000原木', '50钢铁'), payment_items (array<object>, required; each object MUST contain: item (string, prefer defName) AND count (int>0). Example: [{\"item\":\"Silver\",\"count\":1200}]", "Need and payment_items are required. need MUST faithfully reflect the player's request — when the player specifies a quantity (e.g. '1000原木', '50个钢铁'), the need field MUST include that quantity; ignoring player-specified quantities is forbidden. Runtime budget is derived from payment_items total market value using Floor. Each payment item MUST have both 'item' and 'count' fields — missing 'count' will cause execution failure. payment_items must be valid beacon-tradable goods; item should use defName first and label only when uniquely resolvable. If a trade card already bound an exact need_def, do not silently swap to another item. Fail fast on any validation error."),
-                new ApiActionConfig("request_info", "Request runtime information needed before execution.", "info_type (string, REQUIRED; currently prisoner only)", "Use only for missing prisoner-selection info in ransom flow (for example, missing valid target_pawn_load_id). Fail fast on unsupported info_type."),
-                new ApiActionConfig("pay_prisoner_ransom", "Submit a silver ransom payment for a player-held prisoner and register the ransom contract; prisoner release is handled manually by the player. Pricing strategy: lower ransom benefits the faction; higher ransom reflects prisoner value or player's appetite; if player willing to release unconditionally, offer low price and appreciate their goodwill.", "target_pawn_load_id (int, REQUIRED), offer_silver (int>0, REQUIRED), payment_mode (string, optional; omit or set exactly silver)", "Only for player-held prisoners that belong to current faction. If target_pawn_load_id is missing or invalid, call request_info(info_type=prisoner) to request selection; otherwise pay_prisoner_ransom may be called directly. offer_silver must reference the current offer window from system messages; execution clamps out-of-range values to the nearest boundary before submit. Pricing principle: as payer, lower ransom benefits the faction; higher price only for high-value prisoners or when player demands high; if player indicates willingness to release unconditionally, offer low price (e.g., 10%-30% of reference) and appreciate their goodwill. payment_mode may be omitted; if provided it must be exactly silver. Execute one payment submit per turn. MUST: if natural language claims ransom submitted/paid/settled/released, the same response must include pay_prisoner_ransom action."),
-                new ApiActionConfig("trigger_incident", "Trigger a game event (incident)", "defName (string), amount (int, optional points)", ""),
-                new ApiActionConfig("create_quest", "Create a mission/quest for the player using a native template. Direction matters: 【玩家→派系】=player provides (PawnLend, TradeRequest); 【派系→玩家】=faction provides (Hospitality_Refugee, ThreatReward_Raid_MiscReward). Match direction to conversation context.", "questDefName (string, REQUIRED: exact name from the dynamic list provided below - this parameter is MANDATORY and cannot be omitted), askerFaction (string, optional: defaults to current faction), points (int, optional: threat points for the mission)", "CRITICAL: questDefName is MANDATORY. You action will FAIL if questDefName is missing or not from the approved list. You MUST check the available questDefName list in the context before calling this action. If no valid questDefName is available, do NOT call create_quest at all. Custom quests are NOT allowed."),
+                new ApiActionConfig("request_item_airdrop", "Знайди один реальний ігровий ThingDef з тексту потреби й після підтвердження гравцем надішли його стандартною десантною капсулою. Якщо торговельна картка вже прив'язала точний need_def, виконання має лишатися на цьому предметі, доки гравець явно не вибере інший.", "need (string, required; MUST include player-specified quantity when present, e.g. '1000 колод', '50 сталі'), payment_items (array<object>, required; each object MUST contain: item (string, prefer defName) AND count (int>0). Example: [{\"item\":\"Silver\",\"count\":1200}]", "Need і payment_items обов'язкові. need MUST точно відображати запит гравця: коли гравець указує кількість (наприклад, '1000 колод', '50 сталі'), поле need MUST містити цю кількість; ігнорувати вказану гравцем кількість заборонено. Бюджет під час виконання обчислюється з повної ринкової вартості payment_items через Floor. Кожен елемент payment_items MUST має містити і 'item', і 'count'; відсутній 'count' спричинить помилку виконання. payment_items мають бути дійсними товарами для торгівлі через маяк; item слід задавати спершу як defName, а label лише коли відповідність однозначна. Якщо торговельна картка вже прив'язала точний need_def, не підміняй його іншим предметом без явного повторного вибору. За будь-якої помилки валідації негайно зупинись."),
+                new ApiActionConfig("request_info", "Запросити інформацію часу виконання, потрібну перед дією.", "info_type (string, REQUIRED; currently prisoner only)", "Використовуй лише коли в ланцюжку викупу бракує інформації про вибір полоненого (наприклад, відсутній дійсний target_pawn_load_id). Негайно зупиняйся для непідтримуваного info_type."),
+                new ApiActionConfig("pay_prisoner_ransom", "Подати виплату викупу сріблом за полоненого, якого утримує гравець, і зареєструвати контракт викупу; звільнення полоненого виконується гравцем вручну. Стратегія ціни: нижчий викуп вигідніший фракції; вищий викуп відображає цінність полоненого або апетит гравця; якщо гравець готовий звільнити без умов, запропонуй низьку ціну й оціни його добру волю.", "target_pawn_load_id (int, REQUIRED), offer_silver (int>0, REQUIRED), payment_mode (string, optional; omit or set exactly silver)", "Лише для полонених, що належать поточній фракції й утримуються гравцем. Якщо target_pawn_load_id відсутній або недійсний, виклич request_info(info_type=prisoner) для вибору; інакше pay_prisoner_ransom можна викликати напряму. offer_silver має спиратися на поточне вікно пропозиції із системних повідомлень; виконання притисне значення поза межами до найближчої межі перед поданням. Принцип ціни: як платник, фракція виграє від нижчого викупу; вища ціна лише для цінних полонених або коли гравець вимагає багато; якщо гравець готовий звільнити без умов, запропонуй низьку ціну (наприклад 10%-30% від довідкової) і подякуй за добру волю. payment_mode можна опустити; якщо вказано, воно MUST бути точно silver. Виконуй одне подання платежу за хід. MUST: якщо природна мова стверджує, що викуп подано/сплачено/врегульовано або полоненого звільнено, та сама відповідь MUST містити дію pay_prisoner_ransom."),
+                new ApiActionConfig("trigger_incident", "Запустити ігрову подію (incident)", "defName (string), amount (int, optional points)", ""),
+                new ApiActionConfig("create_quest", "Створити місію/завдання для гравця за допомогою вбудованого шаблону. Напрям має значення: 【玩家→派系】=гравець надає (PawnLend, TradeRequest); 【派系→玩家】=фракція надає (Hospitality_Refugee, ThreatReward_Raid_MiscReward). Узгоджуй напрям із контекстом розмови.", "questDefName (string, REQUIRED: exact name from the dynamic list provided below - this parameter is MANDATORY and cannot be omitted), askerFaction (string, optional: defaults to current faction), points (int, optional: threat points for the mission)", "CRITICAL: questDefName є MANDATORY. Дія завершиться помилкою, якщо questDefName відсутній або не входить до дозволеного списку. MUST перевірити доступний список questDefName у контексті перед викликом цієї дії. Якщо немає дійсного questDefName, НЕ викликай create_quest. Власні завдання НЕ дозволені."),
                 new ApiActionConfig("send_image", PromptTextConstants.SendImageActionDescription, PromptTextConstants.SendImageActionParameters, PromptTextConstants.SendImageActionRequirement),
-                new ApiActionConfig("exit_dialogue", "End the current dialogue session while keeping current presence status", "reason (string, optional)", ""),
+                new ApiActionConfig("exit_dialogue", "Завершити поточний сеанс розмови, зберігши поточний статус присутності", "reason (string, optional)", ""),
                 new ApiActionConfig("go_offline", PromptTextConstants.GoOfflineActionDescription, "reason (string, optional)", ""),
                 new ApiActionConfig("set_dnd", PromptTextConstants.SetDndActionDescription, "reason (string, optional)", ""),
                 new ApiActionConfig("publish_public_post", PromptTextConstants.PublishPublicPostActionDescription, PromptTextConstants.PublishPublicPostActionParameters, PromptTextConstants.PublishPublicPostActionRequirement),
-                new ApiActionConfig("reject_request", "Reject player's request", "reason (string)", "Use when you are explicitly declining a concrete player request that should be recorded as a refusal. Do not use for casual disagreement.")
+                new ApiActionConfig("reject_request", "Відхилити запит гравця", "reason (string)", "Використовуй, коли явно відхиляєш конкретний запит гравця, який слід записати як відмову. Не використовуй для звичайної незгоди.")
             };
 
             ApiActionConfig requestAidAction = ApiActions.Find(action => action.ActionName == "request_aid");
             if (requestAidAction != null)
             {
-                requestAidAction.Requirement = "Only when relations are strong enough for aid, the current goodwill meets the aid threshold shown in API limits, and this faction's RimChat aid request cooldown is ready (15 days per faction). Original comms-console requests are outside this cooldown.";
+                requestAidAction.Requirement = "Лише коли відносини достатньо міцні для допомоги, поточна прихильність відповідає порогу допомоги з обмежень API, а час відновлення RimChat-запиту допомоги для цієї фракції готовий (15 днів на фракцію). Початкові запити через консоль зв'язку не входять до цього часу відновлення.";
             }
 
             ResponseFormat = new ResponseFormatConfig
             {
-                JsonTemplate = "{\n  \"visible_dialogue\": \"in-character visible reply\",\n  \"actions\": [\n    {\n      \"action\": \"snake_case_action\",\n      \"parameters\": {\n        \"param1\": \"value\"\n      }\n    }\n  ]\n}",
-                ImportantRules = "1. Match the user's game language while keeping JSON keys and action names unchanged.\n2. Return exactly one top-level JSON object for dialogue turns.\n3. The primary visible field is visible_dialogue, and it must contain only in-character dialogue with no reasoning, notes, headers, or system commentary.\n4. Use only enabled actions and obey requirements, cooldowns, and limits.\n5. Mirror the player's brevity when helpful, but keep enough clarity and tone to stay coherent.\n6. Dialogue happens over the comms terminal, not an in-person/offline meeting. Do not describe arriving on-site, hand-to-hand transfer, or physically taking the prisoner away in this channel.\n7. If no gameplay effect is intended, omit actions entirely; do not omit the JSON object itself.\n8. Use request_info(info_type=prisoner) only when ransom target information is missing.\n9. If target_pawn_load_id is already known and valid, pay_prisoner_ransom may be called directly.\n10. For pay_prisoner_ransom, never claim payment/submission unless target_pawn_load_id and offer_silver are both valid.\n11. For pay_prisoner_ransom, payment_mode may be omitted; if provided, use exactly silver.\n12. For pay_prisoner_ransom, offer_silver must reference the current offer window from system messages; execution clamps out-of-range values to the nearest boundary before submit.\n13. For pay_prisoner_ransom pricing strategy: as payer, lower ransom benefits the faction; higher price only for high-value prisoners or when player demands high; if player indicates willingness to release unconditionally, offer low price and appreciate their goodwill.\n14. For pay_prisoner_ransom, normal flow uses single submit; when [RansomBatchSelection] exists and you emit pay_prisoner_ransom, output one action for each listed target exactly once in the same response.\n15. MUST: if visible_dialogue claims ransom paid/submitted/settled/released, the same response must include pay_prisoner_ransom action; otherwise rewrite into pending/clarification wording.\n16. You MUST read [RansomState] as the source of truth for paid/unpaid/pending-release status before writing ransom progress text.\n17. If [RansomState] current_request_paid=false, do NOT claim payment submitted/settled/released; ask for clarification or proceed with payment action first."
+                JsonTemplate = "{\n  \"visible_dialogue\": \"видима репліка в ролі\",\n  \"actions\": [\n    {\n      \"action\": \"snake_case_action\",\n      \"parameters\": {\n        \"param1\": \"value\"\n      }\n    }\n  ]\n}",
+                ImportantRules = "1. Відповідай мовою гри користувача, зберігаючи JSON-ключі та назви дій без змін.\n2. Для діалогових ходів поверни рівно один JSON-об'єкт верхнього рівня.\n3. Основне видиме поле — visible_dialogue; воно має містити лише репліку в ролі без міркувань, нотаток, заголовків або системних коментарів.\n4. Використовуй лише ввімкнені дії й дотримуйся вимог, часу відновлення та обмежень.\n5. Коли доречно, віддзеркалюй стислість гравця, але зберігай достатню ясність і послідовний тон.\n6. Діалог відбувається через комунікаційний термінал, а не на особистій/offline зустрічі. Не описуй прибуття на місце, передачу з рук у руки або фізичне забирання полоненого в цьому каналі.\n7. Якщо ігровий ефект не потрібен, повністю опусти actions; сам JSON-об'єкт не опускай.\n8. Використовуй request_info(info_type=prisoner) лише коли бракує інформації про ціль викупу.\n9. Якщо target_pawn_load_id уже відомий і дійсний, pay_prisoner_ransom можна викликати напряму.\n10. Для pay_prisoner_ransom ніколи не стверджуй оплату/подання, доки target_pawn_load_id і offer_silver не є дійсними.\n11. Для pay_prisoner_ransom payment_mode можна опустити; якщо вказано, використовуй точно silver.\n12. Для pay_prisoner_ransom offer_silver має спиратися на поточне вікно пропозиції із системних повідомлень; виконання притискає значення поза межами до найближчої межі перед поданням.\n13. Для стратегії ціни pay_prisoner_ransom: як платник, фракція виграє від нижчого викупу; вища ціна лише для цінних полонених або коли гравець вимагає багато; якщо гравець готовий звільнити без умов, запропонуй низьку ціну й подякуй за добру волю.\n14. Для pay_prisoner_ransom звичайний потік використовує одне подання; коли існує [RansomBatchSelection] і ти виводиш pay_prisoner_ransom, виведи по одній дії для кожної переліченої цілі рівно один раз у тій самій відповіді.\n15. MUST: якщо visible_dialogue стверджує, що викуп сплачено/подано/врегульовано або полоненого звільнено, та сама відповідь має містити дію pay_prisoner_ransom; інакше перепиши текст як очікування або уточнення.\n16. MUST читати [RansomState] як джерело істини щодо статусу paid/unpaid/pending-release перед текстом про перебіг викупу.\n17. Якщо [RansomState] current_request_paid=false, НЕ стверджуй, що платіж подано/врегульовано або полоненого звільнено; спершу попроси уточнення або виконай дію платежу."
             };
 
             DecisionRules = new List<DecisionRuleConfig>
             {
-                new DecisionRuleConfig("GoodwillGuideline", "Consider current goodwill level when making decisions"),
-                new DecisionRuleConfig("LeaderTraits", "Consider your leader's traits when making decisions"),
-                new DecisionRuleConfig("RansomPricingStrategy", "Ransom pricing strategy: as payer, lower ransom benefits the faction. Higher price only for: 1) high-value prisoners (high skills, good health); 2) player with big appetite (demanding high price or tough attitude). If player indicates willingness to release unconditionally, offer low price (10%-30% of reference) and appreciate their goodwill, showing the faction's sincerity and gratitude.")
+                new DecisionRuleConfig("GoodwillGuideline", "Під час ухвалення рішень враховуй поточний рівень прихильності."),
+                new DecisionRuleConfig("LeaderTraits", "Під час ухвалення рішень враховуй риси свого лідера."),
+                new DecisionRuleConfig("RansomPricingStrategy", "Стратегія ціни викупу: як платник, фракція виграє від нижчого викупу. Вища ціна лише для: 1) цінних полонених (високі навички, міцне здоров'я); 2) гравця з великим апетитом (вимагає високої ціни або займає жорстку позицію). Якщо гравець готовий звільнити без умов, запропонуй низьку ціну (10%-30% від довідкової) і подякуй за добру волю, показуючи щирість і вдячність фракції.")
             };
 
             EnvironmentPrompt = EnvironmentPromptConfig.CreateDefaultSeed();
@@ -931,6 +960,46 @@ namespace RimChat.Config
                 prompt = string.Empty;
                 return false;
             }
+        }
+
+        private bool TryLoadDefaultDiplomacyPromptSections(out SystemPromptConfig config)
+        {
+            config = null;
+
+            try
+            {
+                string defaultPath = GetDefaultPromptResourcePath(DefaultDiplomacyPromptFileName);
+                if (string.IsNullOrWhiteSpace(defaultPath) || !System.IO.File.Exists(defaultPath))
+                {
+                    return false;
+                }
+
+                string json = System.IO.File.ReadAllText(defaultPath);
+                config = PromptPersistenceService.Instance?.ParseJsonToConfigInternal(
+                    json,
+                    $"default_diplomacy_prompt_file:{defaultPath}");
+
+                bool usable = config?.ApiActions != null &&
+                    config.ApiActions.Count > 0 &&
+                    config.ResponseFormat != null &&
+                    !string.IsNullOrWhiteSpace(config.ResponseFormat.ImportantRules) &&
+                    !string.IsNullOrWhiteSpace(config.ResponseFormat.JsonTemplate) &&
+                    config.DecisionRules != null &&
+                    config.DecisionRules.Count > 0;
+
+                if (usable)
+                {
+                    Log.Message($"[RimChat] Loaded default diplomacy prompt fallback from {defaultPath}");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimChat] Failed to load default diplomacy prompt fallback: {ex.Message}");
+            }
+
+            config = null;
+            return false;
         }
     }
 }
