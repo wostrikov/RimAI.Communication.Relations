@@ -48,7 +48,7 @@ namespace RimChat.AI
             }
 
             string url = config.GetEffectiveEndpoint();
-            string apiKey = config.ApiKey;
+            string apiKey = config.GetRuntimeApiKey();
             string model = config.GetEffectiveModelName();
             AIProvider provider = config.Provider;
             bool isLocalModel = RimChatMod.Instance == null || !(RimChatMod.Instance.InstanceSettings?.UseCloudProviders ?? false);
@@ -428,6 +428,11 @@ namespace RimChat.AI
 
         private string BuildChatCompletionJson(string model, List<ChatMessageData> messages)
         {
+            ApiConfig activeConfig = GetFirstValidConfig();
+            if (activeConfig?.Provider == AIProvider.OpenAI)
+            {
+                return OpenAIProviderAdapter.BuildResponsesRequest(model, messages, 2000);
+            }
             var sb = new StringBuilder();
             sb.Append("{");
             sb.Append($"\"model\":\"{EscapeJson(model)}\",");

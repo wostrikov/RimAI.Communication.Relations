@@ -1930,6 +1930,12 @@ namespace RimChat.Config
         private void DrawApiKeyInput(float x, float y, float height, float width, ApiConfig config)
         {
             Rect apiKeyRect = new Rect(x, y, width, height);
+            if (config.Provider == AIProvider.OpenAI)
+            {
+                Widgets.Label(apiKeyRect, OpenAIProviderAdapter.CredentialDisplay);
+                RegisterTooltip(apiKeyRect, "Runtime credential is read only from OPENAI_RIMCHAT and is never persisted by RimChat.");
+                return;
+            }
             config.ApiKey = DrawTextFieldWithPlaceholder(apiKeyRect, config.ApiKey, "RimChat_Placeholder_ApiKey".Translate());
             RegisterTooltip(apiKeyRect, "RimChat_ApiKeyFieldTooltip");
         }

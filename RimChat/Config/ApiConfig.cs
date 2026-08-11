@@ -53,7 +53,15 @@ namespace RimChat.Config
         public bool IsValid()
         {
             if (!IsEnabled) return false;
-            return !string.IsNullOrWhiteSpace(ApiKey) && !string.IsNullOrWhiteSpace(SelectedModel);
+            bool hasCredential = Provider == AIProvider.OpenAI
+                ? OpenAIProviderAdapter.CredentialPresent
+                : !string.IsNullOrWhiteSpace(ApiKey);
+            return hasCredential && !string.IsNullOrWhiteSpace(GetEffectiveModelName());
+        }
+
+        public string GetRuntimeApiKey()
+        {
+            return Provider == AIProvider.OpenAI ? OpenAIProviderAdapter.ResolveCredential() : (ApiKey ?? string.Empty).Trim();
         }
 
         public string GetEffectiveModelName()

@@ -1,1 +1,10 @@
-<Project><PropertyGroup><BaseOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\bin\</BaseOutputPath><BaseIntermediateOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\obj\</BaseIntermediateOutputPath></PropertyGroup></Project>
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'RimChat'">
+    <BaseOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'RimChat.OpenAI.Tests'">
+    <BaseOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat.OpenAI.Tests\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimChat.OpenAI.Tests\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

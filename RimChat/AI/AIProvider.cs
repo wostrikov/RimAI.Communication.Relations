@@ -34,7 +34,7 @@ namespace RimChat.AI
                 AIProvider.OpenAI, new ProviderDef
                 {
                     Label = "OpenAI",
-                    EndpointUrl = "https://api.openai.com/v1/chat/completions",
+                    EndpointUrl = OpenAIProviderAdapter.ResponsesEndpoint,
                     ListModelsUrl = "https://api.openai.com/v1/models"
                 }
             },

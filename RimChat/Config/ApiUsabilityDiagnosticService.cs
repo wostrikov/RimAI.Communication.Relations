@@ -16,7 +16,7 @@ namespace RimChat.Config
     /// </summary>
     internal static partial class ApiUsabilityDiagnosticService
     {
-        private const int CloudTimeoutSeconds = 12;
+        private const int CloudTimeoutSeconds = 30;
         private const int LocalTimeoutSeconds = 8;
         private const string LocalOllamaProbePath = "/api/tags";
         private const string LocalOpenAiModelsPath = "/v1/models";
@@ -75,14 +75,14 @@ namespace RimChat.Config
             NotifyProgress(onProgress, ApiUsabilityStep.ModelsProbe, 3, totalSteps);
             ApiUsabilityProbeResponse modelsProbe = default;
             yield return SendProbeCoroutine(
-                BuildProbeRequest(runtime.ModelsEndpoint, "GET", null, config.Provider, config.ApiKey, CloudTimeoutSeconds),
+                BuildProbeRequest(runtime.ModelsEndpoint, "GET", null, config.Provider, config.GetRuntimeApiKey(), CloudTimeoutSeconds),
                 probe => modelsProbe = probe);
             bool modelsEndpointMissing = false;
             string modelsFallbackDetail = string.Empty;
 
             if (!modelsProbe.IsHttpSuccess)
             {
-                if (!IsModelsEndpointMissingStatusCode(modelsProbe.HttpCode))
+                if (config.Provider != AIProvider.OpenAI && !IsModelsEndpointMissingStatusCode(modelsProbe.HttpCode))
                 {
                     onCompleted?.Invoke(BuildFailureFromProbe(
                         ApiUsabilityStep.ModelsProbe,
@@ -97,8 +97,10 @@ namespace RimChat.Config
                 }
 
                 modelsEndpointMissing = true;
-                modelsFallbackDetail = BuildMissingModelsFallbackDetail(modelsProbe.HttpCode);
-                Log.Warning($"[RimChat] Models endpoint missing (HTTP {modelsProbe.HttpCode}), fallback to chat probe. endpoint={runtime.ModelsEndpoint}");
+                modelsFallbackDetail = config.Provider == AIProvider.OpenAI
+                    ? $"models_probe_optional_http={modelsProbe.HttpCode}; direct_model_probe=true"
+                    : BuildMissingModelsFallbackDetail(modelsProbe.HttpCode);
+                Log.Warning($"[RimChat] Models probe unavailable (HTTP {modelsProbe.HttpCode}); selected model will be tested directly. endpoint={runtime.ModelsEndpoint}");
             }
 
             steps.Add(BuildStepSuccess(ApiUsabilityStep.ModelsProbe, runtime.ModelsEndpoint, startedAtUtc));
@@ -127,10 +129,10 @@ namespace RimChat.Config
 
             steps.Add(BuildStepSuccess(ApiUsabilityStep.ModelAvailability, runtime.ModelsEndpoint, startedAtUtc));
             NotifyProgress(onProgress, ApiUsabilityStep.ChatProbe, 5, totalSteps);
-            string chatPayload = BuildOpenAiChatPayload(modelName);
+            string chatPayload = BuildCloudProbePayload(config.Provider, modelName);
             ApiUsabilityProbeResponse chatProbe = default;
             yield return SendProbeCoroutine(
-                BuildProbeRequest(runtime.ChatEndpoint, "POST", chatPayload, config.Provider, config.ApiKey, CloudTimeoutSeconds),
+                BuildProbeRequest(runtime.ChatEndpoint, "POST", chatPayload, config.Provider, config.GetRuntimeApiKey(), CloudTimeoutSeconds),
                 probe => chatProbe = probe);
 
             if (!chatProbe.IsHttpSuccess)
@@ -171,7 +173,7 @@ namespace RimChat.Config
             }
 
             NotifyProgress(onProgress, ApiUsabilityStep.ResponseContractValidation, 6, totalSteps);
-            ContractValidationOutcome cloudContract = ValidateOpenAiChatContract(chatProbe.ResponseBody);
+            ContractValidationOutcome cloudContract = ValidateCloudContract(config.Provider, chatProbe.ResponseBody);
             ApiUsabilityProbeResponse cloudFinalProbe = chatProbe;
             bool cloudRetried = false;
             if (cloudContract.ShouldRetry)
@@ -179,7 +181,7 @@ namespace RimChat.Config
                 cloudRetried = true;
                 ApiUsabilityProbeResponse retryProbe = default;
                 yield return SendProbeCoroutine(
-                    BuildProbeRequest(runtime.ChatEndpoint, "POST", chatPayload, config.Provider, config.ApiKey, CloudTimeoutSeconds),
+                    BuildProbeRequest(runtime.ChatEndpoint, "POST", chatPayload, config.Provider, config.GetRuntimeApiKey(), CloudTimeoutSeconds),
                     probe => retryProbe = probe);
 
                 if (!retryProbe.IsHttpSuccess)
@@ -197,7 +199,7 @@ namespace RimChat.Config
                 }
 
                 cloudFinalProbe = retryProbe;
-                cloudContract = ValidateOpenAiChatContract(retryProbe.ResponseBody);
+                cloudContract = ValidateCloudContract(config.Provider, retryProbe.ResponseBody);
             }
 
             if (!cloudContract.IsAccepted)
@@ -261,7 +263,7 @@ namespace RimChat.Config
                     0, string.Empty, startedAtUtc, steps, modelName, true, null, string.Empty));
                 yield break;
             }
-            if (string.IsNullOrWhiteSpace(config.ApiKey))
+            if (string.IsNullOrWhiteSpace(config.GetRuntimeApiKey()))
             {
                 onCompleted?.Invoke(BuildFailure(
                     ApiUsabilityStep.ConfigValidation,
@@ -975,6 +977,30 @@ namespace RimChat.Config
                 + "\"max_tokens\":8,"
                 + "\"temperature\":0"
                 + "}";
+        }
+
+        private static string BuildCloudProbePayload(AIProvider provider, string modelName)
+        {
+            if (provider == AIProvider.OpenAI)
+            {
+                return OpenAIProviderAdapter.BuildResponsesRequest(
+                    modelName,
+                    new List<ChatMessageData> { new ChatMessageData { role = "user", content = "Reply with OK." } },
+                    16);
+            }
+            return BuildOpenAiChatPayload(modelName);
+        }
+
+        private static ContractValidationOutcome ValidateCloudContract(AIProvider provider, string responseBody)
+        {
+            if (provider != AIProvider.OpenAI)
+            {
+                return ValidateOpenAiChatContract(responseBody);
+            }
+            string extracted = OpenAIProviderAdapter.ParseOutputText(responseBody);
+            return !string.IsNullOrWhiteSpace(extracted)
+                ? ContractValidationOutcome.Pass()
+                : ContractValidationOutcome.Fail("OpenAI Responses payload contains no output_text content.");
         }
 
         /// <summary>

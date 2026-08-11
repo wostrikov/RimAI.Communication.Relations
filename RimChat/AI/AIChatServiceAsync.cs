@@ -442,7 +442,7 @@ namespace RimChat.AI
             }
 
             string url = config.GetEffectiveEndpoint();
-            string apiKey = config.ApiKey;
+            string apiKey = config.GetRuntimeApiKey();
             string model = config.GetEffectiveModelName();
             SetRequestDebugModel(requestId, model);
             bool isLocalModel = RimChatMod.Instance == null || 
@@ -756,17 +756,24 @@ namespace RimChat.AI
                             }
 
                             DebugLogger.LogFullMessages(attemptMessages, $"HTTP {request.responseCode} ERROR\n{responseBody}");
-                            DebugLogger.Error($"AI API Error (HTTP {request.responseCode}): {request.error}\nResponse Body: {responseBody}");
-
-                            string errorMsg = FormatProtocolError(request.responseCode, isLocalModel);
-                            if (!string.IsNullOrEmpty(responseBody) && responseBody.Length < 200)
+                            string errorMsg;
+                            string failureTag = $"http_{request.responseCode}";
+                            if (config.Provider == AIProvider.OpenAI)
                             {
-                                errorMsg += $" ({responseBody})";
+                                OpenAIError openAiError = OpenAIProviderAdapter.ParseError(request.responseCode, responseBody);
+                                errorMsg = openAiError.ToString();
+                                failureTag = openAiError.Category.ToString().ToLowerInvariant();
+                                DebugLogger.Error($"OpenAI request failed: {errorMsg}");
+                            }
+                            else
+                            {
+                                DebugLogger.Error($"AI API Error (HTTP {request.responseCode}): {request.error}");
+                                errorMsg = FormatProtocolError(request.responseCode, isLocalModel);
                             }
 
                             lock (lockObject)
                             {
-                                SetRequestFailureLockless(requestId, errorMsg, $"http_{request.responseCode}");
+                                SetRequestFailureLockless(requestId, errorMsg, failureTag);
                             }
                             ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
@@ -811,7 +818,7 @@ namespace RimChat.AI
                                 yield break;
                             }
 
-                            PrimaryTextExtractionResult parseResult = ParseResponse(responseText);
+                            PrimaryTextExtractionResult parseResult = ParseResponse(responseText, config.Provider);
                             DebugLogger.LogParseExtraction("AIChatServiceAsync", parseResult);
                             if (!parseResult.IsSuccess)
                             {
@@ -1887,7 +1894,7 @@ namespace RimChat.AI
             return true;
         }
 
-        private PrimaryTextExtractionResult ParseResponse(string json)
+        private PrimaryTextExtractionResult ParseResponse(string json, AIProvider provider)
         {
             if (string.IsNullOrEmpty(json))
             {
@@ -1902,6 +1909,13 @@ namespace RimChat.AI
 
             try
             {
+                if (provider == AIProvider.OpenAI)
+                {
+                    string outputText = OpenAIProviderAdapter.ParseOutputText(json);
+                    return string.IsNullOrWhiteSpace(outputText)
+                        ? new PrimaryTextExtractionResult { IsSuccess = false, Content = string.Empty, ReasonTag = "no_output_text", MatchedPath = string.Empty }
+                        : new PrimaryTextExtractionResult { IsSuccess = true, Content = outputText, ReasonTag = "ok", MatchedPath = "output[].content[].output_text" };
+                }
                 if (AIJsonContentExtractor.IsErrorPayload(json))
                 {
                     return new PrimaryTextExtractionResult
@@ -2314,6 +2328,14 @@ namespace RimChat.AI
 
         private string BuildChatCompletionJson(string model, List<ChatMessageData> messages, ApiConfig config)
         {
+            RimChatSettings globalSettings = RimChatMod.Settings;
+            int configuredMaxTokens = globalSettings?.MaxTokens ?? 2048;
+            if (configuredMaxTokens < 64) configuredMaxTokens = 2048;
+            if (config.Provider == AIProvider.OpenAI)
+            {
+                return OpenAIProviderAdapter.BuildResponsesRequest(model, messages, configuredMaxTokens);
+            }
+
             var sb = new StringBuilder();
             sb.Append("{");
 
@@ -2336,11 +2358,10 @@ namespace RimChat.AI
 
             sb.Append("],");
 
-            RimChatSettings globalSettings = RimChatMod.Settings;
             bool thinkingEnabled = globalSettings?.ThinkingEnabled ?? false;
             bool isDeepSeek = config.Provider == AIProvider.DeepSeek;
             float temperature = globalSettings?.Temperature ?? 0.5f;
-            int maxTokens = globalSettings?.MaxTokens ?? 2048;
+            int maxTokens = configuredMaxTokens;
             if (maxTokens < 64) maxTokens = 2048;
 
             // DeepSeek: temperature/top_p/presence_penalty/frequency_penalty are ignored when thinking is on.
