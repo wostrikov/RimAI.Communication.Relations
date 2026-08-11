@@ -47,6 +47,7 @@ namespace RimChat.Config
         private string cachedVersionLogPath = string.Empty;
         private string cachedVersionLogContent = string.Empty;
         private string cachedVersionValue = DefaultVersionValue;
+        private bool versionLogCacheInitialized;
         private bool cachedVersionReadFailed;
         private string cachedVersionReadError = string.Empty;
 
@@ -104,11 +105,13 @@ namespace RimChat.Config
         private void EnsureVersionLogCache()
         {
             string language = LanguageDatabase.activeLanguage?.folderName ?? string.Empty;
-            if (string.Equals(cachedVersionLanguage, language, StringComparison.Ordinal))
+            if (versionLogCacheInitialized
+                && string.Equals(cachedVersionLanguage, language, StringComparison.Ordinal))
             {
                 return;
             }
 
+            versionLogCacheInitialized = true;
             cachedVersionLanguage = language;
             cachedVersionLogPath = ResolveVersionLogPath(language);
             cachedVersionReadFailed = false;

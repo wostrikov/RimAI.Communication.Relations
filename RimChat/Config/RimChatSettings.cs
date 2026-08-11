@@ -1933,7 +1933,7 @@ namespace RimChat.Config
             if (config.Provider == AIProvider.OpenAI)
             {
                 Widgets.Label(apiKeyRect, OpenAIProviderAdapter.CredentialDisplay);
-                RegisterTooltip(apiKeyRect, "Runtime credential is read only from OPENAI_RIMCHAT and is never persisted by RimChat.");
+                RegisterTooltip(apiKeyRect, "RimChat_OpenAICredentialTooltip");
                 return;
             }
             config.ApiKey = DrawTextFieldWithPlaceholder(apiKeyRect, config.ApiKey, "RimChat_Placeholder_ApiKey".Translate());

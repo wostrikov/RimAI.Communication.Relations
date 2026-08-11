@@ -2644,4 +2644,5 @@ Selected prisoners: {1}
     <RimChat_GroupConverse_Skipped>{0} is unavailable...</RimChat_GroupConverse_Skipped>
     <RimChat_GroupHistory_Live>Live</RimChat_GroupHistory_Live>
     <RimChat_GroupHistory_View>History</RimChat_GroupHistory_View>
+    <RimChat_OpenAICredentialTooltip>The runtime credential is read only from OPENAI_RIMCHAT and is never stored by RimChat.</RimChat_OpenAICredentialTooltip>
 </LanguageData>

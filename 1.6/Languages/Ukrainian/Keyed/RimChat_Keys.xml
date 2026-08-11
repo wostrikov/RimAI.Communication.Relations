@@ -2544,4 +2544,5 @@ ID: {5}
   <RimChat_GroupConverse_Skipped>{0} недоступний…</RimChat_GroupConverse_Skipped>
   <RimChat_GroupHistory_Live>У реальному часі</RimChat_GroupHistory_Live>
   <RimChat_GroupHistory_View>Історія</RimChat_GroupHistory_View>
+  <RimChat_OpenAICredentialTooltip>Облікові дані для роботи зчитуються лише з OPENAI_RIMCHAT і ніколи не зберігаються в RimChat.</RimChat_OpenAICredentialTooltip>
 </LanguageData>
