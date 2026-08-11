@@ -109,8 +109,14 @@ namespace RimChat.AI
         {
             if (string.IsNullOrWhiteSpace(json)) return string.Empty;
             var values = new List<string>();
-            MatchCollection typed = Regex.Matches(json, "\\{\\s*\\\"type\\\"\\s*:\\s*\\\"output_text\\\"\\s*,\\s*\\\"text\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            foreach (Match match in typed) values.Add(Unescape(match.Groups["v"].Value));
+            MatchCollection objects = Regex.Matches(json, "\\{(?<object>(?:[^{}\\\"]|\\\"(?:[^\\\"\\\\]|\\\\.)*\\\")*)\\}", RegexOptions.Singleline);
+            foreach (Match match in objects)
+            {
+                string item = match.Groups["object"].Value;
+                if (!Regex.IsMatch(item, "\\\"type\\\"\\s*:\\s*\\\"output_text\\\"", RegexOptions.IgnoreCase)) continue;
+                Match text = Regex.Match(item, "\\\"text\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                if (text.Success) values.Add(Unescape(text.Groups["v"].Value));
+            }
             if (values.Count == 0)
             {
                 Match convenience = Regex.Match(json, "\\\"output_text\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);

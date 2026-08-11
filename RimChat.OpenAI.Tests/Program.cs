@@ -63,7 +63,7 @@ internal static class Program
             Check("{\"usage\":{\"input_tokens\":2,\"output_tokens\":3,\"total_tokens\":5}}".Contains("input_tokens"), "36 usage structure");
             Check("output_tokens" != "completion_tokens", "37 output accounting alias");
             Check(request.Contains("\"input\":["), "38 structured input");
-            Check(OpenAIProviderAdapter.ParseOutputText("{\"output\":[{\"content\":[{\"type\":\"output_text\",\"text\":\"one\"}]},{\"content\":[{\"type\":\"output_text\",\"text\":\"two\"}]}]}") == "one two", "39 multiple output items");
+            Check(OpenAIProviderAdapter.ParseOutputText("{\"output\":[{\"content\":[{\"text\":\"one\",\"annotations\":[],\"type\":\"output_text\"}]},{\"content\":[{\"type\":\"output_text\",\"logprobs\":[],\"text\":\"two\"}]}]}") == "one two", "39 multiple unordered output items");
 
             Environment.SetEnvironmentVariable(OpenAIProviderAdapter.CredentialVariable, secret);
             Check(OpenAIProviderAdapter.CredentialPresent, "40 OPENAI_RIMCHAT present");
