@@ -118,6 +118,26 @@ namespace RimChat.Config
             cachedVersionReadError = string.Empty;
             cachedVersionLogContent = ReadVersionLogContent(cachedVersionLogPath);
             cachedVersionValue = ParseVersionFirstLine(cachedVersionLogContent);
+            if (cachedVersionValue == DefaultVersionValue)
+            {
+                cachedVersionValue = ReadAboutVersion(ResolveModRootDir());
+            }
+        }
+
+        private static string ReadAboutVersion(string rootDir)
+        {
+            try
+            {
+                string path = Path.Combine(rootDir ?? string.Empty, "About", "About.xml");
+                var document = new System.Xml.XmlDocument();
+                document.Load(path);
+                string value = document.SelectSingleNode("/ModMetaData/modVersion")?.InnerText?.Trim();
+                return string.IsNullOrWhiteSpace(value) ? DefaultVersionValue : value;
+            }
+            catch
+            {
+                return DefaultVersionValue;
+            }
         }
 
         private string ResolveVersionLogPath(string languageFolder)
