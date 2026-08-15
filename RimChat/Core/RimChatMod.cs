@@ -71,7 +71,7 @@ namespace RimChat.Core
 
         public override string SettingsCategory()
         {
-            return "RimChat_SettingsCategory".Translate();
+            return Content?.Name ?? "RimChat - Word to Actions";
         }
 
         public override void DoSettingsWindowContents(Rect inRect)

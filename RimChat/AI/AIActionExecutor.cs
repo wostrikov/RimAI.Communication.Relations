@@ -34,6 +34,12 @@ namespace RimChat.AI
         /// <returns>执行result</returns>
         public ActionResult ExecuteAction(AIAction action)
         {
+            return ActionResult.Failure("AIActionExecutor is retired. Use RimChatInteractionAdapter.");
+        }
+
+        [System.Obsolete("Production diplomacy uses RimChatInteractionAdapter.")]
+        private ActionResult ExecuteActionLegacy(AIAction action)
+        {
             if (action == null)
             {
                 return ActionResult.Failure("Action is null");

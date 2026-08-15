@@ -24,6 +24,7 @@
         <li>Ludeon.RimWorld.Ideology</li>
         <li>Ludeon.RimWorld.Biotech</li>
         <li>Ludeon.RimWorld.Anomaly</li>
+        <li>ustas.rimai</li>
     </loadAfter>
     <incompatibleWith>
     </incompatibleWith>

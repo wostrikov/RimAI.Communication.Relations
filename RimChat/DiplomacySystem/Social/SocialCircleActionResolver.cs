@@ -23,8 +23,7 @@ namespace RimChat.DiplomacySystem
                 if (!CanAttemptExecution(state, intent, currentTick)) continue;
                 if (!TryBuildAction(intent, out AIAction action)) continue;
 
-                var executor = new AIActionExecutor(intent.Faction);
-                ActionResult result = executor.ExecuteAction(action);
+                ActionResult result = RimChatInteractionAdapter.Execute(action, intent.Faction);
                 if (result.IsSuccess)
                 {
                     intent.Score = 0f;

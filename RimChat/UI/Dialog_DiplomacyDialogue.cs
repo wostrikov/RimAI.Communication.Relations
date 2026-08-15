@@ -3512,8 +3512,7 @@ namespace RimChat.UI
                     ActionType = directive.ActionType,
                     Parameters = new Dictionary<string, object>(StringComparer.Ordinal)
                 };
-                var executor = new AIActionExecutor(currentFaction, applyDialogueApiGoodwillCost: true);
-                ActionResult result = executor.ExecuteAction(action);
+                ActionResult result = RimChatInteractionAdapter.Execute(action, currentFaction, applyDialogueApiGoodwillCost: true);
                 if (!result.IsSuccess)
                 {
                     string reason = result.Message ?? "Unknown error";
@@ -4000,7 +3999,6 @@ namespace RimChat.UI
             Faction currentFaction,
             string playerMessage)
         {
-            var executor = new AIActionExecutor(currentFaction, applyDialogueApiGoodwillCost: true);
             var outcomes = new List<ActionExecutionOutcome>();
             bool acceptedAirdropThisTurn = false;
             BatchRansomExecutionPlan batchRansomPlan = BuildBatchRansomExecutionPlan(actions, currentSession, currentFaction);
@@ -4093,7 +4091,7 @@ namespace RimChat.UI
                 InjectExplicitChallengeRequestHint(action, playerMessage);
 
                 Log.Message($"[RimChat] Executing AI action: {action.ActionType}");
-                var result = executor.ExecuteAction(action);
+                var result = RimChatInteractionAdapter.Execute(action, currentFaction, applyDialogueApiGoodwillCost: true);
 
                 if (result.IsSuccess)
                 {
