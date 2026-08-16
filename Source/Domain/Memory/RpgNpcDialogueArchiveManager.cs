@@ -10,6 +10,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Guards;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Core.Relations;
 using RimWorld;
 using Verse;
 
@@ -300,6 +301,8 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     InvalidatePromptMemoryCacheLockless();
                 }
             }
+
+            PublishRpgSessionFinalized(initiator, targetNpc, chatHistory);
         }
 
         public void RecordDiplomacySummary(
@@ -378,6 +381,73 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     InvalidatePromptMemoryCacheLockless();
                 }
             }
+
+            PublishDiplomacySummaryRecorded(negotiator, faction, allMessages);
+        }
+
+        static void PublishRpgSessionFinalized(Pawn initiator, Pawn targetNpc, List<ChatMessageData> chatHistory)
+        {
+            string transcript = BuildRpgTranscript(initiator, targetNpc, chatHistory);
+            if (string.IsNullOrWhiteSpace(transcript))
+                return;
+            RelationsDialogueLifecycle.PublishRpgSessionFinalized(new RpgSessionFinalizedArgs
+            {
+                Initiator = initiator,
+                TargetNpc = targetNpc,
+                Transcript = transcript,
+                Participants = new object[] { initiator, targetNpc }
+            });
+        }
+
+        static void PublishDiplomacySummaryRecorded(Pawn negotiator, Faction faction, List<DialogueMessageData> allMessages)
+        {
+            string transcript = BuildDiplomacyRoundMemoryTranscript(negotiator, faction, allMessages);
+            if (string.IsNullOrWhiteSpace(transcript))
+                return;
+            RelationsDialogueLifecycle.PublishDiplomacySummaryRecorded(new DiplomacySummaryRecordedArgs
+            {
+                Negotiator = negotiator,
+                Faction = faction,
+                Transcript = transcript
+            });
+        }
+
+        static string BuildRpgTranscript(Pawn initiator, Pawn targetNpc, List<ChatMessageData> chatHistory)
+        {
+            if (chatHistory == null || chatHistory.Count == 0)
+                return string.Empty;
+            string playerName = initiator?.LabelShort ?? "???";
+            string npcName = targetNpc?.LabelShort ?? "???";
+            var sb = new StringBuilder();
+            foreach (ChatMessageData message in chatHistory)
+            {
+                if (message == null)
+                    continue;
+                if (string.Equals(message.role, "user", StringComparison.OrdinalIgnoreCase))
+                    sb.Append(playerName).Append(": ").AppendLine(message.content);
+                else if (string.Equals(message.role, "assistant", StringComparison.OrdinalIgnoreCase))
+                    sb.Append(npcName).Append(": ").AppendLine(message.content);
+            }
+            return sb.ToString().TrimEnd();
+        }
+
+        static string BuildDiplomacyRoundMemoryTranscript(Pawn negotiator, Faction faction, List<DialogueMessageData> allMessages)
+        {
+            if (allMessages == null || allMessages.Count == 0)
+                return string.Empty;
+            string playerName = negotiator?.LabelShort ?? "???";
+            string factionName = faction?.Name ?? "???";
+            var sb = new StringBuilder();
+            foreach (DialogueMessageData message in allMessages)
+            {
+                if (message == null || message.IsSystemMessage())
+                    continue;
+                if (message.isPlayer)
+                    sb.Append(playerName).Append(": ").AppendLine(message.message);
+                else
+                    sb.Append(factionName).Append(": ").AppendLine(message.message);
+            }
+            return sb.ToString().TrimEnd();
         }
 
         private string CurrentSaveKey
