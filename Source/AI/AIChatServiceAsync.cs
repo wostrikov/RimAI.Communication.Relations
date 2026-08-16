@@ -2206,35 +2206,18 @@ namespace Ustas.RimAI.Communication.Relations.AI
             if (RelationsMod.Instance == null || RelationsMod.Instance.InstanceSettings == null)
                 return null;
 
-            if (RelationsMod.Instance.InstanceSettings.UseCloudProviders)
+            var localConfig = RelationsMod.Instance.InstanceSettings.LocalConfig;
+            if (localConfig != null && localConfig.IsPlayer2Local())
             {
-                if (RelationsMod.Instance.InstanceSettings.CloudConfigs == null || 
-                    RelationsMod.Instance.InstanceSettings.CloudConfigs.Count == 0)
-                    return null;
-
-                foreach (var config in RelationsMod.Instance.InstanceSettings.CloudConfigs)
+                string localBaseUrl = localConfig.GetNormalizedBaseUrl();
+                return new ApiConfig
                 {
-                    if (config.IsValid())
-                        return config;
-                }
-            }
-            else
-            {
-                var localConfig = RelationsMod.Instance.InstanceSettings.LocalConfig;
-                if (localConfig != null && localConfig.IsValid())
-                {
-                    string localBaseUrl = localConfig.GetNormalizedBaseUrl();
-                    // Player2 local: use Player2 provider so extra headers and no-model logic apply
-                    bool isPlayer2Local = localConfig.IsPlayer2Local();
-                    return new ApiConfig
-                    {
-                        IsEnabled = true,
-                        Provider = isPlayer2Local ? AIProvider.Player2 : AIProvider.Custom,
-                        BaseUrl = isPlayer2Local ? localBaseUrl.TrimEnd('/') + "/v1/chat/completions" : ApiConfig.EnsureChatCompletionsEndpoint(localBaseUrl),
-                        ApiKey = "",
-                        SelectedModel = isPlayer2Local ? "Default" : localConfig.ModelName
-                    };
-                }
+                    IsEnabled = true,
+                    Provider = AIProvider.Player2,
+                    BaseUrl = localBaseUrl.TrimEnd('/') + "/v1/chat/completions",
+                    ApiKey = "",
+                    SelectedModel = "Default"
+                };
             }
 
             return null;
