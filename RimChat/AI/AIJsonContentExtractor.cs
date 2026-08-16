@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     public sealed class PrimaryTextExtractionResult
     {

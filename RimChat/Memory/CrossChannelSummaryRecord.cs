@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: Verse.IExposable.
  /// Responsibility: represent one cross-channel memory summary for faction-level long-term recall.

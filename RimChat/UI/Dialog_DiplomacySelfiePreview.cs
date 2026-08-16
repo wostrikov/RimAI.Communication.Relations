@@ -1,10 +1,10 @@
 using System.IO;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: local image bytes and album save bridge.

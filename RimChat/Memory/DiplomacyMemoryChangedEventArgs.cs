@@ -1,6 +1,6 @@
 using System;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: none.

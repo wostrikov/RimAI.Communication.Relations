@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: dialogue message model image fields and Unity texture loading APIs.
  /// Responsibility: render inline diplomacy image cards and compute stable bubble layout heights.
@@ -320,7 +320,7 @@ namespace RimChat.UI
         {
             if (string.IsNullOrWhiteSpace(caption))
             {
-                WarnOutboundPrisonerCaptionOnce(msg, "empty", "[RimChat][UI_ASSERT] ransom proof caption is empty.");
+                WarnOutboundPrisonerCaptionOnce(msg, "empty", "[RimAI.Relations][UI_ASSERT] ransom proof caption is empty.");
                 return;
             }
 
@@ -329,7 +329,7 @@ namespace RimChat.UI
                 WarnOutboundPrisonerCaptionOnce(
                     msg,
                     "walk_field",
-                    "[RimChat][UI_ASSERT] ransom proof caption still contains removed walk field.");
+                    "[RimAI.Relations][UI_ASSERT] ransom proof caption still contains removed walk field.");
             }
 
             if (caption.IndexOf('\\') >= 0)
@@ -337,7 +337,7 @@ namespace RimChat.UI
                 WarnOutboundPrisonerCaptionOnce(
                     msg,
                     "backslash",
-                    "[RimChat][UI_ASSERT] ransom proof caption still contains a backslash after normalization.");
+                    "[RimAI.Relations][UI_ASSERT] ransom proof caption still contains a backslash after normalization.");
             }
 
             bool hasKnownOrder = HasOrderedFields(caption, OutboundPrisonerFieldOrderZh)
@@ -349,7 +349,7 @@ namespace RimChat.UI
                 WarnOutboundPrisonerCaptionOnce(
                     msg,
                     "field_order",
-                    "[RimChat][UI_ASSERT] ransom proof field order is unexpected.");
+                    "[RimAI.Relations][UI_ASSERT] ransom proof field order is unexpected.");
             }
         }
 

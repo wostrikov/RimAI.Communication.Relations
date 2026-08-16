@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
 
-namespace RimChat.WorldState
+namespace Ustas.RimAI.Communication.Relations.WorldState
 {
     /// <summary>/// Dependencies: Verse.GameComponent, RaidThreatSnapshotProvider, and world object lifecycle.
  /// Responsibility: persist faction settlement destruction history and raid damage intel for fixed prompt injection.

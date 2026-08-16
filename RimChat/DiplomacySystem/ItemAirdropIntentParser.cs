@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: none.
@@ -87,7 +87,7 @@ namespace RimChat.DiplomacySystem
             }
 
             var result = tokens.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            Log.Message($"[RimChat][Tokenize] input=\"{text}\" -> tokens=[{string.Join(",", result)}]");
+            Log.Message($"[RimAI.Relations][Tokenize] input=\"{text}\" -> tokens=[{string.Join(",", result)}]");
             return result;
         }
 
@@ -135,7 +135,7 @@ namespace RimChat.DiplomacySystem
                 tokens = tokens
                     .Where(t => !exclusionsCapture.Contains(t))
                     .ToList();
-                Log.Message($"[RimChat][TokenizeWithExclusions] exclusions=[{string.Join(",", exclusionTokens)}], tokens=[{string.Join(",", tokens)}]");
+                Log.Message($"[RimAI.Relations][TokenizeWithExclusions] exclusions=[{string.Join(",", exclusionTokens)}], tokens=[{string.Join(",", tokens)}]");
             }
         }
 

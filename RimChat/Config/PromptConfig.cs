@@ -1,7 +1,7 @@
 using System;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Prompt configuration - used to store global and faction-specific prompts

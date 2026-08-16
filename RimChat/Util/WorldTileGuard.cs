@@ -1,6 +1,6 @@
 using Verse;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     /// <summary>
     /// Validates tile IDs against the current world grid to prevent

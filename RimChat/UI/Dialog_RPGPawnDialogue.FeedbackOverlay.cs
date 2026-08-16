@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: portrait layout helpers, Verse widgets, and localized feedback text producers.
  /// Responsibility: queue and render portrait-anchored RPG floating subtitles with gentle rise/fade motion.

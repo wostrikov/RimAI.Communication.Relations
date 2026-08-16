@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 
-namespace RimChat.NpcDialogue
+namespace Ustas.RimAI.Communication.Relations.NpcDialogue
 {
     /// <summary>
     /// Dependencies: proactive dialogue generation prompt assembly.

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: none.
  /// Responsibility: represent one NPC-scoped RPG dialogue archive persisted as an external JSON file.

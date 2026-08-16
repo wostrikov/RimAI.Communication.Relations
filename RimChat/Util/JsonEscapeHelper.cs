@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     public static class JsonEscapeHelper
     {

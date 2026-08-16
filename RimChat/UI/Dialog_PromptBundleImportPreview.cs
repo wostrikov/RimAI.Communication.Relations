@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: prompt-bundle preview model and RimWorld modal UI widgets.

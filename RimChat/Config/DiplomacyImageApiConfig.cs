@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: Verse Scribe serialization APIs.
  /// Responsibility: hold standalone diplomacy image API runtime/persistent settings.

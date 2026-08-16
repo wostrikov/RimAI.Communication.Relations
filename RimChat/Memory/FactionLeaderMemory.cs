@@ -4,7 +4,7 @@ using System.Linq;
 using Verse;
 using RimWorld;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// factionleader的memory数据结构
  /// record该leader对其他所有faction的认知和交互历史

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RimChat.Config;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Util;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Responsibility: cache prompt file last-write timestamps to avoid per-tick disk IO.
@@ -133,17 +133,17 @@ namespace RimChat.Persistence
                         }
 
                         File.Move(filePath, destPath);
-                        Log.Message($"[RimChat] PromptFileStampCache: moved legacy config file '{fileName}' to .legacy/");
+                        Log.Message($"[RimAI.Relations] PromptFileStampCache: moved legacy config file '{fileName}' to .legacy/");
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning($"[RimChat] PromptFileStampCache: failed to move legacy file '{fileName}': {ex.Message}");
+                        Log.Warning($"[RimAI.Relations] PromptFileStampCache: failed to move legacy file '{fileName}': {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] PromptFileStampCache: legacy cleanup failed: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] PromptFileStampCache: legacy cleanup failed: {ex.Message}");
             }
         }
 
@@ -171,7 +171,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] PromptFileStampCache: FileSystemWatcher init failed, falling back to polling. {ex.Message}");
+                Log.Warning($"[RimAI.Relations] PromptFileStampCache: FileSystemWatcher init failed, falling back to polling. {ex.Message}");
                 watcher = null;
             }
         }

@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: social-circle prompt domain DTOs, prompt-domain file catalog, and Unity JSON loader.

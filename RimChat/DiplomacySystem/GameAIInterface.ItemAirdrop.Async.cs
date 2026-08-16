@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: AIChatServiceAsync, item-airdrop prepare pipeline, selection parser.
@@ -23,7 +23,7 @@ namespace RimChat.DiplomacySystem
             Action<APIResult> onCompleted,
             Action<string, int> onRequestQueued)
         {
-            Log.Message($"[RimChat] BeginPrepareItemAirdropTradeAsync: faction={faction?.Name}, defName={faction?.def?.defName}, need={parameters?["need"] ?? "null"}");
+            Log.Message($"[RimAI.Relations] BeginPrepareItemAirdropTradeAsync: faction={faction?.Name}, defName={faction?.def?.defName}, need={parameters?["need"] ?? "null"}");
             
             APIResult contextResult = TryBuildAirdropAsyncContext(
                 faction,
@@ -32,7 +32,7 @@ namespace RimChat.DiplomacySystem
                 out ItemAirdropAsyncPrepareContext context);
             if (!contextResult.Success)
             {
-                Log.Warning($"[RimChat] BeginPrepareItemAirdropTradeAsync context build failed: {contextResult.Message}");
+                Log.Warning($"[RimAI.Relations] BeginPrepareItemAirdropTradeAsync context build failed: {contextResult.Message}");
                 return contextResult;
             }
 
@@ -353,7 +353,7 @@ namespace RimChat.DiplomacySystem
             Action<APIResult> onCompleted,
             Action<string, int> onRequestQueued)
         {
-            Log.Message($"[RimChat] ContinueAirdropSelectionStageAsync: need={context.Need}, def={context.ForcedSelectedDef}, candidates={context.CandidatePack?.Candidates?.Count ?? 0}");
+            Log.Message($"[RimAI.Relations] ContinueAirdropSelectionStageAsync: need={context.Need}, def={context.ForcedSelectedDef}, candidates={context.CandidatePack?.Candidates?.Count ?? 0}");
             
             RequestedCountExtraction requestedCount = ExtractRequestedCount(context.Intent?.NeedText);
             requestedCount = MergeRequestedCountWithParameters(requestedCount, context.Parameters);
@@ -543,7 +543,7 @@ namespace RimChat.DiplomacySystem
                     int originalPayment = context.PaymentTotalSilver;
                     context.PaymentTotalSilver = actualNeeded;
                     overpay = 0;
-                    Log.Message($"[RimChat][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled from {originalPayment} to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
+                    Log.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled from {originalPayment} to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
                     RecordStageAudit("prepare_trade", context.Faction, context.Parameters, $"budget={quotedNeedTotalSilver},payment={actualNeeded},shipping={shippingCostSilver},pods={shippingPodCount},overpay=0,clampedPaymentAdjusted=True,paymentLines={context.PaymentLines.Count},deductionRows={adjustedPlan.Count}");
                 }
             }

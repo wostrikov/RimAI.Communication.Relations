@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: ApiUsabilityDiagnosticService core flow and localization key catalog.

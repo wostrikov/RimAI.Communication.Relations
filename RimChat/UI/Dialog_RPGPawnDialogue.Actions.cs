@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Responsibilities: execute RPG actions, normalize action names, and trigger localized action feedback.
  /// Dependencies: LLMRpgApiResponse, GameComponent_RPGManager, RimWorld defs/workers.

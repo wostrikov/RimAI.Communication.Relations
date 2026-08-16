@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: prompt migration diagnostics model and RimWorld modal UI widgets.

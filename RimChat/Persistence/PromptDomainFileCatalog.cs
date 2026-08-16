@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: RimWorld mod path APIs and System.IO.
@@ -32,7 +32,7 @@ namespace RimChat.Persistence
             string root = ResolveModRoot();
             if (string.IsNullOrWhiteSpace(root))
             {
-                Log.Warning($"[RimChat] PromptDomainFileCatalog: unable to resolve mod root for default path '{fileName}'; falling back to assembly location.");
+                Log.Warning($"[RimAI.Relations] PromptDomainFileCatalog: unable to resolve mod root for default path '{fileName}'; falling back to assembly location.");
                 root = ResolveFromAssemblyFallback();
             }
 
@@ -62,7 +62,7 @@ namespace RimChat.Persistence
                 return Path.Combine(dir, fileName);
             }
 
-            string fallbackDir = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat", PromptFolderName, CustomSubFolderName);
+            string fallbackDir = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptFolderName, CustomSubFolderName);
             return Path.Combine(fallbackDir, fileName);
         }
 

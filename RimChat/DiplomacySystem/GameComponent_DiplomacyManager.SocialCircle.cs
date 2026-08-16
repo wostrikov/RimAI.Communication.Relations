@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Core;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: social-circle services, social action resolver, RimWorld faction APIs.
  /// Responsibility: own social-circle state, public APIs, and schedule-based news polling.
@@ -262,7 +262,7 @@ namespace RimChat.DiplomacySystem
                 out string intentHint);
             if (!matched)
             {
-                Log.Message($"[RimChat] KeywordDialoguePost skipped: keywords not matched. playerMsgLen={playerMessage?.Length ?? 0}, aiResponseLen={aiResponse?.Length ?? 0}");
+                Log.Message($"[RimAI.Relations] KeywordDialoguePost skipped: keywords not matched. playerMsgLen={playerMessage?.Length ?? 0}, aiResponseLen={aiResponse?.Length ?? 0}");
                 return false;
             }
 
@@ -277,7 +277,7 @@ namespace RimChat.DiplomacySystem
                 targetFaction);
             if (string.IsNullOrWhiteSpace(summary))
             {
-                Log.Warning($"[RimChat] KeywordDialoguePost: summary is null/empty after matching keywords. category={category}, sentiment={sentiment}");
+                Log.Warning($"[RimAI.Relations] KeywordDialoguePost: summary is null/empty after matching keywords. category={category}, sentiment={sentiment}");
                 string targetLabel = targetFaction != null ? $"与{targetFaction.Name}" : string.Empty;
                 summary = $"{sourceFaction.Name}{targetLabel}就当前局势发表了公开声明。";
             }
@@ -291,7 +291,7 @@ namespace RimChat.DiplomacySystem
                 out enqueueResult,
                 intentHint,
                 DebugGenerateReason.DialogueKeyword);
-            Log.Message($"[RimChat] KeywordDialoguePost enqueue: result={postResult}, category={category}, sentiment={sentiment}, failureReason={enqueueResult.FailureReason}");
+            Log.Message($"[RimAI.Relations] KeywordDialoguePost enqueue: result={postResult}, category={category}, sentiment={sentiment}, failureReason={enqueueResult.FailureReason}");
             return postResult;
         }
 
@@ -648,7 +648,7 @@ namespace RimChat.DiplomacySystem
                 reason);
 
             if (success)
-                Log.Message($"[RimChat] AI-to-AI post generated: {sourceFaction.Name} -> {targetFaction.Name}, category={category}, sentiment={sentiment}");
+                Log.Message($"[RimAI.Relations] AI-to-AI post generated: {sourceFaction.Name} -> {targetFaction.Name}, category={category}, sentiment={sentiment}");
 
             return success;
         }

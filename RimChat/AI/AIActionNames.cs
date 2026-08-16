@@ -1,4 +1,4 @@
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>/// Dependencies: none.
  /// Responsibility: centralized AI action type identifiers shared across parser/executor/UI.

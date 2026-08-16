@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Verse;
-using RimChat.Persistence;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Core;
 using UnityEngine;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     [Serializable]
     public class ApiActionConfig : IExposable
@@ -690,7 +690,7 @@ namespace RimChat.Config
 
             if (defaultConfig != null)
             {
-                Log.Warning("[RimChat] Default system prompt file parsed but critical sections are missing; fallback to minimal defaults.");
+                Log.Warning("[RimAI.Relations] Default system prompt file parsed but critical sections are missing; fallback to minimal defaults.");
             }
 
             // 如果fileload失败, 使用最小化默认configuration
@@ -713,14 +713,14 @@ namespace RimChat.Config
                         $"default_system_prompt_file:{defaultConfigPath}");
                     if (config != null)
                     {
-                        Log.Message($"[RimChat] Loaded default system prompt from {defaultConfigPath}");
+                        Log.Message($"[RimAI.Relations] Loaded default system prompt from {defaultConfigPath}");
                         return config;
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load default system prompt from file: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load default system prompt from file: {ex.Message}");
             }
             return null;
         }
@@ -956,7 +956,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to extract GlobalSystemPrompt from default file for minimal defaults: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to extract GlobalSystemPrompt from default file for minimal defaults: {ex.Message}");
                 prompt = string.Empty;
                 return false;
             }
@@ -989,13 +989,13 @@ namespace RimChat.Config
 
                 if (usable)
                 {
-                    Log.Message($"[RimChat] Loaded default diplomacy prompt fallback from {defaultPath}");
+                    Log.Message($"[RimAI.Relations] Loaded default diplomacy prompt fallback from {defaultPath}");
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load default diplomacy prompt fallback: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load default diplomacy prompt fallback: {ex.Message}");
             }
 
             config = null;

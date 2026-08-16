@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: RimWorld/Verse settings widgets and diplomacy image prompt template models.
  /// Responsibility: render standalone diplomacy image API tab and maintain image template defaults/migration.

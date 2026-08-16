@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: prisoner-ransom portrait export, batch selection state, and batch execution validation.
@@ -40,7 +40,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to capture ransom portrait: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to capture ransom portrait: {ex.Message}");
                 return false;
             }
 
@@ -51,7 +51,7 @@ namespace RimChat.UI
 
             try
             {
-                string folder = Path.Combine(GenFilePaths.SaveDataFolderPath, "RimChat", "Temp", "RansomProof");
+                string folder = Path.Combine(GenFilePaths.SaveDataFolderPath, "Ustas.RimAI.Communication.Relations", "Temp", "RansomProof");
                 Directory.CreateDirectory(folder);
                 int tick = Find.TickManager?.TicksGame ?? 0;
                 imagePath = Path.Combine(folder, $"ransom_proof_{pawn.thingIDNumber}_{tick}.png");
@@ -60,7 +60,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to persist ransom portrait: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to persist ransom portrait: {ex.Message}");
                 imagePath = string.Empty;
                 return false;
             }
@@ -206,7 +206,7 @@ namespace RimChat.UI
                 if (action?.Parameters == null ||
                     !TryReadPositiveInt(action.Parameters, "target_pawn_load_id", out int targetPawnLoadId))
                 {
-                    Log.Warning($"[RimChat] pay_prisoner_ransom batch validation failed: missing target_pawn_load_id. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}");
+                    Log.Warning($"[RimAI.Relations] pay_prisoner_ransom batch validation failed: missing target_pawn_load_id. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}");
                     return BatchRansomExecutionPlan.Invalid(
                         ransomActions,
                         "RimChat_RansomBatchActionMissingTargetSystem".Translate().ToString());
@@ -214,7 +214,7 @@ namespace RimChat.UI
 
                 if (!TryReadPositiveInt(action.Parameters, "offer_silver", out int offerSilver))
                 {
-                    Log.Warning($"[RimChat] pay_prisoner_ransom batch validation failed: missing offer_silver for target={targetPawnLoadId}. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}");
+                    Log.Warning($"[RimAI.Relations] pay_prisoner_ransom batch validation failed: missing offer_silver for target={targetPawnLoadId}. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}");
                     return BatchRansomExecutionPlan.Invalid(
                         ransomActions,
                         "RimChat_RansomBatchActionMissingOfferSystem".Translate(targetPawnLoadId).ToString());
@@ -222,7 +222,7 @@ namespace RimChat.UI
 
                 if (!expectedTargetIds.Contains(targetPawnLoadId))
                 {
-                    Log.Warning($"[RimChat] pay_prisoner_ransom batch validation failed: unexpected target={targetPawnLoadId}. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}");
+                    Log.Warning($"[RimAI.Relations] pay_prisoner_ransom batch validation failed: unexpected target={targetPawnLoadId}. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}");
                     return BatchRansomExecutionPlan.Invalid(
                         ransomActions,
                         "RimChat_RansomBatchUnexpectedTargetSystem".Translate(targetPawnLoadId).ToString());
@@ -230,7 +230,7 @@ namespace RimChat.UI
 
                 if (!actualTargetIds.Add(targetPawnLoadId))
                 {
-                    Log.Warning($"[RimChat] pay_prisoner_ransom batch validation failed: duplicate target={targetPawnLoadId}. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}, actual_targets={FormatRansomBatchTargetIds(actualTargetIds)}");
+                    Log.Warning($"[RimAI.Relations] pay_prisoner_ransom batch validation failed: duplicate target={targetPawnLoadId}. expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}, actual_targets={FormatRansomBatchTargetIds(actualTargetIds)}");
                     return BatchRansomExecutionPlan.Invalid(
                         ransomActions,
                         "RimChat_RansomBatchDuplicateTargetSystem".Translate(targetPawnLoadId).ToString());
@@ -246,7 +246,7 @@ namespace RimChat.UI
                 var missingTargetIds = expectedTargetIds.Except(actualTargetIds);
                 var extraTargetIds = actualTargetIds.Except(expectedTargetIds);
                 Log.Warning(
-                    $"[RimChat] pay_prisoner_ransom batch validation failed: coverage mismatch. " +
+                    $"[RimAI.Relations] pay_prisoner_ransom batch validation failed: coverage mismatch. " +
                     $"expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}, " +
                     $"actual_targets={FormatRansomBatchTargetIds(actualTargetIds)}, " +
                     $"missing_targets={FormatRansomBatchTargetIds(missingTargetIds)}, " +
@@ -269,7 +269,7 @@ namespace RimChat.UI
                     out string normalizeFailureMessage))
             {
                 Log.Warning(
-                    "[RimChat] pay_prisoner_ransom batch normalization failed. " +
+                    "[RimAI.Relations] pay_prisoner_ransom batch normalization failed. " +
                     $"total_offer={totalOfferSilver}, window={pendingBatch.TotalMinOfferSilver}-{pendingBatch.TotalMaxOfferSilver}, " +
                     $"expected_targets={FormatRansomBatchTargetIds(expectedTargetIds)}, actual_targets={FormatRansomBatchTargetIds(actualTargetIds)}");
                 return BatchRansomExecutionPlan.Invalid(
@@ -332,7 +332,7 @@ namespace RimChat.UI
             }
 
             Log.Message(
-                "[RimChat] pay_prisoner_ransom batch total normalized. " +
+                "[RimAI.Relations] pay_prisoner_ransom batch total normalized. " +
                 $"original_total={totalOfferSilver}, normalized_total={targetTotalOfferSilver}, " +
                 $"window={pendingBatch.TotalMinOfferSilver}-{pendingBatch.TotalMaxOfferSilver}, " +
                 $"targets={ransomActions.Count}");
@@ -427,7 +427,7 @@ namespace RimChat.UI
 
             if (!HasPendingRansomBatchSelection(currentSession))
             {
-                Log.Message("[RimChat] pay_prisoner_ransom batch completed. Cleared request_info(prisoner) state.");
+                Log.Message("[RimAI.Relations] pay_prisoner_ransom batch completed. Cleared request_info(prisoner) state.");
                 ResetRansomSelectionStateAfterPayment(currentSession);
                 return;
             }
@@ -672,7 +672,7 @@ namespace RimChat.UI
             currentSession.boundRansomTargetFactionId = string.Empty;
             currentSession.ClearPendingRansomBatchSelection();
             currentSession.ClearPendingRansomOfferReference();
-            Log.Message("[RimChat] pay_prisoner_ransom succeeded. Cleared request_info(prisoner) state.");
+            Log.Message("[RimAI.Relations] pay_prisoner_ransom succeeded. Cleared request_info(prisoner) state.");
         }
 
         private static bool IsPayPrisonerRansomAction(AIAction action)
@@ -810,7 +810,7 @@ namespace RimChat.UI
                 summary = summary.Substring(0, 160) + "...";
             }
 
-            Log.Warning($"[RimChat] ransom auto-reply timeout classified={timeoutClass} cooldown=90s detail={summary}");
+            Log.Warning($"[RimAI.Relations] ransom auto-reply timeout classified={timeoutClass} cooldown=90s detail={summary}");
         }
 
         private sealed class RansomBatchQuoteEntry

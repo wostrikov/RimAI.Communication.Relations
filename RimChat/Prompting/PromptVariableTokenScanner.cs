@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: PromptVariableCatalog.

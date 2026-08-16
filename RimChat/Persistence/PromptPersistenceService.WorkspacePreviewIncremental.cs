@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     public partial class PromptPersistenceService
     {

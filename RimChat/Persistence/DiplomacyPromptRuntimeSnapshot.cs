@@ -1,6 +1,6 @@
 using RimWorld;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: PromptPersistenceService dynamic block renderers and world-state observers.

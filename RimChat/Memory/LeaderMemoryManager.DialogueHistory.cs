@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: diplomacy runtime sessions, leader-memory cache, and dialogue-history persistence.

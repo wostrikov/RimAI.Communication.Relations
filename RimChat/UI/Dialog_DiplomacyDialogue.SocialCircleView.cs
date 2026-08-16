@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using System.Text;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: GameComponent_DiplomacyManager social APIs and social-circle post models.
  /// Responsibility: render the diplomacy-window social-circle tab as a world-news feed.

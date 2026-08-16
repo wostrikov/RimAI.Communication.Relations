@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     public enum AIProvider
     {

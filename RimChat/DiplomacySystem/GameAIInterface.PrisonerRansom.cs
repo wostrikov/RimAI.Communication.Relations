@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: PrisonerRansomService, RansomContractManager, and DropPodUtility.
@@ -136,7 +136,7 @@ namespace RimChat.DiplomacySystem
             if (acceptedSilver != offeredSilver)
             {
                 Log.Message(
-                    "[RimChat] pay_prisoner_ransom normalized in prepare. " +
+                    "[RimAI.Relations] pay_prisoner_ransom normalized in prepare. " +
                     $"target={pawnLoadId}, original={offeredSilver}, " +
                     $"window={minOfferSilver}-{maxOfferSilver}, normalized={acceptedSilver}, " +
                     $"current_ask={state.CurrentAskSilver}");
@@ -363,7 +363,7 @@ namespace RimChat.DiplomacySystem
 
         private static APIResult FailFastRansom(string code, string playerMessage, string debugDetail)
         {
-            Log.Warning($"[RimChat] pay_prisoner_ransom failed: code={code}, detail={debugDetail ?? "n/a"}");
+            Log.Warning($"[RimAI.Relations] pay_prisoner_ransom failed: code={code}, detail={debugDetail ?? "n/a"}");
             return APIResult.FailureResult(playerMessage);
         }
 
@@ -451,7 +451,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to force hostile relation for ransom penalty raid: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to force hostile relation for ransom penalty raid: {ex.Message}");
             }
         }
 

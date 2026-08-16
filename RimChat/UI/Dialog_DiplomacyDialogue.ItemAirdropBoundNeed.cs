@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: diplomacy parsed actions, session-scoped airdrop trade-card reference state.

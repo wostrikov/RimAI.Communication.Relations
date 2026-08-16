@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Persistence;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, LeaderMemoryManager, diplomacy/RPG dialogue message models.
  /// Responsibility: create and persist cross-channel summaries with rule-first strategy and LLM fallback.

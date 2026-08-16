@@ -1,9 +1,9 @@
 using HarmonyLib;
-using RimChat.NpcDialogue;
-using RimChat.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>
     /// Dependencies: Verse.LoadedObjectDirectory, RimChat ChoiceLetter subclasses.
@@ -31,7 +31,7 @@ namespace RimChat.Patches
                     string correctKey = $"Letter_{assigned}";
                     RegisterDirectly(__instance, correctKey, __0);
                     Log.Warning(
-                        $"[RimChat] Pre-register fix: NpcInitiatedDialogue loadID={current} -> {assigned}");
+                        $"[RimAI.Relations] Pre-register fix: NpcInitiatedDialogue loadID={current} -> {assigned}");
                     return false;
                 }
             }
@@ -47,7 +47,7 @@ namespace RimChat.Patches
                     string correctKey = $"Letter_{assigned}";
                     RegisterDirectly(__instance, correctKey, __0);
                     Log.Warning(
-                        $"[RimChat] Pre-register fix: PawnRpgInitiatedDialogue loadID={current} -> {assigned}");
+                        $"[RimAI.Relations] Pre-register fix: PawnRpgInitiatedDialogue loadID={current} -> {assigned}");
                     return false;
                 }
             }

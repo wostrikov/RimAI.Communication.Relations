@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: airdrop candidate models and selection window policy.

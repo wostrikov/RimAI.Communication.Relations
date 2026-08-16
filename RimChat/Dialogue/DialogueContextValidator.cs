@@ -1,9 +1,9 @@
 using System;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     /// <summary>
     /// Fail-fast validation gates shared by window open, request send and callback apply.

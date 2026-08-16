@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 using UnityEngine;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_DiplomacyDialogue
     {

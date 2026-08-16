@@ -1,12 +1,12 @@
-using RimChat.NpcDialogue;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 using System.Linq;
 
-namespace RimChat.PawnRpgPush
+namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
-    /// <summary>/// Dependencies: RimWorld.Faction, RimChat.NpcDialogue enums.
+    /// <summary>/// Dependencies: RimWorld.Faction, Ustas.RimAI.Communication.Relations.NpcDialogue enums.
  /// Responsibility: Carry one PawnRPG proactive trigger before queueing or generation.
  ///</summary>
     public class PawnRpgTriggerContext

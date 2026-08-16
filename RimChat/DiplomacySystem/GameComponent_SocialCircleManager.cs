@@ -1,10 +1,10 @@
-using RimChat.Core;
-using RimChat.Memory;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: DiplomacyManager (for session messages), SocialCircleState, AIChatServiceAsync.

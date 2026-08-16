@@ -4,7 +4,7 @@ using System.Linq;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: RimWorld.Pawn/Faction, Verse.TickManager.
  /// Responsibility: keep a lightweight rolling trace of recent RPG dialogue turns per NPC pawn.

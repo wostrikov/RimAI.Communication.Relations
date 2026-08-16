@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using RimWorld;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: RimWorld.Faction.
  /// Responsibility: carry one fact-grounded news seed into the social-circle generation pipeline.

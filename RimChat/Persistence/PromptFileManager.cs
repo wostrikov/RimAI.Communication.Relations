@@ -2,17 +2,17 @@ using System;
 using System.IO;
 using Verse;
 using RimWorld;
-using RimChat.Config;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
 using UnityEngine;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Prompt filemanager - 负责从 save_data folder读取和save AI prompt configuration
  ///</summary>
     public static class PromptFileManager
     {
-        private const string PROMPT_DIRECTORY = "RimChat";
+        private const string PROMPT_DIRECTORY = "Ustas.RimAI.Communication.Relations";
         private const string PROMPT_ROOT_FOLDER = "Prompt";
         private const string PROMPT_CUSTOM_SUBDIRECTORY = "Custom";
         private const string DEFAULT_PROMPT_FILE = "global_prompt.json";
@@ -58,12 +58,12 @@ namespace RimChat.Persistence
                 if (!Directory.Exists(BasePath))
                 {
                     Directory.CreateDirectory(BasePath);
-                    Log.Message($"[RimChat] 创建 prompt 目录：{BasePath}");
+                    Log.Message($"[RimAI.Relations] 创建 prompt 目录：{BasePath}");
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] 创建 prompt 目录失败：{ex.Message}");
+                Log.Error($"[RimAI.Relations] 创建 prompt 目录失败：{ex.Message}");
             }
         }
         
@@ -82,17 +82,17 @@ namespace RimChat.Persistence
                     
                     if (config != null && !string.IsNullOrEmpty(config.SystemPrompt))
                     {
-                        Log.Message($"[RimChat] 从文件加载全局 Prompt: {config.Name}");
+                        Log.Message($"[RimAI.Relations] 从文件加载全局 Prompt: {config.Name}");
                         return config;
                     }
                 }
                 
-                Log.Message($"[RimChat] Prompt 文件不存在或无效，使用默认 Prompt");
+                Log.Message($"[RimAI.Relations] Prompt 文件不存在或无效，使用默认 Prompt");
                 return CreateDefaultPromptConfig();
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] 加载 Prompt 文件失败：{ex.Message}");
+                Log.Error($"[RimAI.Relations] 加载 Prompt 文件失败：{ex.Message}");
                 return CreateDefaultPromptConfig();
             }
         }
@@ -116,7 +116,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] JSON 解析失败：{ex.Message}");
+                Log.Warning($"[RimAI.Relations] JSON 解析失败：{ex.Message}");
                 return null;
             }
         }
@@ -138,18 +138,18 @@ namespace RimChat.Persistence
                 
                 if (config == null)
                 {
-                    Log.Warning("[RimChat] 尝试保存空的 Prompt 配置");
+                    Log.Warning("[RimAI.Relations] 尝试保存空的 Prompt 配置");
                     return;
                 }
                 
                 string json = SerializePromptConfigToJson(config);
                 File.WriteAllText(GlobalPromptPath, json);
                 
-                Log.Message($"[RimChat] 已保存全局 Prompt 到：{GlobalPromptPath}");
+                Log.Message($"[RimAI.Relations] 已保存全局 Prompt 到：{GlobalPromptPath}");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] 保存 Prompt 文件失败：{ex.Message}");
+                Log.Error($"[RimAI.Relations] 保存 Prompt 文件失败：{ex.Message}");
             }
         }
         
@@ -222,12 +222,12 @@ namespace RimChat.Persistence
                 if (File.Exists(GlobalPromptPath))
                 {
                     File.Delete(GlobalPromptPath);
-                    Log.Message("[RimChat] 已删除自定义 Prompt，将使用默认 Prompt");
+                    Log.Message("[RimAI.Relations] 已删除自定义 Prompt，将使用默认 Prompt");
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] 删除 Prompt 文件失败：{ex.Message}");
+                Log.Error($"[RimAI.Relations] 删除 Prompt 文件失败：{ex.Message}");
             }
         }
     }

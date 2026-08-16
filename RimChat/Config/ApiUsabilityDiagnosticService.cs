@@ -3,12 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: ApiConfig/LocalModelConfig, UnityWebRequest, and AI debug telemetry.
@@ -100,7 +100,7 @@ namespace RimChat.Config
                 modelsFallbackDetail = config.Provider == AIProvider.OpenAI
                     ? $"models_probe_optional_http={modelsProbe.HttpCode}; direct_model_probe=true"
                     : BuildMissingModelsFallbackDetail(modelsProbe.HttpCode);
-                Log.Warning($"[RimChat] Models probe unavailable (HTTP {modelsProbe.HttpCode}); selected model will be tested directly. endpoint={runtime.ModelsEndpoint}");
+                Log.Warning($"[RimAI.Relations] Models probe unavailable (HTTP {modelsProbe.HttpCode}); selected model will be tested directly. endpoint={runtime.ModelsEndpoint}");
             }
 
             steps.Add(BuildStepSuccess(ApiUsabilityStep.ModelsProbe, runtime.ModelsEndpoint, startedAtUtc));
@@ -775,7 +775,7 @@ namespace RimChat.Config
 
             if (IsModelsEndpointMissingStatusCode(openAiProbe.HttpCode))
             {
-                Log.Warning($"[RimChat] Local OpenAI-compatible models endpoint missing (HTTP {openAiProbe.HttpCode}), fallback to chat probe. endpoint={openAiEndpoint}");
+                Log.Warning($"[RimAI.Relations] Local OpenAI-compatible models endpoint missing (HTTP {openAiProbe.HttpCode}), fallback to chat probe. endpoint={openAiEndpoint}");
                 onCompleted?.Invoke(new ApiUsabilityLocalServiceProbe
                 {
                     IsSuccess = true,

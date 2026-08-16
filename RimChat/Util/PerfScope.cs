@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     /// <summary>
     /// Lightweight disposable perf probe. Logs via DebugLogger when the

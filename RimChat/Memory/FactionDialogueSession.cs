@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     public enum AirdropExecutionStage
     {

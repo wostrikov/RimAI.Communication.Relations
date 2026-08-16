@@ -1,4 +1,4 @@
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: social-circle scheduler settings/UI.
  /// Responsibility: define coarse-grained scheduled social-news frequency levels.

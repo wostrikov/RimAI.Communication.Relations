@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: RpgNpcDialogueArchive/RpgNpcDialogueSessionArchive.
  /// Responsibility: serialize and parse NPC-scoped RPG archive JSON with strict sessions-first storage.
@@ -130,7 +130,7 @@ namespace RimChat.Memory
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse RPG NPC archive JSON: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse RPG NPC archive JSON: {ex.Message}");
                 return null;
             }
         }
@@ -465,7 +465,7 @@ namespace RimChat.Memory
 
         private static string EscapeJson(string value)
         {
-            return RimChat.Util.JsonEscapeHelper.EscapeString(value);
+            return Ustas.RimAI.Communication.Relations.Util.JsonEscapeHelper.EscapeString(value);
         }
     }
 }

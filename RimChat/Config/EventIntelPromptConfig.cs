@@ -1,7 +1,7 @@
 using System;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Responsibility: control world-event and battle-intel prompt injection behavior.
  ///</summary>

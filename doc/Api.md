@@ -6,7 +6,7 @@
   - `SupportedQuestDefs` 移除 `BestowingCeremony`，该模板不再进入 `GetFactionQuestAvailabilityReport(...)` 的可用任务集合。
   - `ValidateCreateQuest(...)` 新增授勋模板强制阻断：
     - 命中 `questDefName == "BestowingCeremony"` 时直接返回 `bestowing_disabled`。
-    - 同步写入稳定日志锚点：`[RimChat][QuestGuard] blocked create_quest for disabled template ...`（包含 faction/questDefName/code）。
+    - 同步写入稳定日志锚点：`[RimAI.Relations][QuestGuard] blocked create_quest for disabled template ...`（包含 faction/questDefName/code）。
   - 语义：该阻断仅作用于 RimChat 的 `create_quest` 动作链，不改游戏本体任务系统。
 
 - `RimChat.UI.Dialog_DiplomacyDialogue.ActionHint`
@@ -969,8 +969,8 @@
   - `Translator.TryTranslate` 回退补丁已切换为 `__0/__1`。
 - 启动期自检：
   - 新增 `HarmonyPatchStartupSelfCheck.Run()`，在 `PatchAll` 前校验关键补丁签名并输出最小日志：
-    - 通过：`[RimChat][HarmonySelfCheck] Startup patch checks passed`
-    - 失败：`[RimChat][HarmonySelfCheck] ... failed` + 失败项明细
+    - 通过：`[RimAI.Relations][HarmonySelfCheck] Startup patch checks passed`
+    - 失败：`[RimAI.Relations][HarmonySelfCheck] ... failed` + 失败项明细
 
 ## 非中英语言键英文回退根修（v0.9.5）
 

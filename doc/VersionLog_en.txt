@@ -429,7 +429,7 @@
 - Quest-request bestowing disable + in-game cooldown wording unification (fail-fast root fix):
   1. [Root fix] Removed `BestowingCeremony` from `ApiActionEligibilityService.SupportedQuestDefs`, so it is no longer exposed in manual quest-request options or allowed-quest injection flows.
   2. [Guardrail] Added `bestowing_disabled` fail-fast in `ValidateCreateQuest(...)`; forced external requests for the bestowing template are rejected before quest publication.
-  3. [Observability] Added stable log anchor: `[RimChat][QuestGuard] blocked create_quest for disabled template`, including faction/questDefName/code for fast `Player.log` triage.
+  3. [Observability] Added stable log anchor: `[RimAI.Relations][QuestGuard] blocked create_quest for disabled template`, including faction/questDefName/code for fast `Player.log` triage.
   4. [Wording unification] `Dialog_DiplomacyDialogue.ActionHint.FormatCooldownReason(...)` now consistently renders diplomacy cooldowns as in-game remaining time (days/hours), covering `quest_cooldown`, `aid_cooldown`, `caravan_cooldown`, and related codes.
   5. [Compatibility] Changed only quest-template visibility and cooldown wording layer; cooldown storage/truth source remains `TicksGame`, with no new save fields.
   6. [Docs] Synced `doc/Index.md`, `doc/Api.md`, `doc/config.md`, `doc/VersionLog.txt`, and `doc/VersionLog_en.txt`.
@@ -2720,7 +2720,7 @@
 - Fixed: added runtime gate `ShouldBlockAiPersonaGeneration()` in `RimChat/DiplomacySystem/GameComponent_RPGManager.PersonaBootstrap.cs`; when RimTalk mod is detected as loaded, AI persona generation requests are automatically blocked.
 - Fixed: wired fail-fast short-circuit checks into `ProcessNpcPersonaBootstrapTick`, `ProcessNpcPersonaRuntimeTick`, and `RetryOrFallbackPersonaPrompt`, covering bootstrap/runtime/retry request paths.
 - Fixed: added a defensive short-circuit in `StartNpcPersonaGeneration`; when RimTalk is loaded it returns immediately, while RimTalk persona sync and existing local persona reads remain intact, with no user config mutation.
-- Logging: added one-time runtime info log `[RimChat] RimTalk detected; AI persona generation blocked at runtime.` to make activation observable without log spam.
+- Logging: added one-time runtime info log `[RimAI.Relations] RimTalk detected; AI persona generation blocked at runtime.` to make activation observable without log spam.
 - Validation: `build.ps1` build/deploy passed (`0 errors`), with only pre-existing `Scriban 5.10.0` security warnings remaining.
 - Version: bumped `About/About.xml` to `0.7.66`.
 

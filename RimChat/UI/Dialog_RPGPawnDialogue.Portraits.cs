@@ -1,7 +1,7 @@
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: dialogue window layout constants and pawn portrait renderer.
  /// Responsibility: centralize PawnRPG portrait layout so other overlays can share the same anchors.

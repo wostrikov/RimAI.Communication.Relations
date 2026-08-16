@@ -5,10 +5,10 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using System.Xml;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// RimChat AI闂備胶顢婇惌鍥礃閵娧冨箑闂備胶鍎甸弲婵嬧€﹂崼銉ョ煑鐟滃繘骞忕€ｎ喖绀堢憸蹇涘几閸岀偞鐓欑痪鐗埳戝▍鍛存煟? /// 闂備礁鎲￠悧鏇㈠箠鎼淬劌绠氶柛顐ｇ箥閻撱儲鎱ㄥ鍡楀鐞氱喖姊绘笟鍥т簻妞わ妇鏁绘俊鏉戭吋婢跺﹦顢呴梺鐐藉劥濞呮洜鈧氨娼狪闂傚倸鍊哥€氼參宕濋弴銏犳槬婵°倕鎳忛埛鎾绘煕椤愶絿濡囬柛瀣尰缁虹晫绮欓崹顔跨ゴ缂? ///</summary>
     public partial class RimChatSettings : ModSettings
@@ -135,7 +135,7 @@ namespace RimChat.Config
             Scribe_Values.Look(ref PresenceOnlineDuration_Archotech, "PresenceOnlineDuration_Archotech", 20);
 
             Scribe_Values.Look(ref EnableSocialCircle, "EnableSocialCircle", true);
-            Scribe_Values.Look(ref ScheduledNewsFrequencyLevel, "ScheduledNewsFrequencyLevel", global::RimChat.Config.ScheduledNewsFrequencyLevel.High);
+            Scribe_Values.Look(ref ScheduledNewsFrequencyLevel, "ScheduledNewsFrequencyLevel", global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.High);
             Scribe_Values.Look(ref SocialPostIntervalMinDays, "SocialPostIntervalMinDays", 5);
             Scribe_Values.Look(ref SocialPostIntervalMaxDays, "SocialPostIntervalMaxDays", 7);
             Scribe_Values.Look(ref EnablePlayerInfluenceNews, "EnablePlayerInfluenceNews", true);
@@ -147,7 +147,7 @@ namespace RimChat.Config
             Scribe_Values.Look(
                 ref NpcPushFrequencyMode,
                 "NpcPushFrequencyMode",
-                global::RimChat.Config.NpcPushFrequencyMode.Low);
+                global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.Low);
             Scribe_Values.Look(ref NpcQueueMaxPerFaction, "NpcQueueMaxPerFaction", 3);
             Scribe_Values.Look(ref NpcQueueExpireHours, "NpcQueueExpireHours", 12f);
             Scribe_Values.Look(ref NpcGlobalDeliveryCooldownHours, "NpcGlobalDeliveryCooldownHours", 6f);
@@ -225,21 +225,21 @@ namespace RimChat.Config
             NormalizeRaidPointSettings();
         }
 
-        private static global::RimChat.Config.ScheduledNewsFrequencyLevel InferFrequencyLevelFromLegacyRange(int minDays, int maxDays)
+        private static global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel InferFrequencyLevelFromLegacyRange(int minDays, int maxDays)
         {
             int min = Mathf.Max(1, minDays);
             int max = Mathf.Max(min, maxDays);
             if (max <= 1)
             {
-                return global::RimChat.Config.ScheduledNewsFrequencyLevel.High;
+                return global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.High;
             }
 
             if (min <= 1 && max <= 2)
             {
-                return global::RimChat.Config.ScheduledNewsFrequencyLevel.Medium;
+                return global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.Medium;
             }
 
-            return global::RimChat.Config.ScheduledNewsFrequencyLevel.Low;
+            return global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.Low;
         }
 
         #endregion

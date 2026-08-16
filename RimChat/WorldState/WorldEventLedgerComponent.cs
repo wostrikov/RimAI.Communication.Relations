@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using RimChat.Config;
-using RimChat.Persistence;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.WorldState
+namespace Ustas.RimAI.Communication.Relations.WorldState
 {
     /// <summary>/// Dependencies: Verse.GameComponent, LetterStack, and RaidThreatSnapshotProvider.
      /// Responsibility: collect and persist recent world events and raid battle intel for prompt injection.
@@ -572,7 +572,7 @@ namespace RimChat.WorldState
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Skipping letter map extraction for letter {letter.ID}: {ex.GetType().Name}");
+                Log.Warning($"[RimAI.Relations] Skipping letter map extraction for letter {letter.ID}: {ex.GetType().Name}");
                 return null;
             }
         }
@@ -952,7 +952,7 @@ namespace RimChat.WorldState
 
             if (compressed > 0)
             {
-                Log.Message($"[RimChat] Compressed {compressed} old world event summaries.");
+                Log.Message($"[RimAI.Relations] Compressed {compressed} old world event summaries.");
             }
         }
 

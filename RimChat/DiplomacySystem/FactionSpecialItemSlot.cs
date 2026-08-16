@@ -2,10 +2,10 @@ using System;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
-    /// Dependencies: Verse.IExposable, Verse.Find, RimChat.DiplomacySystem.ThingDefCatalog.
+    /// Dependencies: Verse.IExposable, Verse.Find, Ustas.RimAI.Communication.Relations.DiplomacySystem.ThingDefCatalog.
     /// Responsibility: represent a single special item slot (discount or scarce) for a faction with persistence support.
     /// </summary>
     public enum SpecialItemType

@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
-using RimChat.Persistence;
-using RimChat.Prompting;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: diplomacy image config/templates, ARK image generation service, and dialogue session message APIs.
  /// Responsibility: intercept send_image action, build prompt payload, and append inline image message/failure notices.
@@ -203,12 +203,12 @@ namespace RimChat.UI
             string preview = BuildPromptPreview(finalPrompt, 600);
 
             Log.Message(
-                "[RimChat] send_image prompt debug: "
+                "[RimAI.Relations] send_image prompt debug: "
                 + $"faction='{factionName}', requested_template_id='{requestedTemplateId ?? string.Empty}', "
                 + $"resolved_template_id='{resolvedId}', resolved_template_name='{resolvedName}', "
                 + $"template_text_len={templateLength}, extra_prompt_len={extraLength}, "
                 + $"final_prompt_len={finalLength}, size='{size ?? string.Empty}', watermark={watermark}.");
-            Log.Message($"[RimChat] send_image prompt preview: {preview}");
+            Log.Message($"[RimAI.Relations] send_image prompt preview: {preview}");
         }
 
         private static string BuildPromptPreview(string value, int maxLength)

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: RimWorld Pawn/Faction state and RimChat settings.

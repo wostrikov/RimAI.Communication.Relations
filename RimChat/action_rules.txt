@@ -336,8 +336,8 @@ NPC у RimChat можуть виконувати різні дипломатич
 У налаштуваннях активуйте EnableDebugLogging, щоб бачити детальну інформацію про всі виклики API.
 
 Формат журналу:
-[RimChat] API Call [SUCCESS]: AdjustGoodwill - faction=Імперія, amount=10, reason=дружня розмова
-[RimChat] API Call [FAILED]: DeclareWar - faction=Плем’я, reason=недостатня репутація
+[RimAI.Relations] API Call [SUCCESS]: AdjustGoodwill - faction=Імперія, amount=10, reason=дружня розмова
+[RimAI.Relations] API Call [FAILED]: DeclareWar - faction=Плем’я, reason=недостатня репутація
 
 Поширені проблеми:
 1. Дія не виконується: перевірте cooldown, дозволи та повноту параметрів

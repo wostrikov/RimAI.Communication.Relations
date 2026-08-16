@@ -5,13 +5,13 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.Rpg;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Rpg;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     [StaticConstructorOnStartup]
     public partial class Dialog_RPGPawnGroupChat : Window

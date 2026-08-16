@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt domain file catalog and Unity JsonUtility.
@@ -103,7 +103,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse unified prompt catalog from {path}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse unified prompt catalog from {path}: {ex.Message}");
                 return null;
             }
         }

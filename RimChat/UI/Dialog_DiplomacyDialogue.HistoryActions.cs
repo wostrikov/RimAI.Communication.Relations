@@ -1,7 +1,7 @@
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: diplomacy window state and dialogue-history management windows.

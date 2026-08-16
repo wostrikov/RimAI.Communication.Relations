@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Persistence;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public partial class RimChatSettings
     {
@@ -524,7 +524,7 @@ namespace RimChat.Config
                     _promptPresetStore.Presets.Add(created);
                     _selectedPromptPresetId = created.Id;
                     _presetRenameBuffer = created.Name;
-                    Log.Message($"[RimChat][PresetDiag] Legacy workbench create clicked. add_id={created.Id}, count={_promptPresetStore.Presets.Count}");
+                    Log.Message($"[RimAI.Relations][PresetDiag] Legacy workbench create clicked. add_id={created.Id}, count={_promptPresetStore.Presets.Count}");
                     if (!TryActivatePresetById(created.Id, showSuccessMessage: false))
                     {
                         _promptPresetService.SaveAll(_promptPresetStore);
@@ -533,7 +533,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat][PresetDiag] Legacy workbench create failed: {ex}");
+                    Log.Error($"[RimAI.Relations][PresetDiag] Legacy workbench create failed: {ex}");
                     Messages.Message("RimChat_PromptPreset_ActivateFailed".Translate(ex.Message), MessageTypeDefOf.RejectInput, false);
                 }
             }
@@ -547,7 +547,7 @@ namespace RimChat.Config
                     _promptPresetStore.Presets.Add(duplicated);
                     _selectedPromptPresetId = duplicated.Id;
                     _presetRenameBuffer = duplicated.Name;
-                    Log.Message($"[RimChat][PresetDiag] Legacy workbench duplicate clicked. add_id={duplicated.Id}, count={_promptPresetStore.Presets.Count}");
+                    Log.Message($"[RimAI.Relations][PresetDiag] Legacy workbench duplicate clicked. add_id={duplicated.Id}, count={_promptPresetStore.Presets.Count}");
                     if (!TryActivatePresetById(duplicated.Id, showSuccessMessage: false))
                     {
                         _promptPresetService.SaveAll(_promptPresetStore);
@@ -556,7 +556,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat][PresetDiag] Legacy workbench duplicate failed: {ex}");
+                    Log.Error($"[RimAI.Relations][PresetDiag] Legacy workbench duplicate failed: {ex}");
                     Messages.Message("RimChat_PromptPreset_ActivateFailed".Translate(ex.Message), MessageTypeDefOf.RejectInput, false);
                 }
             }
@@ -814,7 +814,7 @@ namespace RimChat.Config
                 return true;
             }
 
-            Log.Warning($"[RimChat] Prompt preset activation failed. id={presetId}, error={error}");
+            Log.Warning($"[RimAI.Relations] Prompt preset activation failed. id={presetId}, error={error}");
             Messages.Message("RimChat_PromptPreset_ActivateFailed".Translate(error ?? string.Empty), MessageTypeDefOf.RejectInput, false);
             return false;
         }
@@ -827,7 +827,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Prompt workbench window render failed: {ex}");
+                Log.Error($"[RimAI.Relations] Prompt workbench window render failed: {ex}");
                 Widgets.Label(rect, "RimChat_PromptRenderFailed".Translate());
             }
         }

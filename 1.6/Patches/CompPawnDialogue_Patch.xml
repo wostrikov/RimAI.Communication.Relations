@@ -2,9 +2,9 @@
 <Patch>
     <!-- Use PatchOperationAdd to add CompPawnDialogue to Human def safely -->
     <Operation Class="PatchOperationAdd">
-        <xpath>/Defs/ThingDef[defName="Human"]/comps[not(li[@Class='RimChat.Comp.CompProperties_PawnDialogue'])]</xpath>
+        <xpath>/Defs/ThingDef[defName="Human"]/comps[not(li[@Class='Ustas.RimAI.Communication.Relations.Comp.CompProperties_PawnDialogue'])]</xpath>
         <value>
-            <li Class="RimChat.Comp.CompProperties_PawnDialogue" />
+            <li Class="Ustas.RimAI.Communication.Relations.Comp.CompProperties_PawnDialogue" />
         </value>
     </Operation>
 </Patch>

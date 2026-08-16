@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using RimWorld;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     public interface IPromptPersistenceService
     {

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     internal sealed partial class PromptPresetService : IPromptPresetService
     {
@@ -43,7 +43,7 @@ namespace RimChat.Config
         private const string CorruptStoreFileSuffix = ".corrupt";
         private static readonly string ConfigStoreDirectory = Path.Combine(
             GenFilePaths.ConfigFolderPath,
-            "RimChat",
+            "Ustas.RimAI.Communication.Relations",
             PromptDomainFileCatalog.PromptFolderName,
             PromptDomainFileCatalog.CustomSubFolderName);
 
@@ -59,7 +59,7 @@ namespace RimChat.Config
             NormalizeStore(settings, store, persistWhenEmpty: !readCorrupted);
             if (readCorrupted)
             {
-                Log.Warning("[RimChat] Prompt preset store load failed due to corruption. Using in-memory defaults without overwriting disk data.");
+                Log.Warning("[RimAI.Relations] Prompt preset store load failed due to corruption. Using in-memory defaults without overwriting disk data.");
             }
 
             return store;
@@ -81,18 +81,18 @@ namespace RimChat.Config
             string path = GetStorePath();
             string tempPath = path + ".tmp";
             string json = ReflectionJsonFieldSerializer.Serialize(normalized, prettyPrint: true);
-            Log.Message($"[RimChat][PresetDiag] SaveAll begin. presets={normalized.Presets.Count}, active={normalized.ActivePresetId}, default={normalized.DefaultPresetId}, path={path}");
+            Log.Message($"[RimAI.Relations][PresetDiag] SaveAll begin. presets={normalized.Presets.Count}, active={normalized.ActivePresetId}, default={normalized.DefaultPresetId}, path={path}");
             if (normalized.Presets.Count > 0 &&
                 json.IndexOf("\"Presets\"", StringComparison.Ordinal) < 0)
             {
-                throw new InvalidOperationException("[RimChat] Prompt preset store serialization dropped preset list. Save aborted.");
+                throw new InvalidOperationException("[RimAI.Relations] Prompt preset store serialization dropped preset list. Save aborted.");
             }
 
             try
             {
                 AtomicWriteText(path, tempPath, json);
                 MirrorStoreToLegacyPath(path);
-                Log.Message($"[RimChat][PresetDiag] SaveAll done. presets={normalized.Presets.Count}, bytes={new FileInfo(path).Length}");
+                Log.Message($"[RimAI.Relations][PresetDiag] SaveAll done. presets={normalized.Presets.Count}, bytes={new FileInfo(path).Length}");
             }
             finally
             {
@@ -335,7 +335,7 @@ namespace RimChat.Config
                 string json = ReflectionJsonFieldSerializer.Serialize(preset, prettyPrint: true);
                 if (json.IndexOf("\"ChannelPayloads\"", StringComparison.Ordinal) < 0)
                 {
-                    throw new InvalidOperationException("[RimChat] Prompt preset export serialization dropped channel payloads.");
+                    throw new InvalidOperationException("[RimAI.Relations] Prompt preset export serialization dropped channel payloads.");
                 }
 
                 File.WriteAllText(normalizedPath, json);
@@ -576,7 +576,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to self-heal preset store from legacy path: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to self-heal preset store from legacy path: {ex.Message}");
                 }
             }
 
@@ -598,7 +598,7 @@ namespace RimChat.Config
                 if (store == null)
                 {
                     corrupted = true;
-                    Log.Warning($"[RimChat] Prompt preset store JSON parsed to null. path={path}");
+                    Log.Warning($"[RimAI.Relations] Prompt preset store JSON parsed to null. path={path}");
                     QuarantineCorruptedStoreFile(path, "json parsed to null");
                     return null;
                 }
@@ -607,7 +607,7 @@ namespace RimChat.Config
                     (json.IndexOf("\"ActivePresetId\"", StringComparison.Ordinal) >= 0 ||
                      json.IndexOf("\"DefaultPresetId\"", StringComparison.Ordinal) >= 0))
                 {
-                    Log.Warning($"[RimChat] Prompt preset store file has IDs but missing preset list. path={path}");
+                    Log.Warning($"[RimAI.Relations] Prompt preset store file has IDs but missing preset list. path={path}");
                 }
 
                 int rawPresetCountHint = CountPresetObjectsHint(json);
@@ -618,19 +618,19 @@ namespace RimChat.Config
                 {
                     store.Presets = recovered;
                     Log.Warning(
-                        $"[RimChat][PresetDiag] Recovered preset list from raw JSON. " +
+                        $"[RimAI.Relations][PresetDiag] Recovered preset list from raw JSON. " +
                         $"path={path}, parsed={parsedPresetCount}, recovered={recovered.Count}");
                 }
 
                 ApplyLegacyPayloadsFromStoreJson(store, json);
-                Log.Message($"[RimChat][PresetDiag] ReadStore success. path={path}, presets={store.Presets?.Count ?? 0}");
+                Log.Message($"[RimAI.Relations][PresetDiag] ReadStore success. path={path}, presets={store.Presets?.Count ?? 0}");
                 return store;
             }
             catch (Exception ex)
             {
                 corrupted = true;
                 QuarantineCorruptedStoreFile(path, ex.Message);
-                Log.Warning($"[RimChat] Failed to read prompt preset store: {ex.Message}. path={path}");
+                Log.Warning($"[RimAI.Relations] Failed to read prompt preset store: {ex.Message}. path={path}");
                 return null;
             }
         }
@@ -863,11 +863,11 @@ namespace RimChat.Config
             try
             {
                 File.Move(path, corruptPath);
-                Log.Error($"[RimChat] Quarantined corrupted preset store: {corruptPath}. reason={reason}");
+                Log.Error($"[RimAI.Relations] Quarantined corrupted preset store: {corruptPath}. reason={reason}");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to quarantine corrupted preset store '{path}': {ex.Message}. reason={reason}");
+                Log.Error($"[RimAI.Relations] Failed to quarantine corrupted preset store '{path}': {ex.Message}. reason={reason}");
             }
         }
 
@@ -902,7 +902,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat][PresetDiag] File.Replace failed, fallback to copy+delete. path={path}, error={ex.Message}");
+                    Log.Warning($"[RimAI.Relations][PresetDiag] File.Replace failed, fallback to copy+delete. path={path}, error={ex.Message}");
                     File.Copy(tempPath, path, overwrite: true);
                     File.Delete(tempPath);
                 }
@@ -963,7 +963,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to mirror preset store to legacy path: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to mirror preset store to legacy path: {ex.Message}");
             }
         }
 
@@ -985,11 +985,11 @@ namespace RimChat.Config
             {
                 EnsureStoreDirectory();
                 File.Copy(legacyPath, targetPath, overwrite: false);
-                Log.Message($"[RimChat] Migrated preset store to config path: {targetPath}");
+                Log.Message($"[RimAI.Relations] Migrated preset store to config path: {targetPath}");
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to migrate legacy preset store: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to migrate legacy preset store: {ex.Message}");
             }
         }
 
@@ -1165,7 +1165,7 @@ namespace RimChat.Config
             }
 
             catalog.MigrationVersion = LegacyRpgNodeMigrationVersion;
-            Log.Message($"[RimChat] Legacy RPG node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
+            Log.Message($"[RimAI.Relations] Legacy RPG node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
         }
 
         private static void ApplyLegacySocialNewsNodeMigrationIfNeeded(PromptPresetConfig preset)
@@ -1189,7 +1189,7 @@ namespace RimChat.Config
             catalog.MigrationVersion = LegacySocialNewsNodeMigrationVersion;
             if (overriddenCount > 0)
             {
-                Log.Message($"[RimChat] Legacy social news node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
+                Log.Message($"[RimAI.Relations] Legacy social news node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
             }
         }
 
@@ -1279,7 +1279,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to parse default unified prompt catalog: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to parse default unified prompt catalog: {ex.Message}");
                 }
             }
 
@@ -1448,7 +1448,7 @@ namespace RimChat.Config
             if (!trimmed.StartsWith("{", StringComparison.Ordinal) &&
                 !trimmed.StartsWith("[", StringComparison.Ordinal))
             {
-                Log.Warning($"[RimChat] Skip writing preset payload because content is not JSON. Path: {path}");
+                Log.Warning($"[RimAI.Relations] Skip writing preset payload because content is not JSON. Path: {path}");
                 return;
             }
 
@@ -1480,7 +1480,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse RPG prompt custom payload for preset activation: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse RPG prompt custom payload for preset activation: {ex.Message}");
                 return null;
             }
         }

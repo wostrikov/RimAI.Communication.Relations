@@ -1,7 +1,7 @@
 using System;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: Verse.Scribe for config persistence.
  /// Responsibility: store reusable prompt text templates for shared prompt sections.

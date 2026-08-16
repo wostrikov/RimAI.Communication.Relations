@@ -2,7 +2,7 @@
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: AI settings section labels and toggle fields.
  /// Responsibility: lightweight UX helpers for AI settings tab header tools.

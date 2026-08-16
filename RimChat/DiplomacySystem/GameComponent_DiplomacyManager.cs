@@ -7,14 +7,14 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
-using RimChat.Memory;
-using RimChat.Util;
-using RimChat.Core;
-using RimChat.Config;
-using RimChat.AI;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Persistence;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public partial class GameComponent_DiplomacyManager : GameComponent
     {
@@ -202,7 +202,7 @@ namespace RimChat.DiplomacySystem
             session = new FactionDialogueSession(faction);
             dialogueSessions.Add(session);
             dialogueSessionsByFaction[faction] = session;
-            Log.Message($"[RimChat] Created dialogue session for {faction.Name}");
+            Log.Message($"[RimAI.Relations] Created dialogue session for {faction.Name}");
             return session;
         }
 
@@ -682,12 +682,12 @@ namespace RimChat.DiplomacySystem
                     {
                         int retryDelay = Rand.Range(1500, 3000);
                         evt.ScheduleRetry(retryDelay);
-                        Log.Warning($"[RimChat] Delayed {evt.EventType} from {evt.Faction?.Name} failed; retry {evt.RetryCount}/{evt.MaxRetryCount} at tick {evt.NextRetryTick}.");
+                        Log.Warning($"[RimAI.Relations] Delayed {evt.EventType} from {evt.Faction?.Name} failed; retry {evt.RetryCount}/{evt.MaxRetryCount} at tick {evt.NextRetryTick}.");
                     }
                     else
                     {
                         string policyNote = noRetryPolicy ? " (no-retry policy)" : string.Empty;
-                        Log.Error($"[RimChat] Delayed {evt.EventType} from {evt.Faction?.Name ?? "null"} failed after {evt.RetryCount} retries and was discarded{policyNote}. ExecuteTick={evt.ExecuteTick}, CurrentTick={currentTick}, Faction.defeated={evt.Faction?.defeated}, Faction.def={evt.Faction?.def?.defName}.");
+                        Log.Error($"[RimAI.Relations] Delayed {evt.EventType} from {evt.Faction?.Name ?? "null"} failed after {evt.RetryCount} retries and was discarded{policyNote}. ExecuteTick={evt.ExecuteTick}, CurrentTick={currentTick}, Faction.defeated={evt.Faction?.defeated}, Faction.def={evt.Faction?.def?.defName}.");
                         delayedEvents.RemoveAt(i);
                     }
                 }
@@ -717,7 +717,7 @@ namespace RimChat.DiplomacySystem
             {
                 delayedEvents.Add(evt);
             }
-            Log.Message($"[RimChat] Scheduled delayed {evt.EventType} from {evt.Faction?.Name} at tick {evt.ExecuteTick}");
+            Log.Message($"[RimAI.Relations] Scheduled delayed {evt.EventType} from {evt.Faction?.Name} at tick {evt.ExecuteTick}");
         }
 
         private void FlushPendingDelayedEvents()
@@ -737,7 +737,7 @@ namespace RimChat.DiplomacySystem
             GameAIInterface.Instance?.DailyReset();
             OnSocialCircleDailyReset();
 
-            Log.Message("[RimChat] Daily reset completed.");
+            Log.Message("[RimAI.Relations] Daily reset completed.");
         }
 
         private void ProcessAIDecisions()
@@ -786,7 +786,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error loading DiplomacyManager data from save: {ex.Message}\n{ex.StackTrace}");
+                Log.Error($"[RimAI.Relations] Error loading DiplomacyManager data from save: {ex.Message}\n{ex.StackTrace}");
                 // Ensure collections are non-null to prevent NullReferenceException later
                 aiControlledFactions ??= new HashSet<Faction>();
                 dialogueSessions ??= new List<FactionDialogueSession>();
@@ -855,12 +855,12 @@ namespace RimChat.DiplomacySystem
                             int minDelay = (int)(baseDelay * 0.2f);
                             int maxDelay = baseDelay;
                             evt.ExecuteTick = currentTick + Rand.Range(minDelay, maxDelay);
-                            Log.Message($"[RimChat] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: tick was in past, new tick={evt.ExecuteTick}");
+                            Log.Message($"[RimAI.Relations] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: tick was in past, new tick={evt.ExecuteTick}");
                         }
                         else if (evt.ExecuteTick - currentTick > baseDelay * 2)
                         {
                             evt.ExecuteTick = currentTick + Rand.Range(baseDelay, baseDelay * 2);
-                            Log.Message($"[RimChat] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: delay was too long, new tick={evt.ExecuteTick}");
+                            Log.Message($"[RimAI.Relations] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: delay was too long, new tick={evt.ExecuteTick}");
                         }
                     }
 
@@ -871,7 +871,7 @@ namespace RimChat.DiplomacySystem
                         && tempFactionRelations.originalRelations.Count > 0
                         && tempFactionRelations.restoreAtTick > currentTick)
                     {
-                        Log.Message($"[RimChat] Re-applying {tempFactionRelations.originalRelations.Count} temp faction peace overrides after load (restoreAtTick={tempFactionRelations.restoreAtTick})");
+                        Log.Message($"[RimAI.Relations] Re-applying {tempFactionRelations.originalRelations.Count} temp faction peace overrides after load (restoreAtTick={tempFactionRelations.restoreAtTick})");
                         foreach (var kv in tempFactionRelations.originalRelations)
                         {
                             string[] ids = kv.Key.Split(':');
@@ -880,7 +880,7 @@ namespace RimChat.DiplomacySystem
                             Faction fb = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[1]);
                             if (fa == null || fb == null || fa.defeated || fb.defeated) continue;
                             fa.SetRelationDirect(fb, FactionRelationKind.Neutral);
-                            Log.Message($"[RimChat] Re-applied temp peace: {fa.Name} <-> {fb.Name} (was {kv.Value})");
+                            Log.Message($"[RimAI.Relations] Re-applied temp peace: {fa.Name} <-> {fb.Name} (was {kv.Value})");
                         }
                     }
                 }
@@ -950,7 +950,7 @@ namespace RimChat.DiplomacySystem
 
                 if (changed)
                 {
-                    Log.Message($"[RimChat] Migrated legacy RaidCallEveryone event from {evtFaction?.Name ?? "Unknown"}: executeTick={evt.ExecuteTick}, action={evt.CallEveryoneAction}, maxRetry={evt.MaxRetryCount}");
+                    Log.Message($"[RimAI.Relations] Migrated legacy RaidCallEveryone event from {evtFaction?.Name ?? "Unknown"}: executeTick={evt.ExecuteTick}, action={evt.CallEveryoneAction}, maxRetry={evt.MaxRetryCount}");
                 }
             }
         }
@@ -1209,7 +1209,7 @@ namespace RimChat.DiplomacySystem
             if (tempFactionRelations.restoreAtTick <= 0) return;
             if (currentTick < tempFactionRelations.restoreAtTick) return;
 
-            Log.Message($"[RimChat] Restoring {tempFactionRelations.originalRelations.Count} temporary faction peace overrides at tick {currentTick}");
+            Log.Message($"[RimAI.Relations] Restoring {tempFactionRelations.originalRelations.Count} temporary faction peace overrides at tick {currentTick}");
             foreach (var kv in tempFactionRelations.originalRelations)
             {
                 string[] ids = kv.Key.Split(':');

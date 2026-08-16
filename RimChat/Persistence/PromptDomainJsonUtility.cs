@@ -4,7 +4,7 @@ using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: System.IO, UTF-8 encoding, and Unity JsonUtility.
@@ -53,7 +53,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load prompt-domain JSON from {path}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load prompt-domain JSON from {path}: {ex.Message}");
                 return new T();
             }
         }
@@ -75,7 +75,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load prompt-domain JSON from {path}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load prompt-domain JSON from {path}: {ex.Message}");
             }
         }
 

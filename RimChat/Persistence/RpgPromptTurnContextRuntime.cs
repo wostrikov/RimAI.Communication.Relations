@@ -1,6 +1,6 @@
 using System;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: RPG prompt assembly call sites.

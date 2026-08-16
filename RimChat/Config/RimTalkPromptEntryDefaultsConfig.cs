@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using Verse;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: Unity JsonUtility, Verse Scribe, RimWorld mod path APIs, file system.
@@ -570,7 +570,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load prompt entry defaults from {path}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load prompt entry defaults from {path}: {ex.Message}");
                 return null;
             }
         }

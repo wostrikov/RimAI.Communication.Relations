@@ -1,13 +1,13 @@
 using System;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: Dialogue runtime context guards, GameAIInterface async airdrop API, session runtime state.
@@ -74,7 +74,7 @@ namespace RimChat.UI
         {
             if (!IsAirdropAsyncContextValid(currentSession, currentFaction, lease, requestContext, expectedGeneration))
             {
-                Log.Warning($"[RimChat] AirdropStalePendingBlocked: requestId={lease?.RequestId ?? "none"},stage={currentSession?.airdropExecutionStage.ToString() ?? "null"},expectedGeneration={expectedGeneration},actualGeneration={currentSession?.airdropRequestGeneration ?? -1},faction={currentFaction?.Name ?? "null"}");
+                Log.Warning($"[RimAI.Relations] AirdropStalePendingBlocked: requestId={lease?.RequestId ?? "none"},stage={currentSession?.airdropExecutionStage.ToString() ?? "null"},expectedGeneration={expectedGeneration},actualGeneration={currentSession?.airdropRequestGeneration ?? -1},faction={currentFaction?.Name ?? "null"}");
                 return;
             }
 
@@ -150,59 +150,59 @@ namespace RimChat.UI
         {
             if (currentSession == null || currentFaction == null || currentFaction.defeated || lease == null)
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=session_null_or_faction_defeated_or_lease_null sessionNull={currentSession == null} factionNull={currentFaction == null} factionDefeated={currentFaction?.defeated} leaseNull={lease == null}");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=session_null_or_faction_defeated_or_lease_null sessionNull={currentSession == null} factionNull={currentFaction == null} factionDefeated={currentFaction?.defeated} leaseNull={lease == null}");
                 return false;
             }
 
             if (expectedGeneration != currentSession.airdropRequestGeneration)
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=generation_mismatch expected={expectedGeneration} actual={currentSession.airdropRequestGeneration}");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=generation_mismatch expected={expectedGeneration} actual={currentSession.airdropRequestGeneration}");
                 return false;
             }
 
             string requestId = lease.RequestId;
             if (string.IsNullOrWhiteSpace(requestId))
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=request_id_empty");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=request_id_empty");
                 return false;
             }
 
             if (!string.Equals(currentSession.pendingAirdropRequestId, requestId, StringComparison.Ordinal))
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=request_id_mismatch sessionId={currentSession.pendingAirdropRequestId} leaseId={requestId}");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=request_id_mismatch sessionId={currentSession.pendingAirdropRequestId} leaseId={requestId}");
                 return false;
             }
 
             if (currentSession.pendingAirdropRequestLease == null ||
                 !ReferenceEquals(currentSession.pendingAirdropRequestLease, lease))
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=lease_reference_mismatch sessionLeaseNull={currentSession.pendingAirdropRequestLease == null}");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=lease_reference_mismatch sessionLeaseNull={currentSession.pendingAirdropRequestLease == null}");
                 return false;
             }
 
             if (!lease.IsValidFor(requestId, requestContext?.DialogueSessionId ?? string.Empty, requestContext?.ContextVersion ?? -1))
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=lease_not_valid sessionId={requestContext?.DialogueSessionId} version={requestContext?.ContextVersion}");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=lease_not_valid sessionId={requestContext?.DialogueSessionId} version={requestContext?.ContextVersion}");
                 return false;
             }
 
             DialogueRuntimeContext resolveContext = requestContext?.WithCurrentRuntimeMarkers();
             if (!DialogueContextResolver.TryResolveLiveContext(resolveContext, out DialogueLiveContext liveContext, out _))
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=resolve_live_context_failed");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=resolve_live_context_failed");
                 return false;
             }
 
             if (!DialogueContextValidator.ValidateCallbackApply(requestContext, liveContext, requestContext?.DialogueSessionId, out _))
             {
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=callback_validate_failed");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=callback_validate_failed");
                 return false;
             }
 
             FactionDialogueSession liveSession = GameComponent_DiplomacyManager.Instance?.GetSession(currentFaction);
             bool sessionMatch = ReferenceEquals(liveSession, currentSession);
             if (!sessionMatch)
-                Log.Warning($"[RimChat] AirdropAsyncContextInvalid: reason=session_reference_mismatch");
+                Log.Warning($"[RimAI.Relations] AirdropAsyncContextInvalid: reason=session_reference_mismatch");
             return sessionMatch;
         }
 

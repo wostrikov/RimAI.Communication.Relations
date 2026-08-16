@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.Dialogue;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Responsibilities: request lease lifecycle, stale-response fail-fast handling, and stage-B envelope apply.
@@ -117,7 +117,7 @@ namespace RimChat.UI
 
             if (DialogueDropPolicy.ShouldSuppressUserFacingDrop(reason))
             {
-                Log.Message($"[RimChat] Suppressed user-facing dropped RPG callback: reason={reason ?? "unknown"}");
+                Log.Message($"[RimAI.Relations] Suppressed user-facing dropped RPG callback: reason={reason ?? "unknown"}");
                 ReleaseActiveRequestLease();
                 return;
             }

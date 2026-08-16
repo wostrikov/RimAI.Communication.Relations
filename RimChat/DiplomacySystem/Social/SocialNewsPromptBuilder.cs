@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: prompt persistence, prompt renderer, AI chat message DTOs.
  /// Responsibility: build LLM prompts for one fact-grounded social-circle news seed.

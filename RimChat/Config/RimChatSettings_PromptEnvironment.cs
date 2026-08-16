@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RimWorld;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public partial class RimChatSettings
     {

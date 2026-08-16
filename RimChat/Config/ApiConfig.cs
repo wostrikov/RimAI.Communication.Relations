@@ -1,9 +1,9 @@
 using System;
 using System.Text;
 using Verse;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public enum CustomUrlMode
     {

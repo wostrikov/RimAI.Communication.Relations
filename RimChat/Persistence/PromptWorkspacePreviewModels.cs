@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using RimChat.Config;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     internal enum PromptWorkspacePreviewBuildStage
     {

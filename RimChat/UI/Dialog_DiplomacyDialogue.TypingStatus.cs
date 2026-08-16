@@ -1,8 +1,8 @@
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: Unity Time/GUI, Verse localization, shared rounded-draw helpers in Dialog_DiplomacyDialogue.
  /// Responsibility: render immersive diplomacy waiting status with rotating phrases and subtle dynamic effects.

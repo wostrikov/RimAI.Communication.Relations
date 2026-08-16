@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: prompt config models and Scriban prompt engine.

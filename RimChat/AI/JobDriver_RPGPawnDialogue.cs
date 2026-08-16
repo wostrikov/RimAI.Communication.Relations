@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Verse;
 using Verse.AI;
 using RimWorld;
-using RimChat.UI;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Core;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     // Responsibility: drive pawn-to-pawn RPG dialogue approach/open flow safely.
     // Dependencies: Verse.AI JobDriver/Toils, RimWorld Messages, RimChat RPG UI and cooldown manager.

@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using RimWorld;
 using Verse;
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     public static class DebugLogger
     {
-        private const string Prefix = "[RimChat]";
+        private const string Prefix = "[RimAI.Relations]";
         private const int DebugBatchFlushIntervalTicks = 120;
         private const int MaxBufferedDebugEntries = 200;
 

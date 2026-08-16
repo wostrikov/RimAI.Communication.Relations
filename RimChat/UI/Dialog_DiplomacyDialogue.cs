@@ -5,20 +5,20 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
-using RimChat.AI;
-using RimChat.Memory;
-using RimChat.Config;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Persistence;
-using RimChat.Prompting;
-using RimChat.Util;
-using RimChat.Core;
-using RimChat.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using System.Text;
 using System.IO;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// 逐字outputstate
  ///</summary>
@@ -336,7 +336,7 @@ namespace RimChat.UI
             // 订阅goodwill变化event
             GoodwillChangeAnimator.OnGoodwillChanged += OnGoodwillChanged;
 
-            Log.Message($"[RimChat] Dialogue opened with {faction.Name}, messages: {session?.messages.Count ?? 0}, AI configured: {AIChatService.Instance.IsConfigured()}");
+            Log.Message($"[RimAI.Relations] Dialogue opened with {faction.Name}, messages: {session?.messages.Count ?? 0}, AI configured: {AIChatServiceAsync.Instance.IsConfigured()}");
         }
 
         public override void PostOpen()
@@ -420,7 +420,7 @@ namespace RimChat.UI
             double ms1 = (t1 - startTicks) * 1000.0 / freq;
             double ms2 = (t2 - t1) * 1000.0 / freq;
             double ms3 = (t3 - t2) * 1000.0 / freq;
-            Log.Message($"[RimChat][PerfDiag] BindState: session={ms1:F1}ms, speakers={ms2:F1}ms, memory={ms3:F1}ms, msgs={session?.messages?.Count ?? 0}");
+            Log.Message($"[RimAI.Relations][PerfDiag] BindState: session={ms1:F1}ms, speakers={ms2:F1}ms, memory={ms3:F1}ms, msgs={session?.messages?.Count ?? 0}");
         }
 
         private void ResetWindowUiStateForFactionSwitch()
@@ -483,7 +483,7 @@ namespace RimChat.UI
             double ms2 = (t2 - t1) * 1000.0 / freq;
             double ms3 = (t3 - t2) * 1000.0 / freq;
             double total = (t3 - startTicks) * 1000.0 / freq;
-            Log.Message($"[RimChat] Switched to {targetFaction.Name}: summary={ms1:F1}ms, bind={ms2:F1}ms, presence={ms3:F1}ms, total={total:F1}ms");
+            Log.Message($"[RimAI.Relations] Switched to {targetFaction.Name}: summary={ms1:F1}ms, bind={ms2:F1}ms, presence={ms3:F1}ms, total={total:F1}ms");
             return true;
         }
 
@@ -638,7 +638,7 @@ namespace RimChat.UI
                 double actionsMs = (t2c - t2b) * 1000.0 / freq;
                 double chatMs = (t3 - t2c) * 1000.0 / freq;
                 double overlayMs = (t4 - t3) * 1000.0 / freq;
-                Log.Message($"[RimChat][FrameDiag] {faction?.Name}: mem={memRefreshMs:F1}ms, title={titleMs:F1}ms, list={listMs:F1}ms, tabs={tabsMs:F1}ms, actions={actionsMs:F1}ms, chat={chatMs:F1}ms, overlay={overlayMs:F1}ms, total={totalMs:F1}ms");
+                Log.Message($"[RimAI.Relations][FrameDiag] {faction?.Name}: mem={memRefreshMs:F1}ms, title={titleMs:F1}ms, list={listMs:F1}ms, tabs={tabsMs:F1}ms, actions={actionsMs:F1}ms, chat={chatMs:F1}ms, overlay={overlayMs:F1}ms, total={totalMs:F1}ms");
             }
         }
 
@@ -1101,7 +1101,7 @@ namespace RimChat.UI
                 return false;
             }
 
-            Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source={source}, faction={faction.Name}");
+            Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source={source}, faction={faction.Name}");
             Find.WindowStack.Add(new Dialog_DiplomacyDialogue(faction, negotiator, muteOpenSound));
             return true;
         }
@@ -2761,7 +2761,7 @@ namespace RimChat.UI
 
             if (!AIChatServiceAsync.Instance.IsConfigured())
             {
-                Log.Message("[RimChat] AI not configured, using fallback response");
+                Log.Message("[RimAI.Relations] AI not configured, using fallback response");
                 AddFallbackResponse(playerMessage);
                 return;
             }
@@ -2797,7 +2797,7 @@ namespace RimChat.UI
             if (!resolved || !validated)
             {
                 Log.Warning(
-                    $"[RimChat] Diplomacy request rejected before queue. " +
+                    $"[RimAI.Relations] Diplomacy request rejected before queue. " +
                     $"resolveReason={resolveReason ?? "null"}, validateReason={validateReason ?? "null"}, " +
                     $"faction={currentFaction?.Name ?? "null"}, negotiator={negotiator?.ThingID ?? "null"}, " +
                     $"pendingRequestId={currentSession?.pendingRequestId ?? "null"}, waiting={currentSession?.isWaitingForResponse ?? false}, " +
@@ -2818,7 +2818,7 @@ namespace RimChat.UI
                 },
                 onError: error =>
                 {
-                    Log.Warning($"[RimChat] AI request failed: {error}");
+                    Log.Warning($"[RimAI.Relations] AI request failed: {error}");
                     HandleSessionRequestError(currentSession, error);
                 },
                 onProgress: null,
@@ -2841,7 +2841,7 @@ namespace RimChat.UI
                     return;
                 }
 
-                Log.Warning("[RimChat] Failed to queue diplomacy AI request.");
+                Log.Warning("[RimAI.Relations] Failed to queue diplomacy AI request.");
                 HandleDroppedRequest(currentSession?.aiError, "request_queue_rejected");
             }
         }
@@ -2858,7 +2858,7 @@ namespace RimChat.UI
                 return;
             }
 
-            Log.Error("[RimChat] Prompt rendering aborted request: " + ex.Message);
+            Log.Error("[RimAI.Relations] Prompt rendering aborted request: " + ex.Message);
             Messages.Message(
                 "RimChat_PromptRenderBlocked".Translate(ex.TemplateId, ex.Channel, ex.ErrorLine, ex.ErrorColumn),
                 MessageTypeDefOf.RejectInput,
@@ -2881,7 +2881,7 @@ namespace RimChat.UI
             }
 
             Log.Error(
-                $"[RimChat] Prompt build aborted diplomacy request. " +
+                $"[RimAI.Relations] Prompt build aborted diplomacy request. " +
                 $"faction={currentFaction?.Name ?? "null"}, negotiator={negotiator?.ThingID ?? "null"}, " +
                 $"exception={ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}");
             string message = $"{ "RimChat_DialogueRequestUnavailable".Translate() } [prompt_build_failed]";
@@ -2961,7 +2961,7 @@ namespace RimChat.UI
             chatMessages.Add(new ChatMessageData { role = "user", content = aiUserMessage });
 
             Log.Message(
-                $"[RimChat] Built chat messages: packed={chatMessages.Count}, raw_history={history.Count}, " +
+                $"[RimAI.Relations] Built chat messages: packed={chatMessages.Count}, raw_history={history.Count}, " +
                 $"last={playerMessage.Substring(0, Math.Min(50, playerMessage.Length))}...,airdropCleanHistory={useAirdropTradeCardCleanHistory}");
             return chatMessages;
         }
@@ -3206,7 +3206,7 @@ namespace RimChat.UI
             // shows the retry button; stacking more adds no value and confuses the player.
             if (isImmersionFallback && currentSession.lastAssistantMessageWasImmersionFallback)
             {
-                Log.Warning($"[RimChat] Suppressed consecutive immersion fallback for faction={currentFaction?.Name ?? "null"}");
+                Log.Warning($"[RimAI.Relations] Suppressed consecutive immersion fallback for faction={currentFaction?.Name ?? "null"}");
                 return;
             }
             currentSession.lastAssistantMessageWasImmersionFallback = isImmersionFallback;
@@ -3598,7 +3598,7 @@ namespace RimChat.UI
             }
 
             Log.Message(
-                $"[RimChat] AirdropConfirmDiscarded: reason={reason ?? "none"},def={state.PreparedTrade?.SelectedDefName ?? "unknown"},stage={state.Session?.airdropExecutionStage.ToString() ?? "null"}");
+                $"[RimAI.Relations] AirdropConfirmDiscarded: reason={reason ?? "none"},def={state.PreparedTrade?.SelectedDefName ?? "unknown"},stage={state.Session?.airdropExecutionStage.ToString() ?? "null"}");
         }
 
         private void TryProcessPendingAirdropDialog()
@@ -3640,7 +3640,7 @@ namespace RimChat.UI
                     {
                         state.WaitingForTypewriterLogged = true;
                         Log.Message(
-                            $"[RimChat] AirdropConfirmQueued: state=waiting_for_typewriter,def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity}");
+                            $"[RimAI.Relations] AirdropConfirmQueued: state=waiting_for_typewriter,def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity}");
                     }
 
                     state.DelayStarted = false;
@@ -3650,7 +3650,7 @@ namespace RimChat.UI
                 }
 
                 Log.Warning(
-                    $"[RimChat] AirdropConfirmQueued: typewriter wait timeout after {MaxTypewriterWaitSeconds:F1}s, forcing confirmation for def={state.PreparedTrade.SelectedDefName ?? "unknown"}");
+                    $"[RimAI.Relations] AirdropConfirmQueued: typewriter wait timeout after {MaxTypewriterWaitSeconds:F1}s, forcing confirmation for def={state.PreparedTrade.SelectedDefName ?? "unknown"}");
             }
 
             state.TypewriterWaitStartRealtime = -1f;
@@ -3661,7 +3661,7 @@ namespace RimChat.UI
                 state.ReadyAtRealtime = Time.realtimeSinceStartup + PendingAirdropDialogDelaySeconds;
                 state.DelayWindowLogged = false;
                 Log.Message(
-                    $"[RimChat] AirdropConfirmQueued: state=waiting_delay,def={state.PreparedTrade.SelectedDefName ?? "unknown"},readyInSeconds={PendingAirdropDialogDelaySeconds:F1}");
+                    $"[RimAI.Relations] AirdropConfirmQueued: state=waiting_delay,def={state.PreparedTrade.SelectedDefName ?? "unknown"},readyInSeconds={PendingAirdropDialogDelaySeconds:F1}");
                 return;
             }
 
@@ -3671,7 +3671,7 @@ namespace RimChat.UI
                 {
                     state.DelayWindowLogged = true;
                     Log.Message(
-                        $"[RimChat] AirdropConfirmQueued: state=delay_countdown,def={state.PreparedTrade.SelectedDefName ?? "unknown"},readyAt={state.ReadyAtRealtime:F3}");
+                        $"[RimAI.Relations] AirdropConfirmQueued: state=delay_countdown,def={state.PreparedTrade.SelectedDefName ?? "unknown"},readyAt={state.ReadyAtRealtime:F3}");
                 }
 
                 return;
@@ -3679,7 +3679,7 @@ namespace RimChat.UI
 
             pendingAirdropDialogState = null;
             Log.Message(
-                $"[RimChat] AirdropConfirmDisplayed: def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity},requested={state.PreparedTrade.RequestedQuantity},hardMax={state.PreparedTrade.HardMax},adjustment={state.PreparedTrade.CountAdjustmentReason},payment={state.PreparedTrade.PaymentTotalSilver}");
+                $"[RimAI.Relations] AirdropConfirmDisplayed: def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity},requested={state.PreparedTrade.RequestedQuantity},hardMax={state.PreparedTrade.HardMax},adjustment={state.PreparedTrade.CountAdjustmentReason},payment={state.PreparedTrade.PaymentTotalSilver}");
             OpenQueuedAirdropTradeConfirmationDialog(state);
         }
 
@@ -3803,7 +3803,7 @@ namespace RimChat.UI
                 },
                 onError: error =>
                 {
-                    Log.Warning($"[RimChat] Fallback retry request failed: {error}");
+                    Log.Warning($"[RimAI.Relations] Fallback retry request failed: {error}");
                     HandleSessionRequestError(session, error);
                 },
                 onProgress: null,
@@ -4090,12 +4090,12 @@ namespace RimChat.UI
 
                 InjectExplicitChallengeRequestHint(action, playerMessage);
 
-                Log.Message($"[RimChat] Executing AI action: {action.ActionType}");
+                Log.Message($"[RimAI.Relations] Executing AI action: {action.ActionType}");
                 var result = RimChatInteractionAdapter.Execute(action, currentFaction, applyDialogueApiGoodwillCost: true);
 
                 if (result.IsSuccess)
                 {
-                    Log.Message($"[RimChat] Action executed successfully: {result.Message}");
+                    Log.Message($"[RimAI.Relations] Action executed successfully: {result.Message}");
                     if (string.Equals(action.ActionType, AIActionNames.PayPrisonerRansom, StringComparison.Ordinal))
                     {
                         if (batchRansomPlan.IsActive)
@@ -4104,12 +4104,12 @@ namespace RimChat.UI
                         }
                         else if (ShouldResetRansomSelectionStateAfterSuccess(result))
                         {
-                            Log.Message("[RimChat] pay_prisoner_ransom paid_submitted detected. Clearing request_info(prisoner) binding state.");
+                            Log.Message("[RimAI.Relations] pay_prisoner_ransom paid_submitted detected. Clearing request_info(prisoner) binding state.");
                             ResetRansomSelectionStateAfterPayment(currentSession);
                         }
                         else
                         {
-                            Log.Message($"[RimChat] pay_prisoner_ransom success detected with unexpected status={ResolveRansomSuccessStatusCode(result)}. Preserving request_info(prisoner) binding state.");
+                            Log.Message($"[RimAI.Relations] pay_prisoner_ransom success detected with unexpected status={ResolveRansomSuccessStatusCode(result)}. Preserving request_info(prisoner) binding state.");
                         }
                     }
                     outcomes.Add(ActionExecutionOutcome.Success(action, result.Message, result.Data));
@@ -4121,10 +4121,10 @@ namespace RimChat.UI
                 {
                     if (string.Equals(action.ActionType, AIActionNames.PayPrisonerRansom, StringComparison.Ordinal))
                     {
-                        Log.Message("[RimChat] pay_prisoner_ransom failed. Preserving request_info(prisoner) binding state for retry.");
+                        Log.Message("[RimAI.Relations] pay_prisoner_ransom failed. Preserving request_info(prisoner) binding state for retry.");
                         if (batchRansomPlan.IsActive)
                         {
-                            Log.Message("[RimChat] batch pay_prisoner_ransom failed. Stop executing remaining actions in this turn.");
+                            Log.Message("[RimAI.Relations] batch pay_prisoner_ransom failed. Stop executing remaining actions in this turn.");
                         }
                     }
 
@@ -4204,16 +4204,16 @@ namespace RimChat.UI
                 RimChatSettings settings = RimChatMod.Settings ?? RimChatMod.Instance?.InstanceSettings;
                 if ((settings?.ExpectedActionDenyLogLevel ?? ExpectedActionDenyLogLevel.Info) == ExpectedActionDenyLogLevel.Warning)
                 {
-                    Log.Warning($"[RimChat][ActionDenied][Expected] action={actionType} reason={reason}");
+                    Log.Warning($"[RimAI.Relations][ActionDenied][Expected] action={actionType} reason={reason}");
                 }
                 else
                 {
-                    Log.Message($"[RimChat][ActionDenied][Expected] action={actionType} reason={reason}");
+                    Log.Message($"[RimAI.Relations][ActionDenied][Expected] action={actionType} reason={reason}");
                 }
                 return;
             }
 
-            Log.Warning($"[RimChat][ActionFailed][Unexpected] action={actionType} reason={reason}");
+            Log.Warning($"[RimAI.Relations][ActionFailed][Unexpected] action={actionType} reason={reason}");
         }
 
         private static bool IsExpectedActionDenyFailure(ActionExecutionOutcome outcome)

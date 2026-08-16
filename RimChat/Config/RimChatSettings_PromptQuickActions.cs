@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Prompting;
-using RimChat.UI;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt workspace state, quick custom-variable helpers, and lightweight quick-rule dialogs.

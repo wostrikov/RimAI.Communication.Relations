@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Relation;
-using RimChat.Util;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Relation;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Centralized API action eligibility and quest template validation.
  ///</summary>
@@ -492,7 +492,7 @@ namespace RimChat.DiplomacySystem
             if (string.Equals(questDefName, BestowingCeremonyQuestDefName, StringComparison.Ordinal))
             {
                 Log.Warning(
-                    $"[RimChat][QuestGuard] blocked create_quest for disabled template. " +
+                    $"[RimAI.Relations][QuestGuard] blocked create_quest for disabled template. " +
                     $"faction='{faction?.Name ?? "Unknown"}', questDefName='{questDefName}', code='bestowing_disabled'.");
                 return QuestValidationResult.Denied(
                     "bestowing_disabled",
@@ -929,7 +929,7 @@ namespace RimChat.DiplomacySystem
 
             var settings = RimChatMod.Instance?.InstanceSettings;
             PromptUnifiedTemplateAliasConfig alias = settings?.ResolvePromptTemplateAlias(
-                RimChat.Config.RimTalkPromptEntryChannelCatalog.ImageGeneration,
+                Ustas.RimAI.Communication.Relations.Config.RimTalkPromptEntryChannelCatalog.ImageGeneration,
                 templateId);
             return alias?.Enabled == true;
         }
@@ -943,8 +943,8 @@ namespace RimChat.DiplomacySystem
             }
 
             PromptUnifiedTemplateAliasConfig alias = settings.ResolvePreferredPromptTemplateAlias(
-                RimChat.Config.RimTalkPromptEntryChannelCatalog.ImageGeneration,
-                RimChat.Config.DiplomacyImageTemplateDefaults.DefaultTemplateId);
+                Ustas.RimAI.Communication.Relations.Config.RimTalkPromptEntryChannelCatalog.ImageGeneration,
+                Ustas.RimAI.Communication.Relations.Config.DiplomacyImageTemplateDefaults.DefaultTemplateId);
             return alias?.TemplateId ?? string.Empty;
         }
 
@@ -957,7 +957,7 @@ namespace RimChat.DiplomacySystem
 
             var settings = RimChatMod.Instance?.InstanceSettings;
             PromptUnifiedTemplateAliasConfig alias = settings?.ResolvePromptTemplateAlias(
-                RimChat.Config.RimTalkPromptEntryChannelCatalog.ImageGeneration,
+                Ustas.RimAI.Communication.Relations.Config.RimTalkPromptEntryChannelCatalog.ImageGeneration,
                 requestedTemplateId);
             return alias?.TemplateId ?? string.Empty;
         }

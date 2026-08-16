@@ -1,6 +1,6 @@
 using RimWorld;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public partial class GameComponent_DiplomacyManager
     {

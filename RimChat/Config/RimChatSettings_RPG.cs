@@ -5,15 +5,15 @@ using System.Text;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using RimChat.UI;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.PawnRpgPush;
-using RimChat.Prompting;
-using RimChat.Core;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public partial class RimChatSettings : ModSettings
     {

@@ -1,13 +1,13 @@
 using System;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// 依赖: GameComponent_DiplomacyManager, FactionDialogueSession, AIAction.
  /// 职责: dialoguewindow中的在线state展示, input门控与在线state动作processing.
@@ -248,9 +248,9 @@ namespace RimChat.UI
                 return false;
             }
 
-            if (!(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnableFactionPresenceStatus ?? true))
+            if (!(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnableFactionPresenceStatus ?? true))
             {
-                Log.Message($"[RimChat] Presence action ignored because presence system is disabled: {action.ActionType}");
+                Log.Message($"[RimAI.Relations] Presence action ignored because presence system is disabled: {action.ActionType}");
                 return false;
             }
 
@@ -265,7 +265,7 @@ namespace RimChat.UI
             }
 
             GameComponent_DiplomacyManager.Instance?.ApplyPresenceAction(currentFaction, action.ActionType, reason, currentSession);
-            Log.Message($"[RimChat] Presence action applied: {action.ActionType}, faction={currentFaction?.Name ?? "null"}, reason={reason ?? "none"}");
+            Log.Message($"[RimAI.Relations] Presence action applied: {action.ActionType}, faction={currentFaction?.Name ?? "null"}, reason={reason ?? "none"}");
 
             if (currentSession != null)
             {
@@ -296,7 +296,7 @@ namespace RimChat.UI
                 return;
             }
 
-            if (!(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnableFactionPresenceStatus ?? true))
+            if (!(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnableFactionPresenceStatus ?? true))
             {
                 return;
             }
@@ -311,7 +311,7 @@ namespace RimChat.UI
             GameComponent_DiplomacyManager.Instance?.ApplyPresenceAction(currentFaction, actionType, string.Empty, currentSession);
             currentSession.AddMessage("System", BuildPresenceSystemMessage(actionType, string.Empty), false, DialogueMessageType.System);
             TryPlayAiConversationEndedSound(currentSession, wasConversationEnded);
-            Log.Message($"[RimChat] Presence fallback action applied: {actionType}, faction={currentFaction.Name}");
+            Log.Message($"[RimAI.Relations] Presence fallback action applied: {actionType}, faction={currentFaction.Name}");
         }
 
         private void TryPlayAiConversationEndedSound(FactionDialogueSession currentSession, bool wasConversationEnded)

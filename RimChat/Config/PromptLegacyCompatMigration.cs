@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: RimTalk channel compat models and prompt template rewrite service.
@@ -146,7 +146,7 @@ namespace RimChat.Config
                     $"Failed to parse legacy payload: {ex.Message}",
                     fallbackApplied: false);
                 PublishReport(report);
-                Log.Warning($"[RimChat] Failed to parse legacy compat payload for {sourceIdPrefix}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse legacy compat payload for {sourceIdPrefix}: {ex.Message}");
                 return NormalizePromptSections(currentSections);
             }
         }
@@ -295,7 +295,7 @@ namespace RimChat.Config
             List<RimTalkPromptEntryConfig> entries = ExtractLegacyEntries(config, rootChannel);
             if (entries.Count == 0)
             {
-                Log.Warning($"[RimChat] Legacy prompt migration skipped for {sourceId}: no usable section entries were found.");
+                Log.Warning($"[RimAI.Relations] Legacy prompt migration skipped for {sourceId}: no usable section entries were found.");
                 return;
             }
 
@@ -319,7 +319,7 @@ namespace RimChat.Config
                             string.Empty,
                             $"Legacy entry '{entry?.Name ?? "<unnamed>"}' could not be mapped to a canonical section.",
                             fallbackApplied: false);
-                        Log.Warning($"[RimChat] Legacy prompt migration rejected entry without section mapping: source={sourceId}, channel={group.Key}, entry={entry?.Name ?? "<unnamed>"}");
+                        Log.Warning($"[RimAI.Relations] Legacy prompt migration rejected entry without section mapping: source={sourceId}, channel={group.Key}, entry={entry?.Name ?? "<unnamed>"}");
                         continue;
                     }
 
@@ -335,7 +335,7 @@ namespace RimChat.Config
                             sectionId,
                             "Content looked like a rendered or polluted prompt preview and was reset to the default section.",
                             fallbackApplied: true);
-                        Log.Warning($"[RimChat] Legacy prompt migration rejected polluted content: source={sourceId}, channel={group.Key}, section={sectionId}");
+                        Log.Warning($"[RimAI.Relations] Legacy prompt migration rejected polluted content: source={sourceId}, channel={group.Key}, section={sectionId}");
                         continue;
                     }
 
@@ -356,7 +356,7 @@ namespace RimChat.Config
                             sectionId,
                             $"Template rewrite failed: {failureReason}",
                             fallbackApplied: true);
-                        Log.Warning($"[RimChat] Legacy prompt migration rejected invalid template: source={sourceId}, channel={group.Key}, section={sectionId}, reason={failureReason}");
+                        Log.Warning($"[RimAI.Relations] Legacy prompt migration rejected invalid template: source={sourceId}, channel={group.Key}, section={sectionId}, reason={failureReason}");
                         continue;
                     }
 
@@ -373,7 +373,7 @@ namespace RimChat.Config
 
             if (migrated > 0 || rejected > 0)
             {
-                Log.Message($"[RimChat] Legacy prompt migration finished: source={sourceId}, migrated={migrated}, rejected={rejected}.");
+                Log.Message($"[RimAI.Relations] Legacy prompt migration finished: source={sourceId}, migrated={migrated}, rejected={rejected}.");
             }
         }
 

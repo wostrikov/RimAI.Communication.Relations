@@ -1,12 +1,12 @@
-using RimChat.NpcDialogue;
-using RimChat.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: RimWorld.Listing_Standard, RimChatSettings_AI UI pipeline.
  /// Responsibility: NPC proactive dialogue settings fields and UI rendering.
@@ -15,7 +15,7 @@ namespace RimChat.Config
     {
         public bool EnableNpcInitiatedDialogue = true;
         public bool EnablePawnRpgInitiatedDialogue = true;
-        public NpcPushFrequencyMode NpcPushFrequencyMode = global::RimChat.Config.NpcPushFrequencyMode.Low;
+        public NpcPushFrequencyMode NpcPushFrequencyMode = global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.Low;
         public int NpcQueueMaxPerFaction = 3;
         public float NpcQueueExpireHours = 12f;
         public float NpcGlobalDeliveryCooldownHours = 3f;
@@ -362,15 +362,15 @@ namespace RimChat.Config
             float buttonWidth = (rowRect.width - 20f) / 3f;
             DrawFrequencyButton(
                 new Rect(rowRect.x, rowRect.y, buttonWidth, 30f),
-                global::RimChat.Config.NpcPushFrequencyMode.Low,
+                global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.Low,
                 "RimChat_NpcPushFrequencyLow".Translate());
             DrawFrequencyButton(
                 new Rect(rowRect.x + buttonWidth + 10f, rowRect.y, buttonWidth, 30f),
-                global::RimChat.Config.NpcPushFrequencyMode.Medium,
+                global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.Medium,
                 "RimChat_NpcPushFrequencyMedium".Translate());
             DrawFrequencyButton(
                 new Rect(rowRect.x + (buttonWidth + 10f) * 2f, rowRect.y, buttonWidth, 30f),
-                global::RimChat.Config.NpcPushFrequencyMode.High,
+                global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.High,
                 "RimChat_NpcPushFrequencyHigh".Translate());
         }
 
@@ -394,7 +394,7 @@ namespace RimChat.Config
         {
             EnableNpcInitiatedDialogue = true;
             EnablePawnRpgInitiatedDialogue = true;
-            NpcPushFrequencyMode = global::RimChat.Config.NpcPushFrequencyMode.Low;
+            NpcPushFrequencyMode = global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.Low;
             ProactiveMessageHardLimit = 0;
             NpcQueueMaxPerFaction = 3;
             NpcQueueExpireHours = 12f;

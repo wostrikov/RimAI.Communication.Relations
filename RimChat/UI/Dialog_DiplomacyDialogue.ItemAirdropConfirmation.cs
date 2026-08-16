@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: GameAIInterface prepared airdrop trade API and dialogue session runtime state.
@@ -71,12 +71,12 @@ namespace RimChat.UI
             if (!resolved || !validated)
             {
                 string fallbackReason = string.IsNullOrWhiteSpace(validateReason) ? resolveReason : validateReason;
-                Log.Warning($"[RimChat] Airdrop context validation failed: resolved={resolved}, validated={validated}, resolveReason={resolveReason}, validateReason={validateReason}, faction={currentFaction?.Name ?? "null"}, defName={currentFaction?.def?.defName ?? "null"}");
+                Log.Warning($"[RimAI.Relations] Airdrop context validation failed: resolved={resolved}, validated={validated}, resolveReason={resolveReason}, validateReason={validateReason}, faction={currentFaction?.Name ?? "null"}, defName={currentFaction?.def?.defName ?? "null"}");
                 outcome = ActionExecutionOutcome.Failure(action, fallbackReason ?? "RimChat_DialogueRequestUnavailable".Translate().ToString());
                 return true;
             }
 
-            Log.Message($"[RimChat] Airdrop context validation passed: faction={currentFaction?.Name}, defName={currentFaction?.def?.defName}, need={actionSnapshot.Parameters?["need"] ?? "null"}");
+            Log.Message($"[RimAI.Relations] Airdrop context validation passed: faction={currentFaction?.Name}, defName={currentFaction?.def?.defName}, need={actionSnapshot.Parameters?["need"] ?? "null"}");
 
             var lease = new DialogueRequestLease(
                 requestContext.DialogueSessionId,
@@ -154,7 +154,7 @@ namespace RimChat.UI
             }
 
             Log.Message(
-                $"[RimChat] AirdropConfirmOpen: def={preparedTrade.SelectedDefName},count={preparedTrade.Quantity},requested={preparedTrade.RequestedQuantity},hardMax={preparedTrade.HardMax},adjustment={preparedTrade.CountAdjustmentReason},payment={preparedTrade.PaymentTotalSilver},candidateCount={pendingCandidates.Count}");
+                $"[RimAI.Relations] AirdropConfirmOpen: def={preparedTrade.SelectedDefName},count={preparedTrade.Quantity},requested={preparedTrade.RequestedQuantity},hardMax={preparedTrade.HardMax},adjustment={preparedTrade.CountAdjustmentReason},payment={preparedTrade.PaymentTotalSilver},candidateCount={pendingCandidates.Count}");
             ShowAirdropTradeConfirmationDialog(currentSession, currentFaction, preparedTrade, baseParameters, pendingCandidates);
             outcome = ActionExecutionOutcome.Success(
                 action,
@@ -189,7 +189,7 @@ namespace RimChat.UI
             if (pendingCardCount > 0)
             {
                 actionSnapshot.Parameters["count"] = pendingCardCount;
-                Log.Message($"[RimChat] Injected pending airdrop count from session trade-card reference: count={pendingCardCount}");
+                Log.Message($"[RimAI.Relations] Injected pending airdrop count from session trade-card reference: count={pendingCardCount}");
                 return;
             }
 
@@ -202,7 +202,7 @@ namespace RimChat.UI
             }
 
             actionSnapshot.Parameters["count"] = requestedCount;
-            Log.Message($"[RimChat] Injected pending airdrop count from latest player message: count={requestedCount}");
+            Log.Message($"[RimAI.Relations] Injected pending airdrop count from latest player message: count={requestedCount}");
         }
 
         private static bool HasAirdropExplicitCountParameter(Dictionary<string, object> parameters)
@@ -329,7 +329,7 @@ namespace RimChat.UI
 
             currentSession.pendingDelayedActionIntent = intent;
             currentSession.lastDelayedActionIntent = intent.Clone();
-            Log.Message($"[RimChat] CacheAirdropPendingSelectionIntent: cached pendingDelayedActionIntent for RequestItemAirdrop, failureCode={pendingSelection.FailureCode}, optionsCount={pendingSelection.Options.Count}");
+            Log.Message($"[RimAI.Relations] CacheAirdropPendingSelectionIntent: cached pendingDelayedActionIntent for RequestItemAirdrop, failureCode={pendingSelection.FailureCode}, optionsCount={pendingSelection.Options.Count}");
         }
 
         private static string BuildPendingSelectionCandidateLine(PendingAirdropSelectionCandidate candidate)
@@ -393,7 +393,7 @@ namespace RimChat.UI
                 PendingCandidates = ClonePendingAirdropCandidates(availableCandidates)
             };
             Log.Message(
-                $"[RimChat] AirdropConfirmScheduled: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},candidateCount={availableCandidates.Count}");
+                $"[RimAI.Relations] AirdropConfirmScheduled: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},candidateCount={availableCandidates.Count}");
         }
 
         private void OpenQueuedAirdropTradeConfirmationDialog(PendingAirdropDialogState state)
@@ -719,7 +719,7 @@ namespace RimChat.UI
             {
                 if (currentSession.airdropExecutionStage != AirdropExecutionStage.PreparedAwaitingConfirm)
                 {
-                    Log.Warning($"[RimChat] AirdropStalePendingBlocked: commit rejected because stage={currentSession.airdropExecutionStage},expected={AirdropExecutionStage.PreparedAwaitingConfirm}");
+                    Log.Warning($"[RimAI.Relations] AirdropStalePendingBlocked: commit rejected because stage={currentSession.airdropExecutionStage},expected={AirdropExecutionStage.PreparedAwaitingConfirm}");
                     ResetAirdropConfirmationRuntime(currentSession, "commit_rejected_wrong_stage", true, true);
                     TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Failed, "commit_rejected_wrong_stage");
                     currentSession.AddMessage(
@@ -733,7 +733,7 @@ namespace RimChat.UI
 
                 if (HasStalePendingAirdropSelection(currentSession, out string staleDetails))
                 {
-                    Log.Warning($"[RimChat] AirdropStalePendingBlocked: commit rejected because stale pending state survived until confirm. {staleDetails}");
+                    Log.Warning($"[RimAI.Relations] AirdropStalePendingBlocked: commit rejected because stale pending state survived until confirm. {staleDetails}");
                     ResetAirdropConfirmationRuntime(currentSession, "commit_rejected_stale_pending", true, true);
                     TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Failed, staleDetails);
                     currentSession.AddMessage(
@@ -748,7 +748,7 @@ namespace RimChat.UI
                 TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Committing, preparedTrade?.SelectedDefName ?? "prepared_trade");
             }
 
-            Log.Message($"[RimChat] AirdropConfirmCommitStart: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},budget={preparedTrade?.BudgetSilver ?? 0}");
+            Log.Message($"[RimAI.Relations] AirdropConfirmCommitStart: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},budget={preparedTrade?.BudgetSilver ?? 0}");
             var commitResult = GameAIInterface.Instance.CommitPreparedItemAirdropTrade(currentFaction, preparedTrade);
             if (commitResult.Success)
             {
@@ -759,7 +759,7 @@ namespace RimChat.UI
                     ? BuildAirdropSuccessSystemMessage(payload)
                     : "RimChat_ItemAirdropCommitSuccessSystem".Translate().ToString();
                 currentSession?.AddMessage("System", text, false, DialogueMessageType.System);
-                Log.Message($"[RimChat] AirdropConfirmCommitResult: success=True,def={payload?.SelectedDefName ?? preparedTrade?.SelectedDefName ?? "unknown"},count={payload?.Quantity ?? preparedTrade?.Quantity ?? 0},failureCode=none");
+                Log.Message($"[RimAI.Relations] AirdropConfirmCommitResult: success=True,def={payload?.SelectedDefName ?? preparedTrade?.SelectedDefName ?? "unknown"},count={payload?.Quantity ?? preparedTrade?.Quantity ?? 0},failureCode=none");
             }
             else
             {
@@ -792,7 +792,7 @@ namespace RimChat.UI
                         DialogueMessageType.System);
                 }
 
-                Log.Message($"[RimChat] AirdropConfirmCommitResult: success=False,def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},failureCode={payload?.FailureCode ?? "none"},message={commitResult?.Message ?? "none"}");
+                Log.Message($"[RimAI.Relations] AirdropConfirmCommitResult: success=False,def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},failureCode={payload?.FailureCode ?? "none"},message={commitResult?.Message ?? "none"}");
             }
 
             SaveFactionMemory(currentSession, currentFaction);
@@ -832,7 +832,7 @@ namespace RimChat.UI
             bool clearedDelayedIntent = ClearAirdropDelayedIntentRuntime(currentSession);
             ResetAirdropConfirmationRuntime(currentSession, "commit_cancelled", true, true, true);
             TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Idle, "player_cancelled_confirmation");
-            Log.Message($"[RimChat] AirdropConfirmExplicitCancel: stage={currentSession?.airdropExecutionStage.ToString() ?? "null"},faction={currentFaction?.Name ?? "null"},clearedDelayedIntent={clearedDelayedIntent}");
+            Log.Message($"[RimAI.Relations] AirdropConfirmExplicitCancel: stage={currentSession?.airdropExecutionStage.ToString() ?? "null"},faction={currentFaction?.Name ?? "null"},clearedDelayedIntent={clearedDelayedIntent}");
 
             if (!skipSystemMessage)
             {

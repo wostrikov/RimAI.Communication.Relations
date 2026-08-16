@@ -4,10 +4,10 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using HarmonyLib;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>
     /// Dependencies: Verse.Translator.TryTranslate, RimChat mod content root path.
@@ -61,7 +61,7 @@ namespace RimChat.Patches
             warnedLanguageFallback = true;
             string activeFolder = LanguageDatabase.activeLanguage?.folderName ?? "(null)";
             Log.Warning(
-                $"[RimChat] Active language '{activeFolder}' is missing RimChat keyed entries. " +
+                $"[RimAI.Relations] Active language '{activeFolder}' is missing RimChat keyed entries. " +
                 "Fail-fast fallback is now serving RimChat_* keys from English.");
         }
     }
@@ -112,14 +112,14 @@ namespace RimChat.Patches
                 ?? string.Empty;
             if (string.IsNullOrWhiteSpace(rootDir))
             {
-                Log.Warning("[RimChat] English keyed fallback initialization skipped: mod root directory is empty.");
+                Log.Warning("[RimAI.Relations] English keyed fallback initialization skipped: mod root directory is empty.");
                 return map;
             }
 
             string xmlPath = Path.Combine(rootDir, "1.6", "Languages", "English", "Keyed", "RimChat_Keys.xml");
             if (!File.Exists(xmlPath))
             {
-                Log.Warning($"[RimChat] English keyed fallback initialization skipped: file not found at '{xmlPath}'.");
+                Log.Warning($"[RimAI.Relations] English keyed fallback initialization skipped: file not found at '{xmlPath}'.");
                 return map;
             }
 
@@ -152,7 +152,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load English keyed fallback dictionary: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load English keyed fallback dictionary: {ex.Message}");
             }
 
             return map;

@@ -5,7 +5,7 @@ using System.Text;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: RimWorld pawn runtime data (story, apparel, health, equipment, needs).

@@ -7,7 +7,7 @@ using Scriban;
 using Scriban.Runtime;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: Scriban template parser/runtime.
@@ -84,7 +84,7 @@ namespace RimChat.Prompting
 
             if (PromptTemplateBlockRegistry.TryGetReason(templateId, channel, out string reason))
             {
-                Log.Warning($"[RimChat] Template blocked in lenient mode: {templateId} | {channel} | {reason}");
+                Log.Warning($"[RimAI.Relations] Template blocked in lenient mode: {templateId} | {channel} | {reason}");
                 return string.Empty;
             }
 
@@ -95,7 +95,7 @@ namespace RimChat.Prompting
             }
             catch (PromptRenderException ex)
             {
-                Log.Warning($"[RimChat] Parse error in lenient mode: {templateId} | {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Parse error in lenient mode: {templateId} | {ex.Message}");
                 return templateText ?? string.Empty;
             }
 
@@ -108,7 +108,7 @@ namespace RimChat.Prompting
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Render error in lenient mode: {templateId} | {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Render error in lenient mode: {templateId} | {ex.Message}");
                 return templateText ?? string.Empty;
             }
             finally
@@ -238,7 +238,7 @@ namespace RimChat.Prompting
 
             PromptRenderTelemetrySnapshot snapshot = PromptRenderTelemetry.CaptureSnapshot();
             Log.Message(
-                $"[RimChat] Scriban telemetry: hit={snapshot.CacheHitRatePercent:F1}% " +
+                $"[RimAI.Relations] Scriban telemetry: hit={snapshot.CacheHitRatePercent:F1}% " +
                 $"hits={snapshot.CacheHits} misses={snapshot.CacheMisses} evictions={snapshot.CacheEvictions} " +
                 $"avg_parse_ms={snapshot.AverageParseMilliseconds:F3} avg_render_ms={snapshot.AverageRenderMilliseconds:F3}");
         }
@@ -318,14 +318,14 @@ namespace RimChat.Prompting
                 bool hasMessageBag = typeof(Template).Assembly.GetType("Scriban.LogMessageBag", false) != null;
 
                 Log.Message(
-                    $"[RimChat] Scriban runtime probe: version={version} path={path} " +
+                    $"[RimAI.Relations] Scriban runtime probe: version={version} path={path} " +
                     $"strict={hasStrict} relaxed_fn={hasRelaxedFn} relaxed_indexer={hasRelaxedIndexer} " +
                     $"relaxed_member={hasRelaxedMember} relaxed_target={hasRelaxedTarget} message_bag={hasMessageBag}");
 
                 if (!hasStrict || !hasRelaxedFn || !hasRelaxedIndexer || !hasRelaxedMember || !hasRelaxedTarget)
                 {
                     Log.Warning(
-                        "[RimChat] Scriban runtime API differs from expected surface. " +
+                        "[RimAI.Relations] Scriban runtime API differs from expected surface. " +
                         "Using compatibility-safe configuration path to preserve strict render behavior.");
                 }
 

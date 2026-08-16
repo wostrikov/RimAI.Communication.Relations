@@ -8,18 +8,18 @@ using Verse;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
-using RimChat.Config;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.DiplomacySystem;
-using RimChat.Core;
-using RimChat.Relation;
-using RimChat.Util;
-using RimChat.WorldState;
-using RimChat.Prompting;
-using RimChat.Prompting.Builders;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Relation;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.WorldState;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Prompting.Builders;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     public partial class PromptPersistenceService : IPromptPersistenceService
     {
@@ -207,7 +207,7 @@ namespace RimChat.Persistence
                 catch { }
 
                 // Fallback: keep prompt custom config under user config path.
-                string fallbackDir = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat", PromptFolderName, CustomSubFolderName);
+                string fallbackDir = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptFolderName, CustomSubFolderName);
                 if (!Directory.Exists(fallbackDir))
                 {
                     Directory.CreateDirectory(fallbackDir);
@@ -233,7 +233,7 @@ namespace RimChat.Persistence
                 EnsureDirectoryExists();
                 _cachedConfig = LoadConfig();
                 _isInitialized = true;
-                Log.Message($"[RimChat] PromptPersistenceService initialized, config path: {ConfigFilePath}");
+                Log.Message($"[RimAI.Relations] PromptPersistenceService initialized, config path: {ConfigFilePath}");
             }
             catch (PromptRenderException)
             {
@@ -241,7 +241,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to initialize PromptPersistenceService: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to initialize PromptPersistenceService: {ex}");
                 _cachedConfig = CreateDefaultConfig();
             }
         }
@@ -330,13 +330,13 @@ namespace RimChat.Persistence
                 return false;
             }
 
-            Log.Error($"[RimChat] Detected placeholder GlobalSystemPrompt in {sourceLabel}; rebuilding from default file.");
+            Log.Error($"[RimAI.Relations] Detected placeholder GlobalSystemPrompt in {sourceLabel}; rebuilding from default file.");
             SystemPromptConfig rebuilt = CreateDefaultConfig();
             if (rebuilt == null ||
                 IsPlaceholderGlobalSystemPrompt(rebuilt) ||
                 string.IsNullOrWhiteSpace(rebuilt.GlobalSystemPrompt))
             {
-                Log.Error("[RimChat] Failed to rebuild placeholder GlobalSystemPrompt from Prompt/Default/SystemPrompt_Default.json.");
+                Log.Error("[RimAI.Relations] Failed to rebuild placeholder GlobalSystemPrompt from Prompt/Default/SystemPrompt_Default.json.");
                 return false;
             }
 
@@ -399,7 +399,7 @@ namespace RimChat.Persistence
                 {
                     _cachedConfigWriteTimeUtc = domainWriteTimeUtc;
                     _hasPendingPromptDomainRepairs = false;
-                    Log.Warning("[RimChat] Invalid prompt-domain config detected, and default-only recovery also failed. Keeping cached config and skipping auto-heal writeback.");
+                    Log.Warning("[RimAI.Relations] Invalid prompt-domain config detected, and default-only recovery also failed. Keeping cached config and skipping auto-heal writeback.");
                     return _cachedConfig;
                 }
 
@@ -424,8 +424,8 @@ namespace RimChat.Persistence
 
                     needsDomainSave = true;
                     Log.Warning(saveRepairsWhenNeeded
-                        ? "[RimChat] Invalid prompt-domain custom config detected. Recovered with default-only load and scheduled auto-heal writeback."
-                        : "[RimChat] Invalid prompt-domain custom config detected. Recovered with default-only load in read-only mode.");
+                        ? "[RimAI.Relations] Invalid prompt-domain custom config detected. Recovered with default-only load and scheduled auto-heal writeback."
+                        : "[RimAI.Relations] Invalid prompt-domain custom config detected. Recovered with default-only load in read-only mode.");
                 }
 
                 if (hasPromptCustomOverrides && loadedDomainSchemaVersion < CurrentPromptDomainSchemaVersion)
@@ -479,12 +479,12 @@ namespace RimChat.Persistence
                     string summary = migrationFixes.Count == 0
                         ? "none"
                         : string.Join(", ", migrationFixes);
-                    Log.Message("[RimChat] Prompt domain migration completed and saved. Fixes: " + summary);
+                    Log.Message("[RimAI.Relations] Prompt domain migration completed and saved. Fixes: " + summary);
                     _hasPendingPromptDomainRepairs = false;
                     repaired = true;
                 }
 
-                Log.Message("[RimChat] Loaded SystemPromptConfig from prompt domain files.");
+                Log.Message("[RimAI.Relations] Loaded SystemPromptConfig from prompt domain files.");
                 return resolvedConfig;
             }
             catch (PromptRenderException)
@@ -493,11 +493,11 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to load config: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to load config: {ex}");
                 if (_cachedConfig != null && !IsPlaceholderGlobalSystemPrompt(_cachedConfig))
                 {
                     _hasPendingPromptDomainRepairs = false;
-                    Log.Warning("[RimChat] Load config failed. Returning cached config and blocking repair writeback.");
+                    Log.Warning("[RimAI.Relations] Load config failed. Returning cached config and blocking repair writeback.");
                     return _cachedConfig;
                 }
 
@@ -514,18 +514,18 @@ namespace RimChat.Persistence
 
                 if (config == null)
                 {
-                    Log.Warning("[RimChat] Attempted to save null config");
+                    Log.Warning("[RimAI.Relations] Attempted to save null config");
                     return;
                 }
 
                 if (TryRepairPlaceholderGlobalSystemPrompt(ref config, "config save request"))
                 {
-                    Log.Message("[RimChat] Rebuilt placeholder GlobalSystemPrompt before saving custom config.");
+                    Log.Message("[RimAI.Relations] Rebuilt placeholder GlobalSystemPrompt before saving custom config.");
                 }
 
                 if (IsPlaceholderGlobalSystemPrompt(config))
                 {
-                    Log.Error("[RimChat] Refusing to save placeholder GlobalSystemPrompt into prompt domain files.");
+                    Log.Error("[RimAI.Relations] Refusing to save placeholder GlobalSystemPrompt into prompt domain files.");
                     return;
                 }
 
@@ -538,11 +538,11 @@ namespace RimChat.Persistence
                     _cachedConfigWriteTimeUtc = DateTime.MinValue;
                 }
 
-                Log.Message($"[RimChat] Saved SystemPromptConfig to: {ConfigFilePath}");
+                Log.Message($"[RimAI.Relations] Saved SystemPromptConfig to: {ConfigFilePath}");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to save config: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to save config: {ex}");
             }
         }
 
@@ -556,11 +556,11 @@ namespace RimChat.Persistence
                 FactionPromptManager.Instance.ResetAllConfigs();
                 _cachedConfig = CreateDefaultConfig();
                 _cachedConfigWriteTimeUtc = DateTime.MinValue;
-                Log.Message("[RimChat] Reset SystemPromptConfig to default");
+                Log.Message("[RimAI.Relations] Reset SystemPromptConfig to default");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to reset config: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to reset config: {ex}");
             }
         }
         public bool ExportConfig(string filePath)
@@ -585,12 +585,12 @@ namespace RimChat.Persistence
                 PromptBundleConfig bundle = CreatePromptBundle(_cachedConfig, selectedModules);
                 string json = PromptDomainJsonUtility.Serialize(bundle, prettyPrint: true);
                 File.WriteAllText(normalizedPath, json, Encoding.UTF8);
-                Log.Message($"[RimChat] Exported config to: {normalizedPath}");
+                Log.Message($"[RimAI.Relations] Exported config to: {normalizedPath}");
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to export config: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to export config: {ex}");
                 return false;
             }
         }
@@ -608,14 +608,14 @@ namespace RimChat.Persistence
                 if (string.IsNullOrWhiteSpace(filePath))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.EmptyPath, PromptBundleImportErrorCodes.EmptyPath);
-                    Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.EmptyPath}] Import path is empty.");
+                    Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.EmptyPath}] Import path is empty.");
                     return false;
                 }
 
                 if (!File.Exists(filePath))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.FileNotFound, PromptBundleImportErrorCodes.FileNotFound);
-                    Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.FileNotFound}] Import file not found: {filePath}");
+                    Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.FileNotFound}] Import file not found: {filePath}");
                     return false;
                 }
 
@@ -623,21 +623,21 @@ namespace RimChat.Persistence
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.EmptyFile, PromptBundleImportErrorCodes.EmptyFile);
-                    Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.EmptyFile}] Import file is empty: {filePath}");
+                    Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.EmptyFile}] Import file is empty: {filePath}");
                     return false;
                 }
 
                 if (!TryValidatePromptBundleImportEnvelope(json, out PromptBundleImportFailure envelopeFailure, out string envelopeErrorCode))
                 {
                     SetPromptBundleImportFailure(envelopeFailure, envelopeErrorCode);
-                    Log.Warning($"[RimChat][{envelopeErrorCode}] Reject non-bundle import file: {filePath}");
+                    Log.Warning($"[RimAI.Relations][{envelopeErrorCode}] Reject non-bundle import file: {filePath}");
                     return false;
                 }
 
                 if (!TryParsePromptBundle(json, out PromptBundleConfig bundle, out HashSet<PromptBundleModule> includedModules))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.InvalidBundlePayload, PromptBundleImportErrorCodes.InvalidBundlePayload);
-                    Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.InvalidBundlePayload}] Failed to parse Prompt Bundle payload: {filePath}");
+                    Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.InvalidBundlePayload}] Failed to parse Prompt Bundle payload: {filePath}");
                     return false;
                 }
 
@@ -645,20 +645,20 @@ namespace RimChat.Persistence
                 if (modulesToApply.Count == 0)
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.NoModuleOverlap, PromptBundleImportErrorCodes.NoModuleOverlap);
-                    Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.NoModuleOverlap}] Import skipped because no overlapping module was selected.");
+                    Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.NoModuleOverlap}] Import skipped because no overlapping module was selected.");
                     return false;
                 }
 
                 SavePromptBundle(bundle, modulesToApply);
                 _cachedConfig = null;
                 _cachedConfigWriteTimeUtc = DateTime.MinValue;
-                Log.Message($"[RimChat] Imported config from: {filePath}");
+                Log.Message($"[RimAI.Relations] Imported config from: {filePath}");
                 return true;
             }
             catch (Exception ex)
             {
                 SetPromptBundleImportFailure(PromptBundleImportFailure.UnexpectedException, PromptBundleImportErrorCodes.UnexpectedException);
-                Log.Error($"[RimChat][{PromptBundleImportErrorCodes.UnexpectedException}] Failed to import config: {ex}");
+                Log.Error($"[RimAI.Relations][{PromptBundleImportErrorCodes.UnexpectedException}] Failed to import config: {ex}");
                 return false;
             }
         }
@@ -673,7 +673,7 @@ namespace RimChat.Persistence
             normalizedPath = filePath?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(normalizedPath))
             {
-                Log.Warning("[RimChat] Export path is empty.");
+                Log.Warning("[RimAI.Relations] Export path is empty.");
                 return false;
             }
 
@@ -689,7 +689,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Invalid export path '{normalizedPath}': {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Invalid export path '{normalizedPath}': {ex.Message}");
                 return false;
             }
         }
@@ -1994,12 +1994,12 @@ namespace RimChat.Persistence
                 if (!Directory.Exists(BasePath))
                 {
                     Directory.CreateDirectory(BasePath);
-                    Log.Message($"[RimChat] Created prompt directory: {BasePath}");
+                    Log.Message($"[RimAI.Relations] Created prompt directory: {BasePath}");
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to create directory: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to create directory: {ex}");
             }
         }
 
@@ -2049,12 +2049,12 @@ namespace RimChat.Persistence
                     File.Copy(filePath, targetPath, overwrite: true);
                 }
 
-                Log.Message("[RimChat] Backed up prompt custom overrides to: " + backupDir);
+                Log.Message("[RimAI.Relations] Backed up prompt custom overrides to: " + backupDir);
                 return backupDir;
             }
             catch (Exception ex)
             {
-                Log.Warning("[RimChat] Failed to backup prompt custom overrides: " + ex.Message);
+                Log.Warning("[RimAI.Relations] Failed to backup prompt custom overrides: " + ex.Message);
                 return string.Empty;
             }
         }
@@ -2081,14 +2081,14 @@ namespace RimChat.Persistence
             string validationSummary = validationErrors != null && validationErrors.Count > 0
                 ? string.Join(", ", validationErrors)
                 : "unknown";
-            Log.Error("[RimChat] Default-only domain load failed semantic validation: " + validationSummary);
-            Log.Error("[RimChat] Default-only domain diagnostics: "
+            Log.Error("[RimAI.Relations] Default-only domain load failed semantic validation: " + validationSummary);
+            Log.Error("[RimAI.Relations] Default-only domain diagnostics: "
                 + BuildDefaultDomainDiagnosticSnapshot());
 
             if (_cachedConfig != null && !IsPlaceholderGlobalSystemPrompt(_cachedConfig))
             {
                 _hasPendingPromptDomainRepairs = false;
-                Log.Warning("[RimChat] Default-only recovery failed. Keeping cached config and blocking auto-heal writeback.");
+                Log.Warning("[RimAI.Relations] Default-only recovery failed. Keeping cached config and blocking auto-heal writeback.");
                 return _cachedConfig;
             }
 
@@ -2644,7 +2644,7 @@ namespace RimChat.Persistence
                 }
                 else
                 {
-                    Log.Message($"[RimChat] Typed JSON parse was incomplete at source={source}; recovered config using current-schema text fallback.");
+                    Log.Message($"[RimAI.Relations] Typed JSON parse was incomplete at source={source}; recovered config using current-schema text fallback.");
                 }
             }
             else if (hasTypedError)
@@ -2727,7 +2727,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Current-schema text fallback parse failed: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Current-schema text fallback parse failed: {ex.Message}");
                 return null;
             }
         }
@@ -2830,7 +2830,7 @@ namespace RimChat.Persistence
             LogTypedParseWarningOnce(
                 _typedParseIncompleteWarningHashes,
                 signature,
-                $"[RimChat] Typed JSON parse produced incomplete config at source={source} (missing: {detail}); config load rejected.");
+                $"[RimAI.Relations] Typed JSON parse produced incomplete config at source={source} (missing: {detail}); config load rejected.");
         }
 
         private void LogTypedParseFailureWarningOnce(string sourceContext, string typedError)
@@ -2841,7 +2841,7 @@ namespace RimChat.Persistence
             LogTypedParseWarningOnce(
                 _typedParseFailureWarningHashes,
                 signature,
-                $"[RimChat] Typed JSON parse failed at source={source}; config load rejected: {normalizedError}");
+                $"[RimAI.Relations] Typed JSON parse failed at source={source}; config load rejected: {normalizedError}");
         }
 
         private void LogTypedParseRecoveredInfoOnce(string sourceContext, string typedError)
@@ -2852,7 +2852,7 @@ namespace RimChat.Persistence
             LogTypedParseWarningOnce(
                 _typedParseRecoveredInfoHashes,
                 signature,
-                $"[RimChat] Typed JSON parse failed at source={source}, but fallback recovery succeeded: {normalizedError}",
+                $"[RimAI.Relations] Typed JSON parse failed at source={source}, but fallback recovery succeeded: {normalizedError}",
                 logAsWarning: false);
         }
 
@@ -3842,7 +3842,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] 注入记忆数据失败：{ex.Message}");
+                Log.Warning($"[RimAI.Relations] 注入记忆数据失败：{ex.Message}");
             }
         }
 
@@ -5016,7 +5016,7 @@ namespace RimChat.Persistence
                 config.GlobalSystemPrompt += "\n\n" + sectionContent.TrimEnd();
             }
 
-            Log.Message("[RimChat] Migrating config: Added presence behavior guidance.");
+            Log.Message("[RimAI.Relations] Migrating config: Added presence behavior guidance.");
             return true;
         }
 
@@ -5209,7 +5209,7 @@ namespace RimChat.Persistence
 
             if (rewrite.Changed)
             {
-                Log.Warning($"[RimChat] Prompt schema migration ({loaded} -> {current}) rewrote templates to namespaced Scriban variables.");
+                Log.Warning($"[RimAI.Relations] Prompt schema migration ({loaded} -> {current}) rewrote templates to namespaced Scriban variables.");
             }
 
             return rewrite.Changed || loaded != current;
@@ -5233,7 +5233,7 @@ namespace RimChat.Persistence
             if (config.PromptPolicy.ResetPromptCustomOnSchemaUpgrade)
             {
                 Log.Warning(
-                    $"[RimChat] Prompt policy schema upgrade detected ({loaded} -> {current}). " +
+                    $"[RimAI.Relations] Prompt policy schema upgrade detected ({loaded} -> {current}). " +
                     "Resetting prompt custom overrides to new defaults.");
                 config = CreateDefaultConfig();
                 config.PromptPolicySchemaVersion = current;
@@ -5269,7 +5269,7 @@ namespace RimChat.Persistence
             }
 
             config.ApiActions.Insert(insertIndex, new ApiActionConfig(actionName, description, parameters, requirement));
-            Log.Message($"[RimChat] Migrating config: Adding {actionName} action...");
+            Log.Message($"[RimAI.Relations] Migrating config: Adding {actionName} action...");
             return true;
         }
 
@@ -5645,7 +5645,7 @@ namespace RimChat.Persistence
                 return false;
             }
 
-            Log.Message($"[RimChat] Migrating config: Removing deprecated prompt action '{actionName}'.");
+            Log.Message($"[RimAI.Relations] Migrating config: Removing deprecated prompt action '{actionName}'.");
             return true;
         }
 
@@ -5871,7 +5871,7 @@ namespace RimChat.Persistence
 
             if (changed)
             {
-                Log.Message("[RimChat] Migrating config: Filled missing PromptTemplates fields from default template file.");
+                Log.Message("[RimAI.Relations] Migrating config: Filled missing PromptTemplates fields from default template file.");
             }
 
             return changed;
@@ -5982,7 +5982,7 @@ namespace RimChat.Persistence
                 "If no action is needed, reply normally with no JSON block.");
             if (changed)
             {
-                Log.Warning("[RimChat] Migrating config: Rewrote legacy hard-text node templates to Scriban runtime-body templates.");
+                Log.Warning("[RimAI.Relations] Migrating config: Rewrote legacy hard-text node templates to Scriban runtime-body templates.");
             }
 
             return changed;

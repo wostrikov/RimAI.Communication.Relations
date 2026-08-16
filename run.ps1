@@ -12,7 +12,7 @@ $rimWorldLaunchArgs = "-force-d3d11 -force-feature-level-10-0 -screen-fullscreen
 
 function Write-Status {
     param([string]$Message)
-    Write-Host "[RimChat] $Message" -ForegroundColor Green
+    Write-Host "[RimAI.Relations] $Message" -ForegroundColor Green
 }
 
 function Write-Err {

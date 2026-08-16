@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, GameComponent_DiplomacyManager, FactionDialogueSession.
  /// Responsibility: own diplomacy request lifecycle, context validation, and cancellation.

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using RimChat.Config;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting.Builders
+namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
     /// <summary>/// Dependencies: PromptPersistenceService hierarchical diplomacy builder core.
  /// Responsibility: orchestrate diplomacy prompt build entry without changing output behavior.

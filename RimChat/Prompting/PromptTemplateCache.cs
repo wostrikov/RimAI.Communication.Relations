@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using Scriban;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: Scriban Template runtime.

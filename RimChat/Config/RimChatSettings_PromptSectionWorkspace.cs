@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Persistence;
-using RimChat.Prompting;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
 // ReSharper disable InconsistentlySynchronizedField
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt preset service, unified prompt catalog projection helpers, aggregate preview builder, shared variable browser, and chip editor.
@@ -206,11 +206,11 @@ namespace RimChat.Config
                     + "RimChat_PromptWorkbench_ChannelDiplomacy RimChat_PromptWorkbench_ChannelRpg".Translate());
                 // Pre-render all CJK glyphs into the font texture to avoid per-frame rasterization
                 GUI.skin.font.RequestCharactersInTexture(sb.ToString());
-                Log.Message($"[RimChat] Font pre-rasterized, {sb.Length} chars");
+                Log.Message($"[RimAI.Relations] Font pre-rasterized, {sb.Length} chars");
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Font pre-rasterize failed (non-fatal): {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Font pre-rasterize failed (non-fatal): {ex.Message}");
             }
         }
 
@@ -697,7 +697,7 @@ namespace RimChat.Config
             catch (Exception ex)
             {
                 _promptWorkspaceChipEditorDisabledForSession = true;
-                Log.Warning($"[RimChat] Prompt workspace chip editor fallback activated: {ex.GetType().Name}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Prompt workspace chip editor fallback activated: {ex.GetType().Name}: {ex.Message}");
                 return DrawPromptWorkspaceLegacyTextArea(inner, text);
             }
         }
@@ -1331,7 +1331,7 @@ namespace RimChat.Config
                     }
                     else
                     {
-                        Log.Warning($"[RimChat] Prompt workspace preset payload sync failed: {syncError}");
+                        Log.Warning($"[RimAI.Relations] Prompt workspace preset payload sync failed: {syncError}");
                         Messages.Message(
                             "RimChat_PromptPreset_AutoForkFailed".Translate(syncError ?? "workspace.sync_payload"),
                             MessageTypeDefOf.RejectInput,

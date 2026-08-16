@@ -4,7 +4,7 @@ using System.Linq;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: ThingDefRecord.
@@ -209,7 +209,7 @@ namespace RimChat.DiplomacySystem
                 return;
             }
 
-            Log.Message($"[RimChat][IsResourceCandidate] {def.defName}: {decision}");
+            Log.Message($"[RimAI.Relations][IsResourceCandidate] {def.defName}: {decision}");
         }
 
         private static bool ShouldLogResourceDecision()

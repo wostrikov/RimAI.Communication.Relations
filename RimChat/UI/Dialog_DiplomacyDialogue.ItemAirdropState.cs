@@ -1,8 +1,8 @@
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: diplomacy dialogue session runtime state.
@@ -22,7 +22,7 @@ namespace RimChat.UI
 
             AirdropExecutionStage previousStage = currentSession.airdropExecutionStage;
             currentSession.airdropExecutionStage = nextStage;
-            Log.Message($"[RimChat] AirdropStateTransition: {previousStage} -> {nextStage} reason={reason ?? "none"}");
+            Log.Message($"[RimAI.Relations] AirdropStateTransition: {previousStage} -> {nextStage} reason={reason ?? "none"}");
         }
 
         private static void ResetAirdropConfirmationRuntime(
@@ -63,7 +63,7 @@ namespace RimChat.UI
             {
                 currentSession.airdropRequestGeneration++;
                 Log.Message(
-                    $"[RimChat] AirdropPendingIntentInvalidated: reason={reason ?? "none"},clearedPendingIntent={clearedPendingIntent},clearedAirdropIntent={clearedAirdropIntent},clearedAsyncState={hadAsyncState},clearedTradeCard={clearTradeCardReference},resetStageToIdle={resetStageToIdle},generation={currentSession.airdropRequestGeneration}");
+                    $"[RimAI.Relations] AirdropPendingIntentInvalidated: reason={reason ?? "none"},clearedPendingIntent={clearedPendingIntent},clearedAirdropIntent={clearedAirdropIntent},clearedAsyncState={hadAsyncState},clearedTradeCard={clearTradeCardReference},resetStageToIdle={resetStageToIdle},generation={currentSession.airdropRequestGeneration}");
             }
         }
 
@@ -105,7 +105,7 @@ namespace RimChat.UI
             int elapsed = currentTick - session.airdropPreparedAwaitingConfirmTick;
             if (elapsed < AirdropPreparedAwaitingConfirmTimeoutTicks) return;
 
-            Log.Warning($"[RimChat] Airdrop auto-cleanup: PreparedAwaitingConfirm stale for {elapsed} ticks (> {AirdropPreparedAwaitingConfirmTimeoutTicks}). Resetting for faction={faction.Name}.");
+            Log.Warning($"[RimAI.Relations] Airdrop auto-cleanup: PreparedAwaitingConfirm stale for {elapsed} ticks (> {AirdropPreparedAwaitingConfirmTimeoutTicks}). Resetting for faction={faction.Name}.");
             ResetAirdropConfirmationRuntime(session, "auto_cleanup_stale_confirmation", true, true, true);
             session.AddMessage("System", "RimChat_ItemAirdropCancelledSystem".Translate().ToString(), false, DialogueMessageType.System);
             ClearPendingAirdropDialogState("auto_cleanup", true);

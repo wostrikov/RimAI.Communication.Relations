@@ -1,11 +1,11 @@
 using System;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: GameAIInterface, RimWorld widgets.
@@ -31,7 +31,7 @@ namespace RimChat.UI
         {
             if (WindowStackHasDialogOfType<Dialog_MessageBox>()) return;
 
-            int peaceCost = RimChat.Core.RimChatMod.Settings?.MaxPeaceCost ?? 500;
+            int peaceCost = Ustas.RimAI.Communication.Relations.Core.RimChatMod.Settings?.MaxPeaceCost ?? 500;
             var prepareResult = GameAIInterface.Instance.PrepareMakePeacePayment(faction, peaceCost, negotiator);
             if (!prepareResult.Success)
             {

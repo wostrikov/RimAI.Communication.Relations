@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     internal enum QuickPromptTargetKind
     {
@@ -43,7 +43,7 @@ namespace RimChat.Prompting
             return "{{ " + BuildQuickPath(kind) + " }}";
         }
 
-        public static bool RequiresQuickConflictResolution(RimChat.Config.RimChatSettings settings, QuickPromptTargetKind kind)
+        public static bool RequiresQuickConflictResolution(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings, QuickPromptTargetKind kind)
         {
             UserDefinedPromptVariableConfig variable = FindVariableByKey(GetQuickKey(kind), settings);
             return variable != null &&
@@ -51,7 +51,7 @@ namespace RimChat.Prompting
                    !HasQuickManagedRules(settings, kind);
         }
 
-        public static string GetQuickFactionTemplate(RimChat.Config.RimChatSettings settings, Faction faction)
+        public static string GetQuickFactionTemplate(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings, Faction faction)
         {
             if (faction?.def == null)
             {
@@ -66,14 +66,14 @@ namespace RimChat.Prompting
             return rule?.TemplateText ?? string.Empty;
         }
 
-        public static string GetQuickPawnTemplate(RimChat.Config.RimChatSettings settings, Pawn pawn)
+        public static string GetQuickPawnTemplate(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings, Pawn pawn)
         {
             PawnPromptVariableRuleConfig rule = FindQuickPawnRule(GetPawnRulesForKey(GetQuickKey(QuickPromptTargetKind.Pawn), settings), pawn);
             return rule?.TemplateText ?? string.Empty;
         }
 
         public static bool TrySaveQuickFactionPrompt(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             Faction faction,
             string templateText,
             QuickPromptConflictDecision decision,
@@ -115,7 +115,7 @@ namespace RimChat.Prompting
         }
 
         public static bool TrySaveQuickPawnPrompt(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             Pawn pawn,
             string templateText,
             QuickPromptConflictDecision decision,
@@ -169,7 +169,7 @@ namespace RimChat.Prompting
         }
 
         private static UserDefinedPromptVariableEditModel BuildQuickEditModel(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             QuickPromptTargetKind kind,
             QuickPromptConflictDecision decision)
         {
@@ -211,7 +211,7 @@ namespace RimChat.Prompting
             variable.Enabled = true;
         }
 
-        private static bool HasQuickManagedRules(RimChat.Config.RimChatSettings settings, QuickPromptTargetKind kind)
+        private static bool HasQuickManagedRules(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings, QuickPromptTargetKind kind)
         {
             string prefix = GetQuickRuleIdPrefix(kind);
             if (kind == QuickPromptTargetKind.Faction)

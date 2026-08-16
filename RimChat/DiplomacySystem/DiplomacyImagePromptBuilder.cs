@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: RimWorld faction/pawn data and image prompt template settings.
  /// Responsibility: build final send_image prompt by combining template, extra prompt, and leader profile block.

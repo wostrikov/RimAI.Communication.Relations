@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: RimChat settings, prompt validation service, and RimWorld defs.
@@ -110,45 +110,45 @@ namespace RimChat.Prompting
             return SourceLabel;
         }
 
-        public static IReadOnlyList<UserDefinedPromptVariableConfig> GetVariables(RimChat.Config.RimChatSettings settings = null)
+        public static IReadOnlyList<UserDefinedPromptVariableConfig> GetVariables(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
-            RimChat.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
             return resolved?.UserDefinedPromptVariables != null
                 ? resolved.UserDefinedPromptVariables
                 : (IReadOnlyList<UserDefinedPromptVariableConfig>)Array.Empty<UserDefinedPromptVariableConfig>();
         }
 
-        public static IReadOnlyList<FactionPromptVariableRuleConfig> GetFactionRules(RimChat.Config.RimChatSettings settings = null)
+        public static IReadOnlyList<FactionPromptVariableRuleConfig> GetFactionRules(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
-            RimChat.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
             return resolved?.UserDefinedPromptVariableFactionRules != null
                 ? resolved.UserDefinedPromptVariableFactionRules
                 : (IReadOnlyList<FactionPromptVariableRuleConfig>)Array.Empty<FactionPromptVariableRuleConfig>();
         }
 
-        public static IReadOnlyList<PawnPromptVariableRuleConfig> GetPawnRules(RimChat.Config.RimChatSettings settings = null)
+        public static IReadOnlyList<PawnPromptVariableRuleConfig> GetPawnRules(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
-            RimChat.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
             return resolved?.UserDefinedPromptVariablePawnRules != null
                 ? resolved.UserDefinedPromptVariablePawnRules
                 : (IReadOnlyList<PawnPromptVariableRuleConfig>)Array.Empty<PawnPromptVariableRuleConfig>();
         }
 
-        public static IReadOnlyList<FactionScopedPromptVariableOverrideConfig> GetLegacyOverrides(RimChat.Config.RimChatSettings settings = null)
+        public static IReadOnlyList<FactionScopedPromptVariableOverrideConfig> GetLegacyOverrides(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
-            RimChat.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
             return resolved?.FactionScopedPromptVariableOverrides != null
                 ? resolved.FactionScopedPromptVariableOverrides
                 : (IReadOnlyList<FactionScopedPromptVariableOverrideConfig>)Array.Empty<FactionScopedPromptVariableOverrideConfig>();
         }
 
-        public static UserDefinedPromptVariableConfig FindVariableByPath(string path, RimChat.Config.RimChatSettings settings = null)
+        public static UserDefinedPromptVariableConfig FindVariableByPath(string path, Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
             string key = ExtractKeyFromPath(path);
             return FindVariableByKey(key, settings);
         }
 
-        public static UserDefinedPromptVariableConfig FindVariableByKey(string key, RimChat.Config.RimChatSettings settings = null)
+        public static UserDefinedPromptVariableConfig FindVariableByKey(string key, Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
             string normalized = NormalizeKey(key);
             if (string.IsNullOrWhiteSpace(normalized))
@@ -161,7 +161,7 @@ namespace RimChat.Prompting
                 string.Equals(NormalizeKey(item.Key), normalized, StringComparison.Ordinal));
         }
 
-        public static List<FactionPromptVariableRuleConfig> GetFactionRulesForKey(string key, RimChat.Config.RimChatSettings settings = null)
+        public static List<FactionPromptVariableRuleConfig> GetFactionRulesForKey(string key, Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
             string normalized = NormalizeKey(key);
             return GetFactionRules(settings)
@@ -170,7 +170,7 @@ namespace RimChat.Prompting
                 .ToList();
         }
 
-        public static List<PawnPromptVariableRuleConfig> GetPawnRulesForKey(string key, RimChat.Config.RimChatSettings settings = null)
+        public static List<PawnPromptVariableRuleConfig> GetPawnRulesForKey(string key, Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
             string normalized = NormalizeKey(key);
             return GetPawnRules(settings)
@@ -263,7 +263,7 @@ namespace RimChat.Prompting
             return new PromptVariableTooltipInfo(name, "Scriban text", description, typicalValues);
         }
 
-        public static void NormalizeSettingsCollections(RimChat.Config.RimChatSettings settings)
+        public static void NormalizeSettingsCollections(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             if (settings == null)
             {
@@ -281,9 +281,9 @@ namespace RimChat.Prompting
             NormalizePawnRules(settings);
         }
 
-        public static List<UserDefinedPromptVariableReferenceLocation> FindReferences(string path, RimChat.Config.RimChatSettings settings = null)
+        public static List<UserDefinedPromptVariableReferenceLocation> FindReferences(string path, Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings = null)
         {
-            RimChat.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings resolved = settings ?? RimChatMod.Settings;
             var matches = new List<UserDefinedPromptVariableReferenceLocation>();
             if (resolved == null || string.IsNullOrWhiteSpace(path))
             {
@@ -316,7 +316,7 @@ namespace RimChat.Prompting
         }
 
         public static bool TryDeleteVariable(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             string path,
             out List<UserDefinedPromptVariableReferenceLocation> references)
         {
@@ -359,7 +359,7 @@ namespace RimChat.Prompting
             return model;
         }
 
-        private static void NormalizeVariables(RimChat.Config.RimChatSettings settings)
+        private static void NormalizeVariables(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             var normalizedVariables = new List<UserDefinedPromptVariableConfig>();
             var seenVariableKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -386,7 +386,7 @@ namespace RimChat.Prompting
             settings.UserDefinedPromptVariables = normalizedVariables;
         }
 
-        private static void MigrateLegacyOverrides(RimChat.Config.RimChatSettings settings)
+        private static void MigrateLegacyOverrides(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             if (settings == null)
             {
@@ -435,7 +435,7 @@ namespace RimChat.Prompting
             settings.FactionScopedPromptVariableOverrides = new List<FactionScopedPromptVariableOverrideConfig>();
         }
 
-        private static void NormalizeFactionRules(RimChat.Config.RimChatSettings settings)
+        private static void NormalizeFactionRules(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             var normalizedRules = new List<FactionPromptVariableRuleConfig>();
             int order = 0;
@@ -467,7 +467,7 @@ namespace RimChat.Prompting
                 .ToList();
         }
 
-        private static void NormalizePawnRules(RimChat.Config.RimChatSettings settings)
+        private static void NormalizePawnRules(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             var normalizedRules = new List<PawnPromptVariableRuleConfig>();
             int order = 0;
@@ -582,7 +582,7 @@ namespace RimChat.Prompting
             return false;
         }
 
-        private static IEnumerable<PromptTemplateReferenceCandidate> EnumerateReferenceCandidates(RimChat.Config.RimChatSettings settings)
+        private static IEnumerable<PromptTemplateReferenceCandidate> EnumerateReferenceCandidates(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             foreach (RimTalkPromptChannel channel in Enum.GetValues(typeof(RimTalkPromptChannel)).Cast<RimTalkPromptChannel>())
             {

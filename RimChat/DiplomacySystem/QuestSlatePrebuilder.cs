@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     internal static class QuestSlatePrebuilder
     {

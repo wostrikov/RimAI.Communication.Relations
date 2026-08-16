@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: SystemPromptConfig prompt model and PromptTextConstants defaults.
  /// Responsibility: provide a dedicated social-circle prompt editing section for action rules and news-generation templates.

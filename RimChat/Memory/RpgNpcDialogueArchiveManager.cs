@@ -5,21 +5,21 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: GameComponent_RPGManager, RimWorld save path, NPC dialogue turn feed.
  /// Responsibility: persist RPG dialogue archives per NPC into independent JSON files.
  ///</summary>
     public sealed partial class RpgNpcDialogueArchiveManager
     {
-        private const string SaveRootDir = "RimChat";
+        private const string SaveRootDir = "Ustas.RimAI.Communication.Relations";
         private const string SaveSubDir = "save_data";
         private const string NpcArchiveSubDir = "rpg_npc_dialogues";
         private const string PromptFolderName = "Prompt";
@@ -414,7 +414,7 @@ namespace RimChat.Memory
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to create archive directory: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to create archive directory: {ex.Message}");
                 }
 
                 string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, SaveRootDir, PromptFolderName, NpcPromptSubDir);
@@ -439,7 +439,7 @@ namespace RimChat.Memory
                 _cacheLoaded = false;
                 _loadedSaveKey = string.Empty;
                 InvalidatePromptMemoryCacheLockless();
-                Log.Error($"[RimChat] RPG NPC archive cache load blocked: {ex.Message}");
+                Log.Error($"[RimAI.Relations] RPG NPC archive cache load blocked: {ex.Message}");
                 return;
             }
 
@@ -496,7 +496,7 @@ namespace RimChat.Memory
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to load RPG NPC archive file '{files[i]}': {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to load RPG NPC archive file '{files[i]}': {ex.Message}");
                 }
             }
 
@@ -537,7 +537,7 @@ namespace RimChat.Memory
             }
             catch (InvalidOperationException ex)
             {
-                Log.Error($"[RimChat] RPG NPC archive persistence blocked in {operationName}: {ex.Message}");
+                Log.Error($"[RimAI.Relations] RPG NPC archive persistence blocked in {operationName}: {ex.Message}");
                 return false;
             }
         }
@@ -587,7 +587,7 @@ namespace RimChat.Memory
             {
                 File.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
                 TryClaimDefaultBucket(currentSaveKey, legacyDirs);
-                Log.Message($"[RimChat] Migrated {migratedCount} legacy NPC archive file(s) to {currentSaveKey}.");
+                Log.Message($"[RimAI.Relations] Migrated {migratedCount} legacy NPC archive file(s) to {currentSaveKey}.");
             }
         }
 
@@ -975,7 +975,7 @@ namespace RimChat.Memory
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to save RPG NPC archive {archive.PawnLoadId}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to save RPG NPC archive {archive.PawnLoadId}: {ex.Message}");
             }
         }
 
@@ -1813,7 +1813,7 @@ namespace RimChat.Memory
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to create archive directory: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to create archive directory: {ex.Message}");
                 }
             }
         }
@@ -2637,7 +2637,7 @@ namespace RimChat.Memory
                 ? $"saveKey={saveKey}, dir={archiveDir}"
                 : "saveKey=<unresolved>, dir=<unresolved>";
             Log.Message(
-                $"[RimChat] RPG memory skipped: no archive sessions for target={targetName}({targetId}), " +
+                $"[RimAI.Relations] RPG memory skipped: no archive sessions for target={targetName}({targetId}), " +
                 $"interlocutor={interlocutorName}({interlocutorId}), {contextSuffix}");
         }
 
@@ -2653,7 +2653,7 @@ namespace RimChat.Memory
             }
             catch (InvalidOperationException ex)
             {
-                Log.Warning($"[RimChat] RPG memory debug context unresolved: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] RPG memory debug context unresolved: {ex.Message}");
                 return false;
             }
         }

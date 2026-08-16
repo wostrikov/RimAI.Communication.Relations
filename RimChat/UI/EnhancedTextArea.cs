@@ -3,7 +3,7 @@ using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// 增强型text框component
  /// 特性: 滚动条支持, 字数统计与限制, 键盘快捷键, 焦点state优化

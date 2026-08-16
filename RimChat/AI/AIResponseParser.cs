@@ -4,12 +4,12 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using RimChat.Dialogue;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>/// LLMresponseparser
  /// 解析AI的JSON格式response, 提取API调用和dialoguecontents
@@ -1008,7 +1008,7 @@ namespace RimChat.AI
                 string paymentItem0Type = DescribeAirdropPaymentItem0Type(parameters);
                 string paymentItem0Keys = DescribeAirdropPaymentItem0Keys(parameters);
                 Log.Warning(
-                    $"[RimChat] Dropped request_item_airdrop action because required parameters are missing or invalid (need, payment_items). " +
+                    $"[RimAI.Relations] Dropped request_item_airdrop action because required parameters are missing or invalid (need, payment_items). " +
                     $"need_present={needPresent}, " +
                     $"payment_items_type={paymentItemsType}, " +
                     $"payment_items_count={paymentItemsCount}, " +
@@ -1027,7 +1027,7 @@ namespace RimChat.AI
                         out bool paymentModePassthrough))
                 {
                     Log.Warning(
-                        $"[RimChat] pay_prisoner_ransom parameters unresolved: missing_or_invalid={invalidParameter ?? "unknown"}, " +
+                        $"[RimAI.Relations] pay_prisoner_ransom parameters unresolved: missing_or_invalid={invalidParameter ?? "unknown"}, " +
                         $"payment_mode_raw={FormatRansomLogValue(paymentModeRaw)}, " +
                         $"payment_mode_normalized={FormatRansomLogValue(paymentModeNormalized)}, " +
                         $"passthrough_to_execution={paymentModePassthrough}. " +
@@ -1053,7 +1053,7 @@ namespace RimChat.AI
                 }
 
                 Log.Message(
-                    $"[RimChat] pay_prisoner_ransom parser accepted: " +
+                    $"[RimAI.Relations] pay_prisoner_ransom parser accepted: " +
                     $"payment_mode_raw={FormatRansomLogValue(paymentModeRaw)}, " +
                     $"payment_mode_normalized={FormatRansomLogValue(paymentModeNormalized)}, " +
                     $"passthrough_to_execution={paymentModePassthrough}.");
@@ -1134,7 +1134,7 @@ namespace RimChat.AI
                 ? string.Join(",", droppedDuplicateRansomTargetIds.Distinct().OrderBy(id => id))
                 : "none";
             Log.Message(
-                $"[RimChat] pay_prisoner_ransom parser summary: kept_targets={keptTargets}, " +
+                $"[RimAI.Relations] pay_prisoner_ransom parser summary: kept_targets={keptTargets}, " +
                 $"dropped_duplicate_targets={droppedTargets}, kept_without_target={Math.Max(0, keptRansomWithoutTargetCount)}.");
         }
 

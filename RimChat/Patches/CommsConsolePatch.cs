@@ -6,12 +6,12 @@ using HarmonyLib;
 using RimWorld;
 using Verse;
 using Verse.AI;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.Util;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.UI;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// 拦截原版通讯台, 替换为边缘diplomacydialoguewindow
  /// 使用dynamicmethodlookup来确保compatibility性
@@ -40,18 +40,18 @@ namespace RimChat.Patches
         {
             try
             {
-                Log.Message("[RimChat] === Initializing CommsConsole Patch ===");
+                Log.Message("[RimAI.Relations] === Initializing CommsConsole Patch ===");
 
                 // Lookup Building_CommsConsole 类型
                 var commsConsoleType = AccessTools.TypeByName("RimWorld.Building_CommsConsole");
                 if (commsConsoleType == null)
                 {
-                    Log.Warning("[RimChat] Could not find Building_CommsConsole type");
+                    Log.Warning("[RimAI.Relations] Could not find Building_CommsConsole type");
                     return;
                 }
 
-                Log.Message($"[RimChat] Found Building_CommsConsole: {commsConsoleType.FullName}");
-                Log.Message("[RimChat] Building_CommsConsole methods:");
+                Log.Message($"[RimAI.Relations] Found Building_CommsConsole: {commsConsoleType.FullName}");
+                Log.Message("[RimAI.Relations] Building_CommsConsole methods:");
                 foreach (var method in commsConsoleType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 {
                     Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
@@ -61,8 +61,8 @@ namespace RimChat.Patches
                 var compUsableType = AccessTools.TypeByName("Verse.CompUsable");
                 if (compUsableType != null)
                 {
-                    Log.Message($"[RimChat] Found CompUsable: {compUsableType.FullName}");
-                    Log.Message("[RimChat] CompUsable methods:");
+                    Log.Message($"[RimAI.Relations] Found CompUsable: {compUsableType.FullName}");
+                    Log.Message("[RimAI.Relations] CompUsable methods:");
                     foreach (var method in compUsableType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                     {
                         Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
@@ -73,8 +73,8 @@ namespace RimChat.Patches
                 var jobDriverType = AccessTools.TypeByName("RimWorld.JobDriver_UseCommsConsole");
                 if (jobDriverType != null)
                 {
-                    Log.Message($"[RimChat] Found JobDriver_UseCommsConsole: {jobDriverType.FullName}");
-                    Log.Message("[RimChat] JobDriver_UseCommsConsole methods:");
+                    Log.Message($"[RimAI.Relations] Found JobDriver_UseCommsConsole: {jobDriverType.FullName}");
+                    Log.Message("[RimAI.Relations] JobDriver_UseCommsConsole methods:");
                     foreach (var method in jobDriverType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                     {
                         Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
@@ -86,7 +86,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error initializing patch: {ex}");
+                Log.Error($"[RimAI.Relations] Error initializing patch: {ex}");
             }
         }
 
@@ -96,7 +96,7 @@ namespace RimChat.Patches
             var getFloatMenuOptionsMethod = commsConsoleType.GetMethod("GetFloatMenuOptions", BindingFlags.Public | BindingFlags.Instance);
             if (getFloatMenuOptionsMethod != null)
             {
-                Log.Message($"[RimChat] Patching Building_CommsConsole.GetFloatMenuOptions method");
+                Log.Message($"[RimAI.Relations] Patching Building_CommsConsole.GetFloatMenuOptions method");
                 var postfixMethod = typeof(CommsConsolePatch).GetMethod("GetFloatMenuOptionsPostfix", BindingFlags.Static | BindingFlags.NonPublic);
                 harmony.Patch(getFloatMenuOptionsMethod, postfix: new HarmonyMethod(postfixMethod));
             }
@@ -159,23 +159,23 @@ namespace RimChat.Patches
                         return;
                     }
 
-                    Log.Warning($"[RimChat] Comms immediate open rejected: pawn={myPawn.LabelShortCap}, faction={targetFaction.Name}, reason={reason ?? "unknown"}");
+                    Log.Warning($"[RimAI.Relations] Comms immediate open rejected: pawn={myPawn.LabelShortCap}, faction={targetFaction.Name}, reason={reason ?? "unknown"}");
                     if (Find.WindowStack != null && !targetFaction.defeated)
                     {
-                        Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source=comms_immediate, faction={targetFaction.Name}");
+                        Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source=comms_immediate, faction={targetFaction.Name}");
                         Find.WindowStack.Add(new Dialog_DiplomacyDialogue(targetFaction, myPawn));
                     }
                 };
                 if (ShouldLogInterceptDebug(myPawn, targetFaction))
                 {
-                    Log.Message($"[RimChat] Comms option intercepted: pawn={myPawn.LabelShortCap}, faction={targetFaction.Name}");
+                    Log.Message($"[RimAI.Relations] Comms option intercepted: pawn={myPawn.LabelShortCap}, faction={targetFaction.Name}");
                 }
                 yield return option;
             }
 
             if (patchedCount == 0 && ShouldLogNoPatchDebug())
             {
-                Log.Warning($"[RimChat] Comms menu patch found no faction options: pawn={myPawn?.LabelShortCap ?? "null"}, map={__instance?.Map?.uniqueID ?? -1}");
+                Log.Warning($"[RimAI.Relations] Comms menu patch found no faction options: pawn={myPawn?.LabelShortCap ?? "null"}, map={__instance?.Map?.uniqueID ?? -1}");
             }
         }
 
@@ -243,7 +243,7 @@ namespace RimChat.Patches
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to inspect comms option action closure: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to inspect comms option action closure: {ex.Message}");
             }
 
             return null;
@@ -314,7 +314,7 @@ namespace RimChat.Patches
             string pawnLabel = pawn?.LabelShortCap ?? "null";
             string optionLabel = option?.Label ?? "<null>";
             string actionInfo = option?.action?.Method?.DeclaringType?.FullName ?? "<no-action>";
-            Log.Message($"[RimChat] Comms option bypassed: reason={reason}, pawn={pawnLabel}, label={optionLabel}, actionType={actionInfo}");
+            Log.Message($"[RimAI.Relations] Comms option bypassed: reason={reason}, pawn={pawnLabel}, label={optionLabel}, actionType={actionInfo}");
         }
 
         private static bool ShouldLogBypassDebug(Pawn pawn, FloatMenuOption option, CommsOptionBypassReason reason)
@@ -477,7 +477,7 @@ namespace RimChat.Patches
                     }
                     else if (ShouldLogFailure(request, currentTick))
                     {
-                        Log.Warning($"[RimChat] Comms dialogue open skipped: pawn={pawn.LabelShortCap}, faction={faction?.Name ?? "null"}, reason={reason ?? "unknown"}");
+                        Log.Warning($"[RimAI.Relations] Comms dialogue open skipped: pawn={pawn.LabelShortCap}, faction={faction?.Name ?? "null"}, reason={reason ?? "unknown"}");
                         request.LastFailureLogTick = currentTick;
                     }
                 }
@@ -593,8 +593,8 @@ namespace RimChat.Patches
                 return false;
             }
 
-            Log.Warning($"[RimChat] Comms dialogue open rejected: faction={faction.Name}, reason={reason ?? "unknown"}");
-            Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source={source}, faction={faction.Name}");
+            Log.Warning($"[RimAI.Relations] Comms dialogue open rejected: faction={faction.Name}, reason={reason ?? "unknown"}");
+            Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source={source}, faction={faction.Name}");
             Find.WindowStack.Add(new Dialog_DiplomacyDialogue(faction, negotiator));
             return true;
         }

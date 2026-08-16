@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using HarmonyLib;
-using RimChat.Dialogue;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using Verse;
 
-namespace RimChat.NpcDialogue
+namespace Ustas.RimAI.Communication.Relations.NpcDialogue
 {
-    /// <summary>/// Dependencies: Verse.ChoiceLetter, RimChat.UI.Dialog_DiplomacyDialogue.
+    /// <summary>/// Dependencies: Verse.ChoiceLetter, Ustas.RimAI.Communication.Relations.UI.Dialog_DiplomacyDialogue.
  /// Responsibility: Render proactive NPC letter with one-click "open diplomacy dialogue" action.
  ///</summary>
     public class ChoiceLetter_NpcInitiatedDialogue : ChoiceLetter
@@ -128,8 +128,8 @@ namespace RimChat.NpcDialogue
                 return;
             }
 
-            Log.Warning($"[RimChat] NPC letter dialogue open rejected: faction={faction.Name}, reason={reason ?? "unknown"}");
-            Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source=npc_letter, faction={faction.Name}");
+            Log.Warning($"[RimAI.Relations] NPC letter dialogue open rejected: faction={faction.Name}, reason={reason ?? "unknown"}");
+            Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source=npc_letter, faction={faction.Name}");
             Find.WindowStack.Add(new Dialog_DiplomacyDialogue(faction, null));
         }
 

@@ -1,9 +1,9 @@
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.NpcDialogue
+namespace Ustas.RimAI.Communication.Relations.NpcDialogue
 {
     /// <summary>/// Dependencies: RimWorld.Faction, Verse.Scribe.
  /// Responsibility: Define trigger/queue/state models for NPC proactive dialogue.

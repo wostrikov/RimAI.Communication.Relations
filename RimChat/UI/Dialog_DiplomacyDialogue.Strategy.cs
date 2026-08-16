@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
-using RimChat.Persistence;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: AIResponseParser.StrategySuggestion, FactionDialogueSession, RimChatSettings, negotiator/map context.
  /// Responsibility: 策略建议button展示, 全局开关门控, 发送, session缓存与context注入 (diplomacywindow专用) .
@@ -459,7 +459,7 @@ namespace RimChat.UI
             if (suggestions == null || suggestions.Count != StrategySuggestionRequiredCount)
             {
                 ClearPendingStrategySuggestions(currentSession);
-                Log.Message("[RimChat] Strategy payload missing/invalid; requesting strict follow-up strategy payload.");
+                Log.Message("[RimAI.Relations] Strategy payload missing/invalid; requesting strict follow-up strategy payload.");
                 TryRequestStrategySuggestionsFromLLM(currentSession, faction);
                 return;
             }
@@ -474,7 +474,7 @@ namespace RimChat.UI
             if (mapped.Count != StrategySuggestionRequiredCount)
             {
                 ClearPendingStrategySuggestions(currentSession);
-                Log.Message("[RimChat] Strategy payload invalid after parse, requesting follow-up strategy payload.");
+                Log.Message("[RimAI.Relations] Strategy payload invalid after parse, requesting follow-up strategy payload.");
                 TryRequestStrategySuggestionsFromLLM(currentSession, faction);
                 return;
             }
@@ -557,7 +557,7 @@ namespace RimChat.UI
 
             int snapshotMessageCount = currentSession.messages?.Count ?? 0;
             strategySuggestionRequestPending = true;
-            Log.Message("[RimChat] Sending strategy follow-up request.");
+            Log.Message("[RimAI.Relations] Sending strategy follow-up request.");
 
             string requestId = string.Empty;
             requestId = AIChatServiceAsync.Instance.SendChatRequestAsync(
@@ -596,16 +596,16 @@ namespace RimChat.UI
                         currentSession.pendingStrategySuggestions = mapped;
                         if (usedLocalFallback)
                         {
-                            Log.Message("[RimChat] Strategy follow-up payload invalid; local fallback strategy set primed.");
+                            Log.Message("[RimAI.Relations] Strategy follow-up payload invalid; local fallback strategy set primed.");
                         }
                         else
                         {
-                            Log.Message("[RimChat] Strategy follow-up request succeeded, strategy buttons primed.");
+                            Log.Message("[RimAI.Relations] Strategy follow-up request succeeded, strategy buttons primed.");
                         }
                         return;
                     }
 
-                    Log.Message("[RimChat] Strategy follow-up produced no valid strategy payload.");
+                    Log.Message("[RimAI.Relations] Strategy follow-up produced no valid strategy payload.");
                 },
                 onError: error =>
                 {
@@ -623,11 +623,11 @@ namespace RimChat.UI
                         HasStrategyUsesRemaining(currentSession))
                     {
                         currentSession.pendingStrategySuggestions = EnsureStrategySuggestionCount(new List<PendingStrategySuggestion>());
-                        Log.Message($"[RimChat] Strategy follow-up request failed: {error}; local fallback strategies primed.");
+                        Log.Message($"[RimAI.Relations] Strategy follow-up request failed: {error}; local fallback strategies primed.");
                         return;
                     }
 
-                    Log.Warning($"[RimChat] Strategy follow-up request failed: {error}");
+                    Log.Warning($"[RimAI.Relations] Strategy follow-up request failed: {error}");
                 },
                 onProgress: null,
                 usageChannel: DialogueUsageChannel.Diplomacy,
@@ -1311,7 +1311,7 @@ namespace RimChat.UI
 
         private void AppendNegotiatorRoyaltyConstraintContext(StringBuilder sb)
         {
-            var promptService = RimChat.Persistence.PromptPersistenceService.Instance;
+            var promptService = Ustas.RimAI.Communication.Relations.Persistence.PromptPersistenceService.Instance;
             string pawnProfile = promptService.BuildPlayerPawnContextForPrompt(faction, negotiator);
             if (!string.IsNullOrWhiteSpace(pawnProfile))
             {

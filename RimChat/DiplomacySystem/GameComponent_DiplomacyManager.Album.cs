@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: GameComponent_DiplomacyManager state and album entry model.

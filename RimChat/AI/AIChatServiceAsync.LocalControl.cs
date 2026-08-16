@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>/// Dependencies: DebugLogger, UnityWebRequest, AIChatServiceAsync shared request state.
  /// Responsibility: local-model queue gating, transient 5xx retry policy, and structured diagnostics.

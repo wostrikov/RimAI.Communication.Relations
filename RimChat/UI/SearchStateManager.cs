@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     internal sealed class SearchStateManager
     {

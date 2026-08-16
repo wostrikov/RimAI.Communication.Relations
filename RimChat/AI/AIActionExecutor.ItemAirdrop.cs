@@ -1,6 +1,6 @@
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
     /// Dependencies: GameAIInterface.

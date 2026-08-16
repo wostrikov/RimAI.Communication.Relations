@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using UnityEngine.Networking;
 using Verse;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
     /// Dependencies: AIChatServiceAsync shared request state and UnityWebRequest abort lifecycle.

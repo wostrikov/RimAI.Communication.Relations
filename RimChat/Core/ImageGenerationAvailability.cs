@@ -1,7 +1,7 @@
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using Verse;
 
-namespace RimChat.Core
+namespace Ustas.RimAI.Communication.Relations.Core
 {
     /// <summary>
     /// Dependencies: Verse translation service and RimChat settings.

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     internal sealed class PromptRequestSnapshotRecord
     {

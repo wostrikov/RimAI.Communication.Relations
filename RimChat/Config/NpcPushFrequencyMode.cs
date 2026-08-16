@@ -1,4 +1,4 @@
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: RimChatSettings.
  /// Responsibility: Control proactive NPC trigger frequency strategy.

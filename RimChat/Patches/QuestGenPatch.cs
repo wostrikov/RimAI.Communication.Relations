@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// 增强原版任务生成节点, 支持preset变量以解决 UNRESOLVABLE error
  ///</summary>

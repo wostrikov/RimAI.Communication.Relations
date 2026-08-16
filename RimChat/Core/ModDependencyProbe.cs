@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Verse;
 
-namespace RimChat.Core
+namespace Ustas.RimAI.Communication.Relations.Core
 {
     /// <summary>
     /// Dependencies: LoadedModManager mod list.

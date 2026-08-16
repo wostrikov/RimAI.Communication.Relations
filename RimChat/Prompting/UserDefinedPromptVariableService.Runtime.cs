@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Config;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: prompt rendering services and runtime prompt contexts.
@@ -54,7 +54,7 @@ namespace RimChat.Prompting
 
             if (resolving.Contains(path))
             {
-                Log.Warning($"[RimChat] Detected recursive custom variable render cycle at {path}.");
+                Log.Warning($"[RimAI.Relations] Detected recursive custom variable render cycle at {path}.");
                 cache[path] = string.Empty;
                 return string.Empty;
             }
@@ -81,7 +81,7 @@ namespace RimChat.Prompting
             }
             catch (PromptRenderException ex)
             {
-                Log.Warning($"[RimChat] Failed to render custom variable {path}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to render custom variable {path}: {ex.Message}");
                 rendered = string.Empty;
             }
             finally

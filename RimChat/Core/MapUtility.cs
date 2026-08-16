@@ -1,7 +1,7 @@
 using RimWorld;
 using Verse;
 
-namespace RimChat.Core
+namespace Ustas.RimAI.Communication.Relations.Core
 {
     public static class MapUtility
     {

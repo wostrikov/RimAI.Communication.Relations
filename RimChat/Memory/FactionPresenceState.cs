@@ -1,9 +1,9 @@
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// 依赖: RimWorld.Faction, Verse.Scribe.
  /// 职责: 表示faction在diplomacydialogue中的在线state与缓存信息.

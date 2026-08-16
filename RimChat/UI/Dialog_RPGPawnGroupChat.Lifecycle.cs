@@ -1,9 +1,9 @@
-using RimChat.AI;
-using RimChat.Core;
-using RimChat.Dialogue;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_RPGPawnGroupChat
     {

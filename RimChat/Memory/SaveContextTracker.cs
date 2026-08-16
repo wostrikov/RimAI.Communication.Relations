@@ -1,7 +1,7 @@
 using System.IO;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: filesystem name normalization, RPG persistent slot identity, and StringExtensions.SanitizeFileName.

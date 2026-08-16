@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: PromptRenderContext and PromptRenderException.

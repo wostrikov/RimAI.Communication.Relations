@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.Persistence;
-using RimChat.Prompting;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: PromptPersistenceService, PromptTemplateRenderer, ModDependencyProbe, RimTalk reflection bridge, and pawn persona storage in this component.
@@ -32,7 +32,7 @@ namespace RimChat.DiplomacySystem
         private const int PersonaRuntimeScanIntervalTicks = 9000; // was 900; reduced peak frequency 10x
         private const int PersonaPromptMaxLength = 1200;
         private const int CurrentNpcPersonaBootstrapVersion = 3;
-        private const string RimTalkPersonaServiceTypeName = "RimTalk.Data.PersonaService";
+        private const string RimTalkPersonaServiceTypeName = "Ustas.RimAI.Communication.Data.PersonaService";
         private const string RimTalkDependencyToken = "rimtalk";
 
         private static readonly Regex WhitespaceRegex = new Regex(@"\s+", RegexOptions.Compiled);
@@ -285,7 +285,7 @@ namespace RimChat.DiplomacySystem
                 return;
             }
 
-            Log.Message($"[RimChat] NPC persona bootstrap queued {npcPersonaBootstrapTargets.Count} existing NPC pawn(s).");
+            Log.Message($"[RimAI.Relations] NPC persona bootstrap queued {npcPersonaBootstrapTargets.Count} existing NPC pawn(s).");
         }
 
         private List<Pawn> CollectNpcPersonaBootstrapTargets()
@@ -432,7 +432,7 @@ namespace RimChat.DiplomacySystem
             if (!rimTalkPersonaAiBlockLogged)
             {
                 rimTalkPersonaAiBlockLogged = true;
-                Log.Message("[RimChat] RimTalk detected; AI persona generation blocked at runtime.");
+                Log.Message("[RimAI.Relations] RimTalk detected; AI persona generation blocked at runtime.");
             }
 
             return true;
@@ -702,7 +702,7 @@ namespace RimChat.DiplomacySystem
                 if (rimTalkGetPersonalityMethod == null && !rimTalkPersonaResolverLoggedUnavailable)
                 {
                     rimTalkPersonaResolverLoggedUnavailable = true;
-                    DebugLogger.Debug("RimTalk persona source unavailable: RimTalk.Data.PersonaService.GetPersonality not found.");
+                    DebugLogger.Debug("RimTalk persona source unavailable: Ustas.RimAI.Communication.Data.PersonaService.GetPersonality not found.");
                 }
 
                 return rimTalkGetPersonalityMethod;
@@ -1133,7 +1133,7 @@ namespace RimChat.DiplomacySystem
             npcPersonaBootstrapCompleted = true;
             npcPersonaBootstrapVersion = CurrentNpcPersonaBootstrapVersion;
             ResetNpcPersonaBootstrapRuntimeState();
-            Log.Message("[RimChat] Existing NPC persona bootstrap completed.");
+            Log.Message("[RimAI.Relations] Existing NPC persona bootstrap completed.");
         }
 
         private bool ShouldRunNpcPersonaBootstrap()

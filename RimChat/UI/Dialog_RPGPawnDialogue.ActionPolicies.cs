@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: prompt policy config, RPG API response parsing, and RPG memory catalog.
     /// Responsibility: normalize RPG action names and apply exit/intent/memory fallback policies.
@@ -227,7 +227,7 @@ namespace RimChat.UI
 
         private static PromptPolicyConfig GetPromptPolicyForActionMapping()
         {
-            SystemPromptConfig config = RimChat.Persistence.PromptPersistenceService.Instance?.LoadConfig();
+            SystemPromptConfig config = Ustas.RimAI.Communication.Relations.Persistence.PromptPersistenceService.Instance?.LoadConfig();
             PromptPolicyConfig policy = config?.PromptPolicy;
             return policy?.Clone() ?? PromptPolicyConfig.CreateDefault();
         }

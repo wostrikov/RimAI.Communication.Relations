@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using Verse;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     /// <summary>
     /// Dependencies: ModelOutputSanitizer and RPG action parser.
@@ -73,7 +73,7 @@ namespace RimChat.Dialogue
                     return false;
                 }
 
-                Log.Warning("[RimChat] Model output contained narrative text before/after JSON block. Extracted JSON via code-fence recovery.");
+                Log.Warning("[RimAI.Relations] Model output contained narrative text before/after JSON block. Extracted JSON via code-fence recovery.");
             }
 
             string visibleDialogue = ExtractFirstNonEmptyString(payload, "visible_dialogue", "dialogue_text");
@@ -95,7 +95,7 @@ namespace RimChat.Dialogue
             {
                 // visible_dialogue was already extracted successfully — demote to warning and continue parsing
                 // rather than discarding the dialogue. The unexpected key is logged for prompt tuning.
-                Log.Warning($"[RimChat] Structured envelope has unexpected top-level key: {unexpectedKey}. Continuing with extracted visible_dialogue.");
+                Log.Warning($"[RimAI.Relations] Structured envelope has unexpected top-level key: {unexpectedKey}. Continuing with extracted visible_dialogue.");
             }
 
             bool hasActionsKey = topLevelKeys.Any(key => string.Equals(key, "actions", StringComparison.OrdinalIgnoreCase));

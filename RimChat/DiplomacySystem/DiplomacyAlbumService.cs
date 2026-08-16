@@ -2,12 +2,12 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: RimWorld save metadata, file IO, and Unity OpenURL.
@@ -178,7 +178,7 @@ namespace RimChat.DiplomacySystem
             {
             }
 
-            string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat", PromptNpcFolderName, PromptNpcSubFolderName);
+            string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptNpcFolderName, PromptNpcSubFolderName);
             if (!Directory.Exists(fallback))
             {
                 Directory.CreateDirectory(fallback);

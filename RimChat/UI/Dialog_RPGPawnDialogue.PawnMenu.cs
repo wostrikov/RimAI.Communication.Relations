@@ -4,7 +4,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>Dependencies: Dialog_RPGPawnDialogue pawn fields (initiator, target), vanilla ITab_Pawn_* and InspectPaneUtility.
     /// Responsibility: interactive pawn name label with measured click area, FloatMenu, inspect-pane-aware interaction.

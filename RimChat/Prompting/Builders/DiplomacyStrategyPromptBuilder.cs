@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using RimChat.Config;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 
-namespace RimChat.Prompting.Builders
+namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
     /// <summary>
     /// Dependencies: PromptPersistenceService diplomacy-strategy builder core.

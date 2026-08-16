@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: pay_prisoner_ransom action flow, PrisonerRansomService eligibility, and diplomacy message image rendering.
@@ -51,7 +51,7 @@ namespace RimChat.UI
             string infoType = ReadStringParameter(action.Parameters, "info_type").Trim().ToLowerInvariant();
             if (!string.Equals(infoType, RequestInfoTypePrisoner, StringComparison.Ordinal))
             {
-                Log.Warning($"[RimChat] request_info rejected: unsupported info_type={infoType}");
+                Log.Warning($"[RimAI.Relations] request_info rejected: unsupported info_type={infoType}");
                 outcome = ActionExecutionOutcome.Failure(action, "RimChat_RequestInfoInvalidTypeSystem".Translate().ToString());
                 return true;
             }
@@ -59,7 +59,7 @@ namespace RimChat.UI
             action.Parameters["info_type"] = RequestInfoTypePrisoner;
             if (currentSession != null && currentSession.isWaitingForRansomTargetSelection)
             {
-                Log.Message("[RimChat] request_info(prisoner) dedup hit: selection already in progress.");
+                Log.Message("[RimAI.Relations] request_info(prisoner) dedup hit: selection already in progress.");
                 outcome = ActionExecutionOutcome.Success(action, "RimChat_RansomNeedPrisonerSelectionSystem".Translate().ToString());
                 return true;
             }
@@ -79,16 +79,16 @@ namespace RimChat.UI
             if (TryUseBoundRansomTarget(currentSession, currentFaction, out int boundTargetId, out Pawn boundTargetPawn))
             {
                 string targetLabel = boundTargetPawn?.LabelShortCap ?? "RimChat_Unknown".Translate().ToString();
-                Log.Message($"[RimChat] request_info(prisoner) dedup hit: target={boundTargetId}, skipping selection popup.");
+                Log.Message($"[RimAI.Relations] request_info(prisoner) dedup hit: target={boundTargetId}, skipping selection popup.");
                 outcome = ActionExecutionOutcome.Success(
                     action,
                     "RimChat_RansomNeedOfferSystem".Translate(targetLabel).ToString());
                 return true;
             }
 
-            Log.Message("[RimChat] request_info(prisoner) received.");
+            Log.Message("[RimAI.Relations] request_info(prisoner) received.");
             bool started = StartRansomTargetSelection(currentSession, currentFaction, out int candidateCount);
-            Log.Message($"[RimChat] request_info(prisoner) candidate_count={candidateCount}, selection_started={started}.");
+            Log.Message($"[RimAI.Relations] request_info(prisoner) candidate_count={candidateCount}, selection_started={started}.");
 
             if (!started)
             {
@@ -108,7 +108,7 @@ namespace RimChat.UI
             }
 
             bool started = StartRansomTargetSelection(session, faction, out int candidateCount, false);
-            Log.Message($"[RimChat] manual prisoner info send. candidate_count={candidateCount}, selection_started={started}.");
+            Log.Message($"[RimAI.Relations] manual prisoner info send. candidate_count={candidateCount}, selection_started={started}.");
         }
 
         private bool TryHandlePrisonerRansomActionWithSelection(
@@ -132,7 +132,7 @@ namespace RimChat.UI
             {
                 string pendingMessage = ResolveRansomPendingMessage(currentSession);
                 currentSession?.AddMessage("System", pendingMessage, false, DialogueMessageType.System);
-                Log.Warning("[RimChat] pay_prisoner_ransom pending: missing valid target_pawn_load_id, selection requested.");
+                Log.Warning("[RimAI.Relations] pay_prisoner_ransom pending: missing valid target_pawn_load_id, selection requested.");
                 outcome = ActionExecutionOutcome.Failure(action, pendingMessage);
                 return true;
             }
@@ -223,7 +223,7 @@ namespace RimChat.UI
 
             if (currentSession.isWaitingForRansomTargetSelection)
             {
-                Log.Message("[RimChat] request_info(prisoner) dedup hit: selection already in progress.");
+                Log.Message("[RimAI.Relations] request_info(prisoner) dedup hit: selection already in progress.");
                 return false;
             }
 
@@ -231,7 +231,7 @@ namespace RimChat.UI
                 TryUseBoundRansomTarget(currentSession, currentFaction, out int boundTargetId, out _))
             {
                 candidateCount = 1;
-                Log.Message($"[RimChat] request_info(prisoner) dedup hit: reuse bound target={boundTargetId}, skip reselection.");
+                Log.Message($"[RimAI.Relations] request_info(prisoner) dedup hit: reuse bound target={boundTargetId}, skip reselection.");
                 return true;
             }
 
@@ -242,7 +242,7 @@ namespace RimChat.UI
                     candidateCount = pendingBatch.TargetPawnLoadIds.Count;
                 }
 
-                Log.Message("[RimChat] request_info(prisoner) dedup hit: reuse pending ransom batch selection.");
+                Log.Message("[RimAI.Relations] request_info(prisoner) dedup hit: reuse pending ransom batch selection.");
                 return true;
             }
 
@@ -327,7 +327,7 @@ namespace RimChat.UI
             ClearPendingRansomOfferReference(currentSession);
             BindRansomTarget(currentSession, currentFaction, selectedPawn.thingIDNumber);
             MarkRansomInfoRequestCompleted(currentSession, currentFaction, selectedPawn.thingIDNumber);
-            Log.Message($"[RimChat] request_info(prisoner) completed. selected_target={selectedPawn.thingIDNumber}.");
+            Log.Message($"[RimAI.Relations] request_info(prisoner) completed. selected_target={selectedPawn.thingIDNumber}.");
             PublishRansomProofCard(currentSession, currentFaction, selectedPawn);
         }
 
@@ -343,7 +343,7 @@ namespace RimChat.UI
             ClearPendingRansomBatchSelection(currentSession);
             ClearPendingRansomOfferReference(currentSession);
             MarkRansomInfoRequestIncomplete(currentSession);
-            Log.Message("[RimChat] request_info(prisoner) canceled by player.");
+            Log.Message("[RimAI.Relations] request_info(prisoner) canceled by player.");
             currentSession.AddMessage(
                 "System",
                 "RimChat_RansomSelectionCancelledSystem".Translate().ToString(),
@@ -613,7 +613,7 @@ namespace RimChat.UI
 
             action.Parameters["offer_silver"] = normalizedOffer;
             Log.Message(
-                "[RimChat] pay_prisoner_ransom single offer normalized. " +
+                "[RimAI.Relations] pay_prisoner_ransom single offer normalized. " +
                 $"target={targetPawnLoadId}, original={originalOffer}, " +
                 $"window={minOfferSilver}-{maxOfferSilver}, normalized={normalizedOffer}, " +
                 $"current_ask={currentAskSilver}");
@@ -631,13 +631,13 @@ namespace RimChat.UI
 
             if (IsRansomAutoReplyCoolingDown(currentSession, out float cooldownRemaining))
             {
-                Log.Message($"[RimChat] Skipped auto-reply for prisoner info card due to active timeout cooldown. remaining={cooldownRemaining:F1}s.");
+                Log.Message($"[RimAI.Relations] Skipped auto-reply for prisoner info card due to active timeout cooldown. remaining={cooldownRemaining:F1}s.");
                 return;
             }
 
             if (!CanSendMessageNow())
             {
-                Log.Warning("[RimChat] Skipped auto-reply for prisoner info card because send gate is blocked.");
+                Log.Warning("[RimAI.Relations] Skipped auto-reply for prisoner info card because send gate is blocked.");
                 return;
             }
 
@@ -689,7 +689,7 @@ namespace RimChat.UI
                         ArmRansomAutoReplyTimeoutCooldown(currentSession, timeoutClass, error);
                     }
 
-                    Log.Warning($"[RimChat] Auto-reply request for prisoner info card failed: {error}");
+                    Log.Warning($"[RimAI.Relations] Auto-reply request for prisoner info card failed: {error}");
                     HandleSessionRequestError(currentSession, error);
                 },
                 onProgress: null,
@@ -710,7 +710,7 @@ namespace RimChat.UI
                     return;
                 }
 
-                Log.Warning("[RimChat] Failed to queue auto-reply request for prisoner info card.");
+                Log.Warning("[RimAI.Relations] Failed to queue auto-reply request for prisoner info card.");
                 HandleSessionRequestError(currentSession, currentSession?.aiError);
             }
         }

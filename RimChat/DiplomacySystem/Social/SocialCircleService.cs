@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: RimWorld faction/goodwill APIs and RimChat settings.
  /// Responsibility: provide social-circle utility helpers for news categorization, post assembly, and lightweight intent updates.
@@ -44,15 +44,15 @@ namespace RimChat.DiplomacySystem
 
         public static int CalculateNextIntervalTicks(RimChatSettings settings)
         {
-            global::RimChat.Config.ScheduledNewsFrequencyLevel level =
-                settings?.ScheduledNewsFrequencyLevel ?? global::RimChat.Config.ScheduledNewsFrequencyLevel.Low;
+            global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel level =
+                settings?.ScheduledNewsFrequencyLevel ?? global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.Low;
             switch (level)
             {
-                case global::RimChat.Config.ScheduledNewsFrequencyLevel.VeryHigh:
+                case global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.VeryHigh:
                     return 15000;
-                case global::RimChat.Config.ScheduledNewsFrequencyLevel.High:
+                case global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.High:
                     return Rand.Range(0, GenDate.TicksPerDay);
-                case global::RimChat.Config.ScheduledNewsFrequencyLevel.Medium:
+                case global::Ustas.RimAI.Communication.Relations.Config.ScheduledNewsFrequencyLevel.Medium:
                     return Rand.RangeInclusive(1, 2) * GenDate.TicksPerDay;
                 default:
                     return Rand.RangeInclusive(3, 5) * GenDate.TicksPerDay;
@@ -408,7 +408,7 @@ namespace RimChat.DiplomacySystem
             {
                 LogSelfRelationGuardOnce(
                     $"intent:{intentType}:{faction.GetUniqueLoadID()}",
-                    $"[RimChat] Blocked social intent registration for player faction ({intentType}).");
+                    $"[RimAI.Relations] Blocked social intent registration for player faction ({intentType}).");
                 return;
             }
 
@@ -472,7 +472,7 @@ namespace RimChat.DiplomacySystem
             {
                 LogSelfRelationGuardOnce(
                     $"goodwill:{faction.GetUniqueLoadID()}",
-                    "[RimChat] Blocked self goodwill adjustment: player faction cannot affect itself.");
+                    "[RimAI.Relations] Blocked self goodwill adjustment: player faction cannot affect itself.");
                 return;
             }
 

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using Verse;
 using RimWorld;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     public partial class LeaderMemoryManager
     {
@@ -95,7 +95,7 @@ namespace RimChat.Memory
                     _summaryRepairInFlight.Remove(repairKey);
                 }
 
-                Log.Warning($"[RimChat] summary_repair_skip_no_ai source={original.Source} contentHash={original.ContentHash ?? string.Empty} factionId={original.FactionId ?? string.Empty} reason={reasonTag ?? "corrupt"}");
+                Log.Warning($"[RimAI.Relations] summary_repair_skip_no_ai source={original.Source} contentHash={original.ContentHash ?? string.Empty} factionId={original.FactionId ?? string.Empty} reason={reasonTag ?? "corrupt"}");
                 return;
             }
 
@@ -137,7 +137,7 @@ namespace RimChat.Memory
                         repaired.CreatedTimestamp = DateTime.UtcNow.Ticks;
                         if (!TryBuildSanitizedSummaryRecord(repaired, out CrossChannelSummaryRecord sanitized, out string sanitizeReason))
                         {
-                            Log.Warning($"[RimChat] summary_repair_drop source={original.Source} contentHash={original.ContentHash ?? string.Empty} factionId={original.FactionId ?? string.Empty} reason={sanitizeReason ?? "repair_failed"}");
+                            Log.Warning($"[RimAI.Relations] summary_repair_drop source={original.Source} contentHash={original.ContentHash ?? string.Empty} factionId={original.FactionId ?? string.Empty} reason={sanitizeReason ?? "repair_failed"}");
                             return;
                         }
 
@@ -174,7 +174,7 @@ namespace RimChat.Memory
                         _summaryRepairInFlight.Remove(repairKey);
                     }
 
-                    Log.Warning($"[RimChat] summary_repair_error source={original.Source} contentHash={original.ContentHash ?? string.Empty} factionId={original.FactionId ?? string.Empty} reason={reasonTag ?? "corrupt"} error={error ?? string.Empty}");
+                    Log.Warning($"[RimAI.Relations] summary_repair_error source={original.Source} contentHash={original.ContentHash ?? string.Empty} factionId={original.FactionId ?? string.Empty} reason={reasonTag ?? "corrupt"} error={error ?? string.Empty}");
                 },
                 usageChannel: usageChannel,
                 debugSource: AIRequestDebugSource.MemorySummary);

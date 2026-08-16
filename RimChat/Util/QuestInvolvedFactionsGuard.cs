@@ -4,7 +4,7 @@ using System.Linq;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     /// <summary>
     /// Safely accesses Quest.InvolvedFactions to guard against
@@ -70,7 +70,7 @@ namespace RimChat.Util
             if (WarnedQuestIds.Add(quest.id))
             {
                 Log.Warning(
-                    $"[RimChat][QuestGuard] Third-party mod broke InvolvedFactions for " +
+                    $"[RimAI.Relations][QuestGuard] Third-party mod broke InvolvedFactions for " +
                     $"quest #{quest.id} (\"{quest.name}\"): {ex.GetType().Name}: {ex.Message}. " +
                     $"Diplomacy prompt continues without this quest data.");
             }

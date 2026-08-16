@@ -11,7 +11,7 @@ $destRoot = "D:\SteamLibrary\steamapps\common\RimWorld\Mods\RimChat"
 
 function Write-Status {
     param([string]$Message)
-    Write-Host "[RimChat] $Message" -ForegroundColor Green
+    Write-Host "[RimAI.Relations] $Message" -ForegroundColor Green
 }
 
 function Write-Err {

@@ -1,11 +1,11 @@
 using System;
-using RimChat.DiplomacySystem;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: quick custom-variable helpers, RimWorld runtime faction/pawn instances, and Verse window widgets.
@@ -13,7 +13,7 @@ namespace RimChat.UI
     /// </summary>
     internal sealed class Dialog_QuickPromptVariableRuleEditor : Window
     {
-        private readonly RimChat.Config.RimChatSettings _settings;
+        private readonly Ustas.RimAI.Communication.Relations.Config.RimChatSettings _settings;
         private readonly QuickPromptTargetKind _kind;
         private readonly Faction _faction;
         private readonly Pawn _pawn;
@@ -23,7 +23,7 @@ namespace RimChat.UI
         private string _templateText = string.Empty;
 
         public Dialog_QuickPromptVariableRuleEditor(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             Faction faction,
             QuickPromptConflictDecision decision)
         {
@@ -31,13 +31,13 @@ namespace RimChat.UI
             _faction = faction;
             _decision = decision;
             _kind = QuickPromptTargetKind.Faction;
-            _targetLabel = RimChat.Config.RimChatSettings.GetPromptWorkspaceQuickFactionLabel(faction);
+            _targetLabel = Ustas.RimAI.Communication.Relations.Config.RimChatSettings.GetPromptWorkspaceQuickFactionLabel(faction);
             _templateText = UserDefinedPromptVariableService.GetQuickFactionTemplate(settings, faction);
             ConfigureWindow();
         }
 
         public Dialog_QuickPromptVariableRuleEditor(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             Pawn pawn,
             QuickPromptConflictDecision decision)
         {
@@ -45,7 +45,7 @@ namespace RimChat.UI
             _pawn = pawn;
             _decision = decision;
             _kind = QuickPromptTargetKind.Pawn;
-            _targetLabel = RimChat.Config.RimChatSettings.GetPromptWorkspaceQuickPawnLabel(pawn);
+            _targetLabel = Ustas.RimAI.Communication.Relations.Config.RimChatSettings.GetPromptWorkspaceQuickPawnLabel(pawn);
             _templateText = UserDefinedPromptVariableService.GetQuickPawnTemplate(settings, pawn);
             if (string.IsNullOrWhiteSpace(_templateText))
             {
@@ -124,7 +124,7 @@ namespace RimChat.UI
 
         private void Save()
         {
-            RimChat.Config.UserDefinedPromptVariableValidationResult validation;
+            Ustas.RimAI.Communication.Relations.Config.UserDefinedPromptVariableValidationResult validation;
             bool success = _kind == QuickPromptTargetKind.Faction
                 ? UserDefinedPromptVariableService.TrySaveQuickFactionPrompt(_settings, _faction, _templateText, _decision, out validation)
                 : UserDefinedPromptVariableService.TrySaveQuickPawnPrompt(_settings, _pawn, _templateText, _decision, out validation);

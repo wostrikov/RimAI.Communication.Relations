@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.Persistence;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     // Responsibilities: build request-time prompt context for RPG pawn dialogue turns.
-    // Dependencies: RimChat.AI.ChatMessageData, RimChat.Persistence.PromptPersistenceService.
+    // Dependencies: Ustas.RimAI.Communication.Relations.AI.ChatMessageData, Ustas.RimAI.Communication.Relations.Persistence.PromptPersistenceService.
     public partial class Dialog_RPGPawnDialogue
     {
         private const string OpeningFallbackUserPrompt =
@@ -57,12 +57,12 @@ namespace RimChat.UI
             ImmersionGuardResult guardResult = ImmersionOutputGuard.ValidateVisibleDialogue(normalized);
             if (!string.IsNullOrWhiteSpace(guardResult?.TrailingActionsJson))
             {
-                Log.Warning("[RimChat] RPG display stripped trailing action JSON from visible text path: source=NormalizeVisibleNpcDialogueText");
+                Log.Warning("[RimAI.Relations] RPG display stripped trailing action JSON from visible text path: source=NormalizeVisibleNpcDialogueText");
             }
 
             if (!guardResult.IsValid)
             {
-                Log.Warning($"[RimChat] Immersion guard blocked RPG visible text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
+                Log.Warning($"[RimAI.Relations] Immersion guard blocked RPG visible text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
                 normalized = ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
             }
             else
@@ -90,7 +90,7 @@ namespace RimChat.UI
                 envelope.ProtocolKind == DialogueResponseProtocolKind.LegacyText)
             {
                 Log.Warning(
-                    $"[RimChat] RPG UI consumed legacy dialogue bridge with detached actions JSON: source={sourceTag}, protocol={envelope.ProtocolKind}, visible_len={normalized.Length}, actions_len={envelope.ActionsJson.Length}");
+                    $"[RimAI.Relations] RPG UI consumed legacy dialogue bridge with detached actions JSON: source={sourceTag}, protocol={envelope.ProtocolKind}, visible_len={normalized.Length}, actions_len={envelope.ActionsJson.Length}");
             }
 
             return normalized;
@@ -753,9 +753,9 @@ namespace RimChat.UI
                 allowMemoryCompressionScheduling: !openingTurn,
                 allowMemoryColdLoad: !openingTurn,
                 turnCount: GetNpcDialogueRoundCount()))
-            using (RimChat.Persistence.ExpandMemoryMatchContext.Push(currentTurnUserIntent))
+            using (Ustas.RimAI.Communication.Relations.Persistence.ExpandMemoryMatchContext.Push(currentTurnUserIntent))
             {
-                prompt = RimChat.Persistence.PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(
+                prompt = Ustas.RimAI.Communication.Relations.Persistence.PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(
                     initiator,
                     target,
                     false,
@@ -781,7 +781,7 @@ namespace RimChat.UI
             suppressAutoMemoryFallbackForTurn = !hasContract;
             if (!hasContract)
             {
-                Log.Warning("[RimChat] RPG prompt missing response contract body; auto memory fallback disabled for this turn.");
+                Log.Warning("[RimAI.Relations] RPG prompt missing response contract body; auto memory fallback disabled for this turn.");
             }
         }
 

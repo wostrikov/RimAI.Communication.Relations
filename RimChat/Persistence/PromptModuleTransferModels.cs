@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: PromptUnifiedNodeSlot enum.

@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: FactionLeaderMemory and cross-channel summary model.
  /// Responsibility: serialize/deserialize leader memory JSON with backward-compatible field mapping.
@@ -133,7 +133,7 @@ namespace RimChat.Memory
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to parse JSON memory: {ex.Message}");
+                Log.Error($"[RimAI.Relations] Failed to parse JSON memory: {ex.Message}");
                 return null;
             }
         }
@@ -602,7 +602,7 @@ namespace RimChat.Memory
 
         private static string EscapeJson(string value)
         {
-            return RimChat.Util.JsonEscapeHelper.EscapeString(value);
+            return Ustas.RimAI.Communication.Relations.Util.JsonEscapeHelper.EscapeString(value);
         }
 
         private static string ExtractJsonString(string json, string key)

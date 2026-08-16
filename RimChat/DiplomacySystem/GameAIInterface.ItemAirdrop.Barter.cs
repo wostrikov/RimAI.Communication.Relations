@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: GameAIInterface item-airdrop core, ThingDefCatalog, Building_OrbitalTradeBeacon.
@@ -442,7 +442,7 @@ namespace RimChat.DiplomacySystem
 
                 if (validatedCount < requestedOriginalCount)
                 {
-                    Log.Message($"[RimChat][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
+                    Log.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
                 }
             }
 
@@ -589,7 +589,7 @@ namespace RimChat.DiplomacySystem
             APIResult parseResult = ParsePaymentItems(parameters, out List<ItemAirdropPaymentRequestLine> requestedLines);
             if (!parseResult.Success)
             {
-                Log.Message($"[RimChat][PaymentPlan] ParsePaymentItems failed: {parseResult.Message}");
+                Log.Message($"[RimAI.Relations][PaymentPlan] ParsePaymentItems failed: {parseResult.Message}");
                 return parseResult;
             }
 
@@ -624,16 +624,16 @@ namespace RimChat.DiplomacySystem
                 return BuildPaymentFailure("payment_items_missing", "payment_items must include at least one item.");
             }
 
-            Log.Message($"[RimChat][PaymentPlan] Parsed {requestedLines.Count} payment_items: {string.Join(", ", requestedLines.Select(l => $"{l.ItemText}x{l.Count}"))}");
+            Log.Message($"[RimAI.Relations][PaymentPlan] Parsed {requestedLines.Count} payment_items: {string.Join(", ", requestedLines.Select(l => $"{l.ItemText}x{l.Count}"))}");
 
             List<Thing> beaconThings = CollectBeaconTradeableThings(map);
             if (beaconThings.Count == 0)
             {
-                Log.Message("[RimChat][PaymentPlan] No powered orbital-trade-beacon source items available.");
+                Log.Message("[RimAI.Relations][PaymentPlan] No powered orbital-trade-beacon source items available.");
                 return BuildPaymentFailure("beacon_source_unavailable", "No powered orbital-trade-beacon source items are available on this map.");
             }
 
-            Log.Message($"[RimChat][PaymentPlan] Beacon has {beaconThings.Count} tradeable things.");
+            Log.Message($"[RimAI.Relations][PaymentPlan] Beacon has {beaconThings.Count} tradeable things.");
 
             var buckets = new Dictionary<string, List<Thing>>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < beaconThings.Count; i++)
@@ -662,7 +662,7 @@ namespace RimChat.DiplomacySystem
                 .Select(group => group.First())
                 .ToList();
 
-            Log.Message($"[RimChat][PaymentPlan] Beacon inventory buckets: {string.Join(", ", buckets.Select(kvp => $"{kvp.Key}x{kvp.Value.Sum(t => t.stackCount)}"))}");
+            Log.Message($"[RimAI.Relations][PaymentPlan] Beacon inventory buckets: {string.Join(", ", buckets.Select(kvp => $"{kvp.Key}x{kvp.Value.Sum(t => t.stackCount)}"))}");
 
             float totalValueFloat = 0f;
             for (int i = 0; i < requestedLines.Count; i++)
@@ -677,19 +677,19 @@ namespace RimChat.DiplomacySystem
                         out ThingDefRecord catalogResolvedRecord);
                     if (catalogResolveResult.Success && catalogResolvedRecord != null)
                     {
-                        Log.Message($"[RimChat][PaymentPlan] Payment item '{line.ItemText}' resolved globally to '{catalogResolvedRecord.DefName}' but is absent from beacon stock.");
+                        Log.Message($"[RimAI.Relations][PaymentPlan] Payment item '{line.ItemText}' resolved globally to '{catalogResolvedRecord.DefName}' but is absent from beacon stock.");
                         return BuildPaymentFailure(
                             "payment_item_insufficient",
                             "RimChat_AirdropError_payment_item_no_beacon_stock".Translate(catalogResolvedRecord.Label).ToString());
                     }
 
-                    Log.Message($"[RimChat][PaymentPlan] Failed to resolve payment item '{line.ItemText}' against beacon stock: {resolveResult.Message}");
+                    Log.Message($"[RimAI.Relations][PaymentPlan] Failed to resolve payment item '{line.ItemText}' against beacon stock: {resolveResult.Message}");
                     return resolveResult;
                 }
 
                 if (!buckets.TryGetValue(resolvedRecord.DefName, out List<Thing> stockThings))
                 {
-                    Log.Message($"[RimChat][PaymentPlan] No beacon stock for payment item '{resolvedRecord.DefName}' ({line.ItemText}). Available: {string.Join(", ", buckets.Keys)}");
+                    Log.Message($"[RimAI.Relations][PaymentPlan] No beacon stock for payment item '{resolvedRecord.DefName}' ({line.ItemText}). Available: {string.Join(", ", buckets.Keys)}");
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
                         "RimChat_AirdropError_payment_item_no_beacon_stock".Translate(resolvedRecord.Label).ToString());
@@ -698,7 +698,7 @@ namespace RimChat.DiplomacySystem
                 int availableCount = stockThings.Sum(thing => Math.Max(0, thing.stackCount));
                 if (availableCount < line.Count)
                 {
-                    Log.Message($"[RimChat][PaymentPlan] Insufficient stock for '{resolvedRecord.DefName}': required={line.Count}, available={availableCount}");
+                    Log.Message($"[RimAI.Relations][PaymentPlan] Insufficient stock for '{resolvedRecord.DefName}': required={line.Count}, available={availableCount}");
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
                         "RimChat_AirdropError_payment_item_insufficient".Translate(resolvedRecord.Label, line.Count, availableCount).ToString());
@@ -722,7 +722,7 @@ namespace RimChat.DiplomacySystem
                     SubtotalMarketValue = subtotal
                 });
 
-                Log.Message($"[RimChat][PaymentPlan] Payment line: {resolvedRecord.DefName} x{line.Count} @ {unitPrice:F1} = {subtotal:F1} silver");
+                Log.Message($"[RimAI.Relations][PaymentPlan] Payment line: {resolvedRecord.DefName} x{line.Count} @ {unitPrice:F1} = {subtotal:F1} silver");
 
                 int remaining = line.Count;
                 foreach (Thing thing in stockThings.OrderByDescending(item => item.stackCount))
@@ -751,13 +751,13 @@ namespace RimChat.DiplomacySystem
             int flooredTotalValue = Mathf.FloorToInt(Math.Max(0f, totalValueFloat));
             if (flooredTotalValue <= 0)
             {
-                Log.Message($"[RimChat][PaymentPlan] Derived budget is not positive: total={totalValueFloat:F1}");
+                Log.Message($"[RimAI.Relations][PaymentPlan] Derived budget is not positive: total={totalValueFloat:F1}");
                 return BuildPaymentFailure(
                     "budget_invalid",
                     $"Derived budget from payment_items is not positive. total={totalValueFloat:F1}.");
             }
 
-            Log.Message($"[RimChat][PaymentPlan] Payment plan complete: budget={flooredTotalValue} silver, paymentLines={paymentLines.Count}, deductionRows={deductionPlan.Count}");
+            Log.Message($"[RimAI.Relations][PaymentPlan] Payment plan complete: budget={flooredTotalValue} silver, paymentLines={paymentLines.Count}, deductionRows={deductionPlan.Count}");
             derivedBudgetSilver = flooredTotalValue;
             paymentTotalSilver = flooredTotalValue;
             return APIResult.SuccessResult("Payment plan prepared.");

@@ -2,10 +2,10 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: SaveContextTracker, Verse save metadata reflection, and RPG persistent slot provider.

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Verse;
 
-namespace RimChat.WorldState
+namespace Ustas.RimAI.Communication.Relations.WorldState
 {
     /// <summary>/// Responsibility: persist a concise public/direct-known world event snapshot.
  ///</summary>

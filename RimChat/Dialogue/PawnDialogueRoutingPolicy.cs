@@ -1,7 +1,7 @@
 using Verse;
 using Verse.AI.Group;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     /// <summary>
     /// Dependencies: Pawn lord/duty runtime state.

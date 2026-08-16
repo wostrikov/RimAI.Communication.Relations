@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public class ItemAirdropTradeCardPayload
     {

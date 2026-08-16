@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: image request config model, UnityWebRequest, and lightweight regex extractors.
  /// Responsibility: provide provider-compat helpers for auth routing, response parsing, and async image job URLs.
@@ -287,7 +287,7 @@ namespace RimChat.DiplomacySystem
             if (!string.IsNullOrWhiteSpace(request.Endpoint)
                 && request.Endpoint.ToLowerInvariant().Contains("siliconflow"))
             {
-                Log.Warning("[RimChat] SiliconFlow img2img not fully supported; falling back to text-to-image for this request. If SiliconFlow supports img2img, check the API field name.");
+                Log.Warning("[RimAI.Relations] SiliconFlow img2img not fully supported; falling back to text-to-image for this request. If SiliconFlow supports img2img, check the API field name.");
                 return string.Empty;
             }
 

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using RimChat.Core;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Util;
 using Verse;
 using RimWorld;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// factionleadermemorymanager
  /// 负责管理所有factionleadermemory的save和load
@@ -18,7 +18,7 @@ namespace RimChat.Memory
         private const string InitSnapshotPrefix = "[init-snapshot]";
         private const string SessionBackfillPrefix = "[session-backfill]";
         private const int MaxSignificantEvents = 80;
-        private const string SaveRootDir = "RimChat";
+        private const string SaveRootDir = "Ustas.RimAI.Communication.Relations";
         private const string SaveSubDir = "save_data";
         private const string PromptFolderName = "Prompt";
         private const string NpcPromptSubDir = "NPC";
@@ -633,7 +633,7 @@ namespace RimChat.Memory
         public void CleanupInvalidSaveData()
         {
             // 暂时禁用清理功能, pending正确的 API 实现
-            // Var baseDir = Path.Combine(GenFilePaths.SaveDataFolderPath, "RimChat", "save_data");
+            // Var baseDir = Path.Combine(GenFilePaths.SaveDataFolderPath, "Ustas.RimAI.Communication.Relations", "save_data");
             // If (!Directory.Exists(baseDir)) return;
             // ...清理逻辑
         }

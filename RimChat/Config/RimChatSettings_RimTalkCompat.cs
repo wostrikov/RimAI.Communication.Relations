@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt legacy migration service and unified prompt catalog provider.
@@ -311,7 +311,7 @@ You may reference RimTalk variables/plugins directly in this section.";
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Log.Error($"[RimChat] Unified prompt catalog invariant violation: {ex.Message}");
+                    Log.Error($"[RimAI.Relations] Unified prompt catalog invariant violation: {ex.Message}");
                     throw;
                 }
 
@@ -326,7 +326,7 @@ You may reference RimTalk variables/plugins directly in this section.";
                 if (hasCleanup)
                 {
                     Log.Warning(
-                        $"[RimChat] Unified prompt catalog cleanup applied: " +
+                        $"[RimAI.Relations] Unified prompt catalog cleanup applied: " +
                         $"unknownChannels={normalizeReport.UnknownChannelCount}, " +
                         $"removedNodes={normalizeReport.RemovedNodeCount}, " +
                         $"removedLayouts={normalizeReport.RemovedLayoutCount}.");
@@ -335,22 +335,22 @@ You may reference RimTalk variables/plugins directly in this section.";
                 if (normalizeReport.FilledDefaultLayoutCount > 0)
                 {
                     Log.Message(
-                        $"[RimChat] Unified prompt catalog filled {normalizeReport.FilledDefaultLayoutCount} missing node layouts.");
+                        $"[RimAI.Relations] Unified prompt catalog filled {normalizeReport.FilledDefaultLayoutCount} missing node layouts.");
                 }
 
                 if (legacyMigratedChanged || migrationVersionChanged)
                 {
                     Log.Message(
-                        $"[RimChat] Unified prompt catalog migration applied " +
+                        $"[RimAI.Relations] Unified prompt catalog migration applied " +
                         $"(legacyMigrated={legacyMigratedChanged}, migrationVersionUpdated={migrationVersionChanged}).");
                 }
                 if (literalDefaultsChanged)
                 {
-                    Log.Message("[RimChat] Unified prompt catalog applied static literal node defaults.");
+                    Log.Message("[RimAI.Relations] Unified prompt catalog applied static literal node defaults.");
                 }
                 if (archiveCompressionSectionChanged)
                 {
-                    Log.Message("[RimChat] Unified prompt catalog repaired rpg_archive_compression section contract.");
+                    Log.Message("[RimAI.Relations] Unified prompt catalog repaired rpg_archive_compression section contract.");
                 }
 
                 if (requiresSave)
@@ -1109,7 +1109,7 @@ You may reference RimTalk variables/plugins directly in this section.";
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to ensure RPG persona token coverage: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to ensure RPG persona token coverage: {ex.Message}");
             }
         }
 

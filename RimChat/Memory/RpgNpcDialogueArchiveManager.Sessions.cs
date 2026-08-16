@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Persistence;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, RpgNpcDialogueArchive session model.
  /// Responsibility: orchestrate session-level compression and summary-first memory selection.
@@ -146,7 +146,7 @@ namespace RimChat.Memory
                             !string.Equals(requestSaveKey, currentSaveKey, StringComparison.Ordinal))
                         {
                             Log.Warning(
-                                "[RimChat] rpg_archive_compression dropped due to saveKey mismatch. " +
+                                "[RimAI.Relations] rpg_archive_compression dropped due to saveKey mismatch. " +
                                 $"request_save_key={requestSaveKey}, current_save_key={currentSaveKey}, " +
                                 $"archive_pawn_load_id={archive.PawnLoadId}, session_id={session.SessionId}");
                             return;
@@ -202,7 +202,7 @@ namespace RimChat.Memory
                             !string.Equals(requestSaveKey, currentSaveKey, StringComparison.Ordinal))
                         {
                             Log.Warning(
-                                "[RimChat] rpg_archive_compression error callback dropped due to saveKey mismatch. " +
+                                "[RimAI.Relations] rpg_archive_compression error callback dropped due to saveKey mismatch. " +
                                 $"request_save_key={requestSaveKey}, current_save_key={currentSaveKey}, " +
                                 $"archive_pawn_load_id={archive.PawnLoadId}, session_id={session.SessionId}");
                             return;
@@ -238,7 +238,7 @@ namespace RimChat.Memory
             if (!contractReady)
             {
                 Log.Warning(
-                    "[RimChat] rpg_archive_compression skipped: output contract is invalid after repair. " +
+                    "[RimAI.Relations] rpg_archive_compression skipped: output contract is invalid after repair. " +
                     $"archive_pawn_load_id={(archive?.PawnLoadId ?? -1)}, session_id={session?.SessionId ?? string.Empty}");
                 return new List<ChatMessageData>();
             }
@@ -253,7 +253,7 @@ namespace RimChat.Memory
             if (npcPawn == null)
             {
                 Log.Warning(
-                    "[RimChat] rpg_archive_compression skipped: archive NPC pawn is missing. " +
+                    "[RimAI.Relations] rpg_archive_compression skipped: archive NPC pawn is missing. " +
                     $"archive_pawn_load_id={(archive?.PawnLoadId ?? -1)}, session_id={session?.SessionId ?? string.Empty}");
                 return new List<ChatMessageData>();
             }
@@ -303,7 +303,7 @@ namespace RimChat.Memory
             }
 
             Log.Warning(
-                "[RimChat] rpg_archive_compression has no bindable interlocutor pawn; bind NPC only. " +
+                "[RimAI.Relations] rpg_archive_compression has no bindable interlocutor pawn; bind NPC only. " +
                 $"archive_pawn_load_id={(archive?.PawnLoadId ?? -1)}, " +
                 $"session_interlocutor_load_id={(session?.InterlocutorPawnLoadId ?? -1)}, " +
                 $"archive_last_interlocutor_load_id={(archive?.LastInterlocutorPawnLoadId ?? -1)}, " +
@@ -421,7 +421,7 @@ namespace RimChat.Memory
             }
             catch (InvalidOperationException ex)
             {
-                Log.Warning($"[RimChat] rpg_archive_compression skipped in {operationName}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] rpg_archive_compression skipped in {operationName}: {ex.Message}");
                 return false;
             }
         }

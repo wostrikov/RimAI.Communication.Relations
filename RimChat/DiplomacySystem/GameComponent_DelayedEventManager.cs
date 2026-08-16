@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 using Verse.AI.Group;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: DiplomacyManager delayedEvents list, RimWorld faction/map APIs.

@@ -6,15 +6,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
-using RimChat.Core;
-using RimChat.Memory;
-using RimChat.Persistence;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     internal enum ReflectedCustomVariableKind
     {
@@ -90,7 +90,7 @@ namespace RimChat.Prompting
         private const int CustomVariableRefreshCooldownMs = 1000;
         private static readonly string[] KnownRimChatModIds =
         {
-            "yancy.rimchat",
+            "ustas.rimai.communication.relations",
             "rimchat",
             "rim_chat",
             "timchat"
@@ -150,10 +150,10 @@ namespace RimChat.Prompting
 
         public static void ValidateRimTalkBridgeSignaturesOrFail()
         {
-            Type registryType = AccessTools.TypeByName("RimTalk.API.ContextHookRegistry");
+            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
             if (registryType == null)
             {
-                throw new MissingMemberException("Missing type RimTalk.API.ContextHookRegistry.");
+                throw new MissingMemberException("Missing type Ustas.RimAI.Communication.API.ContextHookRegistry.");
             }
 
             ValidateRequiredMethod(registryType, "RegisterContextVariable");
@@ -161,16 +161,16 @@ namespace RimChat.Prompting
             ValidateRequiredMethod(registryType, "UnregisterMod");
             ValidateRequiredMethod(registryType, "TryGetContextVariable");
 
-            Type promptContextType = AccessTools.TypeByName("RimTalk.Prompt.PromptContext");
+            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
             if (promptContextType == null)
             {
-                throw new MissingMemberException("Missing type RimTalk.Prompt.PromptContext.");
+                throw new MissingMemberException("Missing type Ustas.RimAI.Communication.Prompt.PromptContext.");
             }
 
-            Type variableStoreType = AccessTools.TypeByName("RimTalk.Prompt.VariableStore");
+            Type variableStoreType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.VariableStore");
             if (variableStoreType == null)
             {
-                throw new MissingMemberException("Missing type RimTalk.Prompt.VariableStore.");
+                throw new MissingMemberException("Missing type Ustas.RimAI.Communication.Prompt.VariableStore.");
             }
         }
 
@@ -211,7 +211,7 @@ namespace RimChat.Prompting
                     return;
                 }
 
-                Type registryType = AccessTools.TypeByName("RimTalk.API.ContextHookRegistry");
+                Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
                 MethodInfo method = registryType == null ? null : AccessTools.Method(registryType, "GetAllCustomVariables");
                 if (method == null)
                 {
@@ -325,7 +325,7 @@ namespace RimChat.Prompting
 
         public static void RegisterRimChatSummaryVariable()
         {
-            Type registryType = AccessTools.TypeByName("RimTalk.API.ContextHookRegistry");
+            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
             MethodInfo registerMethod = registryType == null ? null : AccessTools.Method(registryType, "RegisterContextVariable");
             if (registerMethod == null)
             {
@@ -743,7 +743,7 @@ namespace RimChat.Prompting
         {
             try
             {
-                Type constantType = AccessTools.TypeByName("RimTalk.Data.Constant");
+                Type constantType = AccessTools.TypeByName("Ustas.RimAI.Communication.Data.Constant");
                 MethodInfo method = constantType == null ? null : AccessTools.Method(constantType, "GetJsonInstruction", new[] { typeof(bool) });
                 if (method == null)
                 {
@@ -751,7 +751,7 @@ namespace RimChat.Prompting
                 }
 
                 bool includeSocialEffects = false;
-                Type settingsType = AccessTools.TypeByName("RimTalk.Settings");
+                Type settingsType = AccessTools.TypeByName("Ustas.RimAI.Communication.Settings");
                 MethodInfo getMethod = settingsType == null ? null : AccessTools.Method(settingsType, "Get");
                 object settings = getMethod?.Invoke(null, null);
                 PropertyInfo property = settings?.GetType().GetProperty("ApplyMoodAndSocialEffects", InstancePublic);
@@ -922,7 +922,7 @@ namespace RimChat.Prompting
 
             string typeLabel = string.IsNullOrWhiteSpace(sampleType) ? "unknown" : sampleType;
             Log.Error(
-                "[RimChat] Bridge blocked due to custom-variable contract mismatch. " +
+                "[RimAI.Relations] Bridge blocked due to custom-variable contract mismatch. " +
                 $"raw_count={rawCount}, sample_type={typeLabel}. " +
                 "Please verify RimTalk GetAllCustomVariables() payload shape.");
         }
@@ -941,14 +941,14 @@ namespace RimChat.Prompting
 
             _lastCustomVariableTelemetry = telemetry;
             Log.Message(
-                "[RimChat] RimTalk custom variable snapshot refreshed. " +
+                "[RimAI.Relations] RimTalk custom variable snapshot refreshed. " +
                 $"raw_count={rawCount}, parsed_count={parsedCount}, duplicate_count={duplicateCount}, force={force}.");
         }
 
         private static bool InvokeOutString(string methodName, string variableName, object arg, out string value)
         {
             value = string.Empty;
-            Type registryType = AccessTools.TypeByName("RimTalk.API.ContextHookRegistry");
+            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
             MethodInfo method = registryType == null ? null : AccessTools.Method(registryType, methodName);
             if (method == null)
             {
@@ -963,7 +963,7 @@ namespace RimChat.Prompting
 
         private static object BuildPromptContextInstance(PromptRuntimeVariableContext context)
         {
-            Type promptContextType = AccessTools.TypeByName("RimTalk.Prompt.PromptContext");
+            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
             if (promptContextType == null)
             {
                 return null;
@@ -994,7 +994,7 @@ namespace RimChat.Prompting
                 SetProperty(instance, "DialogueStatus", scenario?.IsProactive == true ? "proactive" : "manual");
                 SetProperty(instance, "IsPreview", false);
 
-                Type variableStoreType = AccessTools.TypeByName("RimTalk.Prompt.VariableStore");
+                Type variableStoreType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.VariableStore");
                 if (variableStoreType != null)
                 {
                     SetProperty(instance, "VariableStore", Activator.CreateInstance(variableStoreType));
@@ -1217,7 +1217,7 @@ namespace RimChat.Prompting
                 return;
             }
 
-            Type registryType = AccessTools.TypeByName("RimTalk.API.ContextHookRegistry");
+            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
             if (registryType == null)
             {
                 return;
@@ -1243,7 +1243,7 @@ namespace RimChat.Prompting
                 removedDeletedIds > 0)
             {
                 Log.Message(
-                    "[RimChat] RimTalk strict legacy cleanup completed. " +
+                    "[RimAI.Relations] RimTalk strict legacy cleanup completed. " +
                     $"context_keys={removedContextKeys}, mods_unregistered={unregisteredMods}, " +
                     $"runtime_keys={removedRuntimeKeys}, preset_entries={removedEntries}, " +
                     $"deleted_mod_ids={removedDeletedIds}.");
@@ -1278,7 +1278,7 @@ namespace RimChat.Prompting
 
         private static int CleanupLegacyRuntimeVariableStoreKeys()
         {
-            Type apiType = AccessTools.TypeByName("RimTalk.API.RimTalkPromptAPI");
+            Type apiType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.RimTalkPromptAPI");
             MethodInfo getStoreMethod = apiType == null ? null : AccessTools.Method(apiType, "GetVariableStore");
             object store = getStoreMethod?.Invoke(null, null);
             if (store == null)
@@ -1344,7 +1344,7 @@ namespace RimChat.Prompting
 
         private static (int removedEntries, int removedDeletedIds) CleanupLegacyPromptPresetEntries()
         {
-            Type apiType = AccessTools.TypeByName("RimTalk.API.RimTalkPromptAPI");
+            Type apiType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.RimTalkPromptAPI");
             MethodInfo getAllPresetsMethod = apiType == null ? null : AccessTools.Method(apiType, "GetAllPresets");
             object presets = getAllPresetsMethod?.Invoke(null, null);
             if (!(presets is IEnumerable enumerable))

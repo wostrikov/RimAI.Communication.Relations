@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Verse;
-using RimChat.Comp;
+using Ustas.RimAI.Communication.Relations.Comp;
 
-namespace RimChat.Comp
+namespace Ustas.RimAI.Communication.Relations.Comp
 {
     /// <summary>
-    /// Dependencies: Verse.DefDatabase, Verse.ThingDef, RimChat.Comp.CompProperties_PawnDialogue.
+    /// Dependencies: Verse.DefDatabase, Verse.ThingDef, Ustas.RimAI.Communication.Relations.Comp.CompProperties_PawnDialogue.
     /// Responsibility: Inject CompPawnDialogue to all eligible pawn ThingDefs at startup.
     /// This covers mod races, mechanoids, and other pawn types that may not have the comp via XML patch.
     /// </summary>
@@ -27,7 +27,7 @@ namespace RimChat.Comp
                 var defs = DefDatabase<ThingDef>.AllDefsListForReading;
                 if (defs == null || defs.Count == 0)
                 {
-                    Log.Warning("[RimChat] Pawn dialogue comp injector: no ThingDef entries available.");
+                    Log.Warning("[RimAI.Relations] Pawn dialogue comp injector: no ThingDef entries available.");
                     return;
                 }
 
@@ -44,11 +44,11 @@ namespace RimChat.Comp
                 }
 
                 if (added > 0)
-                    Log.Message($"[RimChat] Pawn dialogue comp injector finished. Added={added}.");
+                    Log.Message($"[RimAI.Relations] Pawn dialogue comp injector finished. Added={added}.");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Pawn dialogue comp injector failed: {ex}");
+                Log.Error($"[RimAI.Relations] Pawn dialogue comp injector failed: {ex}");
             }
         }
 
@@ -73,12 +73,12 @@ namespace RimChat.Comp
             {
                 AddDialogueComp(def);
                 _injectedDefs.Add(def);
-                Log.Message($"[RimChat] Runtime injected CompPawnDialogue to {def.defName}");
+                Log.Message($"[RimAI.Relations] Runtime injected CompPawnDialogue to {def.defName}");
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to inject CompPawnDialogue to {def.defName}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to inject CompPawnDialogue to {def.defName}: {ex.Message}");
                 return false;
             }
         }

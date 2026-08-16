@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: custom variable validation service and Verse window/widgets APIs.
@@ -15,7 +15,7 @@ namespace RimChat.UI
     /// </summary>
     public sealed class Dialog_UserDefinedPromptVariableEditor : Window
     {
-        private readonly RimChat.Config.RimChatSettings _settings;
+        private readonly Ustas.RimAI.Communication.Relations.Config.RimChatSettings _settings;
         private readonly UserDefinedPromptVariableConfig _originalVariable;
         private readonly Action _onSaved;
         private readonly UserDefinedPromptVariableEditModel _model;
@@ -29,7 +29,7 @@ namespace RimChat.UI
         private bool _showPawnRules;
 
         public Dialog_UserDefinedPromptVariableEditor(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel model,
             UserDefinedPromptVariableConfig originalVariable,
             Action onSaved)

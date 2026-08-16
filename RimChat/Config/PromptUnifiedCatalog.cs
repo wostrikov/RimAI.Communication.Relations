@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public sealed class PromptUnifiedCatalogNormalizeReport
     {
@@ -110,14 +110,14 @@ namespace RimChat.Config
         {
             if (Channels == null)
             {
-                throw new InvalidOperationException("[RimChat] Unified prompt catalog channels list cannot be null.");
+                throw new InvalidOperationException("[RimAI.Relations] Unified prompt catalog channels list cannot be null.");
             }
 
             foreach (PromptUnifiedChannelConfig channel in Channels)
             {
                 if (channel == null)
                 {
-                    throw new InvalidOperationException("[RimChat] Unified prompt catalog contains a null channel entry.");
+                    throw new InvalidOperationException("[RimAI.Relations] Unified prompt catalog contains a null channel entry.");
                 }
 
                 string channelId = PromptUnifiedNodeSchemaCatalog.NormalizeStrictChannelOrThrow(channel.PromptChannel);
@@ -132,7 +132,7 @@ namespace RimChat.Config
                     if (HasAnyNodeEntry(nodes) || HasAnyLayoutEntry(layouts))
                     {
                         throw new InvalidOperationException(
-                            $"[RimChat] Channel '{channelId}' must not contain node content or layout entries.");
+                            $"[RimAI.Relations] Channel '{channelId}' must not contain node content or layout entries.");
                     }
 
                     continue;
@@ -149,13 +149,13 @@ namespace RimChat.Config
                     if (nodeId.Length == 0)
                     {
                         throw new InvalidOperationException(
-                            $"[RimChat] Channel '{channelId}' contains an empty node id.");
+                            $"[RimAI.Relations] Channel '{channelId}' contains an empty node id.");
                     }
 
                     if (!allowedNodes.Contains(nodeId))
                     {
                         throw new InvalidOperationException(
-                            $"[RimChat] Channel '{channelId}' contains disallowed node '{nodeId}'.");
+                            $"[RimAI.Relations] Channel '{channelId}' contains disallowed node '{nodeId}'.");
                     }
                 }
 
@@ -170,19 +170,19 @@ namespace RimChat.Config
                     if (nodeId.Length == 0)
                     {
                         throw new InvalidOperationException(
-                            $"[RimChat] Channel '{channelId}' contains an empty node layout id.");
+                            $"[RimAI.Relations] Channel '{channelId}' contains an empty node layout id.");
                     }
 
                     if (!allowedNodes.Contains(nodeId))
                     {
                         throw new InvalidOperationException(
-                            $"[RimChat] Channel '{channelId}' contains disallowed node layout '{nodeId}'.");
+                            $"[RimAI.Relations] Channel '{channelId}' contains disallowed node layout '{nodeId}'.");
                     }
 
                     if (!layoutNodeSet.Add(nodeId))
                     {
                         throw new InvalidOperationException(
-                            $"[RimChat] Channel '{channelId}' contains duplicate node layout '{nodeId}'.");
+                            $"[RimAI.Relations] Channel '{channelId}' contains duplicate node layout '{nodeId}'.");
                     }
                 }
             }
@@ -499,7 +499,7 @@ namespace RimChat.Config
             }
 
             throw new InvalidOperationException(
-                $"[RimChat] {operation} requires a non-empty nodeId for channel '{channel}'.");
+                $"[RimAI.Relations] {operation} requires a non-empty nodeId for channel '{channel}'.");
         }
 
         private PromptUnifiedChannelConfig ResolveChannel(string promptChannel)

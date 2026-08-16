@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Dependencies: System.IO file APIs.
  /// Responsibility: centralize prompt-config file existence/read/write operations.

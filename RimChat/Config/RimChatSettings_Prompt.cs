@@ -6,12 +6,12 @@ using System.Text;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using RimChat.Persistence;
-using RimChat.UI;
-using RimChat.Core;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public partial class RimChatSettings
     {
@@ -109,7 +109,7 @@ namespace RimChat.Config
             catch (Exception ex)
             {
                 _promptWorkbenchFailed = true;
-                Log.Error($"[RimChat] Prompt workbench render failed, fallback to legacy prompt UI: {ex}");
+                Log.Error($"[RimAI.Relations] Prompt workbench render failed, fallback to legacy prompt UI: {ex}");
                 DrawLegacyAdvancedPromptSettingsSection(listing);
             }
         }
@@ -1944,7 +1944,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to flush latest prompt edits before export: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to flush latest prompt edits before export: {ex.Message}");
                 }
 
                 bool exported = modules == null
@@ -1986,7 +1986,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Import preview failed unexpectedly: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Import preview failed unexpectedly: {ex.Message}");
                 }
 
                 ShowPromptBundleImportFailureMessage();

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: UnityEngine.JsonUtility, RimWorld mod path APIs, file system.
  /// Responsibility: represent default RPG prompt text loaded from Prompt/Default/PawnDialoguePrompt_Default.json.
@@ -385,7 +385,7 @@ namespace RimChat.Config
                 config = JsonUtility.FromJson<RpgPromptDefaultsConfig>(json);
                 if (config == null)
                 {
-                    Log.Warning($"[RimChat] RPG prompt defaults deserialized to null from {path}; using fallback.");
+                    Log.Warning($"[RimAI.Relations] RPG prompt defaults deserialized to null from {path}; using fallback.");
                     return false;
                 }
 
@@ -395,7 +395,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to load RPG prompt defaults from {path}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to load RPG prompt defaults from {path}: {ex.Message}");
                 return false;
             }
         }
@@ -469,7 +469,7 @@ namespace RimChat.Config
             }
 
             loggedDefaultPath = path;
-            Log.Message($"[RimChat] RPG default prompt path ({source}): {path}");
+            Log.Message($"[RimAI.Relations] RPG default prompt path ({source}): {path}");
         }
 
         private static void LogResolvedDefaultPayload(RpgPromptDefaultsConfig config)
@@ -484,7 +484,7 @@ namespace RimChat.Config
             string reliability = config.ActionReliabilityFallback ?? "<null>";
             string tryGainMemory = config.ApiActionPrompt?.FullTryGainMemoryLineTemplate ?? "<null>";
             Log.Message(
-                $"[RimChat] RPG defaults loaded: FullHeader='{fullHeader}', CompactHeader='{compactHeader}', ActionReliabilityFallback='{reliability}', FullTryGainMemoryLineTemplate='{tryGainMemory}'");
+                $"[RimAI.Relations] RPG defaults loaded: FullHeader='{fullHeader}', CompactHeader='{compactHeader}', ActionReliabilityFallback='{reliability}', FullTryGainMemoryLineTemplate='{tryGainMemory}'");
         }
     }
 }

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: pending airdrop selection runtime intent, airdrop confirmation pipeline.
@@ -64,7 +64,7 @@ namespace RimChat.UI
             }
 
             string countHint = mappedParameters.TryGetValue("count", out object countRaw) ? countRaw?.ToString() ?? "none" : "none";
-            Log.Message($"[RimChat] Pre-send pending airdrop selection resolved locally: def={selected.DefName},index={selected.Index},label={selected.Label},countHint={countHint}");
+            Log.Message($"[RimAI.Relations] Pre-send pending airdrop selection resolved locally: def={selected.DefName},index={selected.Index},label={selected.Label},countHint={countHint}");
             currentSession.AddMessage(
                 "System",
                 "RimChat_ItemAirdropSelectionChosen".Translate(selected.Label, selected.DefName).ToString(),

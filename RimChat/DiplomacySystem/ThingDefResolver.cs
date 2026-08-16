@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: ThingDefCatalog, ItemAirdropSafetyPolicy.
@@ -355,13 +355,13 @@ namespace RimChat.DiplomacySystem
 
             if (blacklist != null && blacklist.Contains(record.DefName))
             {
-                Log.Message($"[RimChat][GetRejectReason] {record.DefName}: rejected by BLACKLIST");
+                Log.Message($"[RimAI.Relations][GetRejectReason] {record.DefName}: rejected by BLACKLIST");
                 return CandidateRejectReason.Blacklist;
             }
 
             if (ItemAirdropSafetyPolicy.IsBlockedByCategory(record, blockedCategories))
             {
-                Log.Message($"[RimChat][GetRejectReason] {record.DefName}: rejected by BLOCKED_CATEGORY");
+                Log.Message($"[RimAI.Relations][GetRejectReason] {record.DefName}: rejected by BLOCKED_CATEGORY");
                 return CandidateRejectReason.BlockedCategory;
             }
 

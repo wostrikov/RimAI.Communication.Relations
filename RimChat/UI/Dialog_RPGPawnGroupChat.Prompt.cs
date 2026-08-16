@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_RPGPawnGroupChat
     {
@@ -40,7 +40,7 @@ namespace RimChat.UI
             }
             catch (System.Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to build RPG prompt for {speaker.DisplayName}, using fallback: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to build RPG prompt for {speaker.DisplayName}, using fallback: {ex.Message}");
                 basePrompt = BuildFallbackPersonaPrompt(speaker);
             }
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: Verse translation APIs.

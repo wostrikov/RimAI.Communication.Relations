@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using RimWorld;
 using Verse;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// factionPromptmanager
  /// 负责从外部fileload和管理各faction的Promptconfiguration
@@ -114,11 +114,11 @@ namespace RimChat.Config
                 EnsureAllFactionsHaveConfigs();
 
                 _initialized = true;
-                Log.Message($"[RimChat] FactionPromptManager initialized with {_configCollection.Configs.Count} faction prompts");
+                Log.Message($"[RimAI.Relations] FactionPromptManager initialized with {_configCollection.Configs.Count} faction prompts");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to initialize FactionPromptManager: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to initialize FactionPromptManager: {ex}");
                 // 创建空configuration集合作为后备
                 _configCollection = new FactionPromptConfigCollection();
             }
@@ -139,25 +139,25 @@ namespace RimChat.Config
                 {
                     string json = File.ReadAllText(sourcePath);
                     _configCollection = FactionPromptJsonUtility.FromJson(json);
-                    Log.Message($"[RimChat] Loaded faction prompts from {sourcePath}");
+                    Log.Message($"[RimAI.Relations] Loaded faction prompts from {sourcePath}");
                     
                     // 如果configurationfileempty, 从默认configurationload
                     if (_configCollection == null || _configCollection.Configs.Count == 0)
                     {
-                        Log.Warning($"[RimChat] Config file exists but contains no configs, loading defaults");
+                        Log.Warning($"[RimAI.Relations] Config file exists but contains no configs, loading defaults");
                         LoadDefaultConfigs();
                         SaveConfigs(); // Save默认configuration到file
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to load prompts from file: {ex}. Using defaults.");
+                    Log.Warning($"[RimAI.Relations] Failed to load prompts from file: {ex}. Using defaults.");
                     LoadDefaultConfigs();
                 }
             }
             else
             {
-                Log.Message($"[RimChat] Prompt config file not found, loading defaults");
+                Log.Message($"[RimAI.Relations] Prompt config file not found, loading defaults");
                 LoadDefaultConfigs();
                 SaveConfigs(); // Save默认configuration到file
             }
@@ -185,11 +185,11 @@ namespace RimChat.Config
 
                 string json = FactionPromptJsonUtility.ToJson(_configCollection, true);
                 File.WriteAllText(ConfigFilePath, json);
-                Log.Message($"[RimChat] Saved faction prompts to {ConfigFilePath}");
+                Log.Message($"[RimAI.Relations] Saved faction prompts to {ConfigFilePath}");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to save prompts: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to save prompts: {ex}");
             }
         }
 
@@ -208,7 +208,7 @@ namespace RimChat.Config
 
             if (_configCollection.Configs.Count == 0)
             {
-                Log.Warning("[RimChat] Default faction prompt catalog is empty. Using hardcoded fallback.");
+                Log.Warning("[RimAI.Relations] Default faction prompt catalog is empty. Using hardcoded fallback.");
                 LoadHardcodedDefaultConfigs();
                 BuildDefaultConfigCatalog();
             }
@@ -238,13 +238,13 @@ namespace RimChat.Config
                 {
                     string defaultDir = Path.Combine(mod.Content.RootDir, PromptFolderName, DefaultSubFolderName);
                     string path = Path.Combine(defaultDir, DefaultConfigFileName);
-                    Log.Message($"[RimChat] Default config path from mod: {path}");
+                    Log.Message($"[RimAI.Relations] Default config path from mod: {path}");
                     return path;
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to get mod path: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to get mod path: {ex.Message}");
             }
 
             // 后备1: 使用程序集所在目录的上级目录 (通常在 1.6/Assemblies 中)
@@ -258,18 +258,18 @@ namespace RimChat.Config
                 {
                     string defaultDir = Path.Combine(modDir, PromptFolderName, DefaultSubFolderName);
                     string path = Path.Combine(defaultDir, DefaultConfigFileName);
-                    Log.Message($"[RimChat] Default config path from assembly parent: {path}");
+                    Log.Message($"[RimAI.Relations] Default config path from assembly parent: {path}");
                     return path;
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to get assembly path: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to get assembly path: {ex.Message}");
             }
 
             // 后备2: 使用已知path
             string fallbackPath = Path.Combine("E:\\SteamLibrary\\steamapps\\common\\RimWorld\\Mods\\RimChat", PromptFolderName, DefaultSubFolderName, DefaultConfigFileName);
-            Log.Message($"[RimChat] Default config path fallback: {fallbackPath}");
+            Log.Message($"[RimAI.Relations] Default config path fallback: {fallbackPath}");
             return fallbackPath;
         }
 
@@ -299,7 +299,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to get custom config path: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to get custom config path: {ex.Message}");
             }
 
             // 后备: 使用userconfiguration目录
@@ -676,7 +676,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to export configs: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to export configs: {ex}");
                 return false;
             }
         }
@@ -694,7 +694,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Failed to import configs: {ex}");
+                Log.Error($"[RimAI.Relations] Failed to import configs: {ex}");
                 return false;
             }
         }
@@ -735,7 +735,7 @@ namespace RimChat.Config
             _defaultConfigLookup = new Dictionary<string, FactionPromptConfig>(StringComparer.OrdinalIgnoreCase);
 
             string defaultConfigPath = GetDefaultConfigFilePath();
-            Log.Message($"[RimChat] Looking for default config at: {defaultConfigPath}");
+            Log.Message($"[RimAI.Relations] Looking for default config at: {defaultConfigPath}");
             if (!string.IsNullOrWhiteSpace(defaultConfigPath) && File.Exists(defaultConfigPath))
             {
                 try
@@ -744,15 +744,15 @@ namespace RimChat.Config
                     FactionPromptConfigCollection collection = FactionPromptJsonUtility.FromJson(json);
                     if (TryPopulateDefaultCatalog(collection))
                     {
-                        Log.Message($"[RimChat] Loaded default faction prompt catalog ({_defaultFactionDefNames.Count})");
+                        Log.Message($"[RimAI.Relations] Loaded default faction prompt catalog ({_defaultFactionDefNames.Count})");
                         return;
                     }
 
-                    Log.Warning("[RimChat] Default prompt file parsed but contains no valid configs.");
+                    Log.Warning("[RimAI.Relations] Default prompt file parsed but contains no valid configs.");
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to parse default prompt file: {ex}");
+                    Log.Warning($"[RimAI.Relations] Failed to parse default prompt file: {ex}");
                 }
             }
 
@@ -783,7 +783,7 @@ namespace RimChat.Config
 
         private void BuildHardcodedDefaultCatalog()
         {
-            Log.Message("[RimChat] Using hardcoded fallback for faction prompt default catalog.");
+            Log.Message("[RimAI.Relations] Using hardcoded fallback for faction prompt default catalog.");
 
             foreach (FactionDef factionDef in GetSupportedFactionDefs())
             {
@@ -910,7 +910,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse JSON: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse JSON: {ex.Message}");
             }
 
             return collection;
@@ -986,7 +986,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse config: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse config: {ex.Message}");
                 return null;
             }
 
@@ -1041,7 +1041,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to parse template field: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to parse template field: {ex.Message}");
                 return null;
             }
 

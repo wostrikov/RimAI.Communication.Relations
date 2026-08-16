@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
     /// Dependencies: .NET regex runtime.

@@ -1,7 +1,7 @@
 using System.Xml;
 using Verse;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     /// <summary>
     /// Helpers for safely removing legacy XML reference nodes from old saves

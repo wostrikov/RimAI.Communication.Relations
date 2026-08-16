@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: RimWorld window/widgets and selective bundle module models.
@@ -131,7 +131,7 @@ namespace RimChat.UI
 
             if (Widgets.ButtonText(configRect, "RimChat_PromptBundleQuickPathConfig".Translate()))
             {
-                string directory = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat", "Exports");
+                string directory = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", "Exports");
                 ApplyQuickPath(Path.Combine(directory, GetCurrentFileName()));
             }
         }

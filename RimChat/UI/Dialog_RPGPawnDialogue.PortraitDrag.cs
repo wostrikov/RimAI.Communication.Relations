@@ -4,7 +4,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>Dependencies: Dialog_RPGPawnDialogue portrait layout, pawn fields, RPG action execution.
     /// Responsibility: draggable initiator portrait with spring physics, collision detection, and dynamic action menu.

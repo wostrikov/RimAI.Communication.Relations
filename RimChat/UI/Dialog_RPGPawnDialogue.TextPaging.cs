@@ -5,7 +5,7 @@ using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: RimWorld text measurement and Verse widgets.
     /// Responsibility: paginate oversized RPG dialogue text and draw message/history navigation.

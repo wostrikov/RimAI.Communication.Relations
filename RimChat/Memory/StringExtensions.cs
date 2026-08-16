@@ -1,7 +1,7 @@
 using System.IO;
 using System.Linq;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: System.IO.Path invalid filename characters.
  /// Responsibility: sanitize runtime names into safe file/folder fragments for persistent storage.

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: prompt validation service and RimWorld defs.
@@ -15,7 +15,7 @@ namespace RimChat.Prompting
     internal static partial class UserDefinedPromptVariableService
     {
         public static UserDefinedPromptVariableValidationResult ValidateEdit(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel editModel,
             UserDefinedPromptVariableConfig originalVariable = null)
         {
@@ -60,7 +60,7 @@ namespace RimChat.Prompting
         }
 
         public static bool TrySaveEdit(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel editModel,
             UserDefinedPromptVariableConfig originalVariable,
             out UserDefinedPromptVariableValidationResult validationResult)
@@ -108,7 +108,7 @@ namespace RimChat.Prompting
 
         private static void ValidateFactionRules(
             UserDefinedPromptVariableValidationResult result,
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel editModel,
             string normalizedKey,
             string currentPath,
@@ -143,7 +143,7 @@ namespace RimChat.Prompting
 
         private static void ValidatePawnRules(
             UserDefinedPromptVariableValidationResult result,
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel editModel,
             string normalizedKey,
             string currentPath,
@@ -236,7 +236,7 @@ namespace RimChat.Prompting
 
         private static void ValidateTemplate(
             UserDefinedPromptVariableValidationResult result,
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             string templateId,
             string templateText,
             string currentPath,
@@ -259,7 +259,7 @@ namespace RimChat.Prompting
         }
 
         private static IEnumerable<string> BuildAdditionalKnownPaths(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             string currentPath,
             UserDefinedPromptVariableConfig originalVariable)
         {
@@ -291,7 +291,7 @@ namespace RimChat.Prompting
 
         private static void DetectCycleErrors(
             UserDefinedPromptVariableValidationResult result,
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel editModel,
             UserDefinedPromptVariableConfig originalVariable)
         {
@@ -312,7 +312,7 @@ namespace RimChat.Prompting
         }
 
         private static Dictionary<string, HashSet<string>> BuildDependencyGraph(
-            RimChat.Config.RimChatSettings settings,
+            Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings,
             UserDefinedPromptVariableEditModel editModel,
             UserDefinedPromptVariableConfig originalVariable)
         {

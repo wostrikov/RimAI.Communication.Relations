@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>/// Dependencies: ChatMessageData, DialogueMessageData.
  /// Responsibility: build token-efficient dialogue context with 10/20/25 tier compression and event-sentence summaries.

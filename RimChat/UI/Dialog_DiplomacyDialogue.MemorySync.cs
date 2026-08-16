@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: diplomacy dialogue runtime state, leader memory notifications, and request lifecycle cancellation.

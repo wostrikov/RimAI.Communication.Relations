@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: Unity IMGUI dirty-flag tracking.

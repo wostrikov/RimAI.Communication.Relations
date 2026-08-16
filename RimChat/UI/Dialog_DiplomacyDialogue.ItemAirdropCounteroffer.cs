@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_DiplomacyDialogue
     {

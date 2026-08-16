@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using RimChat.Core;
-using RimChat.Memory;
-using RimChat.DiplomacySystem;
-using RimChat.Util;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: PromptPersistenceService, LeaderMemoryManager, WorldEventLedgerComponent.
@@ -317,7 +317,7 @@ namespace RimChat.Persistence
                     NextRetryTick = currentTick + ComputeBackoffDelay(newCount),
                     ConsecutiveFailureCount = newCount
                 };
-                Log.Warning($"[RimChat] Prompt snapshot warmup failed for {faction?.Name ?? "Unknown"} (attempt {newCount}): {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Prompt snapshot warmup failed for {faction?.Name ?? "Unknown"} (attempt {newCount}): {ex.Message}");
             }
         }
 
@@ -366,7 +366,7 @@ namespace RimChat.Persistence
 
                 if (currentTick - entry.NeedsRefreshSinceTick > RefreshGracePeriodTicks)
                 {
-                    Log.Warning($"[RimChat] Snapshot for {faction.Name} expired after {RefreshGracePeriodTicks} ticks grace period, forcing rebuild.");
+                    Log.Warning($"[RimAI.Relations] Snapshot for {faction.Name} expired after {RefreshGracePeriodTicks} ticks grace period, forcing rebuild.");
                     return false;
                 }
 

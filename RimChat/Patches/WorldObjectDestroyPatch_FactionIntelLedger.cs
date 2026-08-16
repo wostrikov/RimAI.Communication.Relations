@@ -1,8 +1,8 @@
 using HarmonyLib;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld.Planet;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: RimWorld.Planet.WorldObject.Destroy.
  /// Responsibility: record faction settlement destruction history for fixed intel injection.

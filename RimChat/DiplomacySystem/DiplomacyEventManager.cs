@@ -4,12 +4,12 @@ using System.Linq;
 using RimWorld;
 using Verse;
 using Verse.AI.Group;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Util;
 using UnityEngine;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public enum CaravanType
     {

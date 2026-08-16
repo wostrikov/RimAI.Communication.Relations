@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Memory;
-using RimChat.Persistence;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, native prompt fail-fast exceptions, social news seed factory, social news JSON parser, leader-memory services.
  /// Responsibility: queue, track, finalize social-news generation requests, and mirror published post summaries into faction leader memory.
@@ -73,7 +73,7 @@ namespace RimChat.DiplomacySystem
 
         private bool TryQueueNextScheduledNews(DebugGenerateReason reason, int currentTick, bool bypassSimulationToggle)
         {
-            if (!bypassSimulationToggle && !(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnableAISimulationNews ?? true))
+            if (!bypassSimulationToggle && !(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnableAISimulationNews ?? true))
             {
                 return false;
             }
@@ -102,7 +102,7 @@ namespace RimChat.DiplomacySystem
         {
             failureReason = SocialForceGenerateFailureReason.Unknown;
 
-            if (!bypassSimulationToggle && !(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnableAISimulationNews ?? true))
+            if (!bypassSimulationToggle && !(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnableAISimulationNews ?? true))
             {
                 failureReason = SocialForceGenerateFailureReason.Disabled;
                 return false;
@@ -153,7 +153,7 @@ namespace RimChat.DiplomacySystem
 
             if (seed == null || !seed.IsValid())
             {
-                Log.Warning($"[RimChat] Social news seed invalid. origin_type={seed?.OriginType}, origin_key={seed?.OriginKey ?? "null"}, facts_count={seed?.Facts?.Count ?? 0}, occurred_tick={seed?.OccurredTick ?? -1}");
+                Log.Warning($"[RimAI.Relations] Social news seed invalid. origin_type={seed?.OriginType}, origin_key={seed?.OriginKey ?? "null"}, facts_count={seed?.Facts?.Count ?? 0}, occurred_tick={seed?.OccurredTick ?? -1}");
                 failureReason = SocialPostEnqueueFailureReason.InvalidSeed;
                 return false;
             }
@@ -181,7 +181,7 @@ namespace RimChat.DiplomacySystem
             {
                 messages = SocialNewsPromptBuilder.BuildMessages(seed, snapshot);
                 Log.Message(
-                    "[RimChat][SocialNewsPrompt] "
+                    "[RimAI.Relations][SocialNewsPrompt] "
                     + $"origin_type={seed.OriginType}, origin_key={seed.OriginKey ?? string.Empty}, "
                     + $"source_faction={seed.SourceFaction?.Name ?? "None"}, target_faction={seed.TargetFaction?.Name ?? "None"}, "
                     + $"facts={BuildResponsePreview(string.Join(" | ", (seed.Facts ?? new List<string>()).Where(item => !string.IsNullOrWhiteSpace(item))), 800)}, "
@@ -190,7 +190,7 @@ namespace RimChat.DiplomacySystem
             catch (PromptRenderException ex)
             {
                 Log.Warning(
-                    "[RimChat] Social news prompt render failed. " +
+                    "[RimAI.Relations] Social news prompt render failed. " +
                     $"requestId=not_dispatched, debugSource={AIRequestDebugSource.SocialNews}, stage=scriban_render_error, " +
                     $"origin_type={seed.OriginType}, origin_key={seed.OriginKey ?? string.Empty}, " +
                     $"template_id={ex.TemplateId}, error_code={ex.ErrorCode}, line={ex.ErrorLine}, column={ex.ErrorColumn}, " +
@@ -204,7 +204,7 @@ namespace RimChat.DiplomacySystem
             {
                 RimTalkNativeRenderDiagnostic diagnostic = ex.Diagnostic;
                 Log.Warning(
-                    "[RimChat] Social news render fail-fast. " +
+                    "[RimAI.Relations] Social news render fail-fast. " +
                     $"requestId=not_dispatched, debugSource={AIRequestDebugSource.SocialNews}, stage=render_failfast, " +
                     $"origin_type={seed.OriginType}, origin_key={seed.OriginKey ?? string.Empty}, " +
                     $"channel={diagnostic?.PromptChannel ?? string.Empty}, " +
@@ -271,7 +271,7 @@ namespace RimChat.DiplomacySystem
         {
             if (seed == null || !seed.IsValid())
             {
-                Log.Warning($"[RimChat] Deferred social news seed dropped (invalid). origin_type={seed?.OriginType}, origin_key={seed?.OriginKey ?? "null"}");
+                Log.Warning($"[RimAI.Relations] Deferred social news seed dropped (invalid). origin_type={seed?.OriginType}, origin_key={seed?.OriginKey ?? "null"}");
                 return;
             }
 
@@ -400,7 +400,7 @@ namespace RimChat.DiplomacySystem
                     pending.Seed?.QuoteAttributionHint ?? string.Empty))
             {
                 Log.Warning(
-                    "[RimChat] Social news generation failed to parse. " +
+                    "[RimAI.Relations] Social news generation failed to parse. " +
                     $"requestId={requestId ?? string.Empty}, debugSource={AIRequestDebugSource.SocialNews}, stage=parse_fail, " +
                     $"error={error}, response_preview={BuildResponsePreview(response, 260)}");
                 socialCircleState.MarkOriginState(pending.Seed.OriginType, pending.Seed.OriginKey, SocialNewsGenerationState.Failed, currentTick);
@@ -410,7 +410,7 @@ namespace RimChat.DiplomacySystem
 
             PublicSocialPost post = SocialCircleService.CreatePostFromDraft(pending.Seed, draft);
             Log.Message(
-                "[RimChat][SocialNewsDraft] "
+                "[RimAI.Relations][SocialNewsDraft] "
                 + $"origin_type={pending.Seed?.OriginType.ToString() ?? "Unknown"}, origin_key={pending.Seed?.OriginKey ?? string.Empty}, "
                 + $"location_name={draft?.LocationName ?? string.Empty}, quote_attribution={draft?.QuoteAttribution ?? string.Empty}, "
                 + $"headline={BuildResponsePreview(draft?.Headline ?? string.Empty, 160)}, lead={BuildResponsePreview(draft?.Lead ?? string.Empty, 220)}, "
@@ -434,7 +434,7 @@ namespace RimChat.DiplomacySystem
             }
 
             int currentTick = Find.TickManager?.TicksGame ?? pending.QueuedTick;
-            Log.Warning($"[RimChat] Social news generation failed: {error}");
+            Log.Warning($"[RimAI.Relations] Social news generation failed: {error}");
             socialCircleState.MarkOriginState(pending.Seed.OriginType, pending.Seed.OriginKey, SocialNewsGenerationState.Failed, currentTick);
             AddSocialGenerationMessage(pending.Seed, false, SocialPostGenerationFailureReason.AiError);
         }

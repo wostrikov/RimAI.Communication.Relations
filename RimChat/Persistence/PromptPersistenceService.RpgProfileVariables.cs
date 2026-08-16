@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: DialogueScenarioContext, RpgSceneParamSwitchesConfig, pawn relation/job runtime APIs.

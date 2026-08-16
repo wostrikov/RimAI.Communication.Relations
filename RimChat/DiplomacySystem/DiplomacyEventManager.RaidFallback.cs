@@ -4,7 +4,7 @@ using System.Linq;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public static partial class DiplomacyEventManager
     {
@@ -33,7 +33,7 @@ namespace RimChat.DiplomacySystem
 
             if (HasUsableCombatPawnGroupMaker(faction, out _))
             {
-                Log.Warning($"[RimChat] Applied default raid combat template for faction {faction?.Name}: {injectReason}");
+                Log.Warning($"[RimAI.Relations] Applied default raid combat template for faction {faction?.Name}: {injectReason}");
                 return true;
             }
 
@@ -179,7 +179,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to build storyteller raid parms: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to build storyteller raid parms: {ex.Message}");
             }
 
             if (parms == null)
@@ -211,7 +211,7 @@ namespace RimChat.DiplomacySystem
             if (TryRaiseRaidPointsToMeetCombatMinimum(faction, raidParms, out string pointAdjustReason)
                 && HasUsableCombatPawnGroupMakerForParms(faction, raidParms, out _))
             {
-                Log.Warning($"[RimChat] Raised raid points for faction {faction?.Name}: {pointAdjustReason}");
+                Log.Warning($"[RimAI.Relations] Raised raid points for faction {faction?.Name}: {pointAdjustReason}");
                 return true;
             }
 
@@ -225,7 +225,7 @@ namespace RimChat.DiplomacySystem
 
             if (HasUsableCombatPawnGroupMakerForParms(faction, raidParms, out _))
             {
-                Log.Warning($"[RimChat] Injected emergency raid combat template for faction {faction?.Name}: {injectReason}");
+                Log.Warning($"[RimAI.Relations] Injected emergency raid combat template for faction {faction?.Name}: {injectReason}");
                 return true;
             }
 
@@ -662,7 +662,7 @@ namespace RimChat.DiplomacySystem
                 if (fallbackIncident.Worker.TryExecute(fallbackParms))
                 {
                     reason = $"executed incident {fallbackIncident.defName} at points={fallbackParms.points:F1}";
-                    Log.Warning($"[RimChat] Milira raid fallback triggered: incident={fallbackIncident.defName}, faction={faction?.Name}, points={fallbackParms.points:F1}");
+                    Log.Warning($"[RimAI.Relations] Milira raid fallback triggered: incident={fallbackIncident.defName}, faction={faction?.Name}, points={fallbackParms.points:F1}");
                     return true;
                 }
 

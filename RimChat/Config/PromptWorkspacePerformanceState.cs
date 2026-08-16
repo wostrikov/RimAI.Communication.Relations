@@ -1,6 +1,6 @@
 using System;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt workspace runtime scheduling and panel data caching.

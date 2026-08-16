@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Relation
+namespace Ustas.RimAI.Communication.Relations.Relation
 {
     /// <summary>/// LLMdialoguebehaviorgoodwill消耗configuration
  /// 定义各种diplomacybehavior的基础消耗和relationvalues修正系数

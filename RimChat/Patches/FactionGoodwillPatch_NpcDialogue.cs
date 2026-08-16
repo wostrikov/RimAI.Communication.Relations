@@ -1,11 +1,11 @@
 using HarmonyLib;
-using RimChat.DiplomacySystem;
-using RimChat.NpcDialogue;
-using RimChat.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: RimWorld.Faction.TryAffectGoodwillWith.
  /// Responsibility: Translate significant goodwill shifts into proactive causal triggers while filtering passive natural goodwill decreases.
@@ -43,7 +43,7 @@ namespace RimChat.Patches
             {
                 LogSelfRelationGuardOnce(
                     $"prefix:{__instance.GetUniqueLoadID()}",
-                    $"[RimChat] Blocked self relation read in goodwill patch: faction={__instance.Name ?? "Unknown"}.");
+                    $"[RimAI.Relations] Blocked self relation read in goodwill patch: faction={__instance.Name ?? "Unknown"}.");
                 return;
             }
 

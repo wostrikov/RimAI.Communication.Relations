@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// 依赖: ApiActionEligibilityService, factioncontext.
  /// 职责: 发送button旁问号提示与diplomacy Actions Tooltip 渲染.

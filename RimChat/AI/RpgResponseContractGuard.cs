@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     internal enum RpgResponseContractViolation
     {

@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Dependencies: SystemPromptConfig, DialogueScenarioContext, PromptHierarchyRenderer.
  /// Responsibility: build diplomacy/RPG prompts with strict Scriban rendering and hierarchical policy pipeline.
@@ -370,7 +370,7 @@ namespace RimChat.Persistence
 
                     if (!allowedNodeIds.Contains(layout.NodeId))
                     {
-                        Log.Error($"[RimChat] Runtime node layout '{layout.NodeId}' is not allowed for channel '{promptChannel}'. Layout ignored.");
+                        Log.Error($"[RimAI.Relations] Runtime node layout '{layout.NodeId}' is not allowed for channel '{promptChannel}'. Layout ignored.");
                         continue;
                     }
 
@@ -428,7 +428,7 @@ namespace RimChat.Persistence
 
             var placements = new List<ResolvedPromptNodePlacement>();
             List<PromptUnifiedNodeLayoutConfig> diploLayouts = GetOrderedNodeLayouts(promptChannel);
-            Log.Message($"[RimChat] ResolveDiplomacyNodePlacements: channel={promptChannel}, layout_count={diploLayouts.Count}, node_ids=[{string.Join(", ", diploLayouts.Select(l => l.NodeId))}]");
+            Log.Message($"[RimAI.Relations] ResolveDiplomacyNodePlacements: channel={promptChannel}, layout_count={diploLayouts.Count}, node_ids=[{string.Join(", ", diploLayouts.Select(l => l.NodeId))}]");
             foreach (PromptUnifiedNodeLayoutConfig layout in diploLayouts)
             {
                 if (layout == null)
@@ -538,7 +538,7 @@ namespace RimChat.Persistence
         {
             var placements = new List<ResolvedPromptNodePlacement>();
             List<PromptUnifiedNodeLayoutConfig> layouts = GetOrderedNodeLayouts(promptChannel);
-            Log.Message($"[RimChat] ResolveRpgNodePlacements: channel={promptChannel}, layout_count={layouts.Count}, node_ids=[{string.Join(", ", layouts.Select(l => l.NodeId))}]");
+            Log.Message($"[RimAI.Relations] ResolveRpgNodePlacements: channel={promptChannel}, layout_count={layouts.Count}, node_ids=[{string.Join(", ", layouts.Select(l => l.NodeId))}]");
             foreach (PromptUnifiedNodeLayoutConfig layout in layouts)
             {
                 if (layout == null)
@@ -960,7 +960,7 @@ namespace RimChat.Persistence
             if (reflectionFaulted)
             {
                 Log.Warning(
-                    $"[RimChat] Mandatory race xenotype fallback to N/A after reflection fault. " +
+                    $"[RimAI.Relations] Mandatory race xenotype fallback to N/A after reflection fault. " +
                     $"pawn={pawn?.ThingID ?? "null"}, name={pawn?.LabelShortCap ?? "null"}, faction={pawn?.Faction?.Name ?? "null"}");
             }
 
@@ -1048,7 +1048,7 @@ namespace RimChat.Persistence
             {
                 reflectionFaulted = true;
                 Log.Warning(
-                    $"[RimChat] Reflection read failed for member '{memberName}' on '{target?.GetType().FullName ?? "null"}': {ex.GetType().Name}: {ex.Message}");
+                    $"[RimAI.Relations] Reflection read failed for member '{memberName}' on '{target?.GetType().FullName ?? "null"}': {ex.GetType().Name}: {ex.Message}");
                 return null;
             }
         }

@@ -1,6 +1,6 @@
 using System;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     /// <summary>
     /// Tracks request ownership and lifecycle for a single dialogue window.

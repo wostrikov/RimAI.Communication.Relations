@@ -5,16 +5,16 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: AIChatServiceAsync coroutine host, UnityWebRequest, RimWorld save metadata, and image API settings.
  /// Responsibility: call ARK image endpoint, download URL response image, and persist local cache path for chat inline rendering.
@@ -102,7 +102,7 @@ namespace RimChat.DiplomacySystem
             for (int attempt = 0; attempt < requestBodies.Length; attempt++)
             {
                 byte[] postData = Encoding.UTF8.GetBytes(requestBodies[attempt]);
-                Log.Message($"[RimChat] image request attempt={attempt + 1}, schema='{request.SchemaPreset}', mode='{request.Mode}', endpoint='{submitUrl}', model='{request.Model}', sourceBytes={(request.SourceImageBytes == null ? 0 : request.SourceImageBytes.Length)}, bodyPreview={BuildRequestBodyPreview(requestBodies[attempt])}");
+                Log.Message($"[RimAI.Relations] image request attempt={attempt + 1}, schema='{request.SchemaPreset}', mode='{request.Mode}', endpoint='{submitUrl}', model='{request.Model}', sourceBytes={(request.SourceImageBytes == null ? 0 : request.SourceImageBytes.Length)}, bodyPreview={BuildRequestBodyPreview(requestBodies[attempt])}");
                 using (var requestWeb = new UnityWebRequest(submitUrl, "POST"))
                 {
                     requestWeb.uploadHandler = new UploadHandlerRaw(postData);
@@ -122,11 +122,11 @@ namespace RimChat.DiplomacySystem
                         ShouldRetryWithoutSize(request, attempt, requestWeb.responseCode, requestWeb.error, responseBody);
                     if (shouldRetryWithoutSize)
                     {
-                        Log.Warning("[RimChat] send_image retrying without size field due to size validation failure.");
+                        Log.Warning("[RimAI.Relations] send_image retrying without size field due to size validation failure.");
                         continue;
                     }
 
-                    Log.Warning($"[RimChat] image request failed. code={requestWeb.responseCode}, error='{requestWeb.error}', responseBodyFull={responseBody}");
+                    Log.Warning($"[RimAI.Relations] image request failed. code={requestWeb.responseCode}, error='{requestWeb.error}', responseBodyFull={responseBody}");
                     string error = ComposeWebError("image generation", requestWeb, responseBody);
                     onCompleted?.Invoke(DiplomacyImageGenerationResult.Fail(error));
                     yield break;
@@ -248,7 +248,7 @@ namespace RimChat.DiplomacySystem
             string size = EscapeJson(normalizedSize);
             string watermark = request.Watermark ? "true" : "false";
             string imageField = BuildImageToImageJsonField(request);
-            Log.Message($"[RimChat] send_image request normalized size={normalizedSize}, img2img={(string.IsNullOrEmpty(imageField) ? "false" : "true")}");
+            Log.Message($"[RimAI.Relations] send_image request normalized size={normalizedSize}, img2img={(string.IsNullOrEmpty(imageField) ? "false" : "true")}");
             return "{"
                 + $"\"model\":\"{model}\","
                 + $"\"prompt\":\"{prompt}\","
@@ -486,7 +486,7 @@ namespace RimChat.DiplomacySystem
             {
             }
 
-            string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat", PromptNpcFolderName, PromptNpcSubFolderName);
+            string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptNpcFolderName, PromptNpcSubFolderName);
             if (!Directory.Exists(fallback))
             {
                 Directory.CreateDirectory(fallback);

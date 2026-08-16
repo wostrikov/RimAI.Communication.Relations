@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
-using RimChat.Prompting;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     public partial class PromptPersistenceService
     {
@@ -762,7 +762,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to resolve faction goodwill for '{faction.Name ?? "Unknown"}': {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to resolve faction goodwill for '{faction.Name ?? "Unknown"}': {ex.Message}");
                 return null;
             }
         }

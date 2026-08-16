@@ -1,6 +1,6 @@
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: none.
  /// Responsibility: provide a single source of truth for repeated prompt default text literals.

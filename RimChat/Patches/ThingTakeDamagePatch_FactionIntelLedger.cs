@@ -1,8 +1,8 @@
 using HarmonyLib;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: Verse.Thing.TakeDamage.
  /// Responsibility: feed player-building loss intel for raid damage aggregation.

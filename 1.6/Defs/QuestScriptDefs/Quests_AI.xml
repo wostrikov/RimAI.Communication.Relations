@@ -20,10 +20,10 @@
         <li Class="QuestNode_GetMap" />
         
         <!-- Inject Slate variables to Grammar Rules -->
-        <li Class="RimChat.DiplomacySystem.QuestNode_InjectSlateToGrammar" />
+        <li Class="Ustas.RimAI.Communication.Relations.DiplomacySystem.QuestNode_InjectSlateToGrammar" />
         
         <!-- Add a custom quest part for callback -->
-        <li Class="RimChat.DiplomacySystem.QuestNode_AddAICallback">
+        <li Class="Ustas.RimAI.Communication.Relations.DiplomacySystem.QuestNode_AddAICallback">
           <callbackId>$callbackId</callbackId>
           <inSignalSuccess>QuestSuccess</inSignalSuccess>
           <inSignalFailed>QuestFailed</inSignalFailed>

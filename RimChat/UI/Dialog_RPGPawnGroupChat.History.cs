@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_RPGPawnGroupChat
     {

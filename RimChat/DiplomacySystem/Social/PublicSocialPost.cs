@@ -1,9 +1,9 @@
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: RimWorld Faction, Verse Scribe.
  /// Responsibility: serializable public social post record.

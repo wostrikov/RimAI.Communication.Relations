@@ -1,15 +1,15 @@
 using HarmonyLib;
-using RimChat.Core;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>
-    /// Dependencies: RimWorld.PlaySettings, Verse.WidgetRow, RimChat.Core.RimChatMod.
+    /// Dependencies: RimWorld.PlaySettings, Verse.WidgetRow, Ustas.RimAI.Communication.Relations.Core.RimChatMod.
     /// Responsibility: add a map-view bottom-right icon that toggles token-stats observability window.
     /// </summary>
     [StaticConstructorOnStartup]

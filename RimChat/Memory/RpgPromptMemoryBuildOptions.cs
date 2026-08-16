@@ -1,4 +1,4 @@
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: RPG archive prompt assembly.

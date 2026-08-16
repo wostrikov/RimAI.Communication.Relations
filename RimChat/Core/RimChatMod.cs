@@ -8,13 +8,14 @@ using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using RimChat.Comp;
-using RimChat.Config;
-using RimChat.Prompting;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Comp;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Util;
 using Ustas.RimAI.Core.Modules;
+using Ustas.RimAI.Core.Relations;
 
-namespace RimChat.Core
+namespace Ustas.RimAI.Communication.Relations.Core
 {
     public class RimChatMod : Mod
     {
@@ -35,18 +36,19 @@ namespace RimChat.Core
             FactionPromptManager.Instance.Initialize();
 
             // Apply Harmony patches
-            var harmony = new Harmony("RimChat.AIDriven");
-            RimChat.Patches.HarmonyPatchStartupSelfCheck.Run();
+            var harmony = new Harmony("ustas.rimai.communication.relations");
+            Ustas.RimAI.Communication.Relations.Patches.HarmonyPatchStartupSelfCheck.Run();
             harmony.PatchAll();
 
             // Initialize custom patches that require dynamic method lookup
-            RimChat.Patches.CommsConsolePatch.Initialize(harmony);
-            RimChat.Patches.QuestGenPatch.Initialize(harmony);
+            Ustas.RimAI.Communication.Relations.Patches.CommsConsolePatch.Initialize(harmony);
+            Ustas.RimAI.Communication.Relations.Patches.QuestGenPatch.Initialize(harmony);
 
             // Inject CompPawnDialogue to all eligible pawn ThingDefs after all defs are loaded
             LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
 
             DLCCompatibility.LogDLCStatus();
+            RelationsApplicationAccess.Register(new RelationsApplication());
             RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor(
                 "relations",
                 "RimAI.Communication.Relations",
@@ -61,7 +63,7 @@ namespace RimChat.Core
                 listing => DrawCoreRelationsSummary((Listing_Standard)listing),
                 "communication",
                 "relations"));
-            Log.Message("[RimChat] Mod initialized successfully.");
+            Log.Message("[RimAI.Relations] Mod initialized successfully.");
         }
 
         static void DrawCoreRelationsSummary(Listing_Standard listing)
@@ -88,7 +90,7 @@ namespace RimChat.Core
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Default preset refresh on startup failed: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Default preset refresh on startup failed: {ex.Message}");
             }
         }
 
@@ -162,7 +164,7 @@ namespace RimChat.Core
         /// </summary>
         public string GetSettingsFolderPath()
         {
-            string path = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat");
+            string path = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations");
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);

@@ -1,7 +1,7 @@
-using RimChat.Config;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: RimChat settings prompt section catalog.

@@ -5,16 +5,16 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Util;
-using RimChat.Core;
-using RimChat.Memory;
-using RimChat.Dialogue;
-using RimChat.Prompting;
-using RimChat.Rpg;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Rpg;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: RimWorld window/UI runtime, AI request callbacks, and RPG archive/session helpers.
  /// Responsibility: host the full-screen PawnRPG dialogue window and orchestrate live/history rendering.
@@ -793,7 +793,7 @@ namespace RimChat.UI
                 return;
             }
 
-            var rpgManager = Current.Game?.GetComponent<RimChat.DiplomacySystem.GameComponent_RPGManager>();
+            var rpgManager = Current.Game?.GetComponent<Ustas.RimAI.Communication.Relations.DiplomacySystem.GameComponent_RPGManager>();
             if (rpgManager != null && rpgManager.IsRpgDialogueOnCooldown(target, out int remainingTicks))
             {
                 float remainingHours = Math.Max(0f, remainingTicks / 2500f);
@@ -901,7 +901,7 @@ namespace RimChat.UI
             }
 
             string message = "RimChat_PromptRenderBlocked".Translate(ex.TemplateId, ex.Channel, ex.ErrorLine, ex.ErrorColumn).ToString();
-            Log.Error("[RimChat] RPG prompt rendering aborted request: " + ex.Message);
+            Log.Error("[RimAI.Relations] RPG prompt rendering aborted request: " + ex.Message);
             currentDialogueText = message;
             aiResponseReady = true;
             aiResponseText = message;

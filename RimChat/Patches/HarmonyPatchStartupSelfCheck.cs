@@ -4,7 +4,7 @@ using System.Reflection;
 using HarmonyLib;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>
     /// Dependencies: Harmony patch metadata and Verse.Translator signature.
@@ -19,14 +19,14 @@ namespace RimChat.Patches
 
             if (failures.Count == 0)
             {
-                Log.Message("[RimChat][HarmonySelfCheck] Startup patch checks passed: 1/1.");
+                Log.Message("[RimAI.Relations][HarmonySelfCheck] Startup patch checks passed: 1/1.");
                 return;
             }
 
-            Log.Warning($"[RimChat][HarmonySelfCheck] Startup patch checks failed: {failures.Count} issue(s).");
+            Log.Warning($"[RimAI.Relations][HarmonySelfCheck] Startup patch checks failed: {failures.Count} issue(s).");
             for (int i = 0; i < failures.Count; i++)
             {
-                Log.Warning($"[RimChat][HarmonySelfCheck] {failures[i]}");
+                Log.Warning($"[RimAI.Relations][HarmonySelfCheck] {failures[i]}");
             }
         }
 

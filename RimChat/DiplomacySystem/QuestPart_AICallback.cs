@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using RimWorld.QuestGen;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// 自定义任务部分: processing任务state变更并回调给 AI system
  ///</summary>
@@ -33,7 +33,7 @@ namespace RimChat.DiplomacySystem
 
         private void OnQuestStateChanged(string state)
         {
-            Log.Message($"[RimChat] Quest {quest.name} state changed to {state}. CallbackId: {callbackId}");
+            Log.Message($"[RimAI.Relations] Quest {quest.name} state changed to {state}. CallbackId: {callbackId}");
             
             if (faction != null)
             {

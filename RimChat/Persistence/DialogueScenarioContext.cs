@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Responsibility: carry channel/source/entity signals for environment-scene prompt matching.
  ///</summary>

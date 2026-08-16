@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using RimChat.Dialogue;
-using RimChat.Util;
-using RimChat.Memory;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.WorldState;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public partial class GameComponent_RPGManager : GameComponent
     {
@@ -71,11 +71,11 @@ namespace RimChat.DiplomacySystem
             var questDef = DefDatabase<QuestScriptDef>.GetNamedSilentFail("RimChat_AIQuest");
             if (questDef == null)
             {
-                Log.Warning("[RimChat] Failed to find QuestScriptDef 'RimChat_AIQuest'. AI Quests will not be available.");
+                Log.Warning("[RimAI.Relations] Failed to find QuestScriptDef 'RimChat_AIQuest'. AI Quests will not be available.");
             }
             else
             {
-                Log.Message("[RimChat] QuestScriptDef 'RimChat_AIQuest' loaded successfully.");
+                Log.Message("[RimAI.Relations] QuestScriptDef 'RimChat_AIQuest' loaded successfully.");
             }
         }
 
@@ -132,7 +132,7 @@ namespace RimChat.DiplomacySystem
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to load legacy pawn data, clearing for compatibility: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to load legacy pawn data, clearing for compatibility: {ex.Message}");
                     legacyPawnDialogueCooldownUntilTick = null;
                     legacyPawnPersonaPrompts = null;
                 }
@@ -364,7 +364,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to resolve RimTalk personality for '{pawn.LabelShortCap}': {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to resolve RimTalk personality for '{pawn.LabelShortCap}': {ex.Message}");
             }
             finally
             {

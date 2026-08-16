@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Dialogue;
+using Ustas.RimAI.Communication.Relations.Dialogue;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// factionselectdialogue框 - used for通讯台拦截时display
  ///</summary>
@@ -150,8 +150,8 @@ namespace RimChat.UI
                 return;
             }
 
-            Log.Warning($"[RimChat] Select-faction dialogue open rejected: faction={faction.Name}, reason={reason ?? "unknown"}");
-            Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source=select_faction, faction={faction.Name}");
+            Log.Warning($"[RimAI.Relations] Select-faction dialogue open rejected: faction={faction.Name}, reason={reason ?? "unknown"}");
+            Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source=select_faction, faction={faction.Name}");
             Find.WindowStack.Add(new Dialog_DiplomacyDialogue(faction, null));
         }
     }

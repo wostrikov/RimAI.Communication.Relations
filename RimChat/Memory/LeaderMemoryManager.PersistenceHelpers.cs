@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: SaveScopeKeyResolver and filesystem migration helpers.
@@ -81,7 +81,7 @@ namespace RimChat.Memory
             File.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
             TryClaimDefaultBucket(currentSaveKey, legacyDirs);
             Log.Message(
-                "[RimChat] Migrated legacy leader memory files. " +
+                "[RimAI.Relations] Migrated legacy leader memory files. " +
                 $"copied={copied}, skipped_existing={skippedExisting}, target={currentSaveKey}.");
         }
 

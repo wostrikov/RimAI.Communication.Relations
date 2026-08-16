@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using HarmonyLib;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: GameAIInterface.CreateQuest/ExposeData.
  /// Responsibility: persist and update RimChat create_quest publication tracking records.

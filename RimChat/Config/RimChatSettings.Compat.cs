@@ -1,6 +1,6 @@
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat
+namespace Ustas.RimAI.Communication.Relations
 {
     public class RimChatSettings : Config.RimChatSettings
     {

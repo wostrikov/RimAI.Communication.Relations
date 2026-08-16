@@ -5,12 +5,12 @@ using System.Reflection;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Relation;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Relation;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class MainTabWindow_RimChat : MainTabWindow
     {
@@ -730,7 +730,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to open faction info card: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to open faction info card: {ex.Message}");
             }
 
             ShowFallbackFactionInfo(faction);
@@ -738,7 +738,7 @@ namespace RimChat.UI
 
         private void ShowFallbackFactionInfo(Faction faction)
         {
-            Log.Message($"[RimChat] Faction Info: {faction.def?.label ?? "Unknown"} - Tech: {faction.def?.techLevel}");
+            Log.Message($"[RimAI.Relations] Faction Info: {faction.def?.label ?? "Unknown"} - Tech: {faction.def?.techLevel}");
         }
 
         private void DrawDefaultFactionIcon(Rect rect, Faction faction)
@@ -813,8 +813,8 @@ namespace RimChat.UI
                     return;
                 }
 
-                Log.Warning($"[RimChat] MainTab dialogue open rejected: faction={selectedFaction.Name}, reason={reason ?? "unknown"}");
-                Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source=main_tab, faction={selectedFaction.Name}");
+                Log.Warning($"[RimAI.Relations] MainTab dialogue open rejected: faction={selectedFaction.Name}, reason={reason ?? "unknown"}");
+                Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source=main_tab, faction={selectedFaction.Name}");
                 Find.WindowStack?.Add(new Dialog_DiplomacyDialogue(selectedFaction, null));
             }
         }

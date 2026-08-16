@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Responsibility: describes a supported {{template_variable}} token for prompt editing UIs.
  ///</summary>

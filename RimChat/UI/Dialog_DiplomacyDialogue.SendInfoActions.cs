@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: diplomacy dialogue session, AI request queue, and RimWorld window stack.
@@ -267,7 +267,7 @@ namespace RimChat.UI
 
             if (!AIChatServiceAsync.Instance.IsConfigured())
             {
-                Log.Message("[RimChat] AI not configured, using fallback response");
+                Log.Message("[RimAI.Relations] AI not configured, using fallback response");
                 AddFallbackResponseToSession(systemMessage, currentSession, currentFaction);
                 return;
             }
@@ -301,7 +301,7 @@ namespace RimChat.UI
             if (!resolved || !validated)
             {
                 Log.Warning(
-                    $"[RimChat] Diplomacy request rejected before queue. " +
+                    $"[RimAI.Relations] Diplomacy request rejected before queue. " +
                     $"resolveReason={resolveReason ?? "null"}, validateReason={validateReason ?? "null"}, " +
                     $"faction={currentFaction?.Name ?? "null"}, negotiator={negotiator?.ThingID ?? "null"}, " +
                     $"pendingRequestId={currentSession?.pendingRequestId ?? "null"}, waiting={currentSession?.isWaitingForResponse ?? false}, " +
@@ -322,7 +322,7 @@ namespace RimChat.UI
                 },
                 onError: error =>
                 {
-                    Log.Warning($"[RimChat] AI request failed: {error}");
+                    Log.Warning($"[RimAI.Relations] AI request failed: {error}");
                     HandleSessionRequestError(currentSession, error);
                 },
                 onProgress: null,
@@ -345,7 +345,7 @@ namespace RimChat.UI
                     return;
                 }
 
-                Log.Warning("[RimChat] Failed to queue diplomacy AI request.");
+                Log.Warning("[RimAI.Relations] Failed to queue diplomacy AI request.");
                 HandleDroppedRequest(currentSession?.aiError, "request_queue_rejected");
             }
         }

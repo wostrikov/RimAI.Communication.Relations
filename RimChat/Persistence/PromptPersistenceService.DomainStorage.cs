@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     internal enum PromptBundleImportFailure
     {
@@ -953,14 +953,14 @@ namespace RimChat.Persistence
                 if (!TryValidatePromptBundleImportEnvelope(json, out PromptBundleImportFailure envelopeFailure, out string envelopeErrorCode))
                 {
                     SetPromptBundleImportFailure(envelopeFailure, envelopeErrorCode);
-                    Log.Warning($"[RimChat][{envelopeErrorCode}] Import preview rejected non-bundle file: {filePath}");
+                    Log.Warning($"[RimAI.Relations][{envelopeErrorCode}] Import preview rejected non-bundle file: {filePath}");
                     return false;
                 }
 
                 if (!TryParsePromptBundle(json, out PromptBundleConfig bundle, out HashSet<PromptBundleModule> includedModules))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.InvalidBundlePayload, PromptBundleImportErrorCodes.InvalidBundlePayload);
-                    Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.InvalidBundlePayload}] Import preview failed to parse bundle payload: {filePath}");
+                    Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.InvalidBundlePayload}] Import preview failed to parse bundle payload: {filePath}");
                     return false;
                 }
 
@@ -979,7 +979,7 @@ namespace RimChat.Persistence
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning($"[RimChat] Failed to build import-preview summary for module {module}: {ex.Message}");
+                        Log.Warning($"[RimAI.Relations] Failed to build import-preview summary for module {module}: {ex.Message}");
                         preview.ModuleSummaries[module] = "RimChat_PromptBundleSummary_Unavailable".Translate().ToString();
                     }
                 }
@@ -989,7 +989,7 @@ namespace RimChat.Persistence
             catch (Exception ex)
             {
                 SetPromptBundleImportFailure(PromptBundleImportFailure.UnexpectedException, PromptBundleImportErrorCodes.UnexpectedException);
-                Log.Warning($"[RimChat][{PromptBundleImportErrorCodes.UnexpectedException}] Failed to build prompt-bundle import preview: {ex.Message}");
+                Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.UnexpectedException}] Failed to build prompt-bundle import preview: {ex.Message}");
                 preview = null;
                 return false;
             }

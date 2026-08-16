@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// CENTRAL AUTHORITY for all airdrop item pricing.

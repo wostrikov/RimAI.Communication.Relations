@@ -1,6 +1,6 @@
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: unified node layout slot enum.

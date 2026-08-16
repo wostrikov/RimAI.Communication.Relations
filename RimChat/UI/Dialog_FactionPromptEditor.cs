@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
-using RimChat.Config;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: `FactionPromptConfig`, `FactionPromptManager`, `PromptTemplateFieldLocalizer`, Verse window/widgets APIs.

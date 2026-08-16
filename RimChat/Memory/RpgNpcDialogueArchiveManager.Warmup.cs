@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>
     /// Dependencies: archive cache loader, file IO, and session compression scheduler.

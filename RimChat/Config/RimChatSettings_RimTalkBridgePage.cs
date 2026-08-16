@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt workspace routing, shared variable browser, and prompt runtime variable catalog.

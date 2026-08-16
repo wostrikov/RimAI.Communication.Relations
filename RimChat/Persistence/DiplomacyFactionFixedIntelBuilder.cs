@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Config;
-using RimChat.DiplomacySystem;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Dependencies: diplomacy manager, AI interface, world intel ledgers, and faction runtime state.
  /// Responsibility: build fixed faction-intel prompt block appended after faction prompt text.

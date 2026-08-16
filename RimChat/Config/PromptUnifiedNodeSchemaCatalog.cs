@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt channel catalog.
@@ -257,7 +257,7 @@ namespace RimChat.Config
             if (!AllowedNodesByChannel.TryGetValue(normalizedChannel, out string[] allowedNodeIds))
             {
                 throw new InvalidOperationException(
-                    $"[RimChat] Unknown prompt channel '{promptChannel ?? string.Empty}' in strict node schema lookup.");
+                    $"[RimAI.Relations] Unknown prompt channel '{promptChannel ?? string.Empty}' in strict node schema lookup.");
             }
 
             List<PromptUnifiedNodeSchemaItem> results = BuildAllowedNodes(allowedNodeIds);
@@ -269,14 +269,14 @@ namespace RimChat.Config
         {
             if (string.IsNullOrWhiteSpace(promptChannel))
             {
-                throw new InvalidOperationException("[RimChat] Prompt channel cannot be empty for strict node operations.");
+                throw new InvalidOperationException("[RimAI.Relations] Prompt channel cannot be empty for strict node operations.");
             }
 
             string normalized = promptChannel.Trim().ToLowerInvariant();
             if (!AllowedNodesByChannel.ContainsKey(normalized))
             {
                 throw new InvalidOperationException(
-                    $"[RimChat] Unknown prompt channel '{promptChannel}' for strict node operations.");
+                    $"[RimAI.Relations] Unknown prompt channel '{promptChannel}' for strict node operations.");
             }
 
             return normalized;
@@ -289,14 +289,14 @@ namespace RimChat.Config
             if (string.IsNullOrWhiteSpace(normalizedNode))
             {
                 throw new InvalidOperationException(
-                    $"[RimChat] {operation ?? "Node operation"} requires a non-empty nodeId.");
+                    $"[RimAI.Relations] {operation ?? "Node operation"} requires a non-empty nodeId.");
             }
 
             if (!GetAllowedNodesStrict(channel).Any(item =>
                     string.Equals(item.Id, normalizedNode, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new InvalidOperationException(
-                    $"[RimChat] {operation ?? "Node operation"} rejected node '{normalizedNode}' for channel '{channel}'.");
+                    $"[RimAI.Relations] {operation ?? "Node operation"} rejected node '{normalizedNode}' for channel '{channel}'.");
             }
         }
 

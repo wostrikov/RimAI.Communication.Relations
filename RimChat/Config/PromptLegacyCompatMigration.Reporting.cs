@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt domain file catalog and legacy migration report DTOs.
@@ -115,11 +115,11 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to write legacy prompt migration report: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to write legacy prompt migration report: {ex.Message}");
             }
 
             Log.Message(
-                $"[RimChat] Legacy prompt migration report updated: source={report.SourceId}, imported={report.ImportedCount}, rewritten={report.RewrittenCount}, rejected={report.RejectedCount}, defaulted={report.DefaultedCount}.");
+                $"[RimAI.Relations] Legacy prompt migration report updated: source={report.SourceId}, imported={report.ImportedCount}, rewritten={report.RewrittenCount}, rejected={report.RejectedCount}, defaulted={report.DefaultedCount}.");
         }
 
         private static string GetReportPath()

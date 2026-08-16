@@ -1,12 +1,12 @@
 using HarmonyLib;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: Verse.Pawn.ExitMap(bool, Rot4).
  /// Responsibility: generate RPG departure summary into faction memory when qualified NPC exits a player map.

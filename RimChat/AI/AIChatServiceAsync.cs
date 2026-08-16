@@ -10,13 +10,13 @@ using RimWorld;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
-using RimChat.Config;
-using RimChat.Util;
-using RimChat.Core;
-using RimChat.Dialogue;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Core.AI;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
     /// AI chat request state
@@ -671,12 +671,21 @@ namespace RimChat.AI
                             yield break;
                         }
 
-                        string parsedResponse = parseResult.Content;
-                        if (ShouldUseStructuredDialogueEnvelope(debugSource, usageChannel))
+                        if (ProcessSuccessfulPayload(
+                                parseResult.Content,
+                                debugSource,
+                                usageChannel,
+                                ref attemptMessages,
+                                ref parseRetryCount,
+                                ref immersionRetryCount,
+                                ref textIntegrityRetryCount,
+                                ref contractRetryCount,
+                                ref contractValidationStatus,
+                                ref contractFailureReason,
+                                out string parsedResponse) == DomainSuccessAction.Retry)
                         {
-                            DialogueResponseEnvelope parsedEnvelope = DialogueResponseEnvelopeParser.Parse(parsedResponse, usageChannel);
-                            if (parsedEnvelope.IsValid)
-                                parsedResponse = parsedEnvelope.ToStructuredResponseText();
+                            attempt++;
+                            continue;
                         }
 
                         TryRecordDialogueTokenUsage(attemptMessages, sharedResponseText, parsedResponse, usageChannel);
@@ -950,7 +959,7 @@ namespace RimChat.AI
                                         retryReason,
                                         parseResult.MatchedPath);
                                     Log.Warning(
-                                        $"[RimChat] Parse retry requested: reason={retryReason}, path={parseResult.MatchedPath}, attempt={attempt}");
+                                        $"[RimAI.Relations] Parse retry requested: reason={retryReason}, path={parseResult.MatchedPath}, attempt={attempt}");
                                     attempt++;
                                     continue;
                                 }
@@ -966,234 +975,27 @@ namespace RimChat.AI
                                 ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                                 string responsePreview = BuildResponsePreviewForLog(responseText, 420);
                                 Log.Warning(
-                                    $"[RimChat] Parse fail-fast: reason={parseResult.ReasonTag}, path={parseResult.MatchedPath}, retry_count={parseRetryCount}, response_preview={responsePreview}");
+                                    $"[RimAI.Relations] Parse fail-fast: reason={parseResult.ReasonTag}, path={parseResult.MatchedPath}, retry_count={parseRetryCount}, response_preview={responsePreview}");
                                 debugStatus = AIRequestDebugStatus.Error;
                                 debugResponseText = responseText ?? string.Empty;
                                 debugErrorText = $"{errorMsg} (reason={parseResult.ReasonTag}, path={parseResult.MatchedPath})";
                                 yield break;
                             }
-                            string parsedResponse = parseResult.Content;
-                            bool bypassDialogueGuardsForSocialNews = debugSource == AIRequestDebugSource.SocialNews;
-                            DialogueResponseEnvelope parsedEnvelope = null;
-                            bool useStableRpgFallback = usageChannel == DialogueUsageChannel.Rpg;
-
-                            if (ShouldUseStructuredDialogueEnvelope(debugSource, usageChannel))
+                            if (ProcessSuccessfulPayload(
+                                    parseResult.Content,
+                                    debugSource,
+                                    usageChannel,
+                                    ref attemptMessages,
+                                    ref parseRetryCount,
+                                    ref immersionRetryCount,
+                                    ref textIntegrityRetryCount,
+                                    ref contractRetryCount,
+                                    ref contractValidationStatus,
+                                    ref contractFailureReason,
+                                    out string parsedResponse) == DomainSuccessAction.Retry)
                             {
-                                parsedEnvelope = DialogueResponseEnvelopeParser.Parse(parsedResponse, usageChannel);
-                                if (!parsedEnvelope.IsValid && parseRetryCount < MaxParseRetryCount)
-                                {
-                                    parseRetryCount++;
-                                    attemptMessages = AppendDialogueEnvelopeRetryMessage(
-                                        attemptMessages,
-                                        usageChannel,
-                                        parsedEnvelope.FailureReason);
-                                    DebugLogger.WarningGated($"Dialogue envelope retry requested: reason={parsedEnvelope.FailureReason}");
-                                    attempt++;
-                                    continue;
-                                }
-
-                                if (!parsedEnvelope.IsValid)
-                                {
-                                    string envelopeFailureReason = parsedEnvelope.FailureReason;
-                                    string rawPassthrough = parsedResponse ?? string.Empty;
-                                    string safeVisible = useStableRpgFallback
-                                        ? ModelOutputSanitizer.TryExtractSafeVisibleDialogue(rawPassthrough)
-                                        : string.Empty;
-                                    parsedEnvelope = null;
-                                    parsedResponse = useStableRpgFallback && !string.IsNullOrWhiteSpace(safeVisible)
-                                        ? safeVisible
-                                        : rawPassthrough;
-                                    string responsePreview = BuildResponsePreviewForLog(rawPassthrough, 280);
-                                    DebugLogger.WarningGated($"Dialogue envelope raw passthrough used after retry: reason={envelopeFailureReason}, response_preview={responsePreview}");
-                                }
-                                else
-                                {
-                                    parsedResponse = parsedEnvelope.ToStructuredResponseText();
-                                }
-                            }
-
-                            if (!bypassDialogueGuardsForSocialNews && ShouldGuardImmersion(usageChannel))
-                            {
-                                ImmersionGuardResult guardResult = parsedEnvelope != null
-                                    ? ImmersionOutputGuard.ValidateVisibleDialogueParts(parsedEnvelope.VisibleDialogue, parsedEnvelope.ActionsJson)
-                                    : ImmersionOutputGuard.ValidateVisibleDialogue(parsedResponse);
-                                if (!guardResult.IsValid && immersionRetryCount < MaxImmersionRetryCount)
-                                {
-                                    immersionRetryCount++;
-                                    attemptMessages = AppendImmersionRetryMessage(attemptMessages, usageChannel, guardResult);
-                                    DebugLogger.WarningGated($"Immersion guard requested retry: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
-                                    attempt++;
-                                    continue;
-                                }
-
-                                if (!guardResult.IsValid)
-                                {
-                                    if (useStableRpgFallback)
-                                    {
-                                        string safeVisible = ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedResponse);
-                                        parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
-                                            ? safeVisible
-                                            : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
-                                        parsedEnvelope = null;
-                                    }
-
-                                    DebugLogger.WarningGated($"Immersion guard failed after retry, outputting raw response: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}");
-                                }
-                                else
-                                {
-                                    if (parsedEnvelope != null)
-                                    {
-                                        parsedEnvelope.VisibleDialogue = guardResult.VisibleDialogue;
-                                        parsedEnvelope.ActionsJson = guardResult.TrailingActionsJson;
-                                        parsedResponse = parsedEnvelope.ToStructuredResponseText();
-                                    }
-                                    else
-                                    {
-                                        parsedResponse = ModelOutputSanitizer.ComposeVisibleAndTrailingActions(
-                                            guardResult.VisibleDialogue,
-                                            guardResult.TrailingActionsJson);
-                                    }
-                                }
-                            }
-
-                            if (!bypassDialogueGuardsForSocialNews && ShouldGuardImmersion(usageChannel))
-                            {
-                                TextIntegrityCheckResult integrityResult = parsedEnvelope != null
-                                    ? TextIntegrityGuard.ValidateVisibleDialogueParts(parsedEnvelope.VisibleDialogue, parsedEnvelope.ActionsJson)
-                                    : TextIntegrityGuard.ValidateVisibleDialogue(parsedResponse);
-                                if (!integrityResult.IsValid && textIntegrityRetryCount < MaxTextIntegrityRetryCount)
-                                {
-                                    textIntegrityRetryCount++;
-                                    attemptMessages = AppendTextIntegrityRetryMessage(attemptMessages, usageChannel, integrityResult);
-                                    DebugLogger.WarningGated($"Text integrity guard requested retry: reason={integrityResult.ReasonTag}");
-                                    attempt++;
-                                    continue;
-                                }
-
-                                if (!integrityResult.IsValid)
-                                {
-                                    if (useStableRpgFallback)
-                                    {
-                                        string safeVisible = ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedResponse);
-                                        parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
-                                            ? safeVisible
-                                            : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
-                                        parsedEnvelope = null;
-                                    }
-
-                                    DebugLogger.WarningGated($"Text integrity guard failed after retry, outputting raw response: reason={integrityResult.ReasonTag}");
-                                }
-                                else
-                                {
-                                    if (parsedEnvelope != null)
-                                    {
-                                        parsedEnvelope.VisibleDialogue = integrityResult.VisibleDialogue;
-                                        parsedEnvelope.ActionsJson = integrityResult.TrailingActionsJson;
-                                        parsedResponse = parsedEnvelope.ToStructuredResponseText();
-                                    }
-                                    else
-                                    {
-                                        parsedResponse = ModelOutputSanitizer.ComposeVisibleAndTrailingActions(
-                                            integrityResult.VisibleDialogue,
-                                            integrityResult.TrailingActionsJson);
-                                    }
-                                }
-                            }
-
-                            if (!bypassDialogueGuardsForSocialNews && usageChannel == DialogueUsageChannel.Diplomacy)
-                            {
-                                DiplomacyResponseContractCheckResult contractResult = parsedEnvelope != null
-                                    ? DiplomacyResponseContractGuard.ValidateVisibleDialogueParts(parsedEnvelope.VisibleDialogue, parsedEnvelope.ActionsJson)
-                                    : DiplomacyResponseContractGuard.Validate(parsedResponse);
-                                if (!contractResult.IsValid && contractRetryCount < MaxDiplomacyContractRetryCount)
-                                {
-                                    contractRetryCount++;
-                                    contractValidationStatus = "retry";
-                                    contractFailureReason =
-                                        DiplomacyResponseContractGuard.BuildViolationTag(contractResult.Violation);
-                                    attemptMessages = AppendDiplomacyContractRetryMessage(attemptMessages, contractResult);
-                                    Log.Warning(
-                                        $"[RimChat] Diplomacy contract guard requested retry: reason={contractFailureReason}");
-                                    attempt++;
-                                    continue;
-                                }
-
-                                if (!contractResult.IsValid)
-                                {
-                                    contractValidationStatus = "failed_after_retry";
-                                    contractFailureReason =
-                                        DiplomacyResponseContractGuard.BuildViolationTag(contractResult.Violation);
-                                    Log.Warning(
-                                        $"[RimChat] Diplomacy contract guard failed after retry, outputting raw response: reason={contractFailureReason}");
-                                }
-                                else
-                                {
-                                    contractValidationStatus = contractRetryCount > 0 ? "pass_after_retry" : "pass";
-                                    contractFailureReason = string.Empty;
-                                    if (parsedEnvelope != null)
-                                    {
-                                        parsedEnvelope.VisibleDialogue = contractResult.VisibleDialogue;
-                                        parsedEnvelope.ActionsJson = contractResult.TrailingActionsJson;
-                                        parsedResponse = parsedEnvelope.ToStructuredResponseText();
-                                    }
-                                    else
-                                    {
-                                        parsedResponse = ModelOutputSanitizer.ComposeVisibleAndTrailingActions(
-                                            contractResult.VisibleDialogue,
-                                            contractResult.TrailingActionsJson);
-                                    }
-                                }
-                            }
-
-                            if (!bypassDialogueGuardsForSocialNews && usageChannel == DialogueUsageChannel.Rpg)
-                            {
-                                RpgResponseContractCheckResult contractResult = parsedEnvelope != null
-                                    ? RpgResponseContractGuard.ValidateVisibleDialogueParts(
-                                        parsedEnvelope.VisibleDialogue,
-                                        parsedEnvelope.ActionsJson,
-                                        parsedEnvelope.ActionsJson)
-                                    : RpgResponseContractGuard.Validate(parsedResponse);
-                                if (!contractResult.IsValid && contractRetryCount < MaxRpgContractRetryCount)
-                                {
-                                    contractRetryCount++;
-                                    contractValidationStatus = "retry";
-                                    contractFailureReason = RpgResponseContractGuard.BuildViolationTag(contractResult.Violation);
-                                    attemptMessages = AppendRpgContractRetryMessage(attemptMessages, contractResult);
-                                    DebugLogger.WarningGated($"RPG contract guard requested retry: reason={contractFailureReason}");
-                                    attempt++;
-                                    continue;
-                                }
-
-                                if (!contractResult.IsValid)
-                                {
-                                    contractValidationStatus = "failed_after_retry";
-                                    contractFailureReason = RpgResponseContractGuard.BuildViolationTag(contractResult.Violation);
-                                    string safeVisible = parsedEnvelope != null
-                                        ? ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedEnvelope.VisibleDialogue)
-                                        : ModelOutputSanitizer.TryExtractSafeVisibleDialogue(parsedResponse);
-                                    parsedEnvelope = null;
-                                    parsedResponse = !string.IsNullOrWhiteSpace(safeVisible)
-                                        ? safeVisible
-                                        : ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
-                                    DebugLogger.WarningGated($"RPG contract guard failed after retry, outputting raw response: reason={contractFailureReason}");
-                                }
-                                else
-                                {
-                                    contractValidationStatus = contractRetryCount > 0 ? "pass_after_retry" : "pass";
-                                    contractFailureReason = string.Empty;
-                                    if (parsedEnvelope != null)
-                                    {
-                                        parsedEnvelope.VisibleDialogue = contractResult.VisibleDialogue;
-                                        parsedEnvelope.ActionsJson = contractResult.TrailingActionsJson;
-                                        parsedResponse = parsedEnvelope.ToStructuredResponseText();
-                                    }
-                                    else
-                                    {
-                                        parsedResponse = ModelOutputSanitizer.ComposeVisibleAndTrailingActions(
-                                            contractResult.VisibleDialogue,
-                                            contractResult.TrailingActionsJson);
-                                    }
-                                }
+                                attempt++;
+                                continue;
                             }
 
                             TryRecordDialogueTokenUsage(attemptMessages, responseText, parsedResponse, usageChannel);
@@ -2506,7 +2308,7 @@ namespace RimChat.AI
 
         private string EscapeJson(string str)
         {
-            return RimChat.Util.JsonEscapeHelper.EscapeString(str);
+            return Ustas.RimAI.Communication.Relations.Util.JsonEscapeHelper.EscapeString(str);
         }
 
         public bool IsConfigured()

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: Dialog_RPGPawnDialogue runtime state, Verse widgets.
     /// Responsibility: maintain per-session RPG dialogue/action history and render center history panel.

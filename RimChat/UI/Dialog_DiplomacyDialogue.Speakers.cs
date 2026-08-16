@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Memory;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: diplomacy session message model, prompt negotiator resolver, and RimWorld pawn generation/portrait APIs.
  /// Responsibility: keep diplomacy message speakers consistent and render per-message bubble avatars.
@@ -240,7 +240,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to generate fallback diplomacy speaker for faction '{currentFaction.Name}': {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to generate fallback diplomacy speaker for faction '{currentFaction.Name}': {ex.Message}");
                 return false;
             }
         }
@@ -439,7 +439,7 @@ namespace RimChat.UI
                 return;
             }
 
-            Log.Warning($"[RimChat][UI_ASSERT] bubble out of track: tick={message.GetGameTick()}, player={message.isPlayer}, x={bubbleRect.x:F1}, xMax={bubbleRect.xMax:F1}, left={leftEdge:F1}, right={rightEdge:F1}, viewport={viewportWidth:F1}");
+            Log.Warning($"[RimAI.Relations][UI_ASSERT] bubble out of track: tick={message.GetGameTick()}, player={message.isPlayer}, x={bubbleRect.x:F1}, xMax={bubbleRect.xMax:F1}, left={leftEdge:F1}, right={rightEdge:F1}, viewport={viewportWidth:F1}");
         }
 
         private float GetMaxBubbleWidth(float viewportWidth)

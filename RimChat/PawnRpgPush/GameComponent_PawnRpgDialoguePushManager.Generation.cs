@@ -2,18 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.NpcDialogue;
-using RimChat.Persistence;
-using RimChat.Core;
-using RimChat.UI;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.PawnRpgPush
+namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, PromptPersistenceService, LeaderMemoryManager, Verse letter/window stack.
  /// Responsibility: Build PawnRPG proactive LLM requests, handle retry/drop policy, and deliver finalized letters.
@@ -29,7 +29,7 @@ namespace RimChat.PawnRpgPush
 
             if (!AIChatServiceAsync.Instance.IsConfigured())
             {
-                Log.Warning($"[RimChat] PawnRPG proactive dropped (AI not configured): {context.Faction?.Name ?? "Unknown"}");
+                Log.Warning($"[RimAI.Relations] PawnRPG proactive dropped (AI not configured): {context.Faction?.Name ?? "Unknown"}");
                 return;
             }
 
@@ -65,9 +65,9 @@ namespace RimChat.PawnRpgPush
                     playerPawn, npcPawn, true, sceneTags);
                 _systemPromptCache[cacheKey] = (currentTick, systemPrompt);
                 if (wasCached)
-                    Log.Message($"[RimChat] RpgSystemPromptCache: expired for key={cacheKey}, age={currentTick - entry.builtTick}ticks");
+                    Log.Message($"[RimAI.Relations] RpgSystemPromptCache: expired for key={cacheKey}, age={currentTick - entry.builtTick}ticks");
                 else
-                    Log.Message($"[RimChat] RpgSystemPromptCache: miss (new) for key={cacheKey}");
+                    Log.Message($"[RimAI.Relations] RpgSystemPromptCache: miss (new) for key={cacheKey}");
             }
 
             var messages = new List<ChatMessageData>();
@@ -123,7 +123,7 @@ namespace RimChat.PawnRpgPush
             string message = SanitizeModelOutput(response);
             if (string.IsNullOrWhiteSpace(message))
             {
-                Log.Warning("[RimChat] PawnRPG proactive generation empty after sanitize.");
+                Log.Warning("[RimAI.Relations] PawnRPG proactive generation empty after sanitize.");
                 return;
             }
 
@@ -145,7 +145,7 @@ namespace RimChat.PawnRpgPush
                 return;
             }
 
-            Log.Warning($"[RimChat] PawnRPG proactive dropped after retry: {error}");
+            Log.Warning($"[RimAI.Relations] PawnRPG proactive dropped after retry: {error}");
         }
 
         private void RetryGeneration(PendingGenerationContext pending)
@@ -192,7 +192,7 @@ namespace RimChat.PawnRpgPush
             // Sliding window: skip if delivery window is full
             if (IsRpgDeliveryWindowFull(currentTick))
             {
-                Log.Message($"[RimChat] PawnRPG delivery skipped: sliding window full");
+                Log.Message($"[RimAI.Relations] PawnRPG delivery skipped: sliding window full");
                 return;
             }
 
@@ -203,7 +203,7 @@ namespace RimChat.PawnRpgPush
                 if (recentEventDeliveries.TryGetValue(context.SourceTag, out int lastEventTick)
                     && currentTick - lastEventTick < EventDedupWindowTicks)
                 {
-                    Log.Message($"[RimChat] PawnRPG event deduplicated: sourceTag={context.SourceTag}");
+                    Log.Message($"[RimAI.Relations] PawnRPG event deduplicated: sourceTag={context.SourceTag}");
                     return;
                 }
             }
@@ -214,7 +214,7 @@ namespace RimChat.PawnRpgPush
             string dedupKey = $"{npcPawn.thingIDNumber}:{playerPawn.thingIDNumber}:{contentHash}";
             if (recentMessageHashes.ContainsKey(dedupKey))
             {
-                Log.Message($"[RimChat] PawnRPG proactive deduplicated: same content for {npcPawn.LabelShortCap} -> {playerPawn.LabelShortCap}");
+                Log.Message($"[RimAI.Relations] PawnRPG proactive deduplicated: same content for {npcPawn.LabelShortCap} -> {playerPawn.LabelShortCap}");
                 return;
             }
 
@@ -402,7 +402,7 @@ namespace RimChat.PawnRpgPush
             ImmersionGuardResult guardResult = ImmersionOutputGuard.ValidateVisibleDialogueParts(merged);
             if (!guardResult.IsValid)
             {
-                Log.Warning($"[RimChat] Immersion guard blocked PawnRPG push text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
+                Log.Warning($"[RimAI.Relations] Immersion guard blocked PawnRPG push text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
                 return ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
             }
 

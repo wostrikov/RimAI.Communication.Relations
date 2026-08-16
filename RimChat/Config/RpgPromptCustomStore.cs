@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RimChat.Core;
-using RimChat.Persistence;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// Dependencies: JSON file I/O, RimWorld mod path APIs.
  /// Responsibility: persist pawn dialogue prompt overrides under Prompt/Custom and provide one-way legacy section import helpers.
@@ -91,7 +91,7 @@ namespace RimChat.Config
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning($"[RimChat] Failed to load RPG custom prompts from {path}: {ex.Message}");
+                        Log.Warning($"[RimAI.Relations] Failed to load RPG custom prompts from {path}: {ex.Message}");
                     }
                 }
 
@@ -364,7 +364,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to import legacy RPG prompt sections: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to import legacy RPG prompt sections: {ex.Message}");
                 return sections;
             }
         }
@@ -463,7 +463,7 @@ namespace RimChat.Config
                 return modPath;
             }
 
-            string fallbackDir = Path.Combine(GenFilePaths.ConfigFolderPath, "RimChat", PromptFolderName, CustomSubFolderName);
+            string fallbackDir = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptFolderName, CustomSubFolderName);
             string fallbackPath = Path.Combine(fallbackDir, CustomConfigFileName);
             LogResolvedCustomPath(fallbackPath, "appdata-fallback");
             return fallbackPath;
@@ -517,7 +517,7 @@ namespace RimChat.Config
             }
 
             loggedCustomPath = path;
-            Log.Message($"[RimChat] RPG custom prompt path ({source}): {path}");
+            Log.Message($"[RimAI.Relations] RPG custom prompt path ({source}): {path}");
         }
 
         private static void LogResolvedCustomPayload(RpgPromptCustomConfig config, bool exists)
@@ -548,7 +548,7 @@ namespace RimChat.Config
 
             loggedPayloadSignature = signature;
             Log.Message(
-                $"[RimChat] RPG custom prompt payload updated (exists={exists}): FullHeaderLen={fullHeader.Length}, CompactHeaderLen={compactHeader.Length}, ActionReliabilityLen={reliability.Length}, FullTryGainMemoryTemplateLen={tryGainMemory.Length}");
+                $"[RimAI.Relations] RPG custom prompt payload updated (exists={exists}): FullHeaderLen={fullHeader.Length}, CompactHeaderLen={compactHeader.Length}, ActionReliabilityLen={reliability.Length}, FullTryGainMemoryTemplateLen={tryGainMemory.Length}");
         }
 
         private static int ComputeStableHash(string text)

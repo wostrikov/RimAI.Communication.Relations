@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 
-namespace RimChat.Prompting.Builders
+namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
     /// <summary>/// Dependencies: PromptPersistenceService hierarchical RPG builder core.
  /// Responsibility: orchestrate RPG prompt build entry without changing output behavior.

@@ -1,13 +1,13 @@
 using System;
 using System.Collections;
 using System.Linq;
-using RimChat.AI;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: RimWorld settings UI widgets, ApiUsabilityDiagnosticService, and AI debug telemetry.

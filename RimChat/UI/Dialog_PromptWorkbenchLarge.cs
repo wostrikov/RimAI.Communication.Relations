@@ -1,7 +1,7 @@
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: RimChat prompt section workspace renderer and RimWorld window stack lifecycle.
@@ -10,11 +10,11 @@ namespace RimChat.UI
     /// </summary>
     public sealed class Dialog_PromptWorkbenchLarge : Window
     {
-        private readonly RimChat.Config.RimChatSettings _settings;
+        private readonly Ustas.RimAI.Communication.Relations.Config.RimChatSettings _settings;
 
         public override Vector2 InitialSize => ResolveInitialSize();
 
-        internal Dialog_PromptWorkbenchLarge(RimChat.Config.RimChatSettings settings)
+        internal Dialog_PromptWorkbenchLarge(Ustas.RimAI.Communication.Relations.Config.RimChatSettings settings)
         {
             _settings = settings;
             absorbInputAroundWindow = true;

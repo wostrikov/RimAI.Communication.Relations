@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: none.

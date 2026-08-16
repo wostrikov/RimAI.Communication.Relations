@@ -10,12 +10,12 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 using Verse.Sound;
-using RimChat.UI;
-using RimChat.AI;
-using RimChat.Persistence;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>/// 闁劕鐡ф潏鎾冲毉闁喎瀹冲Ο鈥崇础
  ///</summary>
@@ -1573,7 +1573,7 @@ namespace RimChat.Config
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Prompt settings page render failed: {ex}");
+                Log.Error($"[RimAI.Relations] Prompt settings page render failed: {ex}");
                 Widgets.Label(rect, "RimChat_PromptRenderFailed".Translate());
             }
         }
@@ -2127,12 +2127,12 @@ namespace RimChat.Config
         {
             if (resolution.WasSiliconFlowHostMapped)
             {
-                Log.Message($"[RimChat] Custom URL host mapped to API domain: {resolution.ChatEndpoint}");
+                Log.Message($"[RimAI.Relations] Custom URL host mapped to API domain: {resolution.ChatEndpoint}");
             }
 
             if (resolution.HasSuspiciousBasePath)
             {
-                Log.Warning("[RimChat] Custom BaseUrl path looks non-standard for Base URL mode. The value was kept unchanged.");
+                Log.Warning("[RimAI.Relations] Custom BaseUrl path looks non-standard for Base URL mode. The value was kept unchanged.");
             }
         }
 
@@ -2273,7 +2273,7 @@ namespace RimChat.Config
             // 绾喕绻欰IChatServiceAsync鐎圭偘绶ョ€涙ê婀?
             var service = AIChatServiceAsync.Instance;
             List<string> candidateUrls = BuildModelListRequestCandidates(url, providerFallbackUrl, provider);
-            Log.Message($"[RimChat] FetchModelsCoroutine: provider={provider}, candidateUrls={string.Join(" | ", candidateUrls)}");
+            Log.Message($"[RimAI.Relations] FetchModelsCoroutine: provider={provider}, candidateUrls={string.Join(" | ", candidateUrls)}");
 
             Task.Run(() =>
             {
@@ -2282,7 +2282,7 @@ namespace RimChat.Config
                 {
                     foreach (string candidateUrl in candidateUrls)
                     {
-                        Log.Message($"[RimChat] FetchModelsCoroutine: trying url={candidateUrl}");
+                        Log.Message($"[RimAI.Relations] FetchModelsCoroutine: trying url={candidateUrl}");
                         using (var request = new UnityWebRequest(candidateUrl, "GET"))
                         {
                             request.downloadHandler = new DownloadHandlerBuffer();
@@ -2298,10 +2298,10 @@ namespace RimChat.Config
 
                             if (request.result == UnityWebRequest.Result.Success)
                             {
-                                Log.Message($"[RimChat] FetchModelsCoroutine: url={candidateUrl}, result={request.result}, responseCode={request.responseCode}");
+                                Log.Message($"[RimAI.Relations] FetchModelsCoroutine: url={candidateUrl}, result={request.result}, responseCode={request.responseCode}");
                                 models = ParseModelsFromResponse(request.downloadHandler.text, provider);
                                 ModelCache[cacheKey] = models;
-                                Log.Message($"[RimChat] FetchModelsCoroutine: success, parsed {models?.Count ?? 0} models");
+                                Log.Message($"[RimAI.Relations] FetchModelsCoroutine: success, parsed {models?.Count ?? 0} models");
                                 break;
                             }
 
@@ -2311,13 +2311,13 @@ namespace RimChat.Config
                                 body = body.Substring(0, 240) + "...";
                             }
 
-                            Log.Warning($"[RimChat] Failed to fetch models: url={candidateUrl}, HTTP {request.responseCode}, error={request.error}, body={body}");
+                            Log.Warning($"[RimAI.Relations] Failed to fetch models: url={candidateUrl}, HTTP {request.responseCode}, error={request.error}, body={body}");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"[RimChat] Failed to fetch models: {ex.Message}");
+                    Log.Warning($"[RimAI.Relations] Failed to fetch models: {ex.Message}");
                 }
 
                 // Marshal callback back to Unity main thread before touching UI.
@@ -3032,12 +3032,12 @@ namespace RimChat.Config
                     if (!string.IsNullOrEmpty(promptConfig.SystemPrompt))
                     {
                         GlobalSystemPrompt = promptConfig.SystemPrompt;
-                        Log.Message("[RimChat] Loaded global system prompt from file.");
+                        Log.Message("[RimAI.Relations] Loaded global system prompt from file.");
                     }
                     if (!string.IsNullOrEmpty(promptConfig.DialoguePrompt))
                     {
                         GlobalDialoguePrompt = promptConfig.DialoguePrompt;
-                        Log.Message("[RimChat] Loaded global dialogue prompt from file.");
+                        Log.Message("[RimAI.Relations] Loaded global dialogue prompt from file.");
                     }
                 }
             }

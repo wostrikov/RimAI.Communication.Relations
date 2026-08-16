@@ -1,9 +1,9 @@
 using System.IO;
 using HarmonyLib;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Memory;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>
     /// Dependencies: Verse save/load entry points and SaveContextTracker.

@@ -1,12 +1,12 @@
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_DiplomacyDialogue
     {

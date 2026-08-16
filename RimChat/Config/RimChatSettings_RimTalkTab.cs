@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.DiplomacySystem;
-using RimChat.Persistence;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: PromptPersistenceService validation API, RPG manager persona sync API, and settings UI widgets.
@@ -648,7 +648,7 @@ namespace RimChat.Config
             catch (Exception ex)
             {
                 _workbenchChipEditorDisabledForSession = true;
-                Log.Warning($"[RimChat] Prompt workbench chip editor fallback activated: {ex.GetType().Name}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Prompt workbench chip editor fallback activated: {ex.GetType().Name}: {ex.Message}");
                 return DrawLegacyPromptEntryTextArea(contentRect, text);
             }
         }

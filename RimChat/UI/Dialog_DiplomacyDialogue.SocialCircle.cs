@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: AIAction parser output, GameComponent_DiplomacyManager social APIs.
  /// Responsibility: handle explicit social post actions and dialogue keyword fallback.
@@ -30,7 +30,7 @@ namespace RimChat.UI
                 return true;
             }
 
-            if (!(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnablePlayerInfluenceNews ?? true))
+            if (!(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnablePlayerInfluenceNews ?? true))
             {
                 currentSession?.AddMessage("System", "RimChat_SocialActionBlocked".Translate(), false, DialogueMessageType.System);
                 return true;
@@ -72,7 +72,7 @@ namespace RimChat.UI
             FactionDialogueSession currentSession)
         {
             if (currentFaction == null || string.IsNullOrWhiteSpace(playerMessage)) return;
-            if (!(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnablePlayerInfluenceNews ?? true)) return;
+            if (!(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnablePlayerInfluenceNews ?? true)) return;
 
             bool hasExplicitSocialAction = actions != null &&
                                            actions.Any(a => string.Equals(a?.ActionType, AIActionNames.PublishPublicPost, StringComparison.Ordinal));
@@ -89,7 +89,7 @@ namespace RimChat.UI
                                playerMessage,
                                aiText,
                                out enqueueResult);
-            Log.Message($"[RimChat] Player-influenced post attempt: faction={currentFaction?.Name}, created={created}, triggered={enqueueResult.Triggered}, failureReason={enqueueResult.FailureReason}");
+            Log.Message($"[RimAI.Relations] Player-influenced post attempt: faction={currentFaction?.Name}, created={created}, triggered={enqueueResult.Triggered}, failureReason={enqueueResult.FailureReason}");
             if (!enqueueResult.Triggered)
             {
                 TryGenerateRandomDialogueSocialPost(playerMessage, aiText, currentFaction, currentSession);

@@ -1,6 +1,6 @@
 using RimWorld;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: faction runtime context and diplomacy prompt snapshot model.

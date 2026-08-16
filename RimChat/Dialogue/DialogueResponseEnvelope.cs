@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Text;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     public enum DialogueResponseProtocolKind
     {

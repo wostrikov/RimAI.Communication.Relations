@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimChat.Config;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>/// Responsibility: build the shared RPG API action-definition prompt block for runtime injection and UI preview.
     /// Dependencies: RimWorld DefDatabase (ThoughtDef), Verse runtime.

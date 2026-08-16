@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
-    /// Dependencies: prompt config DTOs in RimChat.Config.
+    /// Dependencies: prompt config DTOs in Ustas.RimAI.Communication.Relations.Config.
     /// Responsibility: define disk payloads for split prompt-domain storage and bundle transport.
     /// </summary>
     [Serializable]

@@ -1,8 +1,8 @@
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public sealed class Dialog_AdvancedApiParameters : Window
     {

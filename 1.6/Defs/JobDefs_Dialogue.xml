@@ -2,7 +2,7 @@
 <Defs>
   <JobDef>
     <defName>RimChat_RPGDialogue</defName>
-    <driverClass>RimChat.AI.JobDriver_RPGPawnDialogue</driverClass>
+    <driverClass>Ustas.RimAI.Communication.Relations.AI.JobDriver_RPGPawnDialogue</driverClass>
     <reportString>正在和 TargetA 交谈。</reportString>
     <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
   </JobDef>

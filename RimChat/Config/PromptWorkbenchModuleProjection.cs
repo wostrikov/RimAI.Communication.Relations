@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Prompting;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt section/node schema catalogs and unified node layout persistence.

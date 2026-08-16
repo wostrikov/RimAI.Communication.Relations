@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
     /// Dependencies: AI request lifecycle and UI observability window.

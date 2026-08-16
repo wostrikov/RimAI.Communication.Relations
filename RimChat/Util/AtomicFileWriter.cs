@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     /// <summary>
     /// Atomic file write operations. Uses File.Replace on existing targets (atomic on NTFS)

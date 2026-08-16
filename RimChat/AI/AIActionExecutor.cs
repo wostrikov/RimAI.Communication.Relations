@@ -4,13 +4,13 @@ using System.Globalization;
 using System.Linq;
 using RimWorld;
 using Verse;
-using RimChat.DiplomacySystem;
-using RimChat.Core;
-using RimChat.Config;
-using RimChat.Relation;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Relation;
+using Ustas.RimAI.Communication.Relations.Util;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>/// AI动作executor
  /// 执行LLM解析出的API调用动作
@@ -45,7 +45,7 @@ namespace RimChat.AI
                 return ActionResult.Failure("Action is null");
             }
 
-            Log.Message($"[RimChat] Executing AI action: {action.ActionType}");
+            Log.Message($"[RimAI.Relations] Executing AI action: {action.ActionType}");
             if (action.Parameters == null)
             {
                 action.Parameters = new Dictionary<string, object>();
@@ -97,7 +97,7 @@ namespace RimChat.AI
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error executing action {action.ActionType}: {ex}");
+                Log.Error($"[RimAI.Relations] Error executing action {action.ActionType}: {ex}");
                 return ActionResult.Failure($"Execution error: {ex.Message}");
             }
         }
@@ -130,7 +130,7 @@ namespace RimChat.AI
             var costResult = gameInterface.ApplySuccessfulDialogueApiGoodwillCost(faction, costType.Value, action.ActionType, detail);
             if (!costResult.Success)
             {
-                Log.Warning($"[RimChat] Fixed dialogue API goodwill cost failed for {action.ActionType}: {costResult.Message}");
+                Log.Warning($"[RimAI.Relations] Fixed dialogue API goodwill cost failed for {action.ActionType}: {costResult.Message}");
                 return result;
             }
 

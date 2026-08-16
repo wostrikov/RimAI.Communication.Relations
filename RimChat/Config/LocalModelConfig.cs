@@ -1,7 +1,7 @@
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     public class LocalModelConfig : IExposable
     {

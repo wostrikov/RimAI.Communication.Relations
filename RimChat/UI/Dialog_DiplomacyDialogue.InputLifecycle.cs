@@ -1,7 +1,7 @@
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: SendGateState, FactionDialogueSession, Unity realtime clock.
  /// Responsibility: own diplomacy input-host lifecycle so IME only reattaches after the full AI pipeline settles.

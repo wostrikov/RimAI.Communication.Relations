@@ -4,11 +4,11 @@ using System.Linq;
 using Verse;
 using Verse.AI;
 using RimWorld;
-using RimChat.Dialogue;
-using RimChat.Core;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.WorldState;
 
-namespace RimChat.Comp
+namespace Ustas.RimAI.Communication.Relations.Comp
 {
     public class CompPawnDialogue : ThingComp
     {
@@ -84,7 +84,7 @@ namespace RimChat.Comp
             }
 
             // Check cooldown — show disabled with remaining time
-            var rpgManager = Current.Game?.GetComponent<RimChat.DiplomacySystem.GameComponent_RPGManager>();
+            var rpgManager = Current.Game?.GetComponent<Ustas.RimAI.Communication.Relations.DiplomacySystem.GameComponent_RPGManager>();
             if (rpgManager != null && rpgManager.IsRpgDialogueOnCooldown(targetPawn, out int remainingTicks))
             {
                 float remainingHours = System.Math.Max(0f, remainingTicks / 2500f);
@@ -103,7 +103,7 @@ namespace RimChat.Comp
                 JobDef dialogueJobDef = DefDatabase<JobDef>.GetNamedSilentFail("RimChat_RPGDialogue");
                 if (dialogueJobDef == null)
                 {
-                    Log.Warning("[RimChat] Missing JobDef RimChat_RPGDialogue, fallback to direct dialogue open.");
+                    Log.Warning("[RimAI.Relations] Missing JobDef RimChat_RPGDialogue, fallback to direct dialogue open.");
                     DialogueWindowCoordinator.TryOpen(
                         DialogueOpenIntent.CreateRpg(selPawn, targetPawn, selPawn.Map),
                         out _);

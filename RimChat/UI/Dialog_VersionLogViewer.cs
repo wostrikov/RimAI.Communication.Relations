@@ -4,7 +4,7 @@ using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: Verse window stack and Unity GUI widgets.

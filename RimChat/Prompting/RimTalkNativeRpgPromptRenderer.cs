@@ -6,13 +6,13 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using HarmonyLib;
-using RimChat.Config;
-using RimChat.Memory;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     internal sealed class RimTalkNativeRenderDiagnostic
     {
@@ -108,7 +108,7 @@ namespace RimChat.Prompting
                 diagnostic.IsCompatibilityFailure = true;
                 diagnostic.FailureStage = "resolve_render_method";
                 diagnostic.ErrorMessage = string.IsNullOrWhiteSpace(bindError)
-                    ? "Missing compatible RimTalk.Prompt.ScribanParser.Render."
+                    ? "Missing compatible Ustas.RimAI.Communication.Prompt.ScribanParser.Render."
                     : bindError;
                 rendered = CleanInvalidRimTalkTokens(promptText);
                 diagnostic.RemainingTokenCount = CountRemainingTokens(rendered);
@@ -171,7 +171,7 @@ namespace RimChat.Prompting
                     if (ShouldEmitFailureLog(diagnostic, "remaining_tokens"))
                     {
                         Log.Warning(
-                            "[RimChat] RimTalk native render completed with remaining tokens. " +
+                            "[RimAI.Relations] RimTalk native render completed with remaining tokens. " +
                             $"channel={diagnostic.PromptChannel}, current_pawn={diagnostic.CurrentPawnLabel}, " +
                             $"pawn_count={diagnostic.PawnCount}, all_pawn_count={diagnostic.AllPawnCount}, " +
                             $"scoped_pawn_index={diagnostic.ScopedPawnIndex}, " +
@@ -237,14 +237,14 @@ namespace RimChat.Prompting
             methodVariant = string.Empty;
             error = string.Empty;
 
-            Type scribanParserType = AccessTools.TypeByName("RimTalk.Prompt.ScribanParser");
+            Type scribanParserType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.ScribanParser");
             if (scribanParserType == null)
             {
-                error = "Missing type RimTalk.Prompt.ScribanParser.";
+                error = "Missing type Ustas.RimAI.Communication.Prompt.ScribanParser.";
                 return;
             }
 
-            Type promptContextType = AccessTools.TypeByName("RimTalk.Prompt.PromptContext");
+            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
             MethodInfo[] candidates = scribanParserType.GetMethods(StaticPublic)
                 .Where(method => string.Equals(method.Name, "Render", StringComparison.Ordinal))
                 .ToArray();
@@ -260,7 +260,7 @@ namespace RimChat.Prompting
 
             if (candidates.Length == 0)
             {
-                error = "Missing RimTalk.Prompt.ScribanParser.Render.";
+                error = "Missing Ustas.RimAI.Communication.Prompt.ScribanParser.Render.";
                 return;
             }
 
@@ -380,7 +380,7 @@ namespace RimChat.Prompting
             }
 
             return parameterType.FullName?.IndexOf(
-                "RimTalk.Prompt.PromptContext",
+                "Ustas.RimAI.Communication.Prompt.PromptContext",
                 StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
@@ -397,7 +397,7 @@ namespace RimChat.Prompting
             }
 
             return parameterType.FullName?.IndexOf(
-                "RimTalk.Prompt.PromptContext",
+                "Ustas.RimAI.Communication.Prompt.PromptContext",
                 StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
@@ -426,12 +426,12 @@ namespace RimChat.Prompting
             PawnBindingSpec binding,
             RimTalkNativeRenderDiagnostic diagnostic)
         {
-            Type promptContextType = AccessTools.TypeByName("RimTalk.Prompt.PromptContext");
+            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
             if (promptContextType == null)
             {
                 diagnostic.ErrorMessage = AppendError(
                     diagnostic.ErrorMessage,
-                    "Missing RimTalk.Prompt.PromptContext.");
+                    "Missing Ustas.RimAI.Communication.Prompt.PromptContext.");
                 return null;
             }
 
@@ -465,12 +465,12 @@ namespace RimChat.Prompting
 
         private static void TrySetVariableStore(object promptContext, RimTalkNativeRenderDiagnostic diagnostic)
         {
-            Type variableStoreType = AccessTools.TypeByName("RimTalk.Prompt.VariableStore");
+            Type variableStoreType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.VariableStore");
             if (variableStoreType == null)
             {
                 diagnostic.ErrorMessage = AppendError(
                     diagnostic.ErrorMessage,
-                    "Missing RimTalk.Prompt.VariableStore.");
+                    "Missing Ustas.RimAI.Communication.Prompt.VariableStore.");
                 return;
             }
 
@@ -509,7 +509,7 @@ namespace RimChat.Prompting
 
             try
             {
-                Type roleType = AccessTools.TypeByName("RimTalk.Data.Role");
+                Type roleType = AccessTools.TypeByName("Ustas.RimAI.Communication.Data.Role");
                 Type historyType = property.PropertyType;
                 if (roleType == null || historyType == null)
                 {
@@ -586,7 +586,7 @@ namespace RimChat.Prompting
                 diagnostic.ErrorMessage = AppendError(
                     diagnostic.ErrorMessage,
                     "Archive compression has no bindable interlocutor pawn.");
-                Log.Warning("[RimChat] rpg_archive_compression missing interlocutor pawn; binding NPC only.");
+                Log.Warning("[RimAI.Relations] rpg_archive_compression missing interlocutor pawn; binding NPC only.");
             }
 
             if (currentPawn == null)
@@ -805,7 +805,7 @@ namespace RimChat.Prompting
                 diagnostic.ErrorMessage,
                 "Prompt contains pawn.* token but CurrentPawn is null.");
             Log.Warning(
-                "[RimChat] Native RPG render has pawn token with null CurrentPawn. " +
+                "[RimAI.Relations] Native RPG render has pawn token with null CurrentPawn. " +
                 $"channel={diagnostic?.PromptChannel ?? string.Empty}, " +
                 $"remaining_tokens={diagnostic?.RemainingTokenCount ?? 0}, " +
                 $"error={diagnostic?.ErrorMessage ?? string.Empty}");
@@ -874,7 +874,7 @@ namespace RimChat.Prompting
             }
 
             Log.Warning(
-                "[RimChat] RimTalk native RPG render failed. " +
+                "[RimAI.Relations] RimTalk native RPG render failed. " +
                 $"channel={diagnostic?.PromptChannel ?? string.Empty}, " +
                 $"current_pawn={diagnostic?.CurrentPawnLabel ?? string.Empty}, " +
                 $"pawn_count={(diagnostic?.PawnCount ?? 0)}, " +

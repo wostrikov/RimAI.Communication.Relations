@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
     /// Dependencies: social-circle state, NPC proactive dialogue push manager, and RimWorld faction APIs.

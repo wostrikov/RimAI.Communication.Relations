@@ -1,4 +1,4 @@
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: unified prompt catalog.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Memory
+namespace Ustas.RimAI.Communication.Relations.Memory
 {
     /// <summary>/// Dependencies: RimWorld `ThoughtDef` database and DefInjected translations.
     /// Responsibility: centralize RPG dialogue memory defs, alias compatibility, and automatic fallback selection.

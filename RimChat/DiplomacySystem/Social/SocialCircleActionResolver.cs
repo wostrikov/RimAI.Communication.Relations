@@ -1,8 +1,8 @@
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using RimWorld;
 using UnityEngine;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: AIActionExecutor, social intent state.
  /// Responsibility: convert high-scored intents into executable AI actions.
@@ -15,7 +15,7 @@ namespace RimChat.DiplomacySystem
         public static void ResolveAndExecute(GameComponent_DiplomacyManager manager, SocialCircleState state, int currentTick)
         {
             if (manager == null || state == null || state.ActionIntents == null) return;
-            if (!(RimChat.Core.RimChatMod.Instance?.InstanceSettings?.EnableSocialCircleAutoActions ?? false)) return;
+            if (!(Ustas.RimAI.Communication.Relations.Core.RimChatMod.Instance?.InstanceSettings?.EnableSocialCircleAutoActions ?? false)) return;
 
             for (int i = 0; i < state.ActionIntents.Count; i++)
             {

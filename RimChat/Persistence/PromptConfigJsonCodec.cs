@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using UnityEngine;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Dependencies: UnityEngine.JsonUtility, SystemPromptConfig model.
  /// Responsibility: provide robust typed JSON encode/decode for prompt config with normalization.

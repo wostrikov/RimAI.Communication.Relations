@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using RimChat.Core;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: RimWorld/Verse widgets, mod content path APIs, version-log viewer window.
@@ -374,7 +374,7 @@ namespace RimChat.Config
                     ? "(none)"
                     : string.Join(", ", availableLanguages.ToArray());
                 Log.Warning(
-                    $"[RimChat] Active language folder '{languageFolder}' was not found in '{LanguagesRelativePath}'. " +
+                    $"[RimAI.Relations] Active language folder '{languageFolder}' was not found in '{LanguagesRelativePath}'. " +
                     $"Available folders: {availableLabel}. Fail-fast fallback to '{EnglishLanguageFolder}' and '{fallbackPath}' for {logLabel}.");
             }
 
@@ -387,7 +387,7 @@ namespace RimChat.Config
                     if (i > 0)
                     {
                         Log.Warning(
-                            $"[RimChat] {logLabel} file missing for language folder '{matchedFolder}'. " +
+                            $"[RimAI.Relations] {logLabel} file missing for language folder '{matchedFolder}'. " +
                             $"Tried '{candidates[0]}'. Fail-fast fallback to '{path}'.");
                     }
 
@@ -397,7 +397,7 @@ namespace RimChat.Config
 
             string finalFallbackPath = CombineRootPath(rootDir, fallbackFileName);
             Log.Warning(
-                $"[RimChat] No {logLabel} file exists for language folder '{matchedFolder}'. " +
+                $"[RimAI.Relations] No {logLabel} file exists for language folder '{matchedFolder}'. " +
                 $"Tried: {string.Join(" | ", candidates.ToArray())}. Final fallback path: '{finalFallbackPath}'.");
             return finalFallbackPath;
         }
@@ -424,7 +424,7 @@ namespace RimChat.Config
             {
                 cachedVersionReadFailed = true;
                 cachedVersionReadError = ex.Message;
-                Log.Warning($"[RimChat] Failed to read version log file: {filePath}. {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to read version log file: {filePath}. {ex.Message}");
                 return string.Empty;
             }
         }
@@ -518,7 +518,7 @@ namespace RimChat.Config
             catch (Exception ex)
             {
                 readError = ex.Message;
-                Log.Warning($"[RimChat] Failed to read version log file: {filePath}. {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to read version log file: {filePath}. {ex.Message}");
                 return string.Empty;
             }
         }

@@ -5,9 +5,9 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
-using RimChat.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_DiplomacyDialogue
     {
@@ -128,7 +128,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to draw hover card for faction={targetFaction?.Name}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to draw hover card for faction={targetFaction?.Name}: {ex.Message}");
             }
         }
 
@@ -338,7 +338,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to resolve xenotype for pawn={subjectPawn.LabelShortCap}: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to resolve xenotype for pawn={subjectPawn.LabelShortCap}: {ex.Message}");
                 xenotype = string.Empty;
             }
 

@@ -1,16 +1,16 @@
 using System;
 using HarmonyLib;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>
     /// Dependencies: RimWorld.FactionDialogMaker.FactionDialogFor, Verse.DiaNode/DiaOption,
-    /// RimChat.Core.RimChatMod, RimChat.UI.Dialog_DiplomacyDialogue.
+    /// Ustas.RimAI.Communication.Relations.Core.RimChatMod, Ustas.RimAI.Communication.Relations.UI.Dialog_DiplomacyDialogue.
     /// Responsibility: add a vanilla negotiation root-node option that bridges to RimChat
     /// diplomacy dialogue when comms-console replacement is disabled.
     /// </summary>
@@ -85,7 +85,7 @@ namespace RimChat.Patches
                         return;
                     }
 
-                    Log.Warning($"[RimChat] Bridge dialogue open rejected: faction={faction?.Name ?? "null"}, reason={reason ?? "unknown"}");
+                    Log.Warning($"[RimAI.Relations] Bridge dialogue open rejected: faction={faction?.Name ?? "null"}, reason={reason ?? "unknown"}");
                     TryOpenDiplomacyDirectly(faction, negotiator, "bridge");
                 }
             };
@@ -99,7 +99,7 @@ namespace RimChat.Patches
                 return;
             }
 
-            Log.Warning($"[RimChat] Applying direct diplomacy open fallback: source={source}, faction={faction.Name}");
+            Log.Warning($"[RimAI.Relations] Applying direct diplomacy open fallback: source={source}, faction={faction.Name}");
             Find.WindowStack.Add(new Dialog_DiplomacyDialogue(faction, negotiator));
         }
 

@@ -1,11 +1,11 @@
 using HarmonyLib;
-using RimChat.NpcDialogue;
-using RimChat.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: Verse.UIRoot_Play, Verse.Event.
  /// Responsibility: Capture left-click cadence for both proactive channels busy detection.

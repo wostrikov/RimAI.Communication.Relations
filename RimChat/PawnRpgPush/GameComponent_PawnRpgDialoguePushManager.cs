@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.NpcDialogue;
-using RimChat.Util;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.PawnRpgPush
+namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, RimChat settings, Verse.GameComponent.
  /// Responsibility: Orchestrate PawnRPG proactive trigger intake, queueing, throttling, generation and delivery.
@@ -129,7 +129,7 @@ namespace RimChat.PawnRpgPush
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error loading PawnRpg data from save: {ex.Message}\n{ex.StackTrace}");
+                Log.Error($"[RimAI.Relations] Error loading PawnRpg data from save: {ex.Message}\n{ex.StackTrace}");
                 npcPushStates ??= new List<PawnRpgNpcPushState>();
                 threatStates ??= new List<PawnRpgThreatState>();
                 queuedTriggers ??= new List<QueuedPawnRpgTrigger>();
@@ -283,13 +283,13 @@ namespace RimChat.PawnRpgPush
         {
             if (Current.ProgramState != ProgramState.Playing || Find.TickManager == null)
             {
-                Log.Warning("[RimChat] DebugForcePawnRpg: Not in playing state.");
+                Log.Warning("[RimAI.Relations] DebugForcePawnRpg: Not in playing state.");
                 return false;
             }
 
             if (!AI.AIChatServiceAsync.Instance.IsConfigured())
             {
-                Log.Warning("[RimChat] DebugForcePawnRpg: AI not configured.");
+                Log.Warning("[RimAI.Relations] DebugForcePawnRpg: AI not configured.");
                 return false;
             }
 
@@ -311,7 +311,7 @@ namespace RimChat.PawnRpgPush
                         continue;
                     }
 
-                    Log.Message($"[RimChat] DebugForcePawnRpg: NPC path resolved: NPC={npcPawn.LabelShortCap}, Player={playerPawn.LabelShortCap}");
+                    Log.Message($"[RimAI.Relations] DebugForcePawnRpg: NPC path resolved: NPC={npcPawn.LabelShortCap}, Player={playerPawn.LabelShortCap}");
                     var context = new PawnRpgTriggerContext
                     {
                         Faction = faction,
@@ -330,7 +330,7 @@ namespace RimChat.PawnRpgPush
             // Path 2: colonist → colonist (fallback)
             if (TryResolveColonistPair(now, out Pawn initiator, out Pawn receiver, bypassAvailability: true))
             {
-                Log.Message($"[RimChat] DebugForcePawnRpg: Colonist path resolved: Initiator={initiator.LabelShortCap}, Receiver={receiver.LabelShortCap}");
+                Log.Message($"[RimAI.Relations] DebugForcePawnRpg: Colonist path resolved: Initiator={initiator.LabelShortCap}, Receiver={receiver.LabelShortCap}");
                 var context = new PawnRpgTriggerContext
                 {
                     Faction = Faction.OfPlayer,
@@ -345,7 +345,7 @@ namespace RimChat.PawnRpgPush
                 return true;
             }
 
-            Log.Warning("[RimChat] DebugForcePawnRpg: Both paths failed. No valid pair found.");
+            Log.Warning("[RimAI.Relations] DebugForcePawnRpg: Both paths failed. No valid pair found.");
             return false;
         }
 
@@ -430,7 +430,7 @@ namespace RimChat.PawnRpgPush
             {
                 proactiveProtagonists.Add(PawnRpgProtagonistEntry.FromPawn(best));
                 _cachedProtagonists = null;
-                Log.Message($"[RimChat] Auto-selected default protagonist: {best.LabelShortCap} (highest skills)");
+                Log.Message($"[RimAI.Relations] Auto-selected default protagonist: {best.LabelShortCap} (highest skills)");
             }
         }
 
@@ -1070,7 +1070,7 @@ namespace RimChat.PawnRpgPush
             }
 
             lastMissingProtagonistLogTick = currentTick;
-            Log.Warning("[RimChat] PawnRPG proactive skipped: protagonist list is empty. Configure protagonists in NPC proactive dialogue settings.");
+            Log.Warning("[RimAI.Relations] PawnRPG proactive skipped: protagonist list is empty. Configure protagonists in NPC proactive dialogue settings.");
         }
 
         private PawnRpgThreatState GetOrCreateThreatState(Faction faction)

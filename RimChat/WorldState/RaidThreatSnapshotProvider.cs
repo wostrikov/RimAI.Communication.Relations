@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
-namespace RimChat.WorldState
+namespace Ustas.RimAI.Communication.Relations.WorldState
 {
     /// <summary>
     /// Dependencies: Verse map/pawn runtime state.

@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Memory;
-using RimChat.Util;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: world-event ledger, leader memory, faction manager.
  /// Responsibility: translate real world-state records into fact-grounded social-news seeds.

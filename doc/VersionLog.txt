@@ -434,7 +434,7 @@
 - 请求任务授勋禁用 + 冷却文案游戏时间统一（Fail-Fast 根修）：
   1. [根修] `ApiActionEligibilityService.SupportedQuestDefs` 移除 `BestowingCeremony`，请求任务可选模板与可用任务注入链路不再暴露授勋模板。
   2. [阻断] `ValidateCreateQuest(...)` 新增 `bestowing_disabled` fail-fast；外部强行传入授勋模板时直接拒绝，避免空授勋请求进入任务发布链。
-  3. [可观测性] 新增稳定日志锚点：`[RimChat][QuestGuard] blocked create_quest for disabled template`，包含 faction/questDefName/code，便于 Player.log 快速定位旧链路触发。
+  3. [可观测性] 新增稳定日志锚点：`[RimAI.Relations][QuestGuard] blocked create_quest for disabled template`，包含 faction/questDefName/code，便于 Player.log 快速定位旧链路触发。
   4. [口径统一] `Dialog_DiplomacyDialogue.ActionHint.FormatCooldownReason(...)` 改为统一输出游戏内剩余时间（天/时），覆盖 `quest_cooldown`/`aid_cooldown`/`caravan_cooldown` 等外交冷却提示。
   5. [兼容] 仅调整任务模板可见性与提示文案解释层；冷却存储与判定真相源保持 `TicksGame` 不变，不新增存档字段。
   6. [文档] 同步更新 `doc/Index.md`、`doc/Api.md`、`doc/config.md`、`doc/VersionLog.txt`、`doc/VersionLog_en.txt`。
@@ -1935,7 +1935,7 @@
 - 修复：`RimChat/DiplomacySystem/GameComponent_RPGManager.PersonaBootstrap.cs` 新增 `ShouldBlockAiPersonaGeneration()` 运行时门禁；检测到 RimTalk mod 已加载后，自动阻断 AI 人格生成请求链路。
 - 修复：在 `ProcessNpcPersonaBootstrapTick`、`ProcessNpcPersonaRuntimeTick`、`RetryOrFallbackPersonaPrompt` 三处接入 fail-fast 短路，覆盖 bootstrap/runtime/retry 全链路，避免继续向 AI 发起人格生成。
 - 修复：`StartNpcPersonaGeneration` 增加防御式短路；RimTalk 已加载时直接返回，保留 RimTalk persona 同步与已有本地 persona 读取能力，不修改用户配置。
-- 日志：新增一次性运行时提示 `[RimChat] RimTalk detected; AI persona generation blocked at runtime.`，便于定位生效状态且避免日志刷屏。
+- 日志：新增一次性运行时提示 `[RimAI.Relations] RimTalk detected; AI persona generation blocked at runtime.`，便于定位生效状态且避免日志刷屏。
 - 验证：`build.ps1` 构建与部署通过（`0 errors`，仅保留既有 `Scriban 5.10.0` 安全告警）。
 - 版本：`About/About.xml` 升级为 `0.7.66`。
 

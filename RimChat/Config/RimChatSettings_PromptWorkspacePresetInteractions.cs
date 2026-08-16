@@ -5,7 +5,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: prompt preset service, workbench selection state, and RimWorld widgets/messages.
@@ -46,7 +46,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat][PresetDiag] Workspace create failed: {ex}");
+                    Log.Error($"[RimAI.Relations][PresetDiag] Workspace create failed: {ex}");
                     Messages.Message("RimChat_PromptPreset_ActivateFailed".Translate(ex.Message), MessageTypeDefOf.RejectInput, false);
                 }
             }
@@ -72,7 +72,7 @@ namespace RimChat.Config
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimChat][PresetDiag] Workspace duplicate failed: {ex}");
+                    Log.Error($"[RimAI.Relations][PresetDiag] Workspace duplicate failed: {ex}");
                     Messages.Message("RimChat_PromptPreset_ActivateFailed".Translate(ex.Message), MessageTypeDefOf.RejectInput, false);
                 }
             }

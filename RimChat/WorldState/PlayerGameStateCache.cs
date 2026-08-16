@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using RimChat.Dialogue;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.WorldState
+namespace Ustas.RimAI.Communication.Relations.WorldState
 {
     /// <summary>
     /// Responsibility: single-source-of-truth cache for player game state queries

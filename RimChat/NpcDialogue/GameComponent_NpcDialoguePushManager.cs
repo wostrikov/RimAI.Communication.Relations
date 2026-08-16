@@ -2,20 +2,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.DiplomacySystem;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.Persistence;
-using RimChat.Util;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.NpcDialogue
+namespace Ustas.RimAI.Communication.Relations.NpcDialogue
 {
     /// <summary>/// Dependencies: AIChatServiceAsync, GameComponent_DiplomacyManager, Verse.GameComponent.
  /// Responsibility: End-to-end orchestration for NPC proactive dialogue triggers, queueing, generation and delivery.
@@ -123,7 +123,7 @@ namespace RimChat.NpcDialogue
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error loading NpcDialogue data from save: {ex.Message}\n{ex.StackTrace}");
+                Log.Error($"[RimAI.Relations] Error loading NpcDialogue data from save: {ex.Message}\n{ex.StackTrace}");
                 factionPushStates ??= new List<FactionNpcPushState>();
                 queuedTriggers ??= new List<QueuedNpcDialogueTrigger>();
             }
@@ -562,7 +562,7 @@ namespace RimChat.NpcDialogue
 
             if (!AIChatServiceAsync.Instance.IsConfigured())
             {
-                Log.Warning($"[RimChat] Proactive push dropped (AI not configured): {context.Faction.Name}");
+                Log.Warning($"[RimAI.Relations] Proactive push dropped (AI not configured): {context.Faction.Name}");
                 return;
             }
 
@@ -647,7 +647,7 @@ namespace RimChat.NpcDialogue
                     return;
                 }
 
-                Log.Warning("[RimChat] Proactive push generation empty after sanitize.");
+                Log.Warning("[RimAI.Relations] Proactive push generation empty after sanitize.");
                 return;
             }
 
@@ -674,7 +674,7 @@ namespace RimChat.NpcDialogue
                 return;
             }
 
-            Log.Warning($"[RimChat] Proactive push dropped after retry: {error}");
+            Log.Warning($"[RimAI.Relations] Proactive push dropped after retry: {error}");
         }
 
         private void RetryGeneration(PendingGenerationContext pending)
@@ -977,7 +977,7 @@ namespace RimChat.NpcDialogue
             DialogueResponseEnvelope envelope = DialogueResponseEnvelopeParser.Parse(output, DialogueUsageChannel.Diplomacy);
             if (!envelope.IsValid)
             {
-                Log.Warning($"[RimChat] NPC push envelope parse failed: reason={envelope.FailureReason}. Dropping raw output.");
+                Log.Warning($"[RimAI.Relations] NPC push envelope parse failed: reason={envelope.FailureReason}. Dropping raw output.");
                 return string.Empty;
             }
             string cleaned = envelope.VisibleDialogue;
@@ -999,7 +999,7 @@ namespace RimChat.NpcDialogue
             ImmersionGuardResult guardResult = ImmersionOutputGuard.ValidateVisibleDialogueParts(merged);
             if (!guardResult.IsValid)
             {
-                Log.Warning($"[RimChat] Immersion guard blocked NPC push text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
+                Log.Warning($"[RimAI.Relations] Immersion guard blocked NPC push text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
                 return guardResult.VisibleDialogue;
             }
 
@@ -1569,7 +1569,7 @@ namespace RimChat.NpcDialogue
                 return;
             }
 
-            Log.Message($"[RimChat][NpcPushThrottle] {message}");
+            Log.Message($"[RimAI.Relations][NpcPushThrottle] {message}");
         }
 
         private bool TryDeliverFallbackMessage(NpcDialogueTriggerContext context)

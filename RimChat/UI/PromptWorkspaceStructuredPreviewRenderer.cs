@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using RimChat.Config;
-using RimChat.Persistence;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: structured preview model, node schema labels, Verse GUI APIs, and CachedRenderTexture.

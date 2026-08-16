@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
     /// Dependencies: channel catalog ids/seed definitions and RimTalk prompt entry config models.

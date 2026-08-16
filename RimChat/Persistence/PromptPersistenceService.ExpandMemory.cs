@@ -1,12 +1,11 @@
-using RimChat.Compat;
-using RimChat.Core;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Core.Memory;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
-    /// Dependencies: ExpandMemoryBridge.
-    /// Responsibility: build prompt blocks via ExpandMemory (common knowledge and per-pawn memory).
+    /// Typed Memory/Knowledge prompt blocks. Optional when Memory module is absent.
     /// </summary>
     public partial class PromptPersistenceService
     {
@@ -21,17 +20,15 @@ namespace RimChat.Persistence
 
         private string BuildCommonKnowledgeBlock(string playerMessage)
         {
-            if (!ExpandMemoryBridge.IsAvailable())
-            {
+            var provider = MemoryContextAccess.Knowledge;
+            if (provider == null || string.IsNullOrWhiteSpace(playerMessage))
                 return string.Empty;
-            }
 
-            if (string.IsNullOrWhiteSpace(playerMessage))
+            string result = provider.GetKnowledge(new MemoryContextRequest
             {
-                return string.Empty;
-            }
-
-            string result = ExpandMemoryBridge.GetMatchedKnowledge(playerMessage, CommonKnowledgeMaxEntries);
+                Query = playerMessage,
+                TokenBudget = CommonKnowledgeMaxEntries * 80
+            })?.Projection;
             if (string.IsNullOrWhiteSpace(result) ||
                 result.Contains("No matching knowledge") ||
                 result.Contains("No context available"))
@@ -51,21 +48,20 @@ namespace RimChat.Persistence
 
         internal string BuildExpandMemoryPawnBlock(Pawn pawn, int maxChars, int maxTotalEntries)
         {
-            if (!ExpandMemoryBridge.IsPawnMemoryAvailable() || pawn == null)
-            {
+            var provider = MemoryContextAccess.Current;
+            if (provider == null || pawn == null || RimChatMod.Settings?.IsExpandMemoryPawnMemoryEnabled() != true)
                 return string.Empty;
-            }
 
-            string result = ExpandMemoryBridge.GetPawnMemory(pawn, ExpandMemoryPawnMemoryMaxEntriesPerLayer, maxTotalEntries);
-            if (string.IsNullOrWhiteSpace(result))
+            string result = provider.GetContext(new MemoryContextRequest
             {
+                PawnId = pawn.ThingID,
+                TokenBudget = maxTotalEntries * 80
+            })?.Projection;
+            if (string.IsNullOrWhiteSpace(result))
                 return string.Empty;
-            }
 
             if (result.Length > maxChars)
-            {
                 result = TruncateAtNaturalBoundary(result, maxChars);
-            }
 
             return result;
         }
@@ -73,14 +69,13 @@ namespace RimChat.Persistence
         private static string TruncateAtNaturalBoundary(string text, int maxChars)
         {
             if (string.IsNullOrEmpty(text) || text.Length <= maxChars)
-            {
                 return text;
-            }
-
-            if (maxChars <= 0) return string.Empty;
+            if (maxChars <= 0)
+                return string.Empty;
 
             int cutoff = maxChars - 3;
-            if (cutoff <= 0) return "...";
+            if (cutoff <= 0)
+                return "...";
 
             int newline = text.LastIndexOf('\n', cutoff);
             int dot = text.LastIndexOf('.', cutoff);
@@ -88,7 +83,8 @@ namespace RimChat.Persistence
 
             int boundary = newline > dot ? newline : dot;
             boundary = boundary > space ? boundary : space;
-            if (boundary < cutoff / 2) boundary = space > cutoff / 2 ? space : cutoff;
+            if (boundary < cutoff / 2)
+                boundary = space > cutoff / 2 ? space : cutoff;
 
             return text.Substring(0, boundary + 1) + "\n...";
         }
@@ -97,24 +93,17 @@ namespace RimChat.Persistence
         {
             string memory = BuildExpandMemoryPawnBlock(target);
             if (string.IsNullOrWhiteSpace(memory))
-            {
                 return prompt;
-            }
 
             string tag = "</dynamic_npc_personal_memory>";
             int idx = prompt.IndexOf(tag, System.StringComparison.OrdinalIgnoreCase);
             if (idx >= 0)
-            {
-                return prompt.Insert(idx, "\n  [ExpandMemory]\n  " + memory.Replace("\n", "\n  ") + "\n");
-            }
+                return prompt.Insert(idx, "\n  [Memory]\n  " + memory.Replace("\n", "\n  ") + "\n");
 
-            // Fallback: append before </prompt_context>
             string closingTag = "</prompt_context>";
             int closingIdx = prompt.IndexOf(closingTag, System.StringComparison.OrdinalIgnoreCase);
             if (closingIdx >= 0)
-            {
-                return prompt.Insert(closingIdx, "[ExpandMemory]\n" + memory.Replace("\n", "\n  ") + "\n");
-            }
+                return prompt.Insert(closingIdx, "[Memory]\n" + memory.Replace("\n", "\n  ") + "\n");
 
             return prompt;
         }

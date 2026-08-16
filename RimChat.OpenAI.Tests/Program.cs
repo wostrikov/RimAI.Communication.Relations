@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 
-namespace RimChat.AI { public sealed class ChatMessageData { public string role; public string content; } }
+namespace Ustas.RimAI.Communication.Relations.AI { public sealed class ChatMessageData { public string role; public string content; } }
 
 internal static class Program
 {

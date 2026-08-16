@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public enum DelayedEventType
     {
@@ -223,7 +223,7 @@ namespace RimChat.DiplomacySystem
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error executing delayed event: {ex}");
+                Log.Error($"[RimAI.Relations] Error executing delayed event: {ex}");
                 return false;
             }
         }
@@ -246,7 +246,7 @@ namespace RimChat.DiplomacySystem
 
             if (targetFaction == null || targetFaction.defeated)
             {
-                Log.Warning($"[RimChat] RaidCallEveryone: Target faction {factionDefName} not found or defeated, skipping.");
+                Log.Warning($"[RimAI.Relations] RaidCallEveryone: Target faction {factionDefName} not found or defeated, skipping.");
                 return true; // Mark as success to move on
             }
 
@@ -267,7 +267,7 @@ namespace RimChat.DiplomacySystem
             {
                 bool isAid = IsMilitaryAidAction(CallEveryoneAction, wasFriendly);
                 ParticipantPawnThingIds = CaptureNewParticipantPawnIds(targetFaction, before);
-                Log.Message($"[RimChat] RaidCallEveryone: Triggered {(isAid ? "military aid" : "raid")} from {targetFaction.Name}");
+                Log.Message($"[RimAI.Relations] RaidCallEveryone: Triggered {(isAid ? "military aid" : "raid")} from {targetFaction.Name}");
                 ScheduleRaidDepartureMonitor(targetFaction, isAid, isFinalWave: false);
             }
 
@@ -378,7 +378,7 @@ namespace RimChat.DiplomacySystem
                 var pushManager = NpcDialogue.GameComponent_NpcDialoguePushManager.Instance;
                 if (pushManager == null)
                 {
-                    Log.Warning($"[RimChat] NpcDialoguePushManager not available for {sourceTag}");
+                    Log.Warning($"[RimAI.Relations] NpcDialoguePushManager not available for {sourceTag}");
                     return;
                 }
 
@@ -399,11 +399,11 @@ namespace RimChat.DiplomacySystem
                 };
 
                 pushManager.RegisterCustomTrigger(context);
-                Log.Message($"[RimChat] Triggered NPC dialogue: {sourceTag} from {targetFaction.Name}");
+                Log.Message($"[RimAI.Relations] Triggered NPC dialogue: {sourceTag} from {targetFaction.Name}");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Error triggering NPC dialogue: {ex}");
+                Log.Error($"[RimAI.Relations] Error triggering NPC dialogue: {ex}");
             }
         }
 

@@ -4,8 +4,8 @@
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
-    <AssemblyName>RimChat</AssemblyName>
-    <RootNamespace>RimChat</RootNamespace>
+    <AssemblyName>RimAI.Communication.Relations</AssemblyName>
+    <RootNamespace>Ustas.RimAI.Communication.Relations</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

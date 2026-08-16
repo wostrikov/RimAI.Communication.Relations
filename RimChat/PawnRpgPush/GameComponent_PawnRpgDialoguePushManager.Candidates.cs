@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Dialogue;
-using RimChat.NpcDialogue;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
 
-namespace RimChat.PawnRpgPush
+namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
     /// <summary>/// Dependencies: RimWorld pawn/map/job systems, RimChat settings, Verse utility APIs.
  /// Responsibility: Candidate discovery, relationship/availability gating, and busy-state checks for PawnRPG proactive flow.
@@ -574,7 +574,7 @@ namespace RimChat.PawnRpgPush
             {
                 if (!_loggedNoEligibleReceivers)
                 {
-                    Log.Message("[RimChat] TryResolveColonistPair: No eligible receivers in protagonist list (all busy or unavailable).");
+                    Log.Message("[RimAI.Relations] TryResolveColonistPair: No eligible receivers in protagonist list (all busy or unavailable).");
                     _loggedNoEligibleReceivers = true;
                 }
                 return false;
@@ -627,7 +627,7 @@ namespace RimChat.PawnRpgPush
             {
                 if (!_loggedNoValidPair)
                 {
-                    Log.Message($"[RimChat] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
+                    Log.Message($"[RimAI.Relations] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
                     _loggedNoValidPair = true;
                 }
                 return false;

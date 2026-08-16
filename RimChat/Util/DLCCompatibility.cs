@@ -2,7 +2,7 @@ using System;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Util
+namespace Ustas.RimAI.Communication.Relations.Util
 {
     public static class DLCCompatibility
     {
@@ -92,7 +92,7 @@ namespace RimChat.Util
                 dlcList = dlcList.Substring(0, dlcList.Length - 2);
             }
 
-            Log.Message("[RimChat] Active DLCs: " + dlcList);
+            Log.Message("[RimAI.Relations] Active DLCs: " + dlcList);
         }
     }
 }

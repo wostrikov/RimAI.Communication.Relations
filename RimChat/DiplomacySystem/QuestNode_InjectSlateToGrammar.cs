@@ -3,7 +3,7 @@ using RimWorld.QuestGen;
 using Verse;
 using Verse.Grammar;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// 将 Slate 中的变量注入到 Grammar Rules 中, 以便在任务text中使用 [variable] 引用
  ///</summary>

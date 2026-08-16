@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Dialogue;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
 
-namespace RimChat.Rpg
+namespace Ustas.RimAI.Communication.Relations.Rpg
 {
     /// <summary>
     /// Owns RPG request lifecycle with lease + runtime context validation.

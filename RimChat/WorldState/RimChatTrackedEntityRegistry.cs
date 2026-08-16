@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Verse;
 using RimWorld.Planet;
 
-namespace RimChat.WorldState
+namespace Ustas.RimAI.Communication.Relations.WorldState
 {
     /// <summary>
     /// Dependencies: Verse current game objects and lightweight runtime hash sets.

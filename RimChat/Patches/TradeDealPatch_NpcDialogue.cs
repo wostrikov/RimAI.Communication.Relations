@@ -1,12 +1,12 @@
 using System.Linq;
 using HarmonyLib;
-using RimChat.DiplomacySystem;
-using RimChat.PawnRpgPush;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Patches
+namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: RimWorld.TradeDeal, RimWorld.TradeSession.
  /// Responsibility: Report trade outcomes to proactive channels.

@@ -9,7 +9,7 @@ using Scriban.Runtime;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Prompting
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: Scriban ScriptObject, RimWorld Pawn/Faction types.

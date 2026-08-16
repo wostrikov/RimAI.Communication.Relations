@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RimChat.Config
+namespace Ustas.RimAI.Communication.Relations.Config
 {
     internal interface IPromptPresetService
     {

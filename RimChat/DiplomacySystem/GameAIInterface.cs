@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
-using RimChat.Relation;
-using RimChat.AI;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Persistence;
-using RimChat.Memory;
-using RimChat.WorldState;
+using Ustas.RimAI.Communication.Relations.Relation;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using UnityEngine;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// AI与游戏交互的主接口类
  /// 提供based ondialoguecontents的游戏state管理功能
@@ -1511,12 +1511,12 @@ namespace RimChat.DiplomacySystem
                 Quest quest;
                 try
                 {
-                    RimChat.Patches.QuestGenPatch.LockSlateVariables = true;
+                    Ustas.RimAI.Communication.Relations.Patches.QuestGenPatch.LockSlateVariables = true;
                     quest = RimWorld.QuestGen.QuestGen.Generate(questDef, slate);
                 }
                 finally
                 {
-                    RimChat.Patches.QuestGenPatch.LockSlateVariables = false;
+                    Ustas.RimAI.Communication.Relations.Patches.QuestGenPatch.LockSlateVariables = false;
                 }
 
                 if (!QuestGenerationProbe.TryValidateGeneratedQuest(quest, questDef, slate, out string publicationCode, out string publicationMessage))

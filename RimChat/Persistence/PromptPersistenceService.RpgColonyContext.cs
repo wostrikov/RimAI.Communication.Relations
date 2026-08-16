@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using RimChat.Config;
+using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using Verse;
 using Verse.AI;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>/// Responsibility: append player-colony context blocks for RPG pawn prompts.
  ///</summary>
@@ -157,7 +157,7 @@ namespace RimChat.Persistence
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimChat] Failed to reflect native alerts: {ex.Message}");
+                Log.Warning($"[RimAI.Relations] Failed to reflect native alerts: {ex.Message}");
             }
 
             return labels.Distinct().Take(MaxNativeAlertItems).ToList();

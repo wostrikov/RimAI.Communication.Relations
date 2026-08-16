@@ -1,11 +1,12 @@
 using RimWorld;
+using Ustas.RimAI.Core.Relations;
 using Verse;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
-    /// Thin RimChat frontend hook. RimAI owns diplomacy policy and mutation.
-    /// HostExecute is registered by RimAI.RimWorld at boot.
+    /// Thin Relations frontend hook. RimAI Host owns diplomacy policy and mutation.
+    /// HostExecute is attached through IRelationsApplication.
     /// </summary>
     public static class RimChatInteractionAdapter
     {
@@ -27,6 +28,13 @@ namespace RimChat.AI
             if (raw is ActionResult result)
             {
                 return result;
+            }
+
+            if (raw is RelationsHostResult host)
+            {
+                return host.Success
+                    ? ActionResult.Success(host.Message, host.Data)
+                    : ActionResult.Failure(host.Message);
             }
 
             return ActionResult.Failure("RimAI diplomacy host returned an unexpected result.");

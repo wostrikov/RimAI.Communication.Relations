@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.Memory;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     public partial class Dialog_RPGPawnGroupChat
     {
@@ -50,7 +50,7 @@ namespace RimChat.UI
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimChat] Request build failed for {speaker.DisplayName}: {ex.Message}");
+                Log.Error($"[RimAI.Relations] Request build failed for {speaker.DisplayName}: {ex.Message}");
                 _cachedResponses[pawnIndex] = "RimChat_GroupConverse_Skipped".Translate(speaker.DisplayName);
                 OnResponseReceived(pawnIndex);
                 return;
@@ -364,7 +364,7 @@ namespace RimChat.UI
                 string n = Dialog_RPGPawnDialogue.NormalizeRpgActionName(action?.action);
                 if (string.IsNullOrEmpty(n)) continue;
                 try { ExecuteGroupAction(speaker, n, action); }
-                catch (Exception ex) { Log.Error($"[RimChat] Action failed: {ex.Message}"); }
+                catch (Exception ex) { Log.Error($"[RimAI.Relations] Action failed: {ex.Message}"); }
             }
         }
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     /// <summary>
     /// Dependencies: dialogue request lifecycle reason tags emitted by controllers and request leases.

@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using RimChat.Config;
-using RimChat.Core;
-using RimChat.Memory;
-using RimChat.Prompting;
-using RimChat.Util;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Core;
+using Ustas.RimAI.Communication.Relations.Memory;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace RimChat.Persistence
+namespace Ustas.RimAI.Communication.Relations.Persistence
 {
     /// <summary>
     /// Dependencies: unified prompt catalog, prompt template renderer, and workspace preview models.

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using HarmonyLib;
-using RimChat.Dialogue;
-using RimChat.UI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using Verse;
 
-namespace RimChat.PawnRpgPush
+namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
-    /// <summary>/// Dependencies: Verse.ChoiceLetter, RimChat.UI.Dialog_RPGPawnDialogue.
+    /// <summary>/// Dependencies: Verse.ChoiceLetter, Ustas.RimAI.Communication.Relations.UI.Dialog_RPGPawnDialogue.
  /// Responsibility: Render PawnRPG proactive letter and open RPG dialogue with one click.
  ///</summary>
     public class ChoiceLetter_PawnRpgInitiatedDialogue : ChoiceLetter

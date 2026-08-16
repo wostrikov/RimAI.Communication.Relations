@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Verse;
 
-namespace RimChat.AI
+namespace Ustas.RimAI.Communication.Relations.AI
 {
     public class LLMRpgApiResponse
     {
@@ -87,7 +87,7 @@ namespace RimChat.AI
             catch (Exception ex)
             {
                 result.DialogueContent = SanitizeDialogueContent(rawResponse.Trim());
-                Log.Error($"[RimChat] RPG JSON parse error: {ex}");
+                Log.Error($"[RimAI.Relations] RPG JSON parse error: {ex}");
             }
 
             return result;
@@ -610,7 +610,7 @@ namespace RimChat.AI
             ImmersionGuardResult guardResult = ImmersionOutputGuard.ValidateVisibleDialogue(sanitized.Trim());
             if (!guardResult.IsValid)
             {
-                Log.Warning($"[RimChat] Immersion guard blocked RPG text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
+                Log.Warning($"[RimAI.Relations] Immersion guard blocked RPG text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
                 return ImmersionOutputGuard.BuildLocalFallbackDialogue(DialogueUsageChannel.Rpg);
             }
 

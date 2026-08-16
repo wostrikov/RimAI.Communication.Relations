@@ -1,6 +1,6 @@
 using System;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>/// Dependencies: SocialCircle UI, SocialCircleService.
  /// Responsibility: shared enums for social circle content and automation.

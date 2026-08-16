@@ -4,10 +4,10 @@ using System.Linq;
 using RimWorld;
 using Verse;
 
-namespace RimChat.DiplomacySystem
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     /// <summary>
-    /// Dependencies: Verse.IExposable, Verse.Find, RimChat.DiplomacySystem.ThingDefCatalog, RimChat.DiplomacySystem.GameAIInterface.
+    /// Dependencies: Verse.IExposable, Verse.Find, Ustas.RimAI.Communication.Relations.DiplomacySystem.ThingDefCatalog, Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.
     /// Responsibility: manage per-faction special item slots (discount/scarce), generation, refresh, and persistence.
     /// </summary>
     public class FactionSpecialItemSet : IExposable
@@ -194,7 +194,7 @@ namespace RimChat.DiplomacySystem
             if (usedIds.Contains(id))
             {
                 slot.SetUniqueId(nextId++);
-                Log.Message($"[RimChat] Fixed duplicate FactionSpecialItemSlot ID: {id} -> {slot.GetUniqueIdForFix()}");
+                Log.Message($"[RimAI.Relations] Fixed duplicate FactionSpecialItemSlot ID: {id} -> {slot.GetUniqueIdForFix()}");
             }
             else
             {

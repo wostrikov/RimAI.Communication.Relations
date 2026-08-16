@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using RimChat.AI;
-using RimChat.Dialogue;
-using RimChat.DiplomacySystem;
-using RimChat.Memory;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
 
-namespace RimChat.UI
+namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
     /// Dependencies: AIChatServiceAsync request status snapshots, DialogueDropPolicy, and diplomacy session runtime state.
@@ -93,7 +93,7 @@ namespace RimChat.UI
             string reason = !string.IsNullOrWhiteSpace(primaryReason) ? primaryReason : secondaryReason;
             if (DialogueDropPolicy.ShouldSuppressUserFacingDrop(reason))
             {
-                Log.Message($"[RimChat] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
+                Log.Message($"[RimAI.Relations] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace RimChat.UI
         private void LogDroppedRequestState(string reason)
         {
             Log.Warning(
-                $"[RimChat] Diplomacy request dropped. " +
+                $"[RimAI.Relations] Diplomacy request dropped. " +
                 $"reason={reason ?? "unknown"}, faction={faction?.Name ?? "null"}, negotiator={negotiator?.ThingID ?? "null"}, " +
                 $"pendingRequestId={session?.pendingRequestId ?? "null"}, waiting={session?.isWaitingForResponse ?? false}, " +
                 $"hasLease={session?.pendingRequestLease != null}, queuedTick={session?.lastDiplomacyRequestQueuedTick ?? int.MinValue}, " +
@@ -151,13 +151,13 @@ namespace RimChat.UI
             string reason = !string.IsNullOrWhiteSpace(primaryReason) ? primaryReason : secondaryReason;
             if (DialogueDropPolicy.ShouldSuppressUserFacingDrop(reason))
             {
-                Log.Message($"[RimChat] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
+                Log.Message($"[RimAI.Relations] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
                 return;
             }
 
             string resolved = BuildDroppedRequestMessage(reason);
             Log.Warning(
-                $"[RimChat] Diplomacy request dropped (background). " +
+                $"[RimAI.Relations] Diplomacy request dropped (background). " +
                 $"reason={reason ?? "unknown"}, faction={targetFaction?.Name ?? "null"}, " +
                 $"pendingRequestId={targetSession?.pendingRequestId ?? "null"}, waiting={targetSession?.isWaitingForResponse ?? false}, " +
                 $"hasLease={targetSession?.pendingRequestLease != null}, window={windowInstanceId}");

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimChat.AI;
+using Ustas.RimAI.Communication.Relations.AI;
 using RimWorld;
 using Verse;
 
-namespace RimChat.Dialogue
+namespace Ustas.RimAI.Communication.Relations.Dialogue
 {
     public enum DialogueChannel
     {
