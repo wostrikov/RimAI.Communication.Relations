@@ -347,6 +347,9 @@ namespace RimChat.AI
 
         private ApiConfig GetFirstValidConfig()
         {
+            if (RimChatSettings.TryGetSharedTextConfig(out ApiConfig shared))
+                return shared;
+
             if (RimChatMod.Instance == null || RimChatMod.Instance.InstanceSettings == null)
                 return null;
 

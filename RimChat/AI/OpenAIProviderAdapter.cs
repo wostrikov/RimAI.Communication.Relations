@@ -36,7 +36,7 @@ namespace RimChat.AI
     /// <summary>Authoritative OpenAI Responses API wire contract. No Unity dependency.</summary>
     public static class OpenAIProviderAdapter
     {
-        public const string CredentialVariable = "OPENAI_RIMCHAT";
+        public const string CredentialVariable = Ustas.RimAI.Core.Configuration.AiCredentialResolver.LegacyChat;
         public const string ResponsesEndpoint = "https://api.openai.com/v1/responses";
         public const string ModelsEndpoint = "https://api.openai.com/v1/models";
 
@@ -44,11 +44,11 @@ namespace RimChat.AI
 
         public static string ResolveCredential()
         {
-            return (Environment.GetEnvironmentVariable(CredentialVariable) ?? string.Empty).Trim();
+            return Ustas.RimAI.Core.Configuration.AiCredentialResolver.Resolve().Value ?? string.Empty;
         }
 
-        public static bool CredentialPresent => !string.IsNullOrWhiteSpace(ResolveCredential());
-        public static string CredentialDisplay => CredentialPresent ? CredentialVariable + " ✓" : CredentialVariable + " ✗";
+        public static bool CredentialPresent => Ustas.RimAI.Core.Configuration.AiCredentialResolver.Resolve().Present;
+        public static string CredentialDisplay => Ustas.RimAI.Core.Configuration.AiCredentialResolver.Resolve().Display;
 
         public static string BuildResponsesRequest(string model, IList<ChatMessageData> messages, int maxOutputTokens)
         {

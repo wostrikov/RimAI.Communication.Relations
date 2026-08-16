@@ -1453,29 +1453,41 @@ namespace RimChat.Config
             }
         }
 
+        internal static bool TryGetSharedTextConfig(out ApiConfig config)
+        {
+            config = null;
+            var shared = Ustas.RimAI.Core.Configuration.SharedTextAiAccess.Current;
+            if (shared == null || !shared.HasActive)
+                return false;
+
+            if (!Enum.TryParse(shared.Provider, true, out AIProvider provider))
+                provider = string.Equals(shared.Provider, "Local", StringComparison.OrdinalIgnoreCase)
+                    ? AIProvider.Custom
+                    : AIProvider.Custom;
+
+            config = new ApiConfig
+            {
+                IsEnabled = true,
+                Provider = provider,
+                SelectedModel = string.IsNullOrWhiteSpace(shared.Model) ? "Custom" : shared.Model,
+                CustomModelName = shared.CustomModel ?? string.Empty,
+                BaseUrl = shared.BaseUrl ?? string.Empty,
+                ApiKey = shared.ApiKey ?? string.Empty
+            };
+            return true;
+        }
+
         private void DrawTab_APISettings(Listing_Standard listing)
         {
-            DrawApiSettingsHeaderBar(listing);
+            listing.Label("RimAI.Settings.TextAiOwnedByCore".Translate());
+            listing.Label(OpenAIProviderAdapter.CredentialDisplay);
+            if (TryGetSharedTextConfig(out ApiConfig shared))
+            {
+                listing.Gap(6f);
+                listing.Label(shared.Provider + " / " + shared.GetEffectiveModelName());
+            }
             listing.GapLine();
-
-            // Provider Selection
-            DrawProviderSelection(listing);
-            listing.Gap();
-
-            // Draw appropriate section
-            if (UseCloudProviders)
-            {
-                DrawCloudProvidersSection(listing);
-            }
-            else
-            {
-                DrawLocalProviderSection(listing);
-            }
-
-            listing.Gap();
-            DrawActionButtonRow(listing);
-            DrawUsabilityTestResult(listing);
-
+            listing.Label("RimAI.Settings.RelationsModuleHint".Translate());
             listing.Gap();
             DrawDebugSettingsSection(listing);
 

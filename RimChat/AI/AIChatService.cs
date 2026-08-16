@@ -373,6 +373,12 @@ namespace RimChat.AI
         {
             DebugLogger.LogInternal("AIChatService", "Getting first valid config...");
 
+            if (RimChatSettings.TryGetSharedTextConfig(out ApiConfig shared))
+            {
+                DebugLogger.LogInternal("AIChatService", $"Using shared RimAI text config: {shared.Provider}");
+                return shared;
+            }
+
             if (RimChatMod.Instance == null || RimChatMod.Instance.InstanceSettings == null)
             {
                 DebugLogger.Warning("Settings is null");

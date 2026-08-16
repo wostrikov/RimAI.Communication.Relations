@@ -12,6 +12,7 @@ using RimChat.Comp;
 using RimChat.Config;
 using RimChat.Prompting;
 using RimChat.Util;
+using Ustas.RimAI.Core.Modules;
 
 namespace RimChat.Core
 {
@@ -46,7 +47,22 @@ namespace RimChat.Core
             LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
 
             DLCCompatibility.LogDLCStatus();
+            RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor("relations", "RimAI.Relations"));
+            RimAISettingsContributionRegistry.Current.Register(new DelegateSettingsContributor(
+                "relations",
+                "Relations",
+                RimAISettingsSection.Module,
+                20,
+                listing => DrawCoreRelationsSummary((Listing_Standard)listing)));
             Log.Message("[RimChat] Mod initialized successfully.");
+        }
+
+        static void DrawCoreRelationsSummary(Listing_Standard listing)
+        {
+            listing.Label("RimAI.Settings.TextAiOwnedByCore".Translate());
+            listing.Label(AI.OpenAIProviderAdapter.CredentialDisplay);
+            listing.Gap(6f);
+            listing.Label("RimAI.Settings.RelationsModuleHint".Translate());
         }
 
         private static void RefreshDefaultPresetSnapshotOnStartup()
@@ -71,7 +87,7 @@ namespace RimChat.Core
 
         public override string SettingsCategory()
         {
-            return Content?.Name ?? "RimChat - Word to Actions";
+            return Content?.Name ?? "RimAI.Relations";
         }
 
         public override void DoSettingsWindowContents(Rect inRect)
