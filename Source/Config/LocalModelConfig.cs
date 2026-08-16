@@ -1,13 +1,11 @@
 using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Core.Player2;
 using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
     public class LocalModelConfig : IExposable
     {
-        private const string Player2LocalHost = "localhost:4315";
-        private const string Player2LocalHostAlt = "127.0.0.1:4315";
-
         public string BaseUrl = "http://localhost:11434";
         public string ModelName = "";
 
@@ -38,8 +36,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         /// </summary>
         public bool IsPlayer2Local()
         {
-            string url = GetNormalizedBaseUrl()?.ToLowerInvariant() ?? string.Empty;
-            return url.Contains(Player2LocalHost) || url.Contains(Player2LocalHostAlt);
+            return Player2Endpoints.IsLocalAppUrl(GetNormalizedBaseUrl());
         }
     }
 }

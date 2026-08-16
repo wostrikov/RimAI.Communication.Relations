@@ -14,6 +14,7 @@ using Ustas.RimAI.Communication.Relations.UI;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Core.Player2;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -1908,7 +1909,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                         providerOptions.Add(new FloatMenuOption(provider.GetLabel(), () =>
                         {
                             UseCloudProviders = false;
-                            LocalConfig.BaseUrl = "http://localhost:4315";
+                            LocalConfig.BaseUrl = Player2Endpoints.LocalBaseUrl;
                             Find.WindowStack.Add(new Dialog_MessageBox(
                                 "RimChat_Player2RedirectMessage".Translate(),
                                 "OK".Translate()));
@@ -2886,7 +2887,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             // Player2 local: test via health check then chat endpoint with game-key header
             if (isPlayer2Local)
             {
-                string healthUrl = baseUrl + "/v1/health";
+                string healthUrl = Player2Endpoints.Health(baseUrl);
                 bool healthOk = TryTestUrl(healthUrl, "GET", null);
                 if (!healthOk)
                 {
@@ -2894,7 +2895,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     return;
                 }
 
-                string chatUrl = baseUrl + "/v1/chat/completions";
+                string chatUrl = Player2Endpoints.ChatCompletions(baseUrl);
                 string chatBody = "{\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}]}";
                 bool chatOk = TryTestUrlWithHeaders(chatUrl, "POST", chatBody, AIProvider.Player2.GetExtraHeaders());
                 connectionTestStatus = chatOk

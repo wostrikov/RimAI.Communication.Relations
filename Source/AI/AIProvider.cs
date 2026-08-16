@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Ustas.RimAI.Core.Configuration;
+using Ustas.RimAI.Core.Player2;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
@@ -23,7 +24,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
     {
         static readonly Dictionary<string, string> Player2SessionHeaders = new()
         {
-            { "player2-game-key", "019cdde4-f361-7aaf-b521-c39981d9c8ad" }
+            { Player2GameKeys.HeaderName, Player2GameKeys.Relations }
         };
 
         public static string GetLabel(this AIProvider p) => GameplayTextAiProviderCatalog.Label(p.ToString());
