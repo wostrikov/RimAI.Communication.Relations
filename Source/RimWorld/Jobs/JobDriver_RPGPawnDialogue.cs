@@ -8,7 +8,7 @@ using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Module;
 
-namespace Ustas.RimAI.Communication.Relations.AI
+namespace Ustas.RimAI.Communication.Relations.Jobs
 {
     // Responsibility: drive pawn-to-pawn RPG dialogue approach/open flow safely.
     // Dependencies: Verse.AI JobDriver/Toils, RimWorld Messages, RimChat RPG UI and cooldown manager.
@@ -175,6 +175,3 @@ namespace Ustas.RimAI.Communication.Relations.AI
         }
     }
 }
-
-
-
