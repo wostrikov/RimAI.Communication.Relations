@@ -65,16 +65,17 @@ internal static class Program
             Check(request.Contains("\"input\":["), "38 structured input");
             Check(OpenAIProviderAdapter.ParseOutputText("{\"output\":[{\"content\":[{\"text\":\"one\",\"annotations\":[],\"type\":\"output_text\"}]},{\"content\":[{\"type\":\"output_text\",\"logprobs\":[],\"text\":\"two\"}]}]}") == "one two", "39 multiple unordered output items");
 
+            Check(OpenAIProviderAdapter.CredentialVariable == "OPENAI_RIMAI", "40 advertised OPENAI_RIMAI");
             Environment.SetEnvironmentVariable(OpenAIProviderAdapter.CredentialVariable, secret);
-            Check(OpenAIProviderAdapter.CredentialPresent, "40 OPENAI_RIMCHAT present");
+            Check(OpenAIProviderAdapter.CredentialPresent, "41 OPENAI_RIMAI present");
             Environment.SetEnvironmentVariable(OpenAIProviderAdapter.CredentialVariable, null);
-            Check(!OpenAIProviderAdapter.CredentialPresent, "41 missing fails closed");
-            Environment.SetEnvironmentVariable("OPENAI_API_KEY", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "42 no OPENAI_API_KEY fallback");
-            Environment.SetEnvironmentVariable("OPENAI_RIMTRANS", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "43 no RIMTRANS fallback");
-            Environment.SetEnvironmentVariable("OPENAI_RIMTALK", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "44 no RIMTALK fallback");
-            Check(!OpenAIProviderAdapter.CredentialDisplay.Contains(secret), "45 UI secret masked");
-            Check(!request.Contains(secret), "46 request builder does not persist secret");
-            Check(!unsupported.ToString().Contains(secret), "47 observability excludes secret");
+            Check(!OpenAIProviderAdapter.CredentialPresent, "42 missing fails closed");
+            Environment.SetEnvironmentVariable("OPENAI_API_KEY", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "43 no OPENAI_API_KEY fallback");
+            Environment.SetEnvironmentVariable("OPENAI_RIMTRANS", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "44 no RIMTRANS fallback");
+            Environment.SetEnvironmentVariable("OPENAI_RIMTALK", secret); Check(OpenAIProviderAdapter.CredentialPresent, "45 legacy OPENAI_RIMTALK accepted");
+            Check(!OpenAIProviderAdapter.CredentialDisplay.Contains(secret), "46 UI secret masked");
+            Check(!request.Contains(secret), "47 request builder does not persist secret");
+            Check(!unsupported.ToString().Contains(secret), "48 observability excludes secret");
             Console.WriteLine($"OPENAI_FOCUSED_TESTS_OK passed={passed}"); return 0;
         }
         finally { Environment.SetEnvironmentVariable(OpenAIProviderAdapter.CredentialVariable, old); Environment.SetEnvironmentVariable("OPENAI_API_KEY", null); Environment.SetEnvironmentVariable("OPENAI_RIMTRANS", null); Environment.SetEnvironmentVariable("OPENAI_RIMTALK", null); }

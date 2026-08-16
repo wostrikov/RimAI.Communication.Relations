@@ -8,4 +8,7 @@
   <ItemGroup>
     <Compile Include="..\RimChat\AI\OpenAIProviderAdapter.cs" Link="OpenAIProviderAdapter.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RimAI.Core\src\RimAI.Core\RimAI.Core.csproj" />
+  </ItemGroup>
 </Project>

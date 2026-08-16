@@ -36,7 +36,7 @@ namespace RimChat.AI
     /// <summary>Authoritative OpenAI Responses API wire contract. No Unity dependency.</summary>
     public static class OpenAIProviderAdapter
     {
-        public const string CredentialVariable = Ustas.RimAI.Core.Configuration.AiCredentialResolver.LegacyChat;
+        public const string CredentialVariable = Ustas.RimAI.Core.Configuration.AiCredentialResolver.Canonical;
         public const string ResponsesEndpoint = "https://api.openai.com/v1/responses";
         public const string ModelsEndpoint = "https://api.openai.com/v1/models";
 
