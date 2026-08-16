@@ -1,0 +1,6 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RimAI.Communication.Relations", "Source\RimAI.Communication.Relations.csproj", "{41F20144-BA9B-4F5D-B06F-76CF9B38A0F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RimAI.Communication.Relations.Tests", "tests\RimAI.Communication.Relations.Tests.csproj", "{B2C1A8E0-7D44-4F1A-9C3E-2A6F0D11C801}"
+EndProject

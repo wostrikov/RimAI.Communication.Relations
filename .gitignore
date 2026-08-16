@@ -25,3 +25,7 @@ __pycache__/
 *.pyc
 .gitnexus
 .codex/
+
+# Generated debug logs
+log.txt
+**/log.txt

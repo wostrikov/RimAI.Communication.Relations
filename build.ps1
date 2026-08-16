@@ -128,7 +128,7 @@ Invoke-EncodingGuard -Root $sourceRoot
 
 # Step 2: Build project
 Write-Status "Building project..."
-dotnet build "$sourceRoot\RimChat\RimChat.csproj" -c Release
+dotnet build "$sourceRoot\Source\RimAI.Communication.Relations.csproj" -c Release
 
 if ($LASTEXITCODE -ne 0) {
     Write-Err "Build failed."
@@ -136,7 +136,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Step 3: Verify DLL
-$dllPath = "$sourceRoot\1.6\Assemblies\RimChat.dll"
+$dllPath = "$sourceRoot\1.6\Assemblies\RimAI.Communication.Relations.dll"
 
 if (-not (Test-Path $dllPath)) {
     Write-Err "DLL not found at $dllPath"
