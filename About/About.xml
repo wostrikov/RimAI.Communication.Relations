@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-    <name>RimAI.Relations</name>
+    <name>RimAI.Communication.Relations</name>
     <author>yancy</author>
     <packageId>yancy.rimchat</packageId>
     <description>Bring AI-driven diplomacy to RimWorld! This mod allows factions to be controlled by AI, enabling dynamic interactions with players. Features include AI-controlled faction diplomacy, intelligent dialogue system, dynamic world news, and smart event triggering that complements the vanilla storyteller.</description>

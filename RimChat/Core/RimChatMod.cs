@@ -47,13 +47,20 @@ namespace RimChat.Core
             LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
 
             DLCCompatibility.LogDLCStatus();
-            RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor("relations", "RimAI.Relations"));
+            RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor(
+                "relations",
+                "RimAI.Communication.Relations",
+                "RimAI.Communication.Relations",
+                "Communication",
+                "RimAI.Communication"));
             RimAISettingsContributionRegistry.Current.Register(new DelegateSettingsContributor(
                 "relations",
                 "Relations",
                 RimAISettingsSection.Module,
                 20,
-                listing => DrawCoreRelationsSummary((Listing_Standard)listing)));
+                listing => DrawCoreRelationsSummary((Listing_Standard)listing),
+                "communication",
+                "relations"));
             Log.Message("[RimChat] Mod initialized successfully.");
         }
 
@@ -87,11 +94,12 @@ namespace RimChat.Core
 
         public override string SettingsCategory()
         {
-            return Content?.Name ?? "RimAI.Relations";
+            return Content?.Name ?? "RimAI.Communication.Relations";
         }
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
+            RimAISettingsNavigation.Open("communication", "relations");
             bool workbenchActive = Settings.selectedTab == 2;
             ResizeSettingsWindowForWorkbench(workbenchActive);
 
