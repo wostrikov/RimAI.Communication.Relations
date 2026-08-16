@@ -596,7 +596,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             UseSharedGameplayCredential = true,
                             PrebuiltJson = jsonBody,
                             TimeoutMs = requestTimeoutSeconds * 1000,
-                            Caller = "relations"
+                            Caller = "relations",
+                            Arbitration = new AiRequestMetadata(
+                                moduleId: "relations",
+                                requestKind: debugSource.ToString(),
+                                priority: ResolveRequestPriority(debugSource) == AIRequestPriority.Interactive
+                                    ? AiRequestPriority.PlayerBlocking
+                                    : AiRequestPriority.Background,
+                                caller: "relations")
                         };
                         ThreadPool.QueueUserWorkItem(_ =>
                         {
