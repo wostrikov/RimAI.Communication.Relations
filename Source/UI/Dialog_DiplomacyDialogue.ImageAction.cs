@@ -8,9 +8,10 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {

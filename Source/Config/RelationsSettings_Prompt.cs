@@ -10,6 +10,8 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.UI;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {

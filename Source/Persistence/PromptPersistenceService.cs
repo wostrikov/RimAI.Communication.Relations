@@ -14,14 +14,17 @@ using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Relation;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Guards;
 using Ustas.RimAI.Communication.Relations.WorldState;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Prompting.Builders;
+using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
-    public partial class PromptPersistenceService : IPromptPersistenceService
+    public partial class PromptPersistenceService : IPromptConfigStore, Prompting.IRelationsPromptBuilder
     {
         private static PromptPersistenceService _instance;
         public static PromptPersistenceService Instance
@@ -411,15 +414,6 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                     if (domainValidationErrors != null && domainValidationErrors.Count > 0)
                     {
                         migrationFixes.Add("domain_validation=" + string.Join("|", domainValidationErrors));
-                    }
-
-                    if (saveRepairsWhenNeeded)
-                    {
-                        string backupDirectory = BackupPromptCustomDirectory();
-                        if (!string.IsNullOrWhiteSpace(backupDirectory))
-                        {
-                            migrationFixes.Add("backup=" + backupDirectory);
-                        }
                     }
 
                     needsDomainSave = true;
@@ -2012,50 +2006,6 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             catch
             {
                 return HasAnyCustomDomainFile();
-            }
-        }
-
-        private string BackupPromptCustomDirectory()
-        {
-            try
-            {
-                string sourceDir = BasePath;
-                if (string.IsNullOrWhiteSpace(sourceDir) || !Directory.Exists(sourceDir))
-                {
-                    return string.Empty;
-                }
-
-                string[] sourceFiles = EnumeratePromptDomainCustomOverridePaths()
-                    .Where(File.Exists)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToArray();
-                if (sourceFiles.Length == 0)
-                {
-                    return string.Empty;
-                }
-
-                string backupRoot = Path.Combine(sourceDir, "_backup");
-                string backupDir = Path.Combine(backupRoot, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-                Directory.CreateDirectory(backupDir);
-                foreach (string filePath in sourceFiles)
-                {
-                    string fileName = Path.GetFileName(filePath);
-                    if (string.IsNullOrWhiteSpace(fileName))
-                    {
-                        continue;
-                    }
-
-                    string targetPath = Path.Combine(backupDir, fileName);
-                    File.Copy(filePath, targetPath, overwrite: true);
-                }
-
-                Log.Message("[RimAI.Relations] Backed up prompt custom overrides to: " + backupDir);
-                return backupDir;
-            }
-            catch (Exception ex)
-            {
-                Log.Warning("[RimAI.Relations] Failed to backup prompt custom overrides: " + ex.Message);
-                return string.Empty;
             }
         }
 

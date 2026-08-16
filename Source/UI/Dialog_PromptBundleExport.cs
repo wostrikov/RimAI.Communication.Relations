@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {

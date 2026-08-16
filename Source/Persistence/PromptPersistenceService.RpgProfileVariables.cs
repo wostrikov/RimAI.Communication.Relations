@@ -5,6 +5,7 @@ using System.Text;
 using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {

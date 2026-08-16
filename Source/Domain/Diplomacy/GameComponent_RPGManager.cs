@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Ustas.RimAI.Communication.Relations.Dialogue;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.WorldState;
 
@@ -343,7 +343,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return;
             }
 
-            if (!PawnDialogueRoutingPolicy.IsRimTalkPersonaSyncEligible(pawn))
+            if (!PawnDialogueRoutingPolicy.IsPersonaSyncEligible(pawn))
             {
                 DebugLogger.Debug(
                     $"Skip RimTalk persona sync: pawn '{pawn.LabelShortCap}' lacks persona sync capability.");

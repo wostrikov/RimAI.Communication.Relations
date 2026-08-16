@@ -7,6 +7,7 @@ using Ustas.RimAI.Communication.Relations.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {

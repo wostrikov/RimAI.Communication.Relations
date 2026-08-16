@@ -9,11 +9,13 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Persistence;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
 
 namespace Ustas.RimAI.Communication.Relations.NpcDialogue
 {

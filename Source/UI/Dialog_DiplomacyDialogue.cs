@@ -12,11 +12,12 @@ using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Guards;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using System.Text;
 using System.IO;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -2916,7 +2917,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             var chatMessages = new List<ChatMessageData>();
 
             string systemPrompt;
-            using (Persistence.ExpandMemoryMatchContext.Push(playerMessage))
+            using (Context.ExpandMemoryMatchContext.Push(playerMessage))
             {
                 systemPrompt = BuildSystemPrompt();
             }

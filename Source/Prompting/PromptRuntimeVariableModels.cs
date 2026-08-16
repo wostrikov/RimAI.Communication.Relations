@@ -1,5 +1,6 @@
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {

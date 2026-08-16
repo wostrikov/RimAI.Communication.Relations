@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.Memory;
-using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -388,8 +387,8 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 case "ReduceWill": if (t?.guest != null && t.IsPrisoner && action.amount > 0) { t.guest.will = Mathf.Max(0f, t.guest.will - action.amount); AddActionFeedback("RimChat_DragMenu_ReduceWill".Translate() + " → " + n, FeedbackSuccess); } break;
                 case "GrantInspiration": if (t?.mindState?.inspirationHandler != null) { var defs = DefDatabase<InspirationDef>.AllDefsListForReading; if (defs != null && defs.Count > 0) { t.mindState.inspirationHandler.TryStartInspiration(defs.RandomElement()); AddActionFeedback("RimChat_DragMenu_Inspiration".Translate() + " → " + n, FeedbackSuccess); } } break;
                 case "TriggerIncident": { var iDef = DefDatabase<IncidentDef>.GetNamedSilentFail(action?.defName); Map m = t?.MapHeld ?? Find.CurrentMap; if (iDef != null && m != null) { var ip = StorytellerUtility.DefaultParmsNow(iDef.category, m); ip.faction = t?.Faction; if (action.amount > 0) ip.points = action.amount; iDef.Worker.TryExecute(ip); AddActionFeedback("RimChat_DragMenu_Incident".Translate() + " → " + n, FeedbackSuccess); } } break;
-                case "ConvertIdeology": if (DLCCompatibility.IsIdeologyActive && t?.ideo != null && initiator?.ideo != null) { t.ideo.SetIdeo(initiator.Ideo); AddActionFeedback("RimChat_DragMenu_ConvertIdeo".Translate() + " → " + n, FeedbackSuccess); } break;
-                case "AdjustCertainty": if (DLCCompatibility.IsIdeologyActive && t?.ideo != null && action.amount != 0) { t.ideo.OffsetCertainty(action.amount); AddActionFeedback("RimChat_DragMenu_AdjCertainty".Translate() + " → " + n, FeedbackSuccess); } break;
+                case "ConvertIdeology": if (ModsConfig.IdeologyActive && t?.ideo != null && initiator?.ideo != null) { t.ideo.SetIdeo(initiator.Ideo); AddActionFeedback("RimChat_DragMenu_ConvertIdeo".Translate() + " → " + n, FeedbackSuccess); } break;
+                case "AdjustCertainty": if (ModsConfig.IdeologyActive && t?.ideo != null && action.amount != 0) { t.ideo.OffsetCertainty(action.amount); AddActionFeedback("RimChat_DragMenu_AdjCertainty".Translate() + " → " + n, FeedbackSuccess); } break;
             }
         }
     }

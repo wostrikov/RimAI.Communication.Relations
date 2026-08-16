@@ -348,7 +348,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public bool RPGInjectFactionInfo = true;
 
         // Prompt editing state
-        private string editingSystemPrompt = "";
 
         public void ResolveRaidPointTuning(Faction faction, out float multiplier, out float minRaidPoints)
         {
@@ -370,12 +369,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
             multiplier = RaidPointsFactionOverride.ClampMultiplier(entry.RaidPointsMultiplier);
             minRaidPoints = RaidPointsFactionOverride.ClampMinPoints(entry.MinRaidPoints);
         }
-        private string editingDialoguePrompt = "";
         private Vector2 globalPromptScrollPosition = Vector2.zero;
 
         // Enhanced TextArea components
-        private EnhancedTextArea systemPromptTextArea;
-        private EnhancedTextArea dialoguePromptTextArea;
         private EnhancedTextArea factionPromptTextArea;
 
         // Tab Settings
@@ -3016,157 +3012,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 return false;
             }
         }
-
-        #region Global Prompt Settings
-
-        /// <summary>/// 娴犲侗rompt閺傚洣娆㈤崝鐘烘祰姒涙顓婚幓鎰仛鐠囧稄绱欐俊鍌涚亯鐠佸墽鐤嗘稉顓濊礋缁岀尨绱?
- ///</summary>
-        private void LoadDefaultPromptsIfNeeded()
-        {
-            // 閸欘亜婀拋鍓х枂娑撹櫣鈹栭弮鏈电矤閺傚洣娆㈤崝鐘烘祰
-            if (string.IsNullOrEmpty(GlobalSystemPrompt))
-            {
-                var promptConfig = PromptFileManager.LoadGlobalPrompt();
-                if (promptConfig != null)
-                {
-                    if (!string.IsNullOrEmpty(promptConfig.SystemPrompt))
-                    {
-                        GlobalSystemPrompt = promptConfig.SystemPrompt;
-                        Log.Message("[RimAI.Relations] Loaded global system prompt from file.");
-                    }
-                    if (!string.IsNullOrEmpty(promptConfig.DialoguePrompt))
-                    {
-                        GlobalDialoguePrompt = promptConfig.DialoguePrompt;
-                        Log.Message("[RimAI.Relations] Loaded global dialogue prompt from file.");
-                    }
-                }
-            }
-        }
-
-        /// <summary>/// 娣囨繂鐡ㄩ崗銊ョ湰閹绘劗銇氱拠宥呭煂閺傚洣娆?
- ///</summary>
-        private void SaveGlobalPromptsToFile()
-        {
-            var config = new PromptConfig
-            {
-                Name = "Global",
-                SystemPrompt = GlobalSystemPrompt,
-                DialoguePrompt = GlobalDialoguePrompt,
-                Enabled = true,
-                FactionId = ""
-            };
-            PromptFileManager.SaveGlobalPrompt(config);
-        }
-
-        /// <summary>/// 缂佹ê鍩楅崗銊ョ湰閹绘劗銇氱拠宥堫啎缂冾喖灏崺? ///</summary>
-        private void DrawGlobalPromptSettingsSection(Listing_Standard listing)
-        {
-            listing.Label("RimChat_GlobalPromptSettings".Translate());
-            listing.GapLine();
-
-            Text.Font = GameFont.Tiny;
-            GUI.color = Color.gray;
-            Rect descRect = listing.GetRect(Text.LineHeight);
-            Widgets.Label(descRect, "RimChat_GlobalPromptSettingsDesc".Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
-            listing.Gap(5f);
-
-            // 娴犲侗rompt閺傚洣娆㈤崝鐘烘祰姒涙顓婚幓鎰仛鐠囧稄绱欐俊鍌涚亯鐠佸墽鐤嗘稉顓濊礋缁岀尨绱?
-            LoadDefaultPromptsIfNeeded();
-
-            if (string.IsNullOrEmpty(editingSystemPrompt) && !string.IsNullOrEmpty(GlobalSystemPrompt))
-            {
-                editingSystemPrompt = GlobalSystemPrompt;
-            }
-            if (string.IsNullOrEmpty(editingDialoguePrompt) && !string.IsNullOrEmpty(GlobalDialoguePrompt))
-            {
-                editingDialoguePrompt = GlobalDialoguePrompt;
-            }
-
-            if (systemPromptTextArea == null)
-            {
-                systemPromptTextArea = new EnhancedTextArea("SystemPromptTextArea", int.MaxValue);
-                systemPromptTextArea.Text = editingSystemPrompt;
-                systemPromptTextArea.OnTextChanged += (newText) => editingSystemPrompt = newText;
-            }
-            if (dialoguePromptTextArea == null)
-            {
-                dialoguePromptTextArea = new EnhancedTextArea("DialoguePromptTextArea", MaxDialoguePromptLength);
-                dialoguePromptTextArea.Text = editingDialoguePrompt;
-                dialoguePromptTextArea.OnTextChanged += (newText) => editingDialoguePrompt = newText;
-            }
-
-            systemPromptTextArea.MaxLength = int.MaxValue;
-            dialoguePromptTextArea.MaxLength = MaxDialoguePromptLength;
-
-            Rect sysLabelRect = listing.GetRect(24f);
-            Widgets.Label(sysLabelRect, "RimChat_SystemPromptLabel".Translate());
-            if (Mouse.IsOver(sysLabelRect))
-            {
-                TooltipHandler.TipRegion(sysLabelRect, "RimChat_SystemPromptDesc".Translate());
-            }
-
-            float sysTextHeight = 120f;
-            Rect sysTextRect = listing.GetRect(sysTextHeight);
-            systemPromptTextArea.Draw(sysTextRect);
-            editingSystemPrompt = systemPromptTextArea.Text;
-
-            listing.Gap(5f);
-
-            Rect dlgLabelRect = listing.GetRect(24f);
-            Widgets.Label(dlgLabelRect, "RimChat_DialoguePromptLabel".Translate());
-            if (Mouse.IsOver(dlgLabelRect))
-            {
-                TooltipHandler.TipRegion(dlgLabelRect, "RimChat_DialoguePromptDesc".Translate());
-            }
-
-            float dlgTextHeight = 120f;
-            Rect dlgTextRect = listing.GetRect(dlgTextHeight);
-            dialoguePromptTextArea.Draw(dlgTextRect);
-            editingDialoguePrompt = dialoguePromptTextArea.Text;
-
-            listing.Gap(10f);
-
-            // 娣囨繂鐡ㄩ幐澶愭尦
-            Rect saveRect = listing.GetRect(28f);
-            bool canSave = !systemPromptTextArea.HasExceededLimit && !dialoguePromptTextArea.HasExceededLimit;
-            GUI.color = canSave ? new Color(0.3f, 0.8f, 0.3f) : Color.gray;
-            if (Widgets.ButtonText(saveRect, "RimChat_SavePrompt".Translate()) && canSave)
-            {
-                GlobalSystemPrompt = editingSystemPrompt;
-                GlobalDialoguePrompt = editingDialoguePrompt;
-                // 閸氬本妞傛穱婵嗙摠閸掔増鏋冩禒? SaveGlobalPromptsToFile();
-                Messages.Message("RimChat_PromptSaved".Translate(), MessageTypeDefOf.NeutralEvent, false);
-            }
-            GUI.color = Color.white;
-        }
-
-        /// <summary>/// 缂佹ê鍩楅幓鎰仛鐠囧秹鏆辨惔锕傛閸掓儼顔曠純顔煎隘閸? ///</summary>
-        private void DrawPromptLengthLimitSection(Listing_Standard listing)
-        {
-            listing.Label("RimChat_PromptLengthLimit".Translate());
-            listing.GapLine();
-
-            listing.Label("RimChat_MaxSystemPromptLength".Translate(MaxSystemPromptLength));
-            MaxSystemPromptLength = (int)listing.Slider(MaxSystemPromptLength, 500, 4000);
-
-            listing.Label("RimChat_MaxDialoguePromptLength".Translate(MaxDialoguePromptLength));
-            MaxDialoguePromptLength = (int)listing.Slider(MaxDialoguePromptLength, 500, 4000);
-
-            listing.Label("RimChat_MaxPromptLength".Translate(MaxFactionPromptLength));
-            MaxFactionPromptLength = (int)listing.Slider(MaxFactionPromptLength, 1000, 8000);
-
-            // 鐠€锕€鎲￠幓鎰仛
-            Text.Font = GameFont.Tiny;
-            GUI.color = Color.yellow;
-            Rect warningRect = listing.GetRect(Text.LineHeight);
-            Widgets.Label(warningRect, "RimChat_PromptLengthWarning".Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
-        }
-
-        #endregion
 
         #region Faction Prompt Settings (New)
 

@@ -9,7 +9,7 @@ using Ustas.RimAI.Communication.Relations.NpcDialogue;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.UI;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using RimWorld;
 using Verse;
 

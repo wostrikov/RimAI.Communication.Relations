@@ -11,6 +11,7 @@ using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {

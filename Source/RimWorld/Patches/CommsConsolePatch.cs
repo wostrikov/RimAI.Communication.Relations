@@ -8,7 +8,7 @@ using Verse;
 using Verse.AI;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Dialogue;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.UI;
 
 namespace Ustas.RimAI.Communication.Relations.Patches

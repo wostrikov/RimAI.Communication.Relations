@@ -5,6 +5,7 @@ using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Ustas.RimAI.Communication.Relations.Module;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Core.Storage;
 using Verse;
 using RimWorld;
 

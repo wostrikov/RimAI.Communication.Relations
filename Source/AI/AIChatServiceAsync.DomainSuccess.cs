@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.Dialogue;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.AI

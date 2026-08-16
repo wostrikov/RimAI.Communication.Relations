@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ustas.RimAI.Communication.Relations.Memory;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Guards;
 using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using RimWorld.Planet;

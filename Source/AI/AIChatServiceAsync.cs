@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Config;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Core.AI;
@@ -2308,7 +2308,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         private string EscapeJson(string str)
         {
-            return Ustas.RimAI.Communication.Relations.Util.JsonEscapeHelper.EscapeString(str);
+            return Ustas.RimAI.Core.AI.JsonStringCodec.Escape(str);
         }
 
         public bool IsConfigured()

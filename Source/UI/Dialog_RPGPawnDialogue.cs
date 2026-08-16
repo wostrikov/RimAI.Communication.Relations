@@ -7,7 +7,6 @@ using Verse;
 using Verse.Sound;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Config;
-using Ustas.RimAI.Communication.Relations.Util;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Dialogue;

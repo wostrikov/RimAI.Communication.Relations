@@ -602,7 +602,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         private static string EscapeJson(string value)
         {
-            return Ustas.RimAI.Communication.Relations.Util.JsonEscapeHelper.EscapeString(value);
+            return Ustas.RimAI.Core.AI.JsonStringCodec.Escape(value);
         }
 
         private static string ExtractJsonString(string json, string key)

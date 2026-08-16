@@ -8,7 +8,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Memory;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -581,7 +581,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         private bool ExecuteConvertIdeology(LLMRpgApiResponse.ApiAction action)
         {
-            if (!DLCCompatibility.IsIdeologyActive)
+            if (!ModsConfig.IdeologyActive)
             {
                 NotifyActionFailure("ConvertIdeology", "RimChat_RPGActionFail_IdeologyDLCRequired".Translate());
                 return false;
@@ -611,7 +611,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         private bool ExecuteAdjustCertainty(LLMRpgApiResponse.ApiAction action)
         {
-            if (!DLCCompatibility.IsIdeologyActive)
+            if (!ModsConfig.IdeologyActive)
             {
                 NotifyActionFailure("AdjustCertainty", "RimChat_RPGActionFail_IdeologyDLCRequired".Translate());
                 return false;

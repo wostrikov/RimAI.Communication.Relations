@@ -11,7 +11,6 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Comp;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Prompting;
-using Ustas.RimAI.Communication.Relations.Util;
 using Ustas.RimAI.Core.Modules;
 using Ustas.RimAI.Core.Relations;
 
@@ -47,7 +46,6 @@ namespace Ustas.RimAI.Communication.Relations.Module
             // Inject CompPawnDialogue to all eligible pawn ThingDefs after all defs are loaded
             LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
 
-            DLCCompatibility.LogDLCStatus();
             RelationsApplicationAccess.Register(new RelationsApplication());
             RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor(
                 "relations",

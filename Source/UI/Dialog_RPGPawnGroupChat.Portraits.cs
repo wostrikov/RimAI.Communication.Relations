@@ -183,7 +183,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }
             if (targetPawn.Faction != Faction.OfPlayer)
                 AddMenuOption(options, "RimChat_DragMenu_Recruit", "Recruit", targetPawn);
-            if (Util.DLCCompatibility.IsIdeologyActive && targetPawn?.ideo != null)
+            if (ModsConfig.IdeologyActive && targetPawn?.ideo != null)
             {
                 AddMenuOption(options, "RimChat_DragMenu_ConvertIdeo", "ConvertIdeology", targetPawn);
                 AddMenuOption(options, "RimChat_DragMenu_AdjCertainty", "AdjustCertainty", targetPawn);

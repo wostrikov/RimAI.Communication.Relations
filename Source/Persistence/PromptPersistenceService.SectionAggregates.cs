@@ -5,6 +5,7 @@ using System.Text;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {

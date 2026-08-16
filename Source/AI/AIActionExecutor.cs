@@ -8,7 +8,6 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Relation;
-using Ustas.RimAI.Communication.Relations.Util;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {

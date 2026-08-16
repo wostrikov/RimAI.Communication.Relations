@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Communication.Relations.Guards;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
@@ -354,9 +355,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             {
                 string factionId = Faction?.GetUniqueLoadID() ?? string.Empty;
                 Scribe_Values.Look(ref factionId, "factionId", string.Empty);
-                // Remove legacy <faction> reference node from old saves without registering
-                // in CrossRefHandler — prevents "Not all loadIDs consumed" on dead factions.
-                LegacyScribeHelper.RemoveLegacyReferenceNode("faction");
                 if (Scribe.mode == LoadSaveMode.PostLoadInit)
                 {
                     if (!string.IsNullOrEmpty(factionId))

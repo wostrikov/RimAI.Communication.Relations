@@ -1,5 +1,4 @@
 using System.Linq;
-using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 
@@ -110,9 +109,6 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
         {
             string factionId = faction?.GetUniqueLoadID() ?? string.Empty;
             Scribe_Values.Look(ref factionId, "factionId", string.Empty);
-            // Remove legacy <faction> reference node from old saves without registering
-            // in CrossRefHandler — prevents "Not all loadIDs consumed" on dead factions.
-            LegacyScribeHelper.RemoveLegacyReferenceNode("faction");
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (!string.IsNullOrEmpty(factionId))
@@ -153,9 +149,6 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
         {
             string pushFactionId = faction?.GetUniqueLoadID() ?? string.Empty;
             Scribe_Values.Look(ref pushFactionId, "factionId", string.Empty);
-            // Remove legacy <faction> reference node from old saves without registering
-            // in CrossRefHandler — prevents "Not all loadIDs consumed" on dead factions.
-            LegacyScribeHelper.RemoveLegacyReferenceNode("faction");
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (!string.IsNullOrEmpty(pushFactionId))

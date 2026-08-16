@@ -9,9 +9,10 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -641,7 +642,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                    pawn.Faction == Faction.OfPlayer &&
                    !pawn.Dead &&
                    !pawn.Destroyed &&
-                   PawnDialogueRoutingPolicy.IsRimTalkPersonaSyncEligible(pawn);
+                   PawnDialogueRoutingPolicy.IsPersonaSyncEligible(pawn);
         }
 
         private static bool CanCopyPawnPersonaFromRimTalk(Pawn pawn)

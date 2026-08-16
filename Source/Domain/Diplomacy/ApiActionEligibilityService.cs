@@ -4,7 +4,6 @@ using System.Linq;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Relation;
-using Ustas.RimAI.Communication.Relations.Util;
 using Ustas.RimAI.Communication.Relations.WorldState;
 using RimWorld;
 using Verse;
@@ -737,7 +736,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     break;
 
                 case "AncientComplex_Mission":
-                    if (!DLCCompatibility.IsIdeologyActive)
+                    if (!ModsConfig.IdeologyActive)
                     {
                         code = "ideology_required";
                         message = $"Quest '{questDefName}' requires Ideology DLC.";
@@ -752,7 +751,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     break;
 
                 case "Mission_BanditCamp":
-                    if (!DLCCompatibility.IsRoyaltyActive)
+                    if (!ModsConfig.RoyaltyActive)
                     {
                         code = "royalty_required";
                         message = $"Quest '{questDefName}' requires Royalty DLC.";
@@ -767,7 +766,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     break;
 
                 case "PawnLend":
-                    if (!DLCCompatibility.IsRoyaltyActive)
+                    if (!ModsConfig.RoyaltyActive)
                     {
                         code = "royalty_required";
                         message = $"Quest '{questDefName}' requires Royalty DLC.";
@@ -803,7 +802,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 case "ThreatReward_Raid_MiscReward":
                 case "Hospitality_Refugee":
                 case "BestowingCeremony":
-                    if (!DLCCompatibility.IsRoyaltyActive)
+                    if (!ModsConfig.RoyaltyActive)
                     {
                         code = "royalty_required";
                         message = $"Quest '{questDefName}' requires Royalty DLC.";

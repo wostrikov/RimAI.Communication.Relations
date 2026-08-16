@@ -5,6 +5,8 @@ using System.Linq;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {

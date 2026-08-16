@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Ustas.RimAI.Communication.Relations.Config;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
@@ -14,7 +14,6 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
     public sealed class PromptFileStampCache : IDisposable
     {
         private const int CacheValidityTicks = 1500; // ~25 seconds at 60fps
-        private const string LegacySubFolderName = ".legacy";
 
         private long cachedStamp = -1;
         private int cachedAtTick = -1;
@@ -25,7 +24,6 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         public PromptFileStampCache()
         {
             BuildTrackedPathSet();
-            CleanupLegacyCustomFiles();
             TryInitializeWatcher();
         }
 
@@ -86,64 +84,6 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 {
                     trackedFilePaths.Add(Path.GetFullPath(path));
                 }
-            }
-        }
-
-        private void CleanupLegacyCustomFiles()
-        {
-            try
-            {
-                string customDir = Path.GetDirectoryName(
-                    PromptDomainFileCatalog.GetCustomPath(PromptDomainFileCatalog.SystemPromptCustomFileName));
-                if (string.IsNullOrWhiteSpace(customDir) || !Directory.Exists(customDir))
-                {
-                    return;
-                }
-
-                var legacyFiles = new List<string>();
-                foreach (string filePath in Directory.GetFiles(customDir, "*.json", SearchOption.TopDirectoryOnly))
-                {
-                    string fullPath = Path.GetFullPath(filePath);
-                    if (!trackedFilePaths.Contains(fullPath))
-                    {
-                        legacyFiles.Add(filePath);
-                    }
-                }
-
-                if (legacyFiles.Count == 0)
-                {
-                    return;
-                }
-
-                string legacyDir = Path.Combine(customDir, LegacySubFolderName);
-                if (!Directory.Exists(legacyDir))
-                {
-                    Directory.CreateDirectory(legacyDir);
-                }
-
-                foreach (string filePath in legacyFiles)
-                {
-                    string fileName = Path.GetFileName(filePath);
-                    string destPath = Path.Combine(legacyDir, fileName);
-                    try
-                    {
-                        if (File.Exists(destPath))
-                        {
-                            File.Delete(destPath);
-                        }
-
-                        File.Move(filePath, destPath);
-                        Log.Message($"[RimAI.Relations] PromptFileStampCache: moved legacy config file '{fileName}' to .legacy/");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning($"[RimAI.Relations] PromptFileStampCache: failed to move legacy file '{fileName}': {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"[RimAI.Relations] PromptFileStampCache: legacy cleanup failed: {ex.Message}");
             }
         }
 

@@ -1,5 +1,4 @@
 using Ustas.RimAI.Communication.Relations.NpcDialogue;
-using Ustas.RimAI.Communication.Relations.Util;
 using RimWorld;
 using Verse;
 using System.Linq;
@@ -79,9 +78,6 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
         {
             string factionId = faction?.GetUniqueLoadID() ?? string.Empty;
             Scribe_Values.Look(ref factionId, "factionId", string.Empty);
-            // Remove legacy <faction> reference node from old saves without registering
-            // in CrossRefHandler — prevents "Not all loadIDs consumed" on dead factions.
-            LegacyScribeHelper.RemoveLegacyReferenceNode("faction");
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (!string.IsNullOrEmpty(factionId))
@@ -120,9 +116,6 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             }
 
             Scribe_Values.Look(ref pawnThingId, "pawnThingId", -1);
-            // Remove legacy <pawn> reference node from old saves without registering
-            // in CrossRefHandler — prevents "Not all loadIDs consumed" on destroyed pawns.
-            LegacyScribeHelper.RemoveLegacyReferenceNode("pawn");
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (pawnThingId > 0 && (pawn == null || pawn.Destroyed || pawn.Dead))
@@ -148,9 +141,6 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
         {
             string factionId = faction?.GetUniqueLoadID() ?? string.Empty;
             Scribe_Values.Look(ref factionId, "factionId", string.Empty);
-            // Remove legacy <faction> reference node from old saves without registering
-            // in CrossRefHandler — prevents "Not all loadIDs consumed" on dead factions.
-            LegacyScribeHelper.RemoveLegacyReferenceNode("faction");
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (!string.IsNullOrEmpty(factionId))
@@ -213,9 +203,6 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             }
 
             Scribe_Values.Look(ref pawnThingId, "pawnThingId", -1);
-            // Remove legacy <pawn> reference node from old saves without registering
-            // in CrossRefHandler — prevents "Not all loadIDs consumed" on destroyed pawns.
-            LegacyScribeHelper.RemoveLegacyReferenceNode("pawn");
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {

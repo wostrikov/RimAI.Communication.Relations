@@ -8,7 +8,8 @@ using System.Text;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Guards;
+using Ustas.RimAI.Core.Storage;
 using RimWorld;
 using Verse;
 

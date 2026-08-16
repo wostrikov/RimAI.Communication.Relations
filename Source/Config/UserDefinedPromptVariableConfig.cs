@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {

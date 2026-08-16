@@ -6,7 +6,8 @@ using Verse;
 using Verse.AI.Group;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Communication.Relations.Guards;
 using UnityEngine;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem

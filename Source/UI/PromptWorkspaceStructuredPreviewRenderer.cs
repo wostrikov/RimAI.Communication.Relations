@@ -4,6 +4,7 @@ using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {

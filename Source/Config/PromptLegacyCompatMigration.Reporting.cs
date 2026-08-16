@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {

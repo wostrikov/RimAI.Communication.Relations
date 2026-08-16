@@ -6,10 +6,11 @@ using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Prompting;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -76,7 +77,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
                 if (rootChannel == RimTalkPromptChannel.Rpg &&
                     !deterministicPreview &&
-                    RimTalkNativeRpgPromptRenderer.TryRenderRpgPrompt(
+                    NativeRpgPromptRenderer.TryRenderRpgPrompt(
                         prompt,
                         composed?.PromptChannel ?? promptChannel,
                         scenarioContext,
@@ -102,12 +103,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 if (rootChannel == RimTalkPromptChannel.Diplomacy &&
                     !deterministicPreview)
                 {
-                    bool diplomacyRenderSucceeded = RimTalkNativeRpgPromptRenderer.TryRenderDiplomacyPrompt(
+                    bool diplomacyRenderSucceeded = NativeRpgPromptRenderer.TryRenderDiplomacyPrompt(
                         prompt,
                         composed?.PromptChannel ?? promptChannel,
                         scenarioContext,
                         out string diplomacyRendered,
-                        out RimTalkNativeRenderDiagnostic diagnostic);
+                        out NativeRenderDiagnostic diagnostic);
                     if (diplomacyRenderSucceeded)
                     {
                         prompt = diplomacyRendered;
@@ -118,7 +119,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                         string message = string.IsNullOrWhiteSpace(diagnostic.ErrorMessage)
                             ? "social_circle_post native RimTalk render compatibility failed."
                             : diagnostic.ErrorMessage;
-                        throw new RimTalkPromptRenderCompatibilityException(message, diagnostic);
+                        throw new PromptRenderCompatibilityException(message, diagnostic);
                     }
                 }
 

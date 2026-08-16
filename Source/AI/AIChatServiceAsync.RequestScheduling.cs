@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Ustas.RimAI.Communication.Relations.Util;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using UnityEngine.Networking;
 using Verse;
 

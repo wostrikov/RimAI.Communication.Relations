@@ -8,6 +8,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {

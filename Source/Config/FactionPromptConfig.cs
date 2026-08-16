@@ -48,7 +48,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
     /// <summary>/// faction Prompt configuration
  /// 定义单个faction的 LLM dialogue风格和behavior特征
  ///</summary>
-    [Obsolete("Use PromptTemplatePreset with flat PromptTemplateEntry list instead. Migration available via PromptEntryMigrationService.")]
+    [Obsolete("Use PromptTemplatePreset with flat PromptTemplateEntry list instead. Retained only for in-memory reads of legacy preset shapes.")]
     public class FactionPromptConfig : IExposable
     {
         /// <summary>/// faction defName

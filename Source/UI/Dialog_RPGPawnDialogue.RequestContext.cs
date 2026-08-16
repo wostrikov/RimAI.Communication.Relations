@@ -11,6 +11,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -753,7 +754,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 allowMemoryCompressionScheduling: !openingTurn,
                 allowMemoryColdLoad: !openingTurn,
                 turnCount: GetNpcDialogueRoundCount()))
-            using (Ustas.RimAI.Communication.Relations.Persistence.ExpandMemoryMatchContext.Push(currentTurnUserIntent))
+            using (Ustas.RimAI.Communication.Relations.Context.ExpandMemoryMatchContext.Push(currentTurnUserIntent))
             {
                 prompt = Ustas.RimAI.Communication.Relations.Persistence.PromptPersistenceService.Instance.BuildRPGFullSystemPrompt(
                     initiator,

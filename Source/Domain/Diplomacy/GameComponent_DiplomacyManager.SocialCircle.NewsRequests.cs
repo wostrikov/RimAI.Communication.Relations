@@ -7,6 +7,8 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -200,9 +202,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 failureReason = SocialPostEnqueueFailureReason.PromptRenderIncompatible;
                 return false;
             }
-            catch (RimTalkPromptRenderCompatibilityException ex)
+            catch (PromptRenderCompatibilityException ex)
             {
-                RimTalkNativeRenderDiagnostic diagnostic = ex.Diagnostic;
+                NativeRenderDiagnostic diagnostic = ex.Diagnostic;
                 Log.Warning(
                     "[RimAI.Relations] Social news render fail-fast. " +
                     $"requestId=not_dispatched, debugSource={AIRequestDebugSource.SocialNews}, stage=render_failfast, " +
