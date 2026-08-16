@@ -1,119 +1,119 @@
-# RimChat Diplomacy Action Reference
+# RimChat Довідник дипломатичних дій
 
-This document summarizes **all diplomacy actions that can currently be triggered** in the RimChat communication flow.
+Цей документ містить огляд **усіх дипломатичних дій, які наразі можна активувати** в комунікаційному процесі RimChat.
 
-Notes:
+Примітки:
 
-- “Triggerable” does not mean an action will always succeed. Most actions are still constrained by **relations, cooldowns, online state, feature toggles, runtime eligibility checks, and parameter completeness**.
-- If the AI promises a behavior but the action does not actually trigger, that is not necessarily a code bug. It may be a hallucinated model output. If an action repeatedly fails to trigger, the player should describe the intent in a command / instruction tone, or directly use the action name.
-- Except for quests, there are no valid cross-map behaviors that require map-to-map execution.
-- There are no valid delayed promise semantics such as “I promise I will send it to you tomorrow”; treat that as false if no actual action is triggered.
-- Some actions have limited parameters. For example, quests cannot freely customize rewards and content; only limited quest types are supported. Caravans cannot specify exact goods.
-- Prefer using the action menu when sending information. Compared with freeform natural-language negotiation, action triggering is more stable.
-- The AI cannot recognize items carried by your caravan / expedition / rocket airdrop inventory.
+- «Доступна для активації» не означає, що дія завжди буде успішною. Більшість дій усе ще обмежені **відносинами, затримками відновлення, станом онлайн, перемикачами функцій, перевірками доступності під час виконання та повнотою параметрів**.
+- Якщо AI обіцяє певну поведінку, але дія фактично не активується, це не обов’язково помилка коду. Це може бути галюцинований вивід моделі. Якщо дія неодноразово не активується, гравцеві слід описати намір у тоні команди / інструкції або безпосередньо використати назву дії.
+- За винятком квестів, немає дійсних міжкартикових сценаріїв, які потребують виконання з карти на карту.
+- Не існує коректної семантики відкладених обіцянок, як-от «Я обіцяю, що надішлю це тобі завтра»; вважайте це неправдою, якщо жодна фактична дія не запускається.
+- Деякі дії мають обмежені параметри. Наприклад, не можна довільно налаштовувати нагороди й вміст завдань; підтримуються лише обмежені типи завдань. Для караванів не можна вказувати конкретні товари.
+- Під час надсилання інформації надавайте перевагу використанню меню дій. Порівняно з перемовинами в довільній природній мові, запуск дій є стабільнішим.
+- AI не може розпізнавати предмети, які перевозить ваш караван / експедиція / інвентар повітряного десанту ракети.
 
 ***
 
-## I. Relations and stance
+## I. Відносини та позиція
 
 ### 1. adjust_goodwill
 
-- **Purpose**: adjust the target faction’s goodwill toward the player.
-- **Main parameters**:
-  - `amount` (int, required): goodwill change value.
-  - `reason` (string, optional): the reason for the adjustment.
-- **Requirements / limits**:
-  - This is a direct diplomatic relation-change action.
-  - It is limited by per-faction cooldown.
-  - The code requires `amount` to parse correctly; missing or invalid values fail.
-- **Good fit for**:
-  - Situations where the player clearly shows goodwill, hostility, betrayal, help, insult, and the outcome should land as an actual numeric relation change. The AI may adjust goodwill when appropriate, but the action is not guaranteed to trigger every time.
+- **Мета**: змінити прихильність цільової фракції до гравця.
+- **Основні параметри**:
+  - `amount` (int, обов’язковий): значення зміни прихильності.
+  - `reason` (string, необов’язковий): причина зміни.
+- **Вимоги / обмеження**:
+  - Це пряма дипломатична дія зі зміни відносин.
+  - Вона обмежена затримкою відновлення для кожної фракції.
+  - Код вимагає, щоб `amount` було правильно розібрано; відсутні або некоректні значення призводять до помилки.
+- **Підходить для**:
+  - Ситуацій, у яких гравець чітко виявляє прихильність, ворожість, зраду, допомогу чи образу, а наслідком має стати фактична числова зміна відносин. AI може за потреби змінити прихильність, але дія не обов’язково запускатиметься щоразу.
 
 ### 2. declare_war
 
-- **Purpose**: declare war and move the faction into a hostile / wartime relationship with the player.
-- **Main parameters**:
-  - `reason` (string, optional / recommended): the reason for the declaration.
-- **Requirements / limits**:
-  - Only used when relations have deteriorated enough to justify war.
-- **Good fit for**:
-  - Repeated threats, insults, extortion, or clear escalation into hostility.
+- **Мета**: оголосити війну та перевести фракцію у ворожі / воєнні відносини з гравцем.
+- **Основні параметри**:
+  - `reason` (рядок, необов’язковий / рекомендований): причина оголошення.
+- **Вимоги / обмеження**:
+  - Використовується лише тоді, коли відносини достатньо погіршилися, щоб виправдати війну.
+- **Найкраще підходить для**:
+  - Повторюваних погроз, образ, вимагання або явного загострення відносин до ворожнечі.
 
 ### 3. make_peace
 
-- **Purpose**: offer peace and attempt to end a hostile relationship.
-- **Main parameters**:
-  - `cost` (int, required): peace payment in silver; this enters a player confirmation payment flow.
-- **Requirements / limits**:
-  - Can only be used while the faction is already **at war / hostile**.
-  - By design, it should only be used when the player’s sincerity is high enough.
-  - The action does **not** take effect immediately after the AI calls it; it first opens a confirmation dialog.
-  - If the player confirms, the system deducts the required silver from **tradeable stock / powered orbital trade beacon coverage**, then formally makes peace.
-  - If the player cancels, no silver is deducted, relations do not change, and the peace cooldown is not consumed.
-- **Good fit for**:
-  - Cases where the player actively seeks peace, offers compensation, or otherwise creates a high-sincerity peace window.
+- **Мета**: запропонувати мир і спробувати припинити ворожі відносини.
+- **Основні параметри**:
+  - `cost` (ціле число, обов’язковий): платіж за мир сріблом; це запускає процес підтвердження платежу гравцем.
+- **Вимоги / обмеження**:
+  - Можна використовувати лише тоді, коли фракція вже **перебуває у стані війни / є ворожою**.
+  - За задумом, цю дію слід використовувати лише тоді, коли щирість гравця достатньо висока.
+  - Дія **не набуває чинності** одразу після того, як AI її викликає; спочатку відкривається діалог підтвердження.
+  - Якщо гравець підтверджує, система вилучає потрібну кількість срібла з **товарних запасів / зони покриття ввімкненого орбітального торгового маяка**, а потім офіційно укладає мир.
+  - Якщо гравець скасовує дію, срібло не вилучається, відносини не змінюються, а затримка відновлення миру не витрачається.
+- **Добре підходить для**:
+  - Випадків, коли гравець активно прагне миру, пропонує компенсацію або іншим чином створює вікно для щирої мирної пропозиції.
 
 ***
 
-## II. Support, visits, and trade
+## II. Підтримка, візити й торгівля
 
 ### 4. request_aid
 
-- **Purpose**: request aid.
-- **Main parameters**:
-  - `type` (string, required): `Military` / `Medical` / `Resources`.
-- **Requirements / limits**:
-  - Can only be requested from **allied factions**.
-  - The corresponding goodwill threshold must be met.
-  - Has a per-faction cooldown.
-  - The executor maps `type` to different aid cost categories.
-  - You cannot specify reinforcement count, equipment, or similar extra details.
-- **Good fit for**:
-  - Explicit requests for military support, medical support, or resource support.
+- **Мета**: попросити про допомогу.
+- **Основні параметри**:
+  - `type` (рядок, обов’язковий): `Military` / `Medical` / `Resources`.
+- **Вимоги / обмеження**:
+  - Запитувати можна лише в **союзних фракцій**.
+  - Необхідно досягти відповідного порогу прихильності.
+  - Має затримку відновлення для кожної фракції.
+  - Виконавець зіставляє `type` з різними категоріями вартості допомоги.
+  - Не можна вказувати кількість підкріплення, спорядження чи інші подібні додаткові деталі.
+- **Добре підходить для**:
+  - Явних запитів на військову, медичну або ресурсну підтримку.
 
 ### 5. request_caravan
 
-- **Purpose**: request a trade caravan.
-- **Main parameters**:
-  - `goods` (string, optional): the desired caravan / goods direction.
-    - `General` = general trader
-    - `BulkGoods` = bulk goods trader
-    - `CombatSupplier` = combat supplier
-    - `Exotic` = exotic goods trader
-    - `Slaver` = slaver caravan
-- **Requirements / limits**:
-  - Can only be used while relations are **not hostile**.
-  - Has a per-faction cooldown.
-  - You cannot specify caravan size, exact goods, or similar extra details.
-- **Good fit for**:
-  - Asking a faction to send a caravan, supply team, or trade party.
+- **Призначення**: запросити торговий караван.
+- **Основні параметри**:
+  - `goods` (рядок, необов’язковий): бажаний напрямок каравану / тип товарів.
+    - `General` = загальний торговець
+    - `BulkGoods` = торговець сипучими товарами
+    - `CombatSupplier` = постачальник бойового спорядження
+    - `Exotic` = торговець екзотичними товарами
+    - `Slaver` = караван работорговців
+- **Вимоги / обмеження**:
+  - Можна використовувати лише тоді, коли відносини **не ворожі**.
+  - Має затримку відновлення для кожної фракції.
+  - Не можна вказати розмір каравану, конкретні товари чи подібні додаткові деталі.
+- **Добре підходить для**:
+  - Просити фракцію надіслати караван, загін постачання або торгову групу.
 
 ### 6. request_visitor
 
-- **Purpose**: request a visitor group.
-- **Main parameters**:
-  - No required parameters.
-- **Requirements / limits**:
-  - Can only be used while relations are **not hostile**.
-  - Has a per-faction cooldown.
-  - You cannot specify visitor count or similar extra details.
-- **Good fit for**:
-  - When the player wants envoys, delegates, or visitors sent to the colony.
+- **Призначення**: запросити групу відвідувачів.
+- **Основні параметри**:
+  - Обов’язкових параметрів немає.
+- **Вимоги / обмеження**:
+  - Можна використовувати лише тоді, коли відносини **не є ворожими**.
+  - Для кожної фракції діє окрема затримка відновлення.
+  - Не можна вказати кількість відвідувачів або інші подібні додаткові відомості.
+- **Підходить для**:
+  - Коли гравець хоче, щоб до колонії було надіслано посланців, делегатів або відвідувачів.
 
 ### 7. send_gift
 
-- **Purpose**: send a silver gift to the target faction and improve relations.
-- **Main parameters**:
-  - `silver` (int, required): the amount of silver in the gift.
-  - `goodwill_gain` (int, optional): the expected goodwill gain.
-- **Requirements / limits**:
-  - The current implementation only allows **silver** and does not support other gift items.
-  - The action does **not** execute immediately after the AI calls it; it first opens a confirmation dialog.
-  - If the player confirms, the system deducts the required silver from **tradeable stock / powered orbital trade beacon coverage**, then sends it as a gift and applies the goodwill gain.
-  - If the player cancels, no silver is deducted, no goodwill is gained, and the gift cooldown is not consumed.
-  - If there is not enough valid silver in stock / beacon coverage, the confirmation submit step fails.
-- **Good fit for**:
-  - Friendly outreach, rewards, diplomatic gifts, and goodwill-building gestures.
+- **Мета**: надіслати цільовій фракції подарунок у сріблі та покращити відносини.
+- **Основні параметри**:
+  - `silver` (int, обов’язковий): кількість срібла в подарунку.
+  - `goodwill_gain` (int, необов’язковий): очікуване зростання прихильності.
+- **Вимоги / обмеження**:
+  - Поточна реалізація дозволяє використовувати лише **срібло** й не підтримує інші предмети для подарунків.
+  - Дія **не виконується** одразу після того, як AI викликає її; спочатку відкривається діалогове вікно підтвердження.
+  - Якщо гравець підтверджує, система списує необхідну кількість срібла з **товарного запасу / зони покриття активного орбітального торгового маяка**, потім надсилає його як подарунок і застосовує приріст прихильності.
+  - Якщо гравець скасовує, срібло не списується, прихильність не зростає, а затримка відновлення подарунка не витрачається.
+  - Якщо в запасі / зоні покриття маяка недостатньо придатного срібла, крок надсилання підтвердження завершується невдачею.
+- **Добре підходить для**:
+  - Дружніх контактів, нагород, дипломатичних подарунків і жестів, що зміцнюють прихильність.
 
 ***
 
@@ -121,162 +121,162 @@ Notes:
 
 ### 8. request_raid
 
-- **Purpose**: launch a raid against the player.
-- **Main parameters**:
-  - `strategy` (string): such as `ImmediateAttack`, `ImmediateAttackSmart`, `StageThenAttack`, `ImmediateAttackSappers`, `Siege`.
-  - `arrival` (string): such as `EdgeWalkIn`, `EdgeDrop`, `EdgeWalkInGroups`, `RandomDrop`, `CenterDrop`.
-- **Requirements / limits**:
-  - Can only be used while the faction is **hostile**.
-  - Has a per-faction cooldown.
-  - The parameters are normalized before execution.
-- **Good fit for**:
-  - The player actively provokes, requests open war, or the hostile faction chooses to escalate conflict.
+- **Мета**: розпочати рейд проти гравця.
+- **Основні параметри**:
+  - `strategy` (рядок): наприклад `ImmediateAttack`, `ImmediateAttackSmart`, `StageThenAttack`, `ImmediateAttackSappers`, `Siege`.
+  - `arrival` (рядок): наприклад `EdgeWalkIn`, `EdgeDrop`, `EdgeWalkInGroups`, `RandomDrop`, `CenterDrop`.
+- **Вимоги / обмеження**:
+  - Можна використовувати, лише коли фракція є **ворожою**.
+  - Має затримку відновлення для кожної фракції.
+  - Перед виконанням параметри нормалізуються.
+- **Добре підходить для**:
+  - Гравець активно провокує, просить відкритої війни або ворожа фракція вирішує загострити конфлікт.
 
 ### 9. request_raid_call_everyone
 
-- **Purpose**: launch a cross-faction coordinated joint assault.
-- **Main parameters**:
+- **Мета**: розпочати скоординований спільний штурм кількома фракціями.
+- **Основні параметри**:
   - None.
-- **Requirements / limits**:
-  - This is a high-intensity action and is not just an alias of `request_raid`.
-  - It is limited by **global cooldown** and runtime eligibility checks.
-  - The system attempts to organize multiple related factions into the attack.
-- **Good fit for**:
-  - The player explicitly says things like “call everyone”, “joint raid”, “all in”, or equivalent commands.
-  - May cause participation from multiple factions.
+- **Вимоги / обмеження**:
+  - Це високоінтенсивна дія, а не просто псевдонім `request_raid`.
+  - Вона обмежена **глобальною затримкою відновлення** та перевірками відповідності під час виконання.
+  - Система намагається залучити до атаки кілька пов’язаних фракцій.
+- **Підходить для**:
+  - Гравець прямо каже щось на кшталт «поклич усіх», «спільний рейд», «усі в бій» або віддає еквівалентні накази.
+  - Може спричинити участь кількох фракцій.
 
 ### 10. request_raid_waves
 
-- **Purpose**: launch sustained multi-wave raids.
-- **Main parameters**:
-  - `waves` (int, required, 2-6): number of raid waves.
-- **Requirements / limits**:
-  - Values outside 2-6 fail.
-  - Has a per-faction cooldown.
-  - Limited by runtime eligibility checks.
-- **Good fit for**:
-  - The player explicitly asks for repeated waves, sustained pressure, or a multi-round challenge.
+- **Мета**: розпочати тривалі рейди в кілька хвиль.
+- **Основні параметри**:
+  - `waves` (int, обов’язковий, 2–6): кількість хвиль рейду.
+- **Вимоги / обмеження**:
+  - Значення поза межами 2–6 спричиняють помилку.
+  - Має затримку відновлення для кожної фракції.
+  - Обмежується перевірками доступності під час виконання.
+- **Підходить для**:
+  - Гравець прямо просить повторювані хвилі, тривалий тиск або багатораундове випробування.
 
 ***
 
-## IV. Quests and contracts
+## IV. Завдання та контракти
 
 ### 11. create_quest
 
-- **Purpose**: create a quest / contract.
-- **Main parameters**:
-  - `questDefName` (string, required): the quest template Def name.
-  - `askerFaction` (string, optional): defaults to the current faction.
-  - `points` (int, optional): quest threat points.
-- **Requirements / limits**:
-  - Must use a **valid questDefName from the currently injected approved list**.
-  - Custom no-template quests are forbidden.
-  - Execution is validated by `ApiActionEligibilityService` before it runs.
-  - In some contexts (for example orbital trade communication), certain ground-fulfillment quest types are forbidden.
-  - Detailed quest parameters cannot be freely customized; only limited quest types are supported.
-- **Good fit for**:
-  - When a faction wants to issue a formal quest, contract, bounty, or support request to the player.
+- **Призначення**: створити завдання / контракт.
+- **Основні параметри**:
+  - `questDefName` (рядок, обов’язково): Def-ім’я шаблону завдання.
+  - `askerFaction` (рядок, необов’язково): за замовчуванням — поточна фракція.
+  - `points` (ціле число, необов’язково): очки загрози завдання.
+- **Вимоги / обмеження**:
+  - Потрібно використовувати **дійсне questDefName з поточного впровадженого затвердженого списку**.
+  - Користувацькі завдання без шаблону заборонені.
+  - Перед виконанням `ApiActionEligibilityService` перевіряє виконання.
+  - У деяких контекстах (наприклад, під час орбітального торговельного зв’язку) певні типи завдань із виконанням на поверхні заборонені.
+  - Детальні параметри завдання не можна довільно налаштовувати; підтримуються лише обмежені типи завдань.
+- **Добре підходить для**:
+  - Коли фракція хоче надіслати гравцеві офіційний квест, контракт, запит на винагороду або запит про підтримку.
 
 ### 12. request_info
 
-- **Purpose**: request missing information required before execution.
-- **Main parameters**:
-  - `info_type` (string, required): currently only `prisoner` is supported.
-- **Requirements / limits**:
-  - This is **not executed directly by `AIActionExecutor`**; it is handled by the **diplomacy dialogue-specific pipeline**.
-  - It is mainly used in prisoner ransom flows when a valid prisoner target ID is still missing.
-- **Good fit for**:
-  - When the player wants to negotiate ransom but the system still lacks a specific prisoner target.
+- **Мета**: запитати відсутню інформацію, необхідну перед виконанням.
+- **Основні параметри**:
+  - `info_type` (рядок, обов’язковий): наразі підтримується лише `prisoner`.
+- **Вимоги / обмеження**:
+  - Це **не виконується безпосередньо через `AIActionExecutor`**; обробка відбувається в **спеціалізованому конвеєрі діалогу дипломатії**.
+  - Переважно використовується в процесах викупу полонених, коли дійсна ціль-полонений ID досі відсутня.
+- **Добре підходить для**:
+  - Коли гравець хоче домовитися про викуп, але системі все ще бракує конкретної цілі-полоненого.
 
 ### 13. pay_prisoner_ransom
 
-- **Purpose**: submit a one-time prisoner ransom payment.
-- **Main parameters**:
-  - `target_pawn_load_id` (int, required): target prisoner ID.
-  - `offer_silver` (int > 0, required): silver offer.
-  - `payment_mode` (string, optional): if provided, only `silver` is supported.
-- **Requirements / limits**:
-  - Can only be used for prisoners that belong to the current faction and are still held by the player.
-  - Offers reference the current valid offer range; out-of-range values are clamped to the nearest valid boundary before execution.
-  - If the natural-language reply already claims the ransom was paid / submitted, the same reply must include this action.
-  - No alternate payment mode is supported; only `silver`.
-  - If the prisoner is not released within 12 hours after payment, penalties apply.
-  - If the prisoner’s health is worse at release than during negotiation, penalties apply.
-  - If core organs are missing at release compared with the negotiation state, penalties apply.
-- **Good fit for**:
-  - The final payment submission stage of a prisoner ransom negotiation.
+- **Мета**: одноразово сплатити викуп за полоненого.
+- **Основні параметри**:
+  - `target_pawn_load_id` (ціле число, обов’язковий): ID цільового полоненого.
+  - `offer_silver` (ціле число > 0, обов’язковий): пропозиція срібла.
+  - `payment_mode` (рядок, необов’язковий): якщо вказано, підтримується лише `silver`.
+- **Вимоги / обмеження**:
+  - Можна використовувати лише для полонених, які належать до поточної фракції та все ще утримуються гравцем.
+  - Пропозиції посилаються на поточний допустимий діапазон значень; значення поза діапазоном перед виконанням обмежуються до найближчої допустимої межі.
+  - Якщо відповідь природною мовою вже стверджує, що викуп сплачено / надіслано, ця сама відповідь повинна містити цю дію.
+  - Альтернативний спосіб оплати не підтримується; лише `silver`.
+  - Якщо полоненого не звільнено протягом 12 годин після оплати, застосовуються штрафні санкції.
+  - Якщо на момент звільнення стан здоров’я полоненого гірший, ніж під час переговорів, застосовуються штрафні санкції.
+  - Якщо на момент звільнення відсутні життєво важливі органи, які були наявні під час переговорів, застосовуються штрафні санкції.
+- **Добре підходить для**:
+  - Етапу остаточного надсилання оплати під час переговорів про викуп полоненого.
 
 ***
 
-## V. Airdrops and social-circle actions
+## V. Десантування та дії із соціальним колом
 
 ### 14. request_item_airdrop
 
-- **Purpose**: send goods instantly through the orbital / airdrop pipeline.
-- **Main parameters**:
-  - `need` (string, required): the player’s requested need; if the player specified a quantity, that quantity must be preserved.
-  - `payment_items` (array, required): the list of payment items.
-  - `budget_silver` (int, optional, audit only; used to prevent unreasonable orders).
-- **Requirements / limits**:
-  - `need` and `payment_items` are required.
-  - The payment items must be truly removable from powered orbital trade beacon coverage.
-  - Only one-item-for-one-item trade is supported per request.
-- **Good fit for**:
-  - Orbital trade, diplomatic supply drops, and instant item exchange.
+- **Призначення**: миттєво надсилати товари через орбітальний канал / систему десантування.
+- **Основні параметри**:
+  - `need` (рядок, обов’язково): запитана гравцем потреба; якщо гравець указав кількість, її потрібно зберегти.
+  - `payment_items` (масив, обов’язково): список предметів для оплати.
+  - `budget_silver` (int, необов’язковий, лише для аудиту; використовується для запобігання нерозумним наказам).
+- **Вимоги / обмеження**:
+  - Потрібні `need` і `payment_items`.
+  - Предмети для оплати мають бути справді доступними для вилучення із зони покриття активного орбітального торгового маяка.
+  - Для кожного запиту підтримується лише обмін одного предмета на один.
+- **Підходить для**:
+  - Орбітальної торгівлі, дипломатичних поставок із висадкою та миттєвого обміну предметами.
 
 ### 15. publish_public_post
 
-- **Purpose**: publish a public post or public stance to the social sphere / public opinion layer.
-- **Main parameters**:
-  - Specific parameters are controlled by the social-circle pipeline and the current prompt constraints.
-- **Requirements / limits**:
-  - The player can explicitly ask the AI to publish a public post.
-- **Good fit for**:
-  - Public declarations, condemnations, formal statements, or broadcasting a political stance.
+- **Призначення**: опублікувати публічний допис або публічну позицію в соціальній сфері / шарі громадської думки.
+- **Основні параметри**:
+  - Конкретні параметри визначаються конвеєром соціального кола та поточними обмеженнями промпту.
+- **Вимоги / обмеження**:
+  - Гравець може прямо попросити AI опублікувати публічний допис.
+- **Підходить для**:
+  - Публічних заяв, засуджень, офіційних заяв або трансляції політичної позиції.
 
 ***
 
-## VI. Session and online-state actions
+## VI. Дії, пов’язані із сеансом і мережевим станом
 
 ### 16. exit_dialogue
 
-- **Purpose**: end the current dialogue while keeping the faction online.
-- **Main parameters**:
-  - `reason` (string, optional)
-- **Requirements / limits**:
-  - Controlled by the faction online-state feature toggle.
-  - This is a session-control action, not a normal diplomacy-effect action.
-- **Good fit for**:
-  - Natural topic closure or a polite wrap-up.
+- **Призначення**: завершити поточний діалог, залишивши фракцію в онлайні.
+- **Основні параметри**:
+  - `reason` (рядок, необов’язковий)
+- **Вимоги / обмеження**:
+  - Керується перемикачем функції стану фракції онлайн.
+  - Це дія керування сеансом, а не звичайна дія дипломатичного впливу.
+- **Добре підходить для**:
+  - Природного завершення теми або ввічливого підсумку.
 
 ### 17. go_offline
 
-- **Purpose**: end the dialogue and switch the faction to offline state.
-- **Main parameters**:
-  - `reason` (string, optional)
-- **Requirements / limits**:
-  - Controlled by the faction online-state feature toggle.
-- **Good fit for**:
-  - When the other side decides to go offline and stop responding for now.
+- **Призначення**: завершити діалог і перевести фракцію в офлайн-стан.
+- **Основні параметри**:
+  - `reason` (рядок, необов’язковий)
+- **Вимоги / обмеження**:
+  - Керується перемикачем функції стану фракції онлайн.
+- **Добре підходить для**:
+  - Коли інша сторона вирішує перейти в офлайн і поки що припинити відповідати.
 
 ### 18. set_dnd
 
-- **Purpose**: switch to do-not-disturb and stop message exchanges.
-- **Main parameters**:
-  - `reason` (string, optional)
-- **Requirements / limits**:
-  - Controlled by the faction online-state feature toggle.
-- **Good fit for**:
-  - Clear refusal to chat, bad mood, or a need for temporary silence.
+- **Призначення**: увімкнути режим «Не турбувати» та припинити обмін повідомленнями.
+- **Основні параметри**:
+  - `reason` (рядок, необов’язково)
+- **Вимоги / обмеження**:
+  - Керується перемикачем функції онлайн-стану фракції.
+- **Підходить для**:
+  - Чіткої відмови від спілкування, поганого настрою або потреби в тимчасовій тиші.
 
 ### 19. reject_request
 
-- **Purpose**: explicitly mark the current request as rejected.
-- **Main parameters**:
-  - `reason` (string, recommended)
-- **Requirements / limits**:
-  - Always allowed.
-  - Used for **formal rejection** of a specific request that should be recorded as rejected.
-  - Ordinary disagreement, delay, or vague refusal does not necessarily need this action.
-- **Good fit for**:
-  - When the player makes a clear request and the faction wants to issue a formal rejection result.
+- **Призначення**: явно позначити поточний запит як відхилений.
+- **Основні параметри**:
+  - `reason` (рядок, рекомендовано)
+- **Вимоги / обмеження**:
+  - Завжди дозволено.
+  - Використовується для **формальної відмови** від конкретного запиту, який має бути записаний як відхилений.
+  - Звичайна незгода, затримка або нечітка відмова не обов’язково потребують цієї дії.
+- **Підходить для**:
+  - Коли гравець робить чіткий запит, а фракція хоче офіційно відмовити.

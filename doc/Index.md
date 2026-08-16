@@ -1,46 +1,46 @@
-# RimChat 模块索引（v0.9.1024）
+# RimChat Індекс модулів（v0.9.1024）
 
-## 请求任务授勋禁用 + 冷却文案游戏时间统一（v0.9.1024）
-- 目标：根修“请求任务出现空授勋仪式导致后续授勋链路异常”与“外交冷却提示像系统时间”的双问题。
-- 关键模块：
+## Вимкнення нагородження за завдання-запит + уніфікація ігрового часу в тексті затримки відновлення（v0.9.1024）
+- Мета: докорінно виправити дві проблеми — «завдання-запит запускає порожню церемонію нагородження, що спричиняє помилки в подальшому ланцюжку нагородження» та «підказка дипломатичної затримки відновлення схожа на системний час».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionHint.cs`
-- 链路变化：
-  - 任务白名单移除 `BestowingCeremony`，请求任务菜单与可用任务注入链路不再暴露授勋模板。
-  - `ValidateCreateQuest(...)` 新增 `bestowing_disabled` fail-fast 拦截；外部强行传入授勋模板时直接拒绝并打稳定日志锚点（含 faction/questDefName/code）。
-  - 外交 `[?]` 冷却文案统一改为游戏内时间口径（天/时），不再按现实时间解释 `RemainingSeconds`。
-  - 保持冷却存储与判定真相源不变（仍使用 `TicksGame`），仅调整文案解释层。
+- Зміни в ланцюжку:
+  - Із білого списку завдань вилучено `BestowingCeremony`, тому меню завдань-запитів і ланцюжок додавання доступних завдань більше не пропонують шаблон нагородження.
+  - У `ValidateCreateQuest(...)` додано перехоплення `bestowing_disabled` fail-fast; якщо шаблон нагородження передано примусово ззовні, його одразу відхиляють і записують стабільну точку прив’язки в журналі（з faction/questDefName/code）.
+  - Текст дипломатичної `[?]` затримки відновлення уніфіковано відповідно до ігрового часу（дні/години）; `RemainingSeconds` більше не пояснюється через реальний час.
+  - Джерело істини для зберігання та перевірки затримки відновлення не змінюється（досі використовується `TicksGame`）；змінюється лише рівень пояснення в тексті.
 
-## `/models` 缺失回退 + 结构化原文直出 + 契约前置格式要求（v0.9.1023）
-- 目标：修复“模型接口实际可用但 `/v1/models` 缺失导致误判失败”，并根治结构化响应不合规时固定回退句吞回复问题。
-- 关键模块：
+## Резервний варіант за відсутності `/models` + пряме виведення структурованого оригіналу + вимоги до формату контракту на початку（v0.9.1023）
+- Мета: виправити помилкове визначення невдачі, коли інтерфейс моделі фактично доступний, але відсутній `/v1/models`, і докорінно усунути проблему, через яку фіксована резервна фраза поглинає відповідь за невідповідності структурованої відповіді вимогам.
+- Ключові модулі:
   - `RimChat/Config/ApiUsabilityDiagnosticService.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
   - `RimChat/Config/PromptTextConstants.cs`
-- 链路变化：
-  - 可用性诊断：`/models` 仅 `404/405/501` 触发“端点缺失回退”，改用 chat 探测 + 契约校验判定可用；其他失败继续 fail-fast。
-  - 本地探测：OpenAI 兼容本地服务在 `/v1/models` 缺失时不再直接判死，继续走 chat 最终验证。
-  - 对话主链：结构化包络重试耗尽后由固定文案回退改为原文直出（raw passthrough），并打专用日志标签。
-  - 提示词契约：RPG 与外交响应契约段最前新增 JSON 强约束前置示例，工作台预览所见即所得。
+- Зміни ланцюжка:
+  - Діагностика доступності: лише `/models` запускає «відкат через відсутність кінцевої точки» для `404/405/501`, визначаючи доступність за допомогою chat-зондування + перевірки контракту; інші помилки й надалі спричиняють fail-fast.
+  - Локальне зондування: OpenAI більше не вважає локальну службу недоступною одразу за відсутності `/v1/models`, а продовжує остаточну перевірку через chat.
+  - Основний ланцюжок діалогу: після вичерпання повторних спроб структурованої оболонки замість відкату до фіксованого тексту безпосередньо виводиться оригінальний текст (raw passthrough), а також додається спеціальна мітка журналу.
+  - Контракт промпту: на початку контракту RPG та секції контракту дипломатичної відповіді додано JSON обов’язковий попередній приклад; у попередньому перегляді робочого столу відображається саме те, що буде отримано.
 
-## AI 赎金越界报价全链路钳制热修（v0.9.1022）
-- 目标：修复 AI 直连 pay_prisoner_ransom 越界报价未生效问题，将单目标钳制收敛到接口层统一执行。
-- 关键模块：
+## AI Гаряче виправлення повного обмеження надмірних пропозицій викупу (v0.9.1022)
+- Мета: виправити проблему, через яку пропозиція, що виходить за межі, при прямому підключенні AI до pay_prisoner_ransom не застосовувала обмеження, і уніфікувати виконання обмеження для однієї цілі на рівні інтерфейсу.
+- Ключові модулі:
   - RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs
   - RimChat/DiplomacySystem/PrisonerRansomModels.cs
   - RimChat/UI/Dialog_DiplomacyDialogue.cs
   - 1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml
   - 1.6/Languages/English/Keyed/RimChat_Keys.xml
-- 链路变化：
-  - 单目标执行归一化从 UI 快照依赖迁移到 PreparePrisonerRansom，按实时窗口做最近边界夹逼。
-  - 返回模型新增 OfferWindowMinSilver/OfferWindowMaxSilver，同步暴露窗口上下界。
-  - 成功系统消息新增“报价已归一化”提示（仅在 OfferedSilver != AcceptedSilver 时显示）。
+- Зміни ланцюжка:
+  - Нормалізацію виконання для однієї цілі перенесено із залежності від знімка UI на PreparePrisonerRansom, із затисканням до найближчої межі за вікном реального часу.
+  - Модель відповіді доповнено OfferWindowMinSilver/OfferWindowMaxSilver, щоб одночасно показувати нижню та верхню межі вікна.
+  - До системного повідомлення про успіх додано підказку «Пропозицію нормалізовано» (відображається лише коли OfferedSilver != AcceptedSilver).
 
-## 赎金区间落点与社交新闻兼容修复（v0.9.1019）
-- 目标：修复社交新闻原生渲染兼容失败导致整条任务中断；统一赎金单目标/批量越界处理为执行前归一化。
-- 关键模块：
+## Виправлення сумісності визначення діапазону викупу та соціальних новин (v0.9.1019)
+- Мета: виправити переривання всього завдання через помилку сумісності з нативним відтворенням соціальних новин; уніфікувати обробку виходу за межі для однієї та пакетної цілей викупу шляхом нормалізації перед виконанням.
+- Ключові модулі:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
@@ -51,15 +51,15 @@
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 社交新闻 `social_circle_post`：原生渲染兼容失败改为 warning + 降级继续，不再抛异常中断入队。
-  - 单目标赎金：新增会话级 `[RansomOfferReference]` 快照块（`target/current_ask/min/max`），每轮用户消息稳定注入。
-  - 单目标执行：`pay_prisoner_ransom` 执行前按快照窗口对越界 `offer_silver` 做最近边界夹逼并写归一化日志。
-  - 批量执行：总价越界改为“边界夹逼 + 比例缩放 + 小数余量分配 + 精确求和回写”；目标覆盖校验保持严格 fail-fast。
-  - 提示词契约：移除“无上下限”冲突文案，统一为“参考系统窗口；越界执行前归一化”。
-## 主动外交/社交新闻卡顿根修（v0.9.1018）
-- 目标：将主动派系消息与社交新闻的 prompt 重计算从请求热路径下沉到预热缓存，消除主线程秒级尖峰。
-- 关键模块：
+- Зміни ланцюжка:
+  - Соціальні новини `social_circle_post`: у разі помилки сумісності нативного рендерингу перейти до warning + продовжити зі зниженим режимом, більше не викидати виняток і не переривати постановку в чергу.
+  - Викуп однієї цілі: додано блок знімка сеансового `[RansomOfferReference]` (`target/current_ask/min/max`), який стабільно додається до кожного повідомлення користувача.
+  - Виконання для однієї цілі: перед виконанням `pay_prisoner_ransom` за вікном знімка притиснути `offer_silver`, що виходить за межі, до найближчої межі та записати нормалізований журнал.
+  - Пакетне виконання: вихід загальної ціни за межі змінено на «притискання до межі + пропорційне масштабування + розподіл дробового залишку + зворотний запис із точним підсумовуванням»; перевірка охоплення цілей залишається суворою fail-fast.
+  - Контракт промпту: прибрано суперечливе формулювання «без верхньої та нижньої межі», уніфіковано як «орієнтуватися на системне вікно; нормалізувати перед виконанням, якщо значення виходить за межі».
+## Усунення затримок активної дипломатії/соціальних новин (v0.9.1018)
+- Мета: перенести повторний розрахунок промптів повідомлень активних фракцій і соціальних новин із гарячого шляху запиту до кешу попереднього прогрівання, усунувши піки тривалістю в кілька секунд в основному потоці.
+- Ключові модулі:
   - `RimChat/Persistence/DiplomacyPromptRuntimeSnapshot.cs`
   - `RimChat/Persistence/IDiplomacyPromptSnapshotCache.cs`
   - `RimChat/Persistence/DiplomacyPromptSnapshotCache.cs`
@@ -68,407 +68,407 @@
   - `RimChat/DiplomacySystem/Social/SocialNewsPromptBuilder.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.SocialCircle.NewsRequests.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
-- 链路变化：
-  - 新增运行时快照模型，统一承载 `memory/faction/player/world-event/settlement` 动态块。
-  - 新增快照缓存服务，支持读档后分帧预热（每 tick 预算 1 个）与按派系复用。
-  - `BuildUnifiedChannelSystemPrompt(...)` 新增可选 `runtimeSnapshot`，通过线程作用域注入已预计算动态块。
-  - 主动来信 `StartGeneration(...)` 改为“先取快照；未就绪则 fail-fast 短延迟重排队”。
-  - 社交新闻请求改为“先取快照；未就绪则进入延迟重试队列”，与主动来信复用同一缓存实例。
-  - `GameComponent_DiplomacyManager.GameComponentTick()` 新增快照 warmup tick 与社交新闻延迟队列处理。
+- Зміни в ланцюжку:
+  - Додано модель знімка стану виконання, яка уніфіковано містить динамічний блок `memory/faction/player/world-event/settlement`.
+  - Додано сервіс кешування знімків із підтримкою поетапного прогрівання після завантаження збереження (1 знімок на tick) і повторного використання за фракціями.
+  - Для `BuildUnifiedChannelSystemPrompt(...)` додано необов’язковий `runtimeSnapshot`, який через область видимості потоку передає попередньо обчислений динамічний блок.
+  - Активні листи `StartGeneration(...)` змінено на «спочатку отримати знімок; якщо він не готовий — негайно повторно поставити в чергу з короткою затримкою».
+  - Запити соціальних новин змінено на «спочатку отримати знімок; якщо він не готовий — додати до черги відкладених повторних спроб», використовуючи той самий екземпляр кешу, що й активні листи.
+  - Для `GameComponent_DiplomacyManager.GameComponentTick()` додано tick прогрівання знімків і обробку черги відкладених соціальних новин.
 
-## VehiclePawn Persona 同步闪退根修（v0.9.1017）
-- 目标：根治 Vehicles Framework 等 Pawn 子类在 RimTalk Persona 同步时触发的原生崩溃，并保持 RPG 对话链路的功能边界可控。
-- 关键模块：
+## Кореневе виправлення аварійного завершення під час синхронізації Persona VehiclePawn (v0.9.1017)
+- Мета: усунути першопричину нативного збою, який виникає під час синхронізації Persona RimTalk у підкласів Pawn, як-от Vehicles Framework, і водночас зберегти контрольовані функціональні межі ланцюжка діалогів RPG.
+- Ключові модулі:
   - `RimChat/Dialogue/PawnDialogueRoutingPolicy.cs`
   - `RimChat/DiplomacySystem/GameComponent_RPGManager.PersonaBootstrap.cs`
   - `RimChat/DiplomacySystem/GameComponent_RPGManager.cs`
-- 链路变化：
-  - `IsRpgDialogueEligibleRace` 改为能力白名单：Humanlike/Mechanoid/Animal 允许，ToolUser 必须具备 `story+skills`。
-  - 新增 `IsRimTalkPersonaSyncEligible`：在 RPG 资格基础上再做 persona 子系统门槛，并排除 Animal 进入 RimTalk Persona 同步。
-  - Persona 同步入口 fail-fast：`TrySyncPawnPersonaFromRimTalkSafely` 与 `IsEligibleRimTalkPersonaCopyTarget` 在反射调用前统一资格校验，不合格直接跳过。
-  - 存档清理：`CleanupInvalidRpgDictionaries` 新增 persona 字典资格清理，自动移除不再满足资格的历史条目（含载具类）。
-- 兼容性说明：
-  - 不修改对外 API；不采用类型名黑名单；旧存档保留且仅清理无效 persona 缓存。
+- Зміни ланцюжка:
+  - `IsRpgDialogueEligibleRace` змінено на білий список можливостей: Humanlike/Mechanoid/Animal дозволені, ToolUser обов’язково має містити `story+skills`.
+  - Додано `IsRimTalkPersonaSyncEligible`: на основі відповідності RPG додатково перевіряється поріг підсистеми persona, а Animal виключається із синхронізації RimTalk Persona.
+  - Точка входу синхронізації Persona працює за принципом fail-fast: `TrySyncPawnPersonaFromRimTalkSafely` і `IsEligibleRimTalkPersonaCopyTarget` проходять єдину перевірку відповідності перед викликом через рефлексію; невідповідні одразу пропускаються.
+  - Очищення збережень: `CleanupInvalidRpgDictionaries` додано очищення відповідності словника persona, яке автоматично видаляє історичні записи, що більше не відповідають вимогам (зокрема записи транспортних засобів).
+- Примітки щодо сумісності:
+  - Зовнішній API не змінюється; чорний список назв типів не використовується; старі збереження зберігаються, очищуються лише недійсні кеші persona.
 
-## RPGManager Tick 性能根修（v0.9.1016）
-- 目标：根治 `GameComponent_RPGManager` 在 RimTalk 兼容链路中的高 Tick 固定开销，保持人格同步行为语义不变。
-- 关键模块：
+## Усунення першопричини продуктивності Tick RPGManager (v0.9.1016)
+- Мета: усунути високі постійні витрати Tick для `GameComponent_RPGManager` у ланцюжку сумісності RimTalk, зберігши незмінною семантику синхронізації особистості.
+- Ключові модулі:
   - `RimChat/Core/ModDependencyProbe.cs`
   - `RimChat/DiplomacySystem/GameComponent_RPGManager.PersonaBootstrap.cs`
-- 链路变化：
-  - `IsRimTalkLoadedForPersonaBlock()` 改为调用 `ModDependencyProbe.IsLoaded("rimtalk")`，去除 Tick 热路径内的模组列表遍历。
-  - `ProcessNpcPersonaRuntimeTick()` 执行顺序调整为“先 Tick 节流，再依赖检测”，降低每 Tick 固定检测成本。
-  - `ProcessNpcPersonaBootstrapTick()` 在队列初始化前增加 RimTalk 可用性 fail-fast，避免无依赖场景的无效扫描。
-  - `TrySyncPawnPersonaFromRimTalk` / `TryCopyPawnPersonaFromRimTalk` 新增可传入模板的内部重载；运行时扫描、bootstrap 队列扫描、手动全量同步改为单轮模板复用。
-- 兼容性说明：
-  - 对外 API 未变化；原有调用签名保留，旧存档行为与同步路径保持一致。
+- Зміни ланцюжка:
+  - `IsRimTalkLoadedForPersonaBlock()` змінено на виклик `ModDependencyProbe.IsLoaded("rimtalk")`, щоб усунути обхід списку модулів у гарячому шляху Tick.
+  - Порядок виконання `ProcessNpcPersonaRuntimeTick()` змінено на «спочатку обмеження Tick, потім перевірка залежностей», щоб знизити фіксовану вартість перевірки кожного Tick.
+  - Перед ініціалізацією черги для `ProcessNpcPersonaBootstrapTick()` додано fail-fast перевірку доступності RimTalk, щоб уникнути неефективного сканування за відсутності залежностей.
+  - Для `TrySyncPawnPersonaFromRimTalk` / `TryCopyPawnPersonaFromRimTalk` додано внутрішні перевантаження з передаванням шаблону; сканування під час виконання, сканування черги bootstrap і ручну повну синхронізацію змінено на повторне використання одного шаблону за один прохід.
+- Примітка щодо сумісності:
+  - Публічний API не змінився; початковий підпис виклику збережено, поведінка старих збережень і шлях синхронізації залишаються узгодженими.
 
-## UGUI Canvas 渲染管线（v0.9.998）
-- 目标：为提示词工作台预览面板提供 UGUI Canvas → RenderTexture → GUI.DrawTexture 渲染路径，将 DrawCall 从 N 降至 1，提升 GPU 利用率。
-- 关键模块：
-  - `RimChat/UI/UGui/UGuiCanvasHost.cs` — 独立 Canvas + Camera + RenderTexture 生命周期管理
-  - `RimChat/UI/UGui/UGuiPanelBase.cs` — UGUI 面板基类（构建/刷新/脏标记/销毁）
-  - `RimChat/UI/UGui/UGuiFeatureFlags.cs` — 特性开关（UseUguiRendering/UseUguiPreviewPanel/UseUguiSidePanel/UseUguiChatMessages）
-  - `RimChat/UI/UGui/bridge/ImguiToUguiInputBridge.cs` — IMGUI Event → UGUI EventSystem 输入桥接
-  - `RimChat/UI/UGui/panels/PromptPreviewPanel.cs` — 结构化预览面板 UGUI 版本（TMP 文字 + LayoutGroup 自动布局）
-  - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs` — DrawPromptWorkspaceStructuredPreview UGUI/IMGUI 路径切换
-  - `RimChat/Config/RimChatSettings.cs` — UGUI 特性开关序列化（Scribe_Values.Look）
-- 链路变化：
-  - `DrawPromptWorkspaceStructuredPreview` 新增 UGUI 路径：当 `UGuiFeatureFlags.UseUguiPreviewPanel=true` 时，走 Canvas 渲染 → 单次 `GUI.DrawTexture`；否则走原有 IMGUI `PromptWorkspaceStructuredPreviewRenderer`。
-  - `UGuiFeatureFlags.SyncFromSettings()` 在 `ExposeData()` 中调用，确保配置文件加载后立即生效。
-  - `DisposePromptWorkspaceRenderTextures()` 新增 UGUI 资源清理（Host/Panel/Bridge Dispose）。
-  - `InvalidatePromptWorkspacePreviewCache()` 新增 `_uguiPreviewPanel.MarkDirty()` 脏标记传播。
-- 依赖：`UnityEngine.UI.dll`、`UnityEngine.UIModule.dll`、`Unity.TextMeshPro.dll`（RimWorld 1.6 自带）
+## UGUI конвеєр рендерингу Canvas (v0.9.998)
+- Мета: надати панелі попереднього перегляду робочого столу промптів шлях рендерингу UGUI Canvas → RenderTexture → GUI.DrawTexture, зменшити DrawCall з N до 1 і підвищити коефіцієнт використання GPU.
+- Ключові модулі:
+  - `RimChat/UI/UGui/UGuiCanvasHost.cs` — окреме керування життєвим циклом Canvas + Camera + RenderTexture
+  - `RimChat/UI/UGui/UGuiPanelBase.cs` — базовий клас панелі UGUI (побудова/оновлення/позначення як зміненої/знищення)
+  - `RimChat/UI/UGui/UGuiFeatureFlags.cs` — перемикачі функцій (UseUguiRendering/UseUguiPreviewPanel/UseUguiSidePanel/UseUguiChatMessages)
+  - `RimChat/UI/UGui/bridge/ImguiToUguiInputBridge.cs` — міст введення IMGUI Event → UGUI EventSystem
+  - `RimChat/UI/UGui/panels/PromptPreviewPanel.cs` — версія UGUI панелі структурованого попереднього перегляду（текст TMP + автоматичне компонування LayoutGroup）
+  - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs` — перемикання DrawPromptWorkspaceStructuredPreview шляху UGUI/IMGUI
+  - `RimChat/Config/RimChatSettings.cs` — серіалізація перемикача функцій UGUI（Scribe_Values.Look）
+- Зміни ланцюжка:
+  - `DrawPromptWorkspaceStructuredPreview` Додано шлях UGUI: коли `UGuiFeatureFlags.UseUguiPreviewPanel=true`, використовується рендеринг Canvas → одноразовий `GUI.DrawTexture`; інакше використовується наявний IMGUI `PromptWorkspaceStructuredPreviewRenderer`.
+  - `UGuiFeatureFlags.SyncFromSettings()` Викликається в `ExposeData()`, щоб зміни набували чинності одразу після завантаження файлу конфігурації.
+  - `DisposePromptWorkspaceRenderTextures()` Додано очищення ресурсів UGUI (Host/Panel/Bridge Dispose).
+  - `InvalidatePromptWorkspacePreviewCache()` Додано поширення `_uguiPreviewPanel.MarkDirty()` брудного стану.
+- Залежності: `UnityEngine.UI.dll`, `UnityEngine.UIModule.dll`, `Unity.TextMeshPro.dll`（вбудовані RimWorld 1.6）
 
-## VehiclePawn 能力白名单防护（v0.9.997）
-- 目标：根治 VehiclePawn（Vehicles Framework）等非标准 Pawn 子类继承 Pawn 但缺少 story/skills 子系统导致 RimTalk AddHediff native crash 的问题，并自动防御未来类似 Pawn 类型。
-- 关键模块：
+## Захист білим списком можливостей VehiclePawn（v0.9.997）
+- Мета: усунути проблему, через яку нестандартні підкласи Pawn, як-от VehiclePawn (Vehicles Framework), успадковують Pawn, але не мають підсистем story/skills, що спричиняє RimTalk AddHediff native crash, і автоматично захищатися від подібних типів Pawn у майбутньому.
+- Ключові модулі:
   - `RimChat/Dialogue/PawnDialogueRoutingPolicy.cs`
   - `RimChat/Comp/PawnDialogueCompDefInjector.cs`
-- 链路变化：
-  - `IsRpgDialogueEligibleRace` 从纯 RaceProps 分类改为能力白名单混合策略：Humanlike/Mechanoid 直接放行，ToolUser 需验证 `pawn.story != null && pawn.skills != null`。
-  - `IsEligiblePawnDef` 增加 `race.Humanlike || race.IsMechanoid || race.ToolUser` 白名单过滤，不再对所有 `typeof(Pawn).IsAssignableFrom(thingClass)` 的 Def 无条件注入 CompPawnDialogue。
-  - 所有经过 `IsRpgDialogueEligibleRace` 的路径（PersonaBootstrap、CompPawnDialogue、DialogueContextResolver、RPG推送、RPG设置等）均受此入口防护覆盖。
+- Зміни ланцюжка:
+  - `IsRpgDialogueEligibleRace` Від суто RaceProps класифікації перейдено до змішаної стратегії з білим списком здібностей: Humanlike/Mechanoid пропускаються безпосередньо, для ToolUser потрібно перевірити `pawn.story != null && pawn.skills != null`.
+  - `IsEligiblePawnDef` Збільшити `race.Humanlike || race.IsMechanoid || race.ToolUser` Фільтр білого списку, більше не безумовно впроваджувати для всіх `typeof(Pawn).IsAssignableFrom(thingClass)` визначення CompPawnDialogue.
+  - Усі шляхи, що проходять через `IsRpgDialogueEligibleRace` (PersonaBootstrap、CompPawnDialogue、DialogueContextResolver тощо), захищені цим входом.
 
-## 空投定价回退到市场价系统（v0.9.88）
-- 目标：移除空投机制对贸易买入价上下文的依赖，统一回退市场价系统并保持既有运费/限额规则。
-- 关键模块：
+## Повернення ціноутворення на десантування до системи ринкових цін (v0.9.88)
+- Мета: усунути залежність механізму десантування від контексту закупівельної торгової ціни, уніфіковано повернутися до системи ринкових цін і зберегти наявні правила вартості перевезення та лімітів.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
-- 链路变化：
-  - 候选物资定价去除贸易价覆盖，统一使用 `MarketValue`（最低 `0.01`）。
-  - 预算派生维持“市场价 + 既有倍率（无 tradeTags x10、ExoticMisc x2）”。
-  - 交易卡参考价改为市场价，不再依赖谈判者与贸易上下文。
-  - Prompt/注入契约文本同步改为市场价语义，避免执行与提示不一致。
+- Зміни в ланцюжку:
+  - Для ціноутворення кандидатних ресурсів усунуто перевизначення торговою ціною; уніфіковано використовується `MarketValue` (мінімум `0.01`).
+  - Розрахунок бюджету зберігає формулу «ринкова ціна + наявні множники (без tradeTags x10, ExoticMisc x2)».
+  - Еталонну ціну в торговій картці змінено на ринкову; вона більше не залежить від перемовника та торгового контексту.
+  - Текст контракту Prompt/ін’єкції синхронізовано із семантикою ринкової ціни, щоб уникнути невідповідності між виконанням і промптом.
 
-## 空投交易规则统一与贸易价格口径根修（v0.9.87）
-- 目标：统一空投“运费/限额/价格口径”在 UI、运行时与提示词注入中的单一真相源，彻底消除口径漂移。
-- 关键模块：
+## Уніфікація правил торгівлі через десант і докорінне узгодження підходу до торгових цін (v0.9.87)
+- Мета: уніфікувати «вартість доставки/ліміти/підхід до цін» десанту в UI, під час виконання та в ін’єкції промпту, створивши єдине джерело істини й повністю усунувши розбіжності.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropTradePolicy.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-- 链路变化：
-  - 新增 `AirdropTradeRuleSnapshot` 与统一规则计算：盟友商会 `150/12000`，非盟友商会 `200/800`，非商会盟友 `200/8000`，其他派系 `250` + 好感公式限额。
-  - `request_item_airdrop` 新增交易上限 fail-fast，超限直接返回 `trade_limit_exceeded`。
-  - 空投需求/支付定价改为贸易买入价（受玩家谈判者社交技能影响，来源于商队/轨道商交易上下文）；上下文缺失直接 fail-fast。
-  - 交易卡参考价公式和运费展示改为动态参数，不再固定 `500/仓`；新增贸易价格上下文缺失的提交阻断文案。
-  - `AppendAirdropTradeRules(...)` 与默认动作契约改为同一规则语义，保证提示词与执行逻辑一致。
+- Зміни в ланцюжку:
+  - Додано `AirdropTradeRuleSnapshot` та уніфікований розрахунок правил: союзна торговельна спілка `150/12000`, несоюзна торговельна спілка `200/800`, союзник, який не є торговельною спілкою, `200/8000`, інші фракції `250` + ліміт за формулою прихильності.
+  - У `request_item_airdrop` додано fail-fast для торгового ліміту; у разі перевищення ліміту безпосередньо повертається `trade_limit_exceeded`.
+  - Ціноутворення попиту/оплати за десант змінено на ціну купівлі в торгівлі (залежить від соціальної навички перемовника гравця та надходить із контексту торгівлі з караваном/орбітальним торговцем); за відсутності контексту виконується fail-fast.
+  - Формулу еталонної ціни в торговій картці та відображення вартості доставки змінено на динамічні параметри, більше не фіксовані на `500/仓`; додано текст блокування надсилання за відсутності контексту торгової ціни.
+  - `AppendAirdropTradeRules(...)` Узгодити з контрактом типових дій однакову семантику правил, щоб промпт і логіка виконання були узгодженими.
 
-## 空投报价参考价公式与需求检索根修（v0.9.86）
-- 目标：让报价菜单参考价显示明确公式，同时修复部分需求物资（如仿生眼）在空投交易卡里检索不到的问题。
-- 关键模块：
+## Формула довідкової ціни пропозиції для десантної капсули та виправлення кореня пошуку потрібних предметів (v0.9.86)
+- Мета: чітко показати формулу довідкової ціни в меню пропозицій, а також виправити проблему, через яку деякі потрібні предмети (наприклад, біонічне око) не знаходилися в картці торгівлі через десантну капсулу.
+- Ключові модулі:
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
   - `RimChat/UI/SearchStateManager.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 报价菜单参考价格改为公式展示：`N + n x 500 = price`，并在同一行展示当前出价。
-  - 空投仓数量改为仅按需求物资数量与需求物资堆叠上限计算，不再按出价物资计算。
-  - `SearchStateManager.ComputeSuggestions(...)` 新增回退链路：严格评分/科技过滤无结果时，自动放宽评分并取消科技过滤，再做包含匹配兜底，保证仿生眼等高科技需求可被检索。
+- Зміни в ланцюжку:
+  - Довідкову ціну в меню пропозицій змінено на відображення формули: `N + n x 500 = price`, а поточну ставку показано в тому самому рядку.
+  - Кількість десантних капсул тепер розраховується лише за кількістю потрібного предмета та лімітом стосу потрібного предмета, а не за кількістю предмета, запропонованого як ставка.
+  - `SearchStateManager.ComputeSuggestions(...)` Додано резервний ланцюжок: якщо суворе оцінювання або фільтрація за технологіями не дають результатів, оцінювання автоматично послаблюється, фільтрація за технологіями скасовується, після чого виконується резервний пошук за збігом у складі назви, щоб забезпечити пошук високотехнологічних потрібних предметів, як-от біонічного ока.
 
-## 空投报价确认菜单稳定调度根修（v0.9.85）
-- 目标：根修空投报价确认菜单“日志显示已打开，但玩家看不到确认框/被误判为取消”的 UI 时序问题。
-- 关键模块：
+## Кореневе виправлення стабільної диспетчеризації меню підтвердження пропозиції десантної капсули (v0.9.85)
+- Мета: усунути кореневу причину часової проблеми UI у меню підтвердження пропозиції десантної капсули, коли в журналі вказано, що його відкрито, але гравець не бачить вікна підтвердження або помилково вважається, що скасував дію.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
-- 链路变化：
-  - 外交窗口不再使用裸 `pendingAirdropDialog` 委托承载确认窗展示，而是改为结构化 `PendingAirdropDialogState` 持有 `session/faction/preparedTrade/baseParameters/pendingCandidates` 等状态。
-  - `UpdateTypewriterEffect()` 新增稳定调度：仅在 NPC 逐字机完全结束后启动 1 秒倒计时，倒计时完成且上下文仍有效时才真正弹出空投确认窗。
-  - 待弹窗状态在切换派系、关闭窗口、阶段异常或上下文失效时会 fail-fast 丢弃并写日志，不再把“系统未显示”误记成“玩家取消”。
-  - 空投确认窗统一使用 `Dialog_AirdropTradeConfirmWithAlternative`，不再混用 `Dialog_MessageBox`；关闭按钮不再隐式触发取消，只有显式点击“取消”才进入 `player_cancelled_confirmation`。
-  - 新增日志：`AirdropConfirmScheduled`、`AirdropConfirmQueued`、`AirdropConfirmDisplayed`、`AirdropConfirmDiscarded`、`AirdropConfirmExplicitCancel`，便于追踪确认菜单时序。
+- Зміни ланцюжка:
+  - Дипломатичне вікно більше не використовує необгорнуте доручення `pendingAirdropDialog` для відображення вікна підтвердження, натомість переходить на структурований `PendingAirdropDialogState`, що містить такі стани, як `session/faction/preparedTrade/baseParameters/pendingCandidates`.
+  - `UpdateTypewriterEffect()` додано стабільне планування: 1-секундний відлік запускається лише після повного завершення посимвольного відтворення NPC; вікно підтвердження десантування відкривається лише після завершення відліку, якщо контекст усе ще дійсний.
+  - Стан очікування спливного вікна в разі перемикання фракції, закриття вікна, помилки етапу або втрати чинності контексту відкидається в режимі fail-fast із записом у журнал; «систему не відображено» більше не помилково записується як «гравець скасував».
+  - Вікно підтвердження десантування тепер уніфіковано використовує `Dialog_AirdropTradeConfirmWithAlternative` і більше не змішується з `Dialog_MessageBox`; кнопка закриття більше не запускає скасування неявно — лише явне натискання «Скасувати» переводить у `player_cancelled_confirmation`.
+  - Додано журнали: `AirdropConfirmScheduled`, `AirdropConfirmQueued`, `AirdropConfirmDisplayed`, `AirdropConfirmDiscarded`, `AirdropConfirmExplicitCancel`, щоб полегшити відстеження часової послідовності меню підтвердження.
 
-## 结构化包络链路收紧与空投确认弹窗时序修复（v0.9.84）
-- 目标：收紧外交/RPG/NPC 推送的结构化协议边界，阻断未结构化文本直通；修复空投确认弹窗与逐字机并发导致的交互抢焦点问题。
-- 关键模块：
+## Уточнення ланцюжка структурованої оболонки та виправлення часової послідовності спливного вікна підтвердження десантування (v0.9.84)
+- Мета: уточнити межі структурованого протоколу для надсилання дипломатичних/RPG/NPC, заблокувати пряме передавання неструктурованого тексту; виправити проблему перехоплення фокуса через одночасну роботу вікна підтвердження десантування та посимвольного відтворення.
+- Ключові модулі:
   - `RimChat/Dialogue/DialogueResponseEnvelopeParser.cs`
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
-- 链路变化：
-  - `DialogueResponseEnvelopeParser.Parse(...)` 在 `Diplomacy/Rpg` 通道不再回退 legacy 文本协议，缺失结构化包络直接返回 `no_structured_envelope`。
-  - 结构化包络命中未知顶层键时由 fail-fast 改为 warning，保留已解析的 `visible_dialogue`，并通过日志提供调优信号。
-  - `GameComponent_NpcDialoguePushManager.SanitizeOutput(...)` 在 envelope 无效时直接丢弃输出，不再回退原始模型文本；沉浸防护拦截时保留 guard 处理后的可见文本。
-  - 外交窗口新增 `pendingAirdropDialog` 延迟回调，在 NPC 逐字机完成后再弹出空投确认窗；显示层沉浸防护不再清空对话文本。
+- Зміни в ланцюжку:
+  - `DialogueResponseEnvelopeParser.Parse(...)` у каналі `Diplomacy/Rpg` більше не повертається до legacy текстового протоколу; за відсутності структурованої оболонки безпосередньо повертається `no_structured_envelope`.
+  - Якщо структурована оболонка містить невідомий ключ верхнього рівня, fail-fast замінюється на warning; уже розібраний `visible_dialogue` зберігається, а через журнал надається сигнал для оптимізації.
+  - `GameComponent_NpcDialoguePushManager.SanitizeOutput(...)` безпосередньо відкидає вивід, якщо envelope недійсний, і більше не повертається до оригінального тексту моделі; під час перехоплення захистом занурення зберігається видимий текст після обробки guard.
+  - У вікні дипломатії додано відкладений callback `pendingAirdropDialog`, який відкриває вікно підтвердження скидання після завершення посимвольного відтворення в NPC; захист занурення на рівні відображення більше не очищає текст діалогу.
 
-## 空投交易气泡移除参考总价栏并改用单价文案（v0.9.83）
-- 目标：进一步压缩聊天区空投交易气泡，只保留交易主信息，并将指标里的“价格”明确为“单价”。
-- 关键模块：
+## Видалення довідкового рядка загальної ціни з бульбашки торгівлі скиданням і перехід до формулювання ціни за одиницю (v0.9.83)
+- Мета: ще більше стиснути бульбашку торгівлі скиданням у чаті, залишивши лише основну інформацію про торгівлю та чітко позначивши показник «ціна» як «ціна за одиницю».
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `DrawAirdropTradeCardBubble(...)` 删除底部 `RimChat_AirdropTradeCard_ReferencePriceBubble` 行，并按新内容高度收紧气泡尺寸。
-  - `DrawAirdropCompactCard(...)` 的第二列指标文案改为 `RimChat_UnitPrice`，显示语义从“价格”收窄为“单价”。
-  - 交易流向 badge、左右卡片内容、`need/offer` 数据语义与消息契约保持不变。
+- Зміни в ланцюжку:
+  - `DrawAirdropTradeCardBubble(...)` видаляє нижній рядок `RimChat_AirdropTradeCard_ReferencePriceBubble` і стискає розмір бульбашки відповідно до нової висоти вмісту.
+  - Формулювання показника у другій колонці `DrawAirdropCompactCard(...)` змінено на `RimChat_UnitPrice`; значення відображення звужено з «ціни» до «ціни за одиницю».
+  - Badge напрямку торгівлі, вміст лівої та правої карток, семантика даних `need/offer` і контракт повідомлень залишаються без змін.
 
-## 空投交易气泡移除语义标签（v0.9.82）
-- 目标：移除聊天区空投交易消息气泡小卡片中的“获得 / 支付”文字，避免额外语义标签干扰卡片主体信息阅读。
-- 关键模块：
+## Семантичне маркування для видалення бульбашки торгівлі з повітряного десанту (v0.9.82)
+- Мета: вилучити текст «Отримано / Сплачено» з мінікартки повідомлення про торгівлю з повітряного десанту в області чату, щоб додаткові семантичні мітки не заважали читанню основної інформації картки.
+- Ключовий модуль:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - `DrawAirdropCompactCard(...)` 删除中部语义标签绘制与对应高度预留。
-  - 小卡片仅保留缩略图、物资名、可选 defName 与底部数量/价格/总价指标。
-  - 左右卡片位置、交易流向箭头、`need/offer` 数据语义和消息契约保持不变。
+- Зміни в ланцюжку:
+  - `DrawAirdropCompactCard(...)` видаляє відтворення центральної семантичної мітки та резервування відповідної висоти.
+  - У мінікартці залишаються лише мініатюра, назва ресурсу, необов’язковий defName і показники кількості/ціни/загальної ціни внизу.
+  - Положення лівої та правої карток, стрілка напрямку торгівлі, семантика даних `need/offer` і контракт повідомлення залишаються без змін.
 
-## 空投交易气泡标签居中布局修正（v0.9.81）
-- 目标：修正聊天区空投交易消息气泡里“获得 / 支付”标签的视觉落点，让语义标签位于小卡片中部而不是顶部边缘。
-- 关键模块：
+## Виправлення центрування мітки в бульбашці торгівлі з повітряного десанту (v0.9.81)
+- Мета: виправити візуальне розташування мітки «Отримано / Сплачено» в бульбашці повідомлення про торгівлю з повітряного десанту в області чату, щоб семантична мітка була посередині мінікартки, а не біля її верхнього краю.
+- Ключовий модуль:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - `DrawAirdropCompactCard(...)` 为名称区与指标区之间预留独立的标签带区域。
-  - `获得 / 支付` 改为卡片中部的居中标签条，避免顶部拥挤并提升左右卡片语义可读性。
-  - 指标区、物资卡左右位置、`need/offer` 数据语义和消息契约保持不变。
+- Зміни в ланцюжку:
+  - `DrawAirdropCompactCard(...)` резервує окрему область смуги мітки між зоною назви та зоною показників.
+  - `获得 / 支付` змінено на центровану смугу мітки посередині картки, щоб уникнути скупчення вгорі та підвищити семантичну читабельність лівої й правої карток.
+  - Розділ показників, ліво-праве розташування карток ресурсів, семантика даних `need/offer` і контракт повідомлень залишаються незмінними.
 
-## 空投交易气泡买家视角标签修正（v0.9.80）
-- 目标：修正聊天区空投交易消息气泡的买家视角语义，避免玩家发起购买请求时把“获得物资”错误标成“支付”、把“支付物资”错误标成“获得”。
-- 关键模块：
+## Виправлення міток у бульбашці торгівлі з десантуванням з погляду покупця (v0.9.80)
+- Мета: виправити семантику повідомлень про торгівлю з десантуванням у чаті з погляду покупця, щоб під час ініціювання гравцем запиту на купівлю «отримані ресурси» помилково не позначалися як «оплата», а «оплачені ресурси» — як «отримання».
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - `DrawAirdropTradeCardBubble(...)` 保持左侧 `need` 卡、右侧 `offer` 卡和消息数据结构不变。
-  - 左侧 `need` 卡标签改用 `RimChat_AirdropTradeCard_GainLabel`，明确表示“玩家将获得的物资”。
-  - 右侧 `offer` 卡标签改用 `RimChat_AirdropTradeCard_PayLabel`，明确表示“玩家将支付的物资”。
-  - 仅修正聊天气泡显示语义，不改确认弹窗、信息卡编辑态、`ItemAirdropTradeCardPayload` 或 `FactionDialogueSession.AddAirdropTradeCardMessage(...)` 的字段契约。
+- Зміни в ланцюжку:
+  - `DrawAirdropTradeCardBubble(...)` зберігає незмінними картку `need` ліворуч, картку `offer` праворуч і структуру даних повідомлення.
+  - Мітку лівої картки `need` замінено на `RimChat_AirdropTradeCard_GainLabel`, щоб чітко позначити «ресурси, які отримає гравець».
+  - Мітку правої картки `offer` замінено на `RimChat_AirdropTradeCard_PayLabel`, щоб чітко позначити «ресурси, які сплатить гравець».
+  - Виправлено лише семантику відображення бульбашки чату; контракт полів вікна підтвердження, режиму редагування інформаційної картки, `ItemAirdropTradeCardPayload` або `FactionDialogueSession.AddAirdropTradeCardMessage(...)` не змінюється.
 
-## Google API 模型加载与配置校验根修（v0.9.79）
-- 目标：根修 Google AI Studio 配置在“URL 留空走默认值”场景下的模型加载失败，并把 API 设置页的前置校验拆分为与按钮语义一致的精确提示。
-- 关键模块：
+## Ґрунтовне виправлення завантаження моделі Google API і перевірки конфігурації (v0.9.79)
+- Мета: ґрунтовно виправити помилку завантаження моделі в конфігурації Google AI у випадку «URL залишено порожнім, використовується значення за замовчуванням» і розділити попередню перевірку на сторінці налаштувань API на точні повідомлення, узгоджені із семантикою кнопок.
+- Ключові модулі:
   - `RimChat/Config/RimChatSettings.cs`
-    - `ParseGoogleModelsFromResponse(...)` 改为“强类型解析优先 + `name` 字段兜底抽取”双通道解析，避免 Google 有效响应仍返回空模型列表。
-    - `TestConnectionSync(...)` 改为快速连通性只要求 API Key，不再把“已选模型”误当成前置硬门槛。
-    - `ResolvePrimaryCloudConfigForConnectivity(...)` / `TryValidateCloudConfigForConnectivity(...)` 新增设置页专用连通性选择与校验逻辑。
+    - `ParseGoogleModelsFromResponse(...)` змінено на двоканальний розбір «спочатку строгий типізований розбір + резервне вилучення полів `name`», щоб навіть за дійсної відповіді Google список моделей не залишався порожнім.
+    - `TestConnectionSync(...)` Змінено: для швидкої перевірки з’єднання потрібен лише API Key; «вибрану модель» більше помилково не вважають обов’язковою попередньою умовою.
+    - `ResolvePrimaryCloudConfigForConnectivity(...)` / `TryValidateCloudConfigForConnectivity(...)` Додано спеціальні для сторінки налаштувань параметри вибору з’єднання та логіку перевірки.
   - `RimChat/Config/ApiUsabilityDiagnosticService.cs`
-    - `ValidateCloudConfig(...)` 对缺失 API Key / 模型输出本地化精确提示，不再只给泛化英文配置错误。
+    - `ValidateCloudConfig(...)` Для відсутнього API Key / виводу моделі додано точні локалізовані повідомлення замість загальної англійської помилки конфігурації.
   - `RimChat/Config/RimChatSettings_ApiUsability.cs`
-    - `BuildUsabilitySummaryText(...)` 在配置校验失败时直接拼接精确细节，避免用户必须展开技术详情才能看见真正缺失项。
+    - `BuildUsabilitySummaryText(...)` У разі помилки перевірки конфігурації точні подробиці тепер додаються безпосередньо, тож користувачеві не потрібно розгортати технічні деталі, щоб побачити, чого саме бракує.
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-    - 新增 `RimChat_ErrorEmptyModel`，统一“模型为空”提示来源。
+    - Додано `RimChat_ErrorEmptyModel`, щоб уніфікувати джерело повідомлення «модель не вказано».
 
-## GitNexus C# 关系补偿核验工具（开发工具）
-- 目标：补偿 GitNexus 在 C# 下的关系视图偏差，避免 `CALLS/IMPORTS/process` 断线导致误判。
-- 工具脚本：
+## GitNexus Інструмент перевірки компенсації зв’язків C# (інструмент розробника)
+- Мета: компенсувати GitNexus похибку відображення зв’язків у C#, щоб розрив `CALLS/IMPORTS/process` не спричиняв хибних висновків.
+- Скрипти інструмента:
   - `tools/hotfix/audit-gitnexus-csharp-relations.ps1`
   - `tools/hotfix/apply-gitnexus-csharp-calls-hotfix.ps1`
   - `tools/hotfix/apply-gitnexus-csharp-imports-hotfix.ps1`
   - `tools/hotfix/apply-gitnexus-process-coverage-hotfix.ps1`
-- 报告输出目录：
+- Каталог виводу звіту:
   - `doc/reports/`
-- 使用方式：
-  - 先执行本机调用抽取补丁：`./tools/hotfix/apply-gitnexus-csharp-calls-hotfix.ps1`
-  - 执行 C# IMPORTS 精准补丁：`./tools/hotfix/apply-gitnexus-csharp-imports-hotfix.ps1`
-  - 执行 process 覆盖补丁：`./tools/hotfix/apply-gitnexus-process-coverage-hotfix.ps1`
-  - 然后强制重建索引：`npx gitnexus clean -f` -> `npx gitnexus analyze`
-  - 在仓库根目录执行：`./tools/hotfix/audit-gitnexus-csharp-relations.ps1`
-  - 可选参数：`-Repo RimChat`、`-OutputPath <custom-report-path>`、`-MaxEdgePerUsing`、`-MaxProcessZeroSamples`、`-MinGlobalProcessEdges`
-- 核验策略：
-  - 以 `CALLS` 为主真相，验证“源码可见调用点”是否在图中有边。
-  - 对同命名空间跨文件调用，允许 `IMPORTS=0` 并标记 `SAME_NAMESPACE_NO_IMPORT_EDGE`。
-  - 对 `using RimChat.*` 文件，检查 `IMPORTS` 是否出现命名空间级过连（`Edge/using` 过高）。
-  - 对 `PROCESS=0` 的样本做严格阈值门禁，超阈值直接失败退出（fail-fast）。
-  - 严格门禁默认阈值：`Edge/using<=3`、`Process zero<=2`、`Global STEP_IN_PROCESS>=2201`。
+- Спосіб використання:
+  - Спочатку виконайте локальний виклик для вилучення патча: `./tools/hotfix/apply-gitnexus-csharp-calls-hotfix.ps1`
+  - Виконайте точний патч C# IMPORTS: `./tools/hotfix/apply-gitnexus-csharp-imports-hotfix.ps1`
+  - Виконайте патч перезапису process: `./tools/hotfix/apply-gitnexus-process-coverage-hotfix.ps1`
+  - Потім примусово перебудуйте індекс: `npx gitnexus clean -f` -> `npx gitnexus analyze`
+  - Виконайте в кореневому каталозі репозиторію: `./tools/hotfix/audit-gitnexus-csharp-relations.ps1`
+  - Необов’язкові параметри: `-Repo RimChat`、`-OutputPath <custom-report-path>`、`-MaxEdgePerUsing`、`-MaxProcessZeroSamples`、`-MinGlobalProcessEdges`
+- Стратегія перевірки:
+  - Вважайте `CALLS` основним джерелом істини та перевірте, чи мають «видимі у вихідному коді точки виклику» ребра в графі.
+  - Для викликів між файлами в одному просторі імен дозволяється `IMPORTS=0` із позначенням `SAME_NAMESPACE_NO_IMPORT_EDGE`.
+  - Щодо `using RimChat.*` файлу перевірте, `IMPORTS` чи не виникає надмірного з'єднання на рівні простору імен (`Edge/using` надто високе).
+  - Для зразків `PROCESS=0` застосовуйте суворий пороговий контроль: у разі перевищення порога негайно завершіть роботу з помилкою (fail-fast).
+  - Суворий поріг перепустки за замовчуванням: `Edge/using<=3`, `Process zero<=2`, `Global STEP_IN_PROCESS>=2201`.
 
-## 对话结构化主协议与思维链主链退出（v0.9.71）
-- 目标：将 RPG / 外交 / 主动推送的可见回复统一收敛到结构化主协议，切断原始模型文本直通 UI 的链路，并让 thought-chain 默认退出运行时主链。
-- 关键模块：
+## Основний протокол структурування діалогу та вихід головного ланцюга ланцюжка міркувань (v0.9.71)
+- Мета: уніфіковано звести видимі відповіді RPG / дипломатії / активних push-сповіщень до основного структурованого протоколу, розірвати канал прямої передачі необробленого тексту моделі до UI і забезпечити вихід thought-chain із головного ланцюга виконання за замовчуванням.
+- Ключові модулі:
   - `RimChat/Dialogue/DialogueResponseEnvelope.cs`
   - `RimChat/Dialogue/DialogueResponseEnvelopeParser.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/AI/AIResponseParser.cs`
   - `RimChat/DiplomacySystem/DiplomacyConversationController.cs`
   - `RimChat/Rpg/RpgDialogueConversationController.cs`
-- 链路变化：
-  - 新增 `DialogueResponseEnvelopeParser`，优先解析结构化 JSON 协议（`visible_dialogue` + 可选 `actions`），旧单文本仅保留最小必要兼容。
-  - `AIChatServiceAsync` 在 `DiplomacyDialogue / RpgDialogue / NpcPush / PawnRpgPush` 上游先做 envelope fail-fast 校验，再进入沉浸/文本完整性/动作合同校验。
-  - 外交与 RPG 控制器改为把结构化 `DialogueResponseEnvelope` 传给后续 UI / 动作链，不再让主窗口直接消费原始字符串。
-  - `ModelOutputSanitizer` 新增统一的 `SplitVisibleAndTrailingActions / ComposeVisibleAndTrailingActions`，移除各 guard 的重复切分逻辑。
-  - `ImmersionOutputGuard` 新增“推理泄漏”命中类型，用于阻断无标签思维链、规则复述和分析口吻混入 `visible_dialogue`。
-  - `RimChatSettings` 的 thought-chain 默认值改为全通道关闭；节点与配置结构仅保留迁移兼容，不再作为主链输出安全机制。
+- Зміни в каналі:
+  - Додано `DialogueResponseEnvelopeParser`, який спочатку розбирає структурований протокол JSON (`visible_dialogue` + необов’язковий `actions`), а старий формат одного тексту збережено лише для мінімально необхідної сумісності.
+  - `AIChatServiceAsync` спочатку виконує fail-fast перевірку envelope на верхньому рівні `DiplomacyDialogue / RpgDialogue / NpcPush / PawnRpgPush`, а потім переходить до перевірок занурення, цілісності тексту та контракту дій.
+  - Контролери дипломатії та RPG тепер передають структурований `DialogueResponseEnvelope` до наступного UI / ланцюга дій, і головне вікно більше не споживає безпосередньо необроблені рядки.
+  - `ModelOutputSanitizer` додано уніфікований `SplitVisibleAndTrailingActions / ComposeVisibleAndTrailingActions`, а дубльовану логіку розділення в кожному guard видалено.
+  - `ImmersionOutputGuard` Додано тип збігу «витік міркувань» для блокування немаркованого ланцюжка думок, повторення правил і аналітичного тону, що проникають у `visible_dialogue`.
+  - Значення thought-chain за замовчуванням для `RimChatSettings` змінено на повне вимкнення для всіх каналів; структури вузлів і конфігурації збережено лише для сумісності міграції, і вони більше не є механізмом безпеки основного ланцюжка виводу.
 
-## 外交历史记录面板高保真重做（v0.9.70）
-- 目标：将外交历史管理窗口改为高保真对齐 RPG 历史记录面板，并把历史展示从“视图切换列表”改为“按会话分段”的单面板结构。
-- 关键模块：
+## Високоточна переробка панелі історії дипломатії (v0.9.70)
+- Мета: перетворити вікно керування історією дипломатії на високоточну копію панелі історії RPG, а відображення історії змінити зі «списку перемикання подань» на структуру однієї панелі, розділену за сеансами.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyHistory.cs`
   - `RimChat/UI/Dialog_DiplomacyHistoryEdit.cs`
   - `RimChat/Memory/LeaderMemoryManager.DialogueHistory.cs`
-- 链路变化：
-  - 外交历史窗口取消 `当前派系 / 玩家总历史` 双视图，只保留当前外交派系的单面板历史管理。
-  - 历史数据改为“当前活会话 + 持久化历史切段”组合：当前活会话直接读取 `FactionDialogueSession.messages`，旧历史从 `DialogueHistory` 按稳定时间间隔切成历史会话组。
-  - 单击记录行只选中；选中后右侧显示删除符号；双击记录行直接打开编辑小窗。
-  - 编辑 / 删除会同时回写 `session.messages` 与 `LeaderMemory.DialogueHistory`，确保外交主窗口与历史面板双向同步。
+- Зміни в ланцюжку:
+  - Вікно історії дипломатії скасовує `当前派系 / 玩家总历史` подвійне подання й зберігає лише одну панель керування історією поточної дипломатичної фракції.
+  - Історичні дані тепер складаються з «поточного активного сеансу + збережених історичних сегментів»: поточний активний сеанс безпосередньо читається з `FactionDialogueSession.messages`, а стару історію з `DialogueHistory` розділено на групи історичних сеансів через стабільні часові інтервали.
+  - Одинарне клацання рядка запису лише вибирає його; після вибору праворуч відображається символ видалення; подвійне клацання рядка запису безпосередньо відкриває невелике вікно редагування.
+  - Редагування / видалення одночасно записує зміни назад у `session.messages` і `LeaderMemory.DialogueHistory`, забезпечуючи двосторонню синхронізацію головного вікна дипломатії та панелі історії.
 
-## 外交历史记录管理窗口（v0.9.69）
-- 目标：在外交窗口 `通讯 / 社交圈 / 相册 / 自拍` 按钮行后新增 `历史记录` 入口，让玩家直接管理外交 `DialogueHistory`。
-- 关键模块：
+## Вікно керування записами історії дипломатії (v0.9.69)
+- Мета: додати після рядка кнопок у вікні дипломатії `通讯 / 社交圈 / 相册 / 自拍` точку входу `历史记录`, щоб гравець міг безпосередньо керувати дипломатичними `DialogueHistory`.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.SocialCircleView.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.HistoryActions.cs`
   - `RimChat/UI/Dialog_DiplomacyHistory.cs`
   - `RimChat/UI/Dialog_DiplomacyHistoryEdit.cs`
   - `RimChat/Memory/LeaderMemoryManager.DialogueHistory.cs`
-- 链路变化：
-  - `DrawDialogueMainTabs(...)` 新增 `历史记录` action-tab，保持与 `相册 / 自拍` 同级的独立弹窗入口。
-  - 新增 `Dialog_DiplomacyHistory`，提供 `当前派系 / 玩家总历史` 两个视图；总历史采用跨派系 `DialogueHistory` 聚合视图，不新增独立存储。
-  - `LeaderMemoryManager` 新增只面向 `DialogueHistory` 的读取、聚合、编辑、删除与立即持久化接口；不触碰 `SignificantEvents`、摘要池和关系快照。
-  - 新增 `Dialog_DiplomacyHistoryEdit` 小窗，编辑只允许改 `Message` 文本；删除前必须确认，空文本保存直接 fail-fast 阻断。
+- Зміни зв’язків:
+  - `DrawDialogueMainTabs(...)` Додано `历史记录` action-tab як окрему точку входу у незалежне спливаюче вікно на тому самому рівні, що й `相册 / 自拍`.
+  - Додано `Dialog_DiplomacyHistory`, що надає два представлення: `当前派系 / 玩家总历史`; загальна історія використовує агреговане представлення `DialogueHistory` між фракціями, без додавання окремого сховища.
+  - `LeaderMemoryManager` додано інтерфейси читання, агрегування, редагування, видалення та негайного збереження, призначені лише для `DialogueHistory`; `SignificantEvents`, пулу зведень і знімків відносин не стосується.
+  - Додано міні-вікно `Dialog_DiplomacyHistoryEdit`; редагування дозволяє змінювати лише текст `Message`; перед видаленням потрібне підтвердження, а збереження порожнього тексту негайно блокується через fail-fast.
 
-## 外交策略状态行折叠动效（v0.9.68）
-- 目标：将外交窗口底部策略状态区改为可折叠布局，关闭时压缩为极简入口，开启时展开完整状态文案，并用动画减少跳变感。
-- 关键模块：
+## Анімація згортання рядка стану дипломатичної стратегії (v0.9.68)
+- Мета: перетворити нижню область стану стратегії дипломатичного вікна на згортний макет, у закритому стані стискати її до мінімалістичної точки входу, у відкритому — розгортати повний текст стану, а за допомогою анімації зменшити різкість переходів.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.Strategy.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `DrawChatArea(...)` 改为按策略区当前动画高度实时重排消息区、控制区和输入区，折叠后把多余高度还给消息列表。
-  - `DrawStrategyStatusHint(...)` 拆分为折叠态与展开态渲染；关闭时仅显示 `RimChat_StrategyCollapsedEntry`，开启时显示完整状态文案与关闭入口。
-  - 状态行新增独立展开进度，不复用策略按钮栏动画；三枚策略按钮可见时仍保持“隐藏状态行、只显示按钮栏”的既有优先级。
+- Зміни ланцюжка:
+  - `DrawChatArea(...)` змінено так, щоб область повідомлень, область керування та область введення в реальному часі перебудовувалися відповідно до поточної висоти анімації області стратегій; після згортання зайва висота повертається списку повідомлень.
+  - `DrawStrategyStatusHint(...)` розділено на відображення згорнутого та розгорнутого станів; коли вимкнено, відображається лише `RimChat_StrategyCollapsedEntry`, а коли ввімкнено — повний текст стану та елемент входу для вимкнення.
+  - До рядка стану додано окремий прогрес розгортання, який не використовує анімацію панелі кнопок стратегій повторно; коли видно три кнопки стратегій, пріоритет «приховувати рядок стану й показувати лише панель кнопок» зберігається.
 
-## 外交发送入口改名为“快速行动 / Actions”（v0.9.67）
-- 目标：统一外交发送区入口文案，去掉旧的“+发送信息 / +Send Info”，改为更直接的“快速行动 / Actions”。
-- 关键模块：
+## Перейменування входу дипломатичної відправки на «Швидкі дії / Actions» (v0.9.67)
+- Мета: уніфікувати текст входу області дипломатичної відправки, прибравши старе «+Надіслати інформацію / +Send Info» і замінивши його на пряміше «Швидкі дії / Actions».
+- Ключові модулі:
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `RimChat_SendInfoEntry` 中文改为 `快速行动`。
-  - `RimChat_SendInfoEntry` 英文改为 `Actions`。
-  - 仅修改显示名称，不改变原有菜单入口、可用性校验和动作执行链。
+- Зміни ланцюжка:
+  - Китайський текст `RimChat_SendInfoEntry` змінено на `快速行动`.
+  - Англійський текст `RimChat_SendInfoEntry` змінено на `Actions`.
+  - Змінювати лише назву, що відображається, не змінюючи наявний пункт меню, перевірки доступності та ланцюжок виконання дій.
 
-## 空投交易 mod 物品兼容根修（v0.9.66）
-- 目标：根除外交对话 `request_item_airdrop` 对 mod 物品的规则型漏判，统一候选入池、资源分类、交易卡绑定和信标付款解析。
-- 关键模块：
+## Кореневе виправлення сумісності предметів моду «Торгівля з повітряним десантуванням» (v0.9.66）
+- Мета: усунути помилкове відхилення предметів модів у правилах дипломатичного діалогу `request_item_airdrop`, уніфікувавши додавання кандидатів до пулу, класифікацію ресурсів, прив’язування торгових карток і розбір оплати маяка.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ThingDefCatalog.cs`
   - `RimChat/DiplomacySystem/ItemAirdropSafetyPolicy.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.BoundNeed.cs`
-- 链路变化：
-  - `ThingDefCatalog` 现在对 mod 物品采用更宽但仍可解释的入池规则：优先接纳可交易物、明确的食物/药品/武器/服装/资源，以及具备有效物品分类信号的 item def。
-  - 新增 `TryGetRecordByDefName(...)` 与 `GetTradeablePaymentRecords()`，交易卡绑定与付款解析不再只依赖缓存 catalog 是否提前收录。
-  - `ThingDefRecord.BuildSearchText(...)` 现在补充 camel-case 展开、分类祖先链、交易/资源/堆叠语义词，提升 mod 命名体系下的检索稳定性。
-  - `ItemAirdropSafetyPolicy.IsResourceCandidate(...)` 改为“强资源信号 > 结构化交易信号 > 元数据资源信号”的稳定判定，减少特殊 mod 资源被错踢出 resource family。
-  - `BuildPaymentPlan(...)` 现在优先只在当前轨道信标库存里解析 `payment_items.item`；若全局可解析但当前库存没有，则稳定返回 `payment_item_insufficient`，避免把库存外相似物解析成错误支付目标。
-  - `TryResolveBoundNeedInfo(...)` 现在支持对已知 defName 做直接 fallback 解析，交易卡强绑定物品若是合法 item def，不会因为 catalog 漏收而被静默打成未解析。
+- Зміни в ланцюжку:
+  - `ThingDefCatalog` тепер застосовує до предметів модів ширші, але все ще зрозумілі правила додавання до пулу: пріоритет надається предметам, придатним для торгівлі, явно визначеним продуктам харчування, лікам, зброї, одягу та ресурсам, а також item def із дійсними сигналами класифікації предмета.
+  - Додано `TryGetRecordByDefName(...)` і `GetTradeablePaymentRecords()`, тому прив’язування торгових карток і розбір оплати більше не залежать лише від того, чи було їх заздалегідь внесено до кешованого каталогу.
+  - `ThingDefRecord.BuildSearchText(...)` тепер доповнює пошук розгортанням camel-case, ланцюжком предків категорій і семантичними словами торгівлі, ресурсів та складання в стоси, підвищуючи стабільність пошуку в системах іменування модів.
+  - `ItemAirdropSafetyPolicy.IsResourceCandidate(...)` перейшов до стабільного визначення за принципом «сильний сигнал ресурсу > структурований сигнал торгівлі > сигнал ресурсу з метаданих», зменшуючи ймовірність помилкового вилучення особливих ресурсів модів із resource family.
+  - `BuildPaymentPlan(...)` тепер спершу розбирає `payment_items.item` лише в запасах маяка поточної колії; якщо його можна розібрати глобально, але в поточних запасах його немає, стабільно повертається `payment_item_insufficient`, щоб схожий предмет за межами запасів не було помилково визначено як ціль оплати.
+  - `TryResolveBoundNeedInfo(...)` тепер підтримує прямий fallback-розбір для відомих defName; предмети, жорстко прив’язані до торгової картки, якщо це дійсний item def, більше не будуть мовчки позначатися як нерозібрані через пропуск у каталозі.
 
-## `+发送信息` 新增挑衅 / 请求商队入口（v0.9.64）
-- 目标：在外交窗口 `+发送信息` 中新增“挑衅”和“请求商队”快捷入口，统一走系统消息驱动 AI 回复链，并移除已经失真的 projected goodwill floor 阻断。
-- 关键模块：
+## `+发送信息` Додати входи «Провокувати» / «Запросити торговий караван»（v0.9.64）
+- Мета: додати у вікно дипломатії `+发送信息` швидкі входи «Провокувати» та «Запросити торговий караван», уніфіковано використовувати ланцюжок відповідей, керований системними повідомленнями AI, і прибрати блокування за вже неактуальним projected goodwill floor.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.SendInfoActions.cs`
   - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-- 链路变化：
-  - `OpenSendInfoMenu()` 新增“挑衅”“请求商队”入口；“挑衅”打开独立窗口，展示普通袭击、持续袭击、联合袭击 3 个选项及解释。
-  - 联合袭击增加二次确认；确认后写系统消息 `玩家挑衅了对方，将引发“xx袭击”。`，随后立即入队 AI 对话请求。
-  - 请求商队入口写系统消息 `玩家向对方请求派遣商队交易。`，随后立即入队 AI 对话请求。
-  - `BuildChatMessages(...)` 对“刚写入、且与当前驱动文本相同”的系统消息做去重，避免历史与当前 user message 双重注入。
-  - 全局取消 `request_caravan / request_aid / create_quest` 的 projected goodwill floor 阻断，并同步移除提示词层镜像隐藏规则，保持 UI / 提示词 / 运行时一致。
+- Зміни ланцюжка:
+  - `OpenSendInfoMenu()` Додано входи «Провокувати» та «Запросити торговий караван»; «Провокувати» відкриває окреме вікно з 3 варіантами та поясненнями: звичайна атака, тривала атака, спільна атака.
+  - Для спільної атаки додано повторне підтвердження; після підтвердження записується системне повідомлення `玩家挑衅了对方，将引发“xx袭击”。`, а потім негайно ставиться в чергу AI запит на діалог.
+  - Вхід «Запросити торговий караван» записує системне повідомлення `玩家向对方请求派遣商队交易。`, а потім негайно ставить у чергу AI запит на діалог.
+  - `BuildChatMessages(...)` Дедуплікує системні повідомлення, щойно записані та однакові з поточним текстом драйвера, щоб уникнути подвійної ін'єкції історичного й поточного user message.
+  - Глобально скасувати блокування за projected goodwill floor у `request_caravan / request_aid / create_quest` і одночасно прибрати дзеркальне правило приховування на рівні промпту, зберігаючи узгодженість UI / промпту / середовища виконання.
 
-## 空投确认状态机收口根修（v0.9.63）
-- 目标：彻底根除空投确认窗口已拿到正确 `preparedTrade` 后，仍被旧 `selection_manual_choice` pending 状态反向重入导致的失败与假死。
-- 关键模块：
+## Кореневе виправлення завершення автомата станів підтвердження десанту（v0.9.63）
+- Мета: повністю усунути помилки та імітацію зависання, спричинені повторним входом зі старим станом «очікування» після отримання правильного `preparedTrade` `selection_manual_choice` через вікно підтвердження десанту.
+- Ключові модулі:
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropState.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropAsync.cs`
-- 链路变化：
-  - 新增空投运行态阶段枚举 `Idle/SelectingCandidate/PreparedAwaitingConfirm/Committing/Completed/Failed/Cancelled`，统一记录确认链路阶段。
-  - 打开确认窗前统一失效旧的 `pendingDelayedActionIntent/lastDelayedActionIntent` 空投待选负载、异步 request 状态和交易卡运行态，避免旧状态再次映射回 `selection_manual_choice`。
-  - 确认提交前新增 fail-fast：若当前阶段不是 `PreparedAwaitingConfirm`，或会话里仍残留空投待选状态，直接阻断提交并写诊断日志。
-  - 提交成功、失败、取消、异步回调失败路径统一释放空投临时态，并补齐 `AirdropStateTransition / AirdropConfirmOpen / AirdropConfirmCommitStart / AirdropConfirmCommitResult / AirdropPendingIntentInvalidated / AirdropStalePendingBlocked` 日志。
+- Зміни ланцюжка:
+  - Додано етапний enum стану роботи десантування `Idle/SelectingCandidate/PreparedAwaitingConfirm/Committing/Completed/Failed/Cancelled`, що уніфіковано фіксує етап ланцюжка підтвердження.
+  - Перед відкриттям вікна підтвердження уніфіковано анулюються старі очікувані вантажі десантування `pendingDelayedActionIntent/lastDelayedActionIntent`, асинхронні стани request і робочі стани карток угод, щоб старий стан знову не зіставлявся з `selection_manual_choice`.
+  - Перед надсиланням підтвердження додано fail-fast: якщо поточний етап не `PreparedAwaitingConfirm` або в сесії все ще залишився стан очікування десантування, надсилання негайно блокується, а в журнал діагностики записується повідомлення.
+  - У шляхах успішного, невдалого й скасованого надсилання, а також у шляху помилки асинхронного зворотного виклику уніфіковано вивільняється тимчасовий стан десантування та додано відсутні журнали `AirdropStateTransition / AirdropConfirmOpen / AirdropConfirmCommitStart / AirdropConfirmCommitResult / AirdropPendingIntentInvalidated / AirdropStalePendingBlocked`.
 
-## 提示词工作台预览缓存上次请求快照（v0.9.60）
-- 目标：提示词工作台预览默认使用上次请求的 Scriban 变量快照进行渲染，与 RimTalk 行为一致。
-- 关键模块：
+## Кеш попереднього знімка останнього запиту в попередньому перегляді робочого столу промптів (v0.9.60)
+- Мета: попередній перегляд робочого столу промптів за замовчуванням використовує для рендерингу знімок змінних Scriban з останнього запиту, відповідно до поведінки RimTalk.
+- Ключові модулі:
   - `RimChat/Prompting/PromptRequestSnapshotCache.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-- 链路变化：
-  - 新增 `PromptRequestSnapshotCache` 按频道缓存 `Dictionary<string, object>` 快照。
-  - `BuildRuntimeComposeValues` 在构建后自动调用 `RecordSnapshot` 记录快照。
-  - `BuildDeterministicComposeValues` 优先使用快照值，无快照时回退到占位符预览。
-  - 快照按频道独立缓存，2小时过期，首次使用或过期后自动回退。
+- Зміни в ланцюжку:
+  - Додано `PromptRequestSnapshotCache` для кешування знімків `Dictionary<string, object>` окремо для кожного каналу.
+  - `BuildRuntimeComposeValues` автоматично викликає `RecordSnapshot` після побудови для запису знімка.
+  - `BuildDeterministicComposeValues` спочатку використовує значення знімка, а за його відсутності повертається до попереднього перегляду із заповнювачем.
+  - Знімки кешуються окремо для кожного каналу та стають недійсними через 2 години; під час першого використання або після завершення терміну дії виконується автоматичне повернення.
 
-## 社交圈自关系报错根修（v0.9.59）
-- 目标：彻底根除社交圈生成中 `PlayerColony -> PlayerColony` 自关系调用导致的关系查询报错。
-- 关键模块：
+## Ґрунтовне виправлення помилки самозв’язку в соціальному колі (v0.9.59)
+- Мета: повністю усунути помилки запиту зв’язків, спричинені викликами самозв’язку `PlayerColony -> PlayerColony` під час створення соціального кола.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/Social/SocialCircleService.cs`
   - `RimChat/DiplomacySystem/Social/SocialCircleActionResolver.cs`
   - `RimChat/Patches/FactionGoodwillPatch_NpcDialogue.cs`
-- 链路变化：
-  - `TryAffectPlayerGoodwill(...)` 新增 fail-fast：玩家派系直接阻断，不再进入 `TryAffectGoodwillWith(Faction.OfPlayer, ...)`。
-  - `ApplySoftImpact(...)` 统一改为“去重后的非玩家派系集合”应用软影响，避免 Source/Target 重复与玩家误入。
-  - `AddIntentScore(...)` 在意图写入阶段屏蔽玩家派系；`CanAttemptExecution(...)` 在执行阶段再次屏蔽，兼容旧存档残留意图。
-  - `FactionGoodwillPatch_NpcDialogue.Prefix(...)` 增加 `__instance == other` 保护，阻断补丁层自关系读取。
-  - 所有阻断仅在 DevMode 输出一次性 warning（去重键），正式游玩不刷屏。
+- Зміни в ланцюжку:
+  - `TryAffectPlayerGoodwill(...)` додано fail-fast: фракція гравця негайно блокується й більше не переходить до `TryAffectGoodwillWith(Faction.OfPlayer, ...)`.
+  - `ApplySoftImpact(...)` уніфіковано застосування м’якого впливу до «дедуплікованої множини непровідних фракцій», щоб уникнути дублювання Source/Target і помилкового включення фракції гравця.
+  - `AddIntentScore(...)` блокує фракцію гравця на етапі запису наміру; `CanAttemptExecution(...)` повторно блокує її на етапі виконання для сумісності із залишковими намірами у старих збереженнях.
+  - `FactionGoodwillPatch_NpcDialogue.Prefix(...)` Додати захист `__instance == other`, щоб блокувати читання самозв’язків на рівні патчів.
+  - Усі блокування виводять одноразове попередження лише в DevMode (ключ дедуплікації); під час звичайної гри спам-повідомлень немає.
 
-## 社交圈原生渲染兼容 fail-fast（v0.9.58）
-- 目标：根治“非本机缺失 `ScribanParser.Render` 导致社交圈新闻生成异常”的跨环境兼容问题。
-- 关键模块：
+## Fail-fast для сумісності нативного рендерингу соціального кола (v0.9.58)
+- Мета: усунути проблему кросплатформної сумісності, через яку відсутній на цій машині `ScribanParser.Render` спричиняє помилки генерації новин соціального кола.
+- Ключові модулі:
   - `RimChat/Prompting/RimTalkNativeRpgPromptRenderer.cs`
   - `RimChat/Prompting/RimTalkPromptRenderCompatibilityException.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.SocialCircle.NewsRequests.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/DiplomacySystem/Social/SocialEnums.cs`
-- 链路变化：
-  - 原生渲染绑定从单签名改为多签名探测并缓存；兼容失败返回结构化诊断。
-  - `social_circle_post` 通道在兼容失败时 fail-fast 阻断，不再发送降级 prompt。
-  - `SocialNews` 请求源绕过外交对话 Guard，避免严格 JSON 输出被对话后处理污染。
-  - 社交圈失败原因扩展 `PromptRenderIncompatible`，并补齐中英文语言键。
-  - parse 失败日志新增 `requestId/debugSource/stage/response_preview` 关联字段。
+- Зміни в ланцюжку:
+  - Прив’язку нативного рендерингу змінено з однопідписної на виявлення кількох підписів із кешуванням; у разі помилки сумісності повертається структурована діагностика.
+  - Канал `social_circle_post` у разі помилки сумісності блокується в режимі fail-fast; резервний промпт більше не надсилається.
+  - Джерело запитів `SocialNews` обходить Guard дипломатичних діалогів, щоб уникнути спотворення суворого виводу JSON під час подальшої обробки діалогом.
+  - Розширено причини невдач у соціальному колі `PromptRenderIncompatible` і доповнено мовні ключі китайською та англійською.
+  - До журналу помилок parse додано пов’язане поле `requestId/debugSource/stage/response_preview`.
 
-## 地图栏通讯切换图标热路径优化（v0.9.57）
-- 目标：降低 `PlaySettingsPatch_CommsToggleIcon.Postfix(...)` 每帧重复计算导致的 CPU/GC 抖动，同时保持现有交互语义不变。
-- 关键模块：
+## Оптимізація гарячого шляху перемикання піктограми зв’язку на панелі карти (v0.9.57)
+- Мета: зменшити `PlaySettingsPatch_CommsToggleIcon.Postfix(...)` тремтіння CPU/GC, спричинене повторними обчисленнями щокадру, зберігши наявну семантику взаємодії.
+- Ключові модулі:
   - `RimChat/Patches/PlaySettingsPatch_CommsToggleIcon.cs`
-- 链路变化：
-  - `Postfix(...)` 在单次调用内缓存 `WindowStack` 与已打开窗口，避免一次绘制流程内二次窗口扫描。
-  - 图标状态判定与点击提交共用同一状态快照，保持“窗口存在即开关状态真值”。
-  - tooltip 文案改为状态变化时才重建，减少每帧翻译字符串构造与分配。
+- Зміни в ланцюжку:
+  - `Postfix(...)` кешує `WindowStack` та вже відкриті вікна в межах одного виклику, уникаючи повторного сканування вікон під час одного процесу відмалювання.
+  - Визначення стану піктограми та надсилання натискання використовують один і той самий знімок стану, зберігаючи правило «наявність вікна означає істинний стан перемикача».
+  - Текст tooltip перебудовується лише під час зміни стану, що зменшує щокадрове створення та виділення рядків перекладу.
 
-## 解析链 fail-fast 根修（v0.9.52）
-- 目标：根治赎金外交“解析失败后固定兜底句写入历史导致复读”。
-- 关键模块：
+## Кореневе виправлення fail-fast у ланцюжкутекст (v0.9.52)
+- Мета: усунути першопричину проблеми, через яку в дипломатії щодо викупу після «помилки розбору» до історії записується фіксована резервна фраза, що призводить до повторного відтворення.
+- Ключові модулі:
   - `RimChat/AI/AIJsonContentExtractor.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/AI/AIChatService.cs`
   - `RimChat/Util/DebugLogger.cs`
-- 链路变化：
-  - `TryExtractPrimaryText(...)` 改为返回 `PrimaryTextExtractionResult`，输出 `ReasonTag/MatchedPath`。
-  - 解析器补充 `content[].text` 提取，合并现有字符串键候选统一评分。
-  - `AIChatServiceAsync` 仅对 `empty_primary_text` 重试一次，其他解析失败 fail-fast 返回本地化错误。
-  - 移除“解析失败后把 `RimChat_ImmersionFallback_*` 固定句作为 assistant 历史落盘”的路径，阻断复读污染。
-  - 新增解析取证日志：记录解析状态、原因、命中路径、内容长度。
+- Зміни в ланцюжку:
+  - `TryExtractPrimaryText(...)` змінено на повернення `PrimaryTextExtractionResult`, вивід `ReasonTag/MatchedPath`.
+  - Парсер доповнено вилученням `content[].text`, об’єднано з наявними кандидатами рядкових ключів для уніфікованого оцінювання.
+  - `AIChatServiceAsync` повторює спробу лише один раз для `empty_primary_text`, а для інших помилок аналізу повертає локалізовану помилку в режимі fail-fast.
+  - Видалено шлях, за якого після помилки аналізу фіксована фраза `RimChat_ImmersionFallback_*` зберігалася в історії assistant, щоб запобігти забрудненню повтореннями.
+  - Додано журнал доказів аналізу: записуються стан аналізу, причина, шлях збігу та довжина вмісту.
 
-## 批量赎金估算价格下调（v0.9.50）
-- 目标：批量赎金模式下将“估算赎金价格”统一下调 20%，并同步到批量卡片与批量会话提示中的当前总叫价。
-- 关键模块：
+## Зниження оцінкової ціни викупу за пакет (v0.9.50)
+- Мета: у режимі пакетного викупу уніфіковано знизити «оцінкову ціну викупу» на 20% і синхронізувати поточну загальну ціну в картці пакета та підказці сеансу пакета.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomBatchRuntime.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 新增批量估算系数 `0.8`，批量卡片中的单囚犯估算叫价改为 `~ {estimate}`。
-  - 批量卡片改版为“囚犯存活证明”，展示字段改为：所属派系、已选囚犯、估算叫价、健康度、器官状态。
-  - 批量会话刷新时的“当前总叫价”同步使用折后估算值；批量总报价区间校验仍沿用原有窗口规则（fail-fast 不变）。
+- Зміни в ланцюжку:
+  - Додано коефіцієнт пакетної оцінки `0.8`; розрахункову ціну викупу за одного в’язня в пакетній картці змінено на `~ {estimate}`.
+  - Пакетну картку перероблено на «Підтвердження виживання в’язнів»; відображувані поля змінено на: належність до фракції, вибрані в’язні, розрахункова ціна викупу, стан здоров’я, стан органів.
+  - Під час оновлення пакетної сесії «поточна загальна ціна викупу» також використовує розрахункове значення зі знижкою; перевірка діапазону загальної пакетної пропозиції й надалі використовує наявні правила вікна (fail-fast без змін).
 
-## 批量囚犯赎金覆盖校验根修（v0.9.49）
-- 目标：修复批量囚犯赎金在同轮多目标提交时被解析层误去重，导致执行层报“覆盖不完整”的问题。
-- 关键模块：
+## Кореневе виправлення перевірки охоплення викупу пакетних в’язнів (v0.9.49)
+- Мета: виправити проблему, через яку під час подання кількох цілей в одному раунді викуп пакетних в’язнів помилково дедуплікувався на рівні розбору, що спричиняло повідомлення «охоплення неповне» на рівні виконання.
+- Ключові модулі:
   - `RimChat/AI/AIResponseParser.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomBatchRuntime.cs`
-- 链路变化：
-  - `pay_prisoner_ransom` 解析去重改为按 `target_pawn_load_id` 去重；同一轮不同 target 全部保留，不再按 `action+reason` 折叠。
-  - 保持 fail-fast：同 target 重复提交仍被拦截，批量执行仍要求“覆盖全部已选目标且总报价落在区间内”。
-  - 增强可观测性：解析层新增结构化汇总日志（保留目标/丢弃重复目标/无目标条目计数）；批量校验失败日志补充 `expected_targets` 与 `actual_targets` 明细。
+- Зміни в ланцюжку:
+  - Дедуплікацію під час розбору `pay_prisoner_ransom` змінено на дедуплікацію за `target_pawn_load_id`; усі різні target в одному раунді зберігаються, більше не об’єднуються за `action+reason`.
+  - Збережено fail-fast: повторне подання того самого target і далі блокується, а пакетне виконання й далі вимагає «охопити всі вибрані цілі, а загальна пропозиція має потрапляти в діапазон».
+  - Покращено спостережуваність: на рівні розбору додано структурований зведений журнал (кількість збережених цілей, відкинутих повторних цілей і записів без цілей); до журналу помилок пакетної перевірки додано деталі `expected_targets` і `actual_targets`.
 
-## 批量囚犯赎金谈判（v0.9.48）
-- 目标：把赎金选人与谈判从“单囚犯单笔提交”升级为“多选囚犯批量谈判”，并保持器官丢失惩罚严格执行。
-- 关键模块：
+## Переговори щодо викупу пакетних в’язнів (v0.9.48)
+- Мета: перетворити вибір в’язнів для викупу та переговори з «одного подання для одного в’язня» на «пакетні переговори для кількох вибраних в’язнів», зберігши суворе застосування штрафу за втрату органів.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
@@ -480,54 +480,54 @@
   - `RimChat/action_rules.txt`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 囚犯选择弹窗升级为多选，新增 `全选/全不选/确认`，默认全不选。
-  - 选中多人后生成批量囚犯情报卡（逐人列表 + 总叫价 + 总报价区间），并写入会话批量运行态。
-  - 构建 AI 用户消息时追加 `[RansomBatchSelection]` 引用块，约束本轮多条 `pay_prisoner_ransom` 的覆盖性与总价区间。
-  - 执行层新增批量预校验：缺目标、重复目标、未勾选目标、总价越界均 fail-fast；合法后串行执行并首错即停。
-  - 串行成功后按目标粒度从待支付集合中扣减；批次完成才清空赎金绑定状态。
-  - 批量惩罚中度宽松（时限+50%、普通罚值*0.7、跌价阈值放宽）；器官丢失惩罚保持单人强度，不降级。
+- Зміни в ланцюжку:
+  - Спливне вікно вибору в’язнів перетворено на вікно з множинним вибором, додано `全选/全不选/确认`, за замовчуванням нічого не вибрано.
+  - Після вибору кількох персонажів створюється зведена інформаційна картка в’язнів (список по кожному персонажу + загальна запитувана ціна + загальний діапазон запропонованих цін), а також записується до пакетного стану сеансу.
+  - Під час створення повідомлення користувача AI додається блок посилань `[RansomBatchSelection]`, який обмежує повноту охоплення та загальний діапазон цін для кількох `pay_prisoner_ransom` у цьому раунді.
+  - На рівні виконання додано пакетну попередню перевірку: відсутня ціль, дубльована ціль, не вибрана ціль або вихід загальної ціни за межі — негайне завершення з помилкою; після підтвердження легітимності виконання відбувається послідовно й зупиняється після першої помилки.
+  - Після послідовного успішного виконання кошти списуються з множини очікування оплати з точністю до цілі; стан прив’язки викупу очищується лише після завершення пакета.
+  - Пом’якшення пакетного покарання є помірним (ліміт часу +50%, звичайне значення покарання *0.7, поріг падіння ціни послаблено); покарання за втрату органа зберігає силу для одного персонажа й не послаблюється.
 
-## 通讯台替换直开回归根修（v0.9.47）
-- 目标：修复“勾选替换通讯台后无法直接进入 RimChat，必须先关闭原版通讯树”的回归。
-- 关键模块：
+## Кореневе виправлення регресії прямого відкриття після заміни комунікаційної консолі (v0.9.47)
+- Мета: виправити регресію, через яку після вибору заміни комунікаційної консолі не можна було безпосередньо перейти до RimChat і спершу потрібно було закрити оригінальне дерево зв’язку.
+- Ключові модулі:
   - `RimChat/Patches/CommsConsolePatch.cs`
-- 链路变化：
-  - `GetFloatMenuOptionsPostfix(...)` 的接管门禁由“原版 action 声明类型/程序集匹配”改为“可解析到有效派系即可接管”。
-  - fail-fast 跳过原因收口为 `NullOption / NullAction / InvalidFaction`，用于稳定输出日志并快速定位未接管原因。
-  - `ReplaceCommsConsole=true` 时，通讯台联络项恢复直开 RimChat 外交通讯窗口；`ReplaceCommsConsole=false` 的桥接入口策略保持不变。
+- Зміни в ланцюжку:
+  - Ворота перехоплення `GetFloatMenuOptionsPostfix(...)` змінено з «збіг типу оголошення action/збірки оригінальної версії» на «можна розпізнати дійсну фракцію — можна перехопити».
+  - Причину пропуску fail-fast зведено до `NullOption / NullAction / InvalidFaction`, щоб стабільно виводити журнал і швидко визначати причину неперехоплення.
+  - Під час `ReplaceCommsConsole=true` пункт зв’язку на комунікаційній консолі знову безпосередньо відкриває вікно дипломатичного зв’язку RimChat; стратегія мостового входу `ReplaceCommsConsole=false` залишається без змін.
 
-## 外交主动根修：恢复在线即清历史队列 + 三层节流强化（v0.9.46）
-- 目标：彻底解决“长期未使用通讯台后恢复时主动对话补发/堆积”问题，并降低主动轮询的性能开销。
-- 关键模块：
+## Кореневе виправлення активної дипломатії: очищення історичної черги одразу після відновлення онлайн + посилення тришарового обмеження (v0.9.46)
+- Мета: повністю усунути проблему повторного надсилання або накопичення активних діалогів після тривалого невикористання комунікаційної консолі та зменшити витрати продуктивності активного опитування.
+- Ключові модулі:
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `RimChat/Config/RimChatSettings_NpcPush.cs`
   - `RimChat/Config/RimChatSettings_AI.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - Presence 从 `Unavailable -> Online` 发生边沿恢复时，外交主动历史队列按派系立刻清空，不再补发旧触发。
-  - 常规外交主动节流升级为配置化默认：全局冷却 `6h`、派系冷却 `3~7天`、队列 `3` 条上限与 `12h` 过期。
-  - `GameComponent_NpcDialoguePushManager` 新增活跃候选派系缓存，常规评估读取增量快照并配合低频同步/清理，减少全量重建和临时分配。
-  - 新增可控节流调试日志开关，支持定位“全局/派系节流命中”和“恢复清队列”行为。
+- Зміни ланцюжка:
+  - Коли Presence відновлюється після переходу через `Unavailable -> Online`, черга історії дипломатичних ініціатив негайно очищується для кожної фракції, а старі тригери більше не надсилаються повторно.
+  - Звичайне обмеження частоти дипломатичних ініціатив переведено на конфігуровані значення за замовчуванням: глобальна затримка відновлення `6h`, затримка відновлення для фракції `3~7天`, максимальний розмір черги `3` елементів і протермінування через `12h`.
+  - `GameComponent_NpcDialoguePushManager` Додано кеш активних кандидатів-фракцій; звичайне оцінювання читає інкрементальний знімок і виконує низькочастотну синхронізацію/очищення, що зменшує повну перебудову та тимчасові виділення пам’яті.
+  - Додано керований перемикач журналювання для налагодження обмеження частоти, що дає змогу визначати спрацювання «глобального/фракційного обмеження частоти» та поведінку «очищення черги під час відновлення».
 
-## 敌对派系入站消息自动重开会话（v0.9.45）
-- 目标：根治“派系持续来信但玩家无法回复”的状态断链；同派系只要出现新的普通/系统入站消息，就自动解除会话结束态并恢复可回复状态。
-- 关键模块：
+## Автоматичне повторне відкриття сеансу для вхідних повідомлень ворожих фракцій (v0.9.45)
+- Мета: остаточно усунути розрив стану, за якого «фракція продовжує надсилати повідомлення, але гравець не може відповісти»; щойно від тієї самої фракції надходить нове звичайне/системне вхідне повідомлення, стан завершеного сеансу автоматично скасовується, а можливість відповіді відновлюється.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
   - `RimChat/DiplomacySystem/RansomContractManager.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.SocialCircle.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.Presence.cs`
-- 链路变化：
-  - 新增统一入口 `HandleInboundFactionMessage(...)`，将“入站消息触发会话重开 + 写消息 + 未读标记 + 记忆同步”收敛到外交管理层单点。
-  - `NpcPush`、`Ransom`、`SocialCircle` 三条入站链路全部改为调用统一入口，移除分散的本地重开逻辑，避免遗漏。
-  - 外交 UI 发送门控保留 fail-fast，但不再渲染“重新发起对话”按钮；恢复动作完全由入站消息驱动。
+- Зміни ланцюжка:
+  - Додано уніфіковану точку входу `HandleInboundFactionMessage(...)`, яка зводить «повторне відкриття сеансу через вхідне повідомлення + запис повідомлення + позначення як непрочитаного + синхронізацію пам’яті» в єдину точку на рівні дипломатичного керування.
+  - Три ланцюжки вхідних повідомлень `NpcPush`, `Ransom`, `SocialCircle` тепер викликають уніфіковану точку входу; розподілену локальну логіку повторного відкриття видалено, щоб уникнути пропусків.
+  - Шлюз надсилання дипломатичного UI зберігає fail-fast, але більше не відображає кнопку «Повторно розпочати розмову»; відновлення повністю керується вхідними повідомленнями.
 
-## 玩家手动社交圈发帖 + 派系强制主动回应（v0.9.44）
-- 目标：允许玩家在外交窗口的 `社交圈` 页内手动发布公开帖子，并在发帖后强制触发 1-3 个相关派系走现有主动对话链路。
-- 关键模块：
+## Ручна публікація допису гравцем у соціальному колі + примусова активна відповідь фракції（v0.9.44）
+- Мета: дозволити гравцеві вручну публікувати відкриті дописи на сторінці `社交圈` дипломатичного вікна та після публікації примусово запускати для 1–3 відповідних фракцій наявний ланцюжок активного діалогу.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.SocialCircleView.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ManualSocialPost.cs`
   - `RimChat/UI/Dialog_ManualSocialPost.cs`
@@ -536,42 +536,42 @@
   - `RimChat/DiplomacySystem/Social/SocialEnums.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `DrawSocialToolbar(...)` 新增 `发帖/Post` 按钮，打开最小化手动发帖窗口。
-  - `Dialog_ManualSocialPost` 只采集标题和正文，并在 UI 层对空值和超长输入执行 fail-fast。
-  - `TryPublishManualPlayerSocialPost(...)` 直接创建 `PublicSocialPost`，使用新的 `SocialNewsOriginType.PlayerManual` 写入社交圈，不经过 AI 新闻草稿生成。
-  - 手动帖子发布后，系统按标题/正文相关性和派系关系随机挑选 1-3 个有效派系，逐个注入 `RegisterCustomTrigger(...)`。
-  - `BuildGenerationMessages(...)` 在 `manual_social_post` 上下文下会追加帖子标题、正文和公开语境，确保派系主动来信明确回应帖文内容。
+- Зміни зв’язку:
+  - `DrawSocialToolbar(...)` Додано кнопку `发帖/Post`, яка відкриває мінімізоване вікно ручного створення допису.
+  - `Dialog_ManualSocialPost` Збираються лише заголовок і текст, а на рівні UI для порожніх значень і надто довгого вводу застосовується fail-fast.
+  - `TryPublishManualPlayerSocialPost(...)` Безпосередньо створюється `PublicSocialPost`, який за допомогою нового `SocialNewsOriginType.PlayerManual` записується в соціальне коло, без створення чернетки новин AI.
+  - Після публікації ручного допису система випадково обирає 1–3 дійсні фракції на основі відповідності заголовка й тексту та відносин із фракціями, а потім по черзі передає кожній `RegisterCustomTrigger(...)`.
+  - `BuildGenerationMessages(...)` У контексті `manual_social_post` додаються заголовок допису, його текст і публічний контекст, щоб фракції у своїх ініціативних листах чітко відповідали змісту допису.
 
-## 外交策略提示行全局开关（v0.9.43）
-- 目标：让外交对话窗口中的策略提示行支持整行点击切换全局策略开关，并在策略按钮可见时自动隐藏该提示行。
-- 关键模块：
+## Глобальний перемикач рядка підказок дипломатичної стратегії (v0.9.43)
+- Мета: зробити рядок підказок стратегії у вікні дипломатичного діалогу перемикачем глобальної стратегії при натисканні в будь-якому місці рядка та автоматично приховувати цей рядок, коли кнопка стратегії видима.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.Strategy.cs`
   - `RimChat/Config/RimChatSettings.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 新增 `EnableDiplomacyStrategyToggle` 全局持久化配置，默认开启，关闭后跨窗口/跨派系/重开游戏保持状态。
-  - `DrawStrategyStatusHint(...)` 改为整行可点击；开启时尾部显示“点击关闭”，关闭时显示“点击开启”。
-  - 策略按钮栏显示优先级高于提示行：只要三条策略按钮已可展示，就直接隐藏提示行文字。
-  - 外交窗口内的策略 follow-up 请求、策略按钮展示与按钮点击自动发送统一走同一全局门控；关闭时只阻断策略 UI 链路，不改主对话链路。
+- Зміни в ланцюжку:
+  - Додано `EnableDiplomacyStrategyToggle` глобальну постійну конфігурацію, увімкнену за замовчуванням; після вимкнення стан зберігається між вікнами, фракціями та повторними запусками гри.
+  - `DrawStrategyStatusHint(...)` тепер можна натискати в будь-якому місці рядка; коли ввімкнено, наприкінці відображається «Натисніть, щоб вимкнути», а коли вимкнено — «Натисніть, щоб увімкнути».
+  - Панель кнопок стратегій має вищий пріоритет, ніж рядок підказки: щойно всі три кнопки стратегій доступні для відображення, текст рядка підказки одразу приховується.
+  - Запити follow-up стратегій у вікні дипломатії, відображення кнопок стратегій і автоматичне надсилання після натискання кнопок використовують один глобальний перемикач; у вимкненому стані він лише блокує ланцюжок UI стратегій і не змінює ланцюжок основного діалогу.
 
-## 联合袭击专属音效全链路移除（v0.9.42）
-- 目标：彻底移除 `sound_request_raid_call_everyone` 专属音效链路，避免继续维护独立资源、播放调用和构建约束。
-- 关键模块：
+## Повне вилучення спеціального звукового супроводу спільної атаки (v0.9.42)
+- Мета: повністю вилучити ланцюжок спеціального звукового супроводу `sound_request_raid_call_everyone`, щоб більше не підтримувати окремі ресурси, виклики відтворення та обмеження збірки.
+- Ключові модулі:
   - `RimChat/AI/AIActionExecutor.cs`
   - `1.6/Defs/SoundDefs/Diplomacy_Sounds.xml`
   - `build.ps1`
   - `doc/Api.md`
   - `doc/config.md`
-- 链路变化：
-  - `ExecuteRequestRaidCallEveryone(...)` 成功后不再播放 `RimChat_RequestRaidCallEveryone`，联合袭击只保留文本/系统反馈。
-  - 删除 `RimChat_RequestRaidCallEveryone` `SoundDef` 与 `1.6/Sounds/sound_request_raid_call_everyone.wav` 资源，不再保留专属音频入口。
-  - `build.ps1` 移除联合袭击音频 fail-fast 校验，构建链不再依赖该资源存在。
+- Зміни в ланцюжку:
+  - Після успішного виконання `ExecuteRequestRaidCallEveryone(...)` звук `RimChat_RequestRaidCallEveryone` більше не відтворюється; для спільної атаки залишаються лише текстовий і системний зворотний зв’язок.
+  - Видалити `RimChat_RequestRaidCallEveryone` `SoundDef` і `1.6/Sounds/sound_request_raid_call_everyone.wav` ресурси, більше не зберігати окремий аудіовхід.
+  - `build.ps1` Видалити fail-fast перевірку аудіо спільного рейду, щоб ланцюжок збірки більше не залежав від наявності цього ресурсу.
 
-## 轨道商订单任务禁用根修（v0.9.42）
-- 目标：彻底禁止轨道商生成要求殖民者携带指定物资进入地面据点履约的订单任务，并把相关需求统一收口到“解释限制 + 引导空投交易”。
-- 关键模块：
+## Кореневе виправлення для вимкнення завдань замовлень орбітальних торговців (v0.9.42)
+- Мета: повністю заборонити орбітальним торговцям генерувати завдання замовлень, що вимагають від колоністів доставляти визначені припаси до наземної бази для виконання, і звести пов’язані потреби до єдиного формату «пояснення обмежень + скерування до торгівлі через повітряний скид».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/AI/AIActionExecutor.cs`
@@ -579,53 +579,53 @@
   - `RimChat/action_rules.txt`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 轨道商上下文统一由资格层判定，并同时驱动任务 eligibility、动态任务提示和 create_quest 失败回显。
-  - `TradeRequest` 在轨道商场景下不再进入 allowed quest 列表；执行期若模型仍输出该任务，会被 fail-fast 拦截。
-  - 输出契约与动作附加规则同步明确：轨道商没有地面据点履约链路，具体物资交换只能改走 `request_item_airdrop`。
+- Зміни в ланцюжку:
+  - Контекст орбітального торговця тепер уніфіковано визначається шаром кваліфікації та одночасно керує eligibility завдання, динамічною підказкою завдання й повідомленням про помилку create_quest.
+  - `TradeRequest` У сценаріях з орбітальним торговцем більше не додається до списку allowed quest; якщо під час виконання модель усе ж виведе це завдання, його буде перехоплено fail-fast.
+  - Контракт виведення та додаткові правила дій тепер чітко визначають: орбітальний торговець не має ланцюжка виконання на наземній базі, тому обмін конкретними припасами можна здійснювати лише через `request_item_airdrop`.
 
-## 联合袭击动作目录语义澄清 + 默认提示层去 blocked 化（v0.9.41）
-- 目标：将 `request_raid_call_everyone` 在提示词动作目录中的定位改为“公开摇人总攻”，并在提示词层默认按普通高强度动作展示，不再把 post-raid 前置当成默认 blocked 提示暴露给模型。
-- 关键模块：
+## Уточнення семантики дії спільного рейду + усунення blocked на рівні промпту за замовчуванням (v0.9.41)
+- Мета: змінити позицію `request_raid_call_everyone` у каталозі дій промпту на «публічний заклик до загального наступу» та на рівні промпту за замовчуванням показувати її як звичайну високoінтенсивну дію, більше не виставляючи попередню умову post-raid як blocked за замовчуванням для моделі.
+- Ключові модулі:
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `RimChat/Config/PromptTextConstants.cs`
   - `RimChat/Persistence/PromptPersistenceService.DomainStorage.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `doc/Api.md`
-- 链路变化：
-  - `request_raid_call_everyone` 的默认说明与运行时补齐说明统一改写为“跨派系联合总攻”，并明确 `call everyone / 联合袭击 / 都叫来 / 全都叫来 / everyone attack / all in` 属于主动发起总攻的口令。
-  - `AppendBlockedActionHints(...)` 在提示词层隐藏 `call_everyone_requires_post_raid_escalation`，避免模型默认把联合袭击视为 blocked 动作；真实资格校验与 UI blocked 原因保持不变。
-  - `request_raid_waves` 文案同步改为“持续施压的多波次进攻”，不再沿用“联合袭击不可用时的兜底”叙事。
+- Зміни в ланцюжку:
+  - Типовий опис `request_raid_call_everyone` і доповнювальний опис під час виконання узгоджено переписати як «міжфракційний спільний наступ» і чітко зазначити, що `call everyone / 联合袭击 / 都叫来 / 全都叫来 / everyone attack / all in` є командою для ініціювання загального наступу.
+  - На рівні промпту `AppendBlockedActionHints(...)` приховує `call_everyone_requires_post_raid_escalation`, щоб модель за замовчуванням не вважала спільний рейд blocked-дією; фактична перевірка права доступу та причина blocked для UI залишаються без змін.
+  - Текст `request_raid_waves` також змінено на «багатохвильовий наступ для тривалого тиску»; оповідь про «запасний варіант, коли спільний рейд недоступний» більше не використовується.
 
-## 联合袭击动作说明补全 + 别名映射 + 成功音效（v0.9.40）
-- 目标：补全 `request_raid_call_everyone` 的用途、触发时机与语义解释，支持“联合袭击”等口语别名，并在动作真正调度成功后播放专属音效。
-- 关键模块：
+## Доповнення опису дії спільного рейду + зіставлення псевдонімів + звук успіху (v0.9.40)
+- Мета: доповнити призначення, час запуску й семантичне пояснення `request_raid_call_everyone`, підтримати розмовні псевдоніми на кшталт «спільний рейд» і відтворювати спеціальний звуковий ефект після фактичного успішного запуску дії.
+- Ключові модулі:
   - `RimChat/AI/AIResponseParser.cs`
   - `RimChat/AI/AIActionExecutor.cs`
   - `RimChat/Config/PromptTextConstants.cs`
   - `RimChat/Persistence/PromptPersistenceService.DomainStorage.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `1.6/Defs/SoundDefs/Diplomacy_Sounds.xml`
-- 链路变化：
-  - `NormalizeActionName(...)` 新增 `联合袭击 / 一起上 / 都叫来 / 全都叫来 / everyone_attack / all_in` 到 `request_raid_call_everyone` 的归一化映射。
-  - `ExecuteRequestRaidCallEveryone(...)` 仅在 `ScheduleRaidCallEveryone(...)` 成功后播放 `RimChat_RequestRaidCallEveryone`，避免失败时误播。
-  - 默认动作说明与运行时补齐说明明确：`call everyone` 用于把普通袭击升级为联合袭击；玩家明确说出相关挑战短语时可视为有效触发意图。
+- Зміни ланцюжка:
+  - `NormalizeActionName(...)` Додано нормалізоване зіставлення від `联合袭击 / 一起上 / 都叫来 / 全都叫来 / everyone_attack / all_in` до `request_raid_call_everyone`.
+  - `ExecuteRequestRaidCallEveryone(...)` Лише після `ScheduleRaidCallEveryone(...)` успішного виконання відтворювати `RimChat_RequestRaidCallEveryone`, щоб не відтворювати помилково в разі невдачі.
+  - Опис типової дії та доповнений опис під час виконання чітко вказують: `call everyone` використовується для перетворення звичайної атаки на спільну атаку; коли гравець прямо вимовляє відповідну фразу-виклик, це можна вважати дійсним наміром активації.
 
-## 提示词去重 + 种族强制注入 + 事件双层压缩（v0.9.39）
-- 目标：降低重复注入 token，强制补齐种族画像块，并在事件过载时输出“原文 + 摘要”双层信息。
-- 关键模块：
+## Дедуплікація промптів + примусове додавання раси + дворівневе стиснення подій（v0.9.39）
+- Мета: зменшити кількість повторно доданих токенів, примусово доповнювати блок расового профілю та під час перевантаження подіями виводити дворівневу інформацію: «оригінальний текст + стислий виклад».
+- Ключові модулі:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
   - `RimChat/Persistence/PromptPersistenceService.TemplateVariables.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-- 链路变化：
-  - 运行时补充块新增 `mandatory_race_profile`（外交/RPG/proactive），并加入运行时必需校验，缺失 fail-fast。
-  - 运行时节点去重：已有 `instruction_stack.faction_characteristics` 时抑制 `diplomacy_fallback_role` 重复输出。
-  - `world.environment_params` 与 `world.recent_world_events` 改为紧凑快照/摘要口径，完整事件详情只保留在 `<environment>`。
-  - `AppendRecentWorldEventIntel(...)` 升级为双层输出：预算溢出时追加 `EventDigest`（类型分布、主题聚类、时序趋势）。
+- Зміни ланцюжка:
+  - У блок доповнення під час виконання додано `mandatory_race_profile` (дипломатія/RPG/proactive), а також додано обов’язкову перевірку під час виконання; за відсутності — fail-fast.
+  - Дедуплікація вузлів під час виконання: якщо `instruction_stack.faction_characteristics` уже наявний, повторний вивід `diplomacy_fallback_role` пригнічується.
+  - `world.environment_params` і `world.recent_world_events` переведено на формат стислого знімка/резюме; повні деталі подій зберігаються лише в `<environment>`.
+  - `AppendRecentWorldEventIntel(...)` оновлено до дворівневого виводу: у разі перевищення бюджету додається `EventDigest` (розподіл за типами, кластеризація тем, часові тенденції).
 
-## 外交/RPG 固定种族画像注入（v0.9.38）
-- 目标：在外交与 RPG 两条主对话链路强制注入种族画像，不再依赖工作台模板是否显式引用 `pawn.*.profile`。
-- 关键模块：
+## Фіксоване впровадження расового профілю в дипломатію/RPG (v0.9.38)
+- Мета: примусово впроваджувати расовий профіль у два основні діалогові ланцюжки — дипломатію та RPG, більше не покладаючись на те, чи містить шаблон робочого столу явне посилання на `pawn.*.profile`.
+- Ключові модулі:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
   - `RimChat/Persistence/PromptPersistenceService.TemplateVariables.cs`
   - `RimChat/Config/PromptTemplateTextConfig.cs`
@@ -636,15 +636,15 @@
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
   - `RimChat/Prompting/PromptVariableTooltipCatalog.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
-- 链路变化：
-  - `BuildFullSystemPromptHierarchical(...)` 与 `BuildRpgSystemPromptHierarchical(...)` 在 `environment` 后固定追加 `mandatory_race_profile`。
-  - 新增 `BuildMandatoryRaceProfileBlock(...)` + `BuildMandatoryRaceProfileBody(...)`，外交来源为 `Leader + Negotiator`，RPG 来源为 `Target + Initiator`。
-  - 固定输出三项：`RaceKind`、`RaceDef`、`Xenotype`；缺失按 `N/A` 输出，不中断请求。
-  - 新增模板字段 `MandatoryRaceInjectionTemplate` 与变量 `dialogue.mandatory_race_profile_body`，并接入配置编辑器与本地化。
+- Зміни зв’язків:
+  - `BuildFullSystemPromptHierarchical(...)` та `BuildRpgSystemPromptHierarchical(...)` після `environment` завжди доповнюються `mandatory_race_profile`.
+  - Додано `BuildMandatoryRaceProfileBlock(...)` + `BuildMandatoryRaceProfileBody(...)`, джерело дипломатії — `Leader + Negotiator`, джерело RPG — `Target + Initiator`.
+  - Завжди виводити три елементи: `RaceKind`, `RaceDef`, `Xenotype`; якщо дані відсутні, виводити `N/A`, не перериваючи запит.
+  - Додано поле шаблону `MandatoryRaceInjectionTemplate` і змінну `dialogue.mandatory_race_profile_body`, а також підключено їх до редактора конфігурації та локалізації.
 
-## 外交通道固定情报注入与交易常识收口（v0.9.37）
-- 目标：在运行时强制收口外交交易常识，并在派系提示词后固定注入“当前态 + 历史态”结构化情报，避免被工作台模板覆盖。
-- 关键模块：
+## Фіксоване введення розвідданих дипломатичного каналу та узгодження торговельних правил (v0.9.37)
+- Мета: під час виконання примусово узгоджувати правила дипломатичної торгівлі та після промпту фракції завжди вводити структуровані розвіддані у форматі «поточний стан + історичний стан», щоб шаблон робочого столу не перезаписував їх.
+- Ключові модулі:
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
   - `RimChat/Persistence/DiplomacyFactionFixedIntelBuilder.cs`
@@ -655,263 +655,263 @@
   - `RimChat/Patches/ThingTakeDamagePatch_FactionIntelLedger.cs`
   - `RimChat/Patches/WorldObjectDestroyPatch_FactionIntelLedger.cs`
   - `RimChat/Patches/PawnKillPatch_WorldEventLedger.cs`
-- 链路变化：
-  - `AppendOutputSpecificationAuthorityRules(...)` 新增空投/商队硬约束：即时交换仅 `request_item_airdrop`，单次仅一种换一种，商队延时且不可控货，命中既有事实可让步打折。
-  - `ResolveFactionPromptText(...)` 在派系提示词末尾固定追加 `FIXED_FACTION_INTEL`，并随外交、主动外交、策略三通道统一生效。
-  - `BuildDiplomacyStrategySystemPromptHierarchical(...)` 新增 `instruction_stack.faction_characteristics` 节点，确保策略链路也稳定注入派系固定情报。
-  - `FactionIntelLedgerComponent` 新增据点摧毁历史和袭击破坏聚合账本，持久化并在运行时汇总“最近一次 + 总计”。
-  - `GameAIInterface` 通过 `create_quest` 前后置补丁持久化任务发布记录，支持“仅 RimChat 任务发布态”精确判定。
+- Зміни в ланцюжку:
+  - `AppendOutputSpecificationAuthorityRules(...)` Додано жорсткі обмеження для аірдропів/караванів: миттєвий обмін лише `request_item_airdrop`, за одну операцію лише один тип в обмін на один, каравани затримуються й не дають змоги контролювати вантаж; за наявності наявних фактів можна піти на поступки та зменшити знижку.
+  - `ResolveFactionPromptText(...)` Наприкінці промптів фракцій фіксовано додавати `FIXED_FACTION_INTEL`, що однаково застосовується в трьох каналах: дипломатії, активній дипломатії та стратегії.
+  - `BuildDiplomacyStrategySystemPromptHierarchical(...)` Додано вузол `instruction_stack.faction_characteristics`, щоб стратегічний ланцюжок також стабільно отримував фіксовану інформацію про фракцію.
+  - `FactionIntelLedgerComponent` Додано історію знищення поселень і зведений журнал руйнувань від нападів; дані зберігаються, а під час виконання підсумовуються як «останній раз + загалом».
+  - `GameAIInterface` За допомогою пре- та постпатчів `create_quest` зберігаються записи публікації завдань, що дає змогу точно визначати «стан публікації лише RimChat завдань».
 
-## 同派系按 Pawn 粒度记忆注入隔离根修（v0.9.36）
-- 目标：根除同派系内 NPC A 的个人叙事被 NPC B 复用的问题（跨 pawn 摘要污染）。
-- 关键模块：
+## Кореневе виправлення ізоляції ін’єкції пам’яті в межах однієї фракції на рівні персонажів (Pawn) (v0.9.36)
+- Мета: усунути проблему, коли особисту оповідь NPC A у межах однієї фракції повторно використовує NPC B (забруднення зведень між персонажами).
+- Ключові модулі:
   - `RimChat/Memory/DialogueSummaryService.cs`
-- 链路变化：
-  - `BuildRpgDynamicFactionMemoryBlock(...)` 增加 fail-fast 约束：`targetPawn == null` 或 `targetPawn.thingIDNumber <= 0` 时不注入动态派系记忆。
-  - `CollectSortedSummaries(...)` 改为严格 `PawnLoadId == targetPawnId` 过滤，只允许目标 pawn 自己的跨通道摘要进入 `dynamic_faction_memory`。
-  - `dynamic_faction_memory` 标头改为 `TARGET-PAWN SCOPED`，明确该块不再是同派系共享摘要池。
+- Зміни в ланцюжку:
+  - `BuildRpgDynamicFactionMemoryBlock(...)` додано обмеження fail-fast: коли `targetPawn == null` або `targetPawn.thingIDNumber <= 0`, динамічна пам’ять фракції не інжектується.
+  - `CollectSortedSummaries(...)` змінено на сувору фільтрацію `PawnLoadId == targetPawnId`; до `dynamic_faction_memory` дозволено потрапляти лише міжканальному зведенню самого цільового персонажа.
+  - Заголовок `dynamic_faction_memory` змінено на `TARGET-PAWN SCOPED`, чітко вказуючи, що цей блок більше не є спільним сховищем зведень фракції.
 
-## 归档压缩与持久化记忆隔离根修（v0.9.35）
-- 目标：根除 `rpg_archive_compression` 与 `leader_memories` 因存档键算法分叉导致的跨存档/跨对象记忆污染。
-- 关键模块：
+## Кореневе виправлення ізоляції архівного стиснення та постійної пам’яті (v0.9.35)
+- Мета: усунути забруднення пам’яті між архівами та об’єктами, спричинене розходженням алгоритмів ключів архіву в `rpg_archive_compression` і `leader_memories`.
+- Ключові модулі:
   - `RimChat/Memory/SaveScopeKeyResolver.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.Sessions.cs`
   - `RimChat/Memory/LeaderMemoryManager.cs`
   - `RimChat/Memory/LeaderMemoryManager.PersistenceHelpers.cs`
-- 链路变化：
-  - 新增统一存档键解析器 `SaveScopeKeyResolver`，固定优先级为：`SaveContextTracker -> Current.Game.Info -> ScribeMetaHeader -> persistent slot`，解析失败 fail-fast 拒绝写入。
-  - `RpgNpcDialogueArchiveManager` 的 `CurrentSaveKey` 改为统一委托解析器；归档压缩异步回调新增 `request_save_key == current_save_key` 强校验，不一致直接丢弃回调写盘。
-  - `LeaderMemoryManager` 移除旧分叉解析路径，写入链路统一走严格存档键；`OnBeforeGameSave/SaveAllMemories/SaveMemory` 增加持久化上下文校验。
-  - 新增 `leader_memories` 自动迁移：从 legacy/default 桶迁移到当前严格 saveKey，写入 `.migration_complete_<saveKey>.marker`，遇到重名文件不覆盖并统计 `skipped_existing`。
+- Зміни в ланцюжку:
+  - Додано уніфікований аналізатор ключів збережень `SaveScopeKeyResolver`, фіксований пріоритет: `SaveContextTracker -> Current.Game.Info -> ScribeMetaHeader -> persistent slot`; у разі помилки аналізу fail-fast відхиляє запис.
+  - `RpgNpcDialogueArchiveManager`: `CurrentSaveKey` тепер використовує уніфікований делегований аналізатор; до асинхронного зворотного виклику стиснення архіву додано сувору перевірку `request_save_key == current_save_key`, невідповідний зворотний виклик негайно відкидається без запису на диск.
+  - `LeaderMemoryManager`: старий розгалужений шлях аналізу вилучено, ланцюжок запису уніфіковано через суворий ключ збереження; до `OnBeforeGameSave/SaveAllMemories/SaveMemory` додано перевірку контексту персистентності.
+  - Додано автоматичну міграцію `leader_memories`: із контейнера legacy/default до поточного суворого saveKey, записується `.migration_complete_<saveKey>.marker`, файли з однаковими іменами не перезаписуються, а `skipped_existing` підраховується.
 
-## 多波次袭击首波社交圈与调度信件（v0.9.34）
-- 目标：`request_raid_waves` 在调度成功时立即发信件；第一波成功到达时自动生成 1 条社交圈军事动态。
-- 关键模块：
+## Соціальне коло та листи диспетчеризації першої хвилі під час багатохвильового нападу (v0.9.34)
+- Мета: `request_raid_waves` негайно надсилає лист після успішної диспетчеризації; після успішного прибуття першої хвилі автоматично створюється 1 військова подія в соціальному колі.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/DiplomacyEventManager.cs`
   - `RimChat/DiplomacySystem/DelayedDiplomacyEvent.cs`
   - `RimChat/DiplomacySystem/DiplomacyNotificationManager.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `ScheduleRaidWaves(...)` 调度成功后追加 `DelayedEventType.RaidWave` 的预警信件通知，包含 `waves|firstMin|firstMax|finalMin|finalMax` 详情。
-  - `SendDelayedEventScheduledNotification(...)` 新增 `RaidWave` 分支，渲染“首波/末波窗口”信件文案。
-  - `ExecuteRaidOrWaveEvent(...)` 在 `RaidWave && WaveIndex==0` 且事件成功时，调用 `TryEnqueueRaidWavesFirstArrivalSocialPost(...)` 入队军事社交圈。
-  - 新增本地化键：`RimChat_DelayedRaidWavesScheduledTitle`、`RimChat_DelayedRaidWavesScheduledDesc`、`RimChat_RaidWavesFirstArrivalSocialPost`（中英）。
+- Зміни в ланцюжку:
+  - `ScheduleRaidWaves(...)` Після успішної диспетчеризації додається сповіщення-лист із попередженням про `DelayedEventType.RaidWave`, що містить деталі `waves|firstMin|firstMax|finalMin|finalMax`.
+  - `SendDelayedEventScheduledNotification(...)` Додано гілку `RaidWave`, яка відображає текст листа для «вікна першої/останньої хвилі».
+  - Якщо `ExecuteRaidOrWaveEvent(...)` у `RaidWave && WaveIndex==0` і подія успішна, викликати `TryEnqueueRaidWavesFirstArrivalSocialPost(...)`, щоб додати запис до військової соціальної стрічки.
+  - Додано ключі локалізації: `RimChat_DelayedRaidWavesScheduledTitle`, `RimChat_DelayedRaidWavesScheduledDesc`, `RimChat_RaidWavesFirstArrivalSocialPost` (китайська й англійська).
 
-## 联合袭击社交圈强制双发（v0.9.33）
-- 目标：联合袭击触发后强制由发起派系发布 1 篇社交圈；并在 36 小时后再发布 1 篇跟进社交圈。
-- 关键模块：
+## Примусова подвійна публікація у соціальній стрічці спільного рейду (v0.9.33)
+- Мета: після запуску спільного рейду змусити фракцію-ініціатора опублікувати 1 запис у соціальній стрічці, а через 36 годин — ще 1 follow-up запис.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/DiplomacyEventManager.cs`
   - `RimChat/DiplomacySystem/DelayedDiplomacyEvent.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `ScheduleRaidCallEveryone(...)` 在调度成功后立即调用 `TryEnqueueRaidCallEveryoneSocialPost(..., isFollowup:false)` 强制发帖。
-  - 同时新增 `RaidCallEveryoneSocialPost` 延迟事件，执行时间为触发后 `36*2500` tick。
-  - `DelayedDiplomacyEvent.Execute(...)` 新增 `RaidCallEveryoneSocialPost` 分支，执行 follow-up 发帖。
-  - 新增本地化摘要键：`RimChat_RaidCallEveryoneSocialPostImmediate`、`RimChat_RaidCallEveryoneSocialPostFollowup`（中英）。
+- Зміни в ланцюжку:
+  - `ScheduleRaidCallEveryone(...)` одразу після успішного планування викликає `TryEnqueueRaidCallEveryoneSocialPost(..., isFollowup:false)`, щоб примусово опублікувати запис.
+  - Водночас додано відкладену подію `RaidCallEveryoneSocialPost`, час виконання якої — `36*2500` тіків після запуску.
+  - У `DelayedDiplomacyEvent.Execute(...)` додано гілку `RaidCallEveryoneSocialPost`, яка виконує follow-up публікацію.
+  - Додано ключі локалізованого резюме: `RimChat_RaidCallEveryoneSocialPostImmediate`, `RimChat_RaidCallEveryoneSocialPostFollowup` (китайська й англійська).
 
-## 联合袭击窗口/参与裁剪/事件跳转增强（v0.9.32）
-- 目标：将联合袭击窗口收敛到 16-30 小时，并在敌对数量不占优势时按好感度剔除友中立参与者，同时为援军到达信件提供原版“转到事件地点”跳转入口。
-- 关键模块：
+## Розширення вікна спільного рейду, відсікання учасників і переходу до події (v0.9.32)
+- Мета: звузити вікно спільного рейду до 16–30 годин і, коли ворожа кількість не має переваги, вилучати дружніх і нейтральних учасників за прихильністю, а також додати до листа про прибуття підкріплення оригінальний перехід «Перейти до місця події».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/DiplomacyEventManager.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `RimChat/AI/AIActionExecutor.cs`
   - `RimChat/Config/PromptTextConstants.cs`
-- 链路变化：
-  - `ScheduleRaidCallEveryone(...)` 窗口由 16-36h 改为 16-30h（`detail` 同步为 `16|30`）。
-  - 新增 `BalanceCallEveryoneParticipants(...)`：当敌对数 `<=` 友中立数时，按 `PlayerGoodwill` 升序逐个剔除友中立，直到敌对数 `>` 友中立数或无可剔除派系。
-  - `SendAidLetter(...)` 第 4 参改为有效 `LookTargets`（玩家家园地图中心），援军到达信件可直接“跳转到事件地点”。
-  - 旧存档迁移窗口同步改为 16-30h（`MigrateLegacyRaidCallEveryoneEvents(...)`）。
+- Зміни в ланцюжку:
+  - `ScheduleRaidCallEveryone(...)` вікно змінено з 16–36 год до 16–30 год (`detail` синхронізовано з `16|30`).
+  - Додано `BalanceCallEveryoneParticipants(...)`: коли кількість ворожих `<=` кількість дружніх і нейтральних, дружні й нейтральні фракції вилучаються по одній у порядку зростання `PlayerGoodwill`, доки кількість ворожих `>` кількість дружніх і нейтральних або не залишиться фракцій, які можна вилучити.
+  - 4-й аргумент `SendAidLetter(...)` змінено на дійсний `LookTargets` (центр домашньої мапи гравця), тож лист про прибуття підкріплення може безпосередньо «перейти до місця події».
+  - Вікно міграції старих збережень також змінено на 16–30 год (`MigrateLegacyRaidCallEveryoneEvents(...)`).
 
-## 联合袭击援军上图坐标根修（v0.9.31）
-- 目标：根除 `request_raid_call_everyone` 友中立援军在到达阶段出现 `(-1000,-1000,-1000)` 越界坐标导致“已触发但无援军生效”问题。
-- 关键模块：
+## Виправлення кореня координат для появи підкріплення спільного рейду на мапі (v0.9.31)
+- Мета: усунути проблему, через яку дружнє або нейтральне підкріплення `request_raid_call_everyone` під час прибуття отримувало координати `(-1000,-1000,-1000)` за межами мапи, що спричиняло ситуацію «подію запущено, але підкріплення не з’явилося».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/DiplomacyEventManager.cs`
-- 链路变化：
-  - `TryArriveCallEveryoneAidPawns(...)` 移除 `arrivalMode.Worker.Arrive(...)` 的隐式落点路径。
-  - 改为显式流程：先找合法入场点（边缘格，失败回退 `TradeDropSpot`），再按 pawn 逐个在入场点附近可站立格 `GenSpawn.Spawn(...)` 上图。
-  - 上图后统一创建 `LordJob_AssistColony`；若最终 0 人上图，按 fail-fast 直接失败并记录详细原因（入口格、尝试数、失败数）。
+- Зміни ланцюжка:
+  - `TryArriveCallEveryoneAidPawns(...)` Видалено неявний шлях до точки висадки `arrivalMode.Worker.Arrive(...)`.
+  - Замінено на явний процес: спочатку знайти легальну точку входу (клітинка на краю; у разі невдачі — відкат до `TradeDropSpot`), потім для кожного персонажа окремо нанести його на придатну для стояння клітинку `GenSpawn.Spawn(...)` поблизу точки входу.
+  - Після нанесення всіх персонажів створити `LordJob_AssistColony`; якщо зрештою не нанесено жодної особи, негайно завершити з помилкою за принципом fail-fast і записати докладну причину (клітинка входу, кількість спроб, кількість невдач).
 
-## 联合袭击友中立支援根修（v0.9.30）
-- 目标：根除 `request_raid_call_everyone` 在友好/中立派系上的支援触发失败，并统一到达时机为 16-36 小时随机窗口。
-- 关键模块：
+## Кореневе виправлення спільного рейду для дружньої/нейтральної підтримки (v0.9.30)
+- Мета: усунути збої запуску підтримки `request_raid_call_everyone` для дружніх/нейтральних фракцій і уніфікувати час прибуття до випадкового вікна 16–36 годин.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/DiplomacyEventManager.cs`
   - `RimChat/DiplomacySystem/DelayedDiplomacyEvent.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `RimChat/AI/AIActionExecutor.cs`
-- 链路变化：
-  - `ScheduleRaidCallEveryone(...)` 移除友中立“立即执行”分支，敌友全部改为 16-36 小时窗口随机调度。
-  - `CallEveryone` 友中立分支新增 `MilitaryAidCustom` 执行路径，使用 RimChat 自建 combat 生成/到达/AssistColony 领主链路，不再依赖 `FriendlyRaid/RaidFriendly` 可执行性。
-  - `ProcessDelayedEvents(...)` 对 `RaidCallEveryone` 启用 no-retry 策略，失败即丢弃并记录 fail-fast 日志。
-  - 读档 `PostLoadInit` 增加旧队列迁移：未执行的 `RaidCallEveryone` 统一重排到 16-36 小时窗口，友中立动作迁移到 `MilitaryAidCustom`，并清空重试状态。
-  - `request_raid_call_everyone` 成功返回文本改为“hostile/friendly-neutral 均为 16|36h 到达窗口”。
+- Зміни ланцюжка:
+  - `ScheduleRaidCallEveryone(...)` Видалено гілку «негайного виконання» для дружніх/нейтральних; для ворогів і союзників тепер використовується випадкове планування у вікні 16–36 годин.
+  - `CallEveryone` У гілці дружніх/нейтральних додано шлях виконання `MilitaryAidCustom`, який використовує RimChat для самостійного створення combat, прибуття та ланцюжка лорда AssistColony, більше не покладаючись на виконуваність `FriendlyRaid/RaidFriendly`.
+  - `ProcessDelayedEvents(...)` Для `RaidCallEveryone` увімкнено стратегію no-retry: у разі невдачі операцію відкинуто, а в журналі записано fail-fast.
+  - Завантаження збереження `PostLoadInit` додає міграцію старої черги: невиконані `RaidCallEveryone` централізовано переплановуються у вікно 16–36 годин, дружні та нейтральні дії переносяться до `MilitaryAidCustom`, а стан повторних спроб очищується.
+  - Текст успішної відповіді `request_raid_call_everyone` змінено на «для hostile/friendly-neutral вікно прибуття становить 16|36h».
 
-## 空投确认数量丢失根修（v0.9.29）
-- 目标：根除空投交易在“同意/确认”短回复下丢失请求数量并回退默认数量的问题。
-- 关键模块：
+## Ґрунтовне виправлення втрати кількості підтверджених десантних вантажів (v0.9.29)
+- Мета: усунути проблему, через яку під час «згоди/підтвердження» десантної торгівлі губилася запитана кількість і відбувався відкат до кількості за замовчуванням.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
-- 链路变化：
-  - `TryInjectPendingAirdropCountFromLatestPlayerMessage(...)` 现在优先读取 `pendingAirdropTradeCardRequestedCount` 注入 `count`。
-  - 只有当会话绑定数量缺失时，才回退到“最新玩家消息文本解析”路径。
-  - `count/quantity` 已显式存在时保持原值，不做覆盖。
+- Зміни в ланцюжку:
+  - `TryInjectPendingAirdropCountFromLatestPlayerMessage(...)` тепер спочатку зчитує `pendingAirdropTradeCardRequestedCount` для впровадження `count`.
+  - Лише якщо кількість, прив’язана до сеансу, відсутня, відбувається повернення до шляху «розбору тексту останнього повідомлення гравця».
+  - Якщо `count/quantity` уже явно задано, його початкове значення зберігається без перезапису.
 
-## 空投确认重入卡死根修（v0.9.28）
-- 目标：根除 `request_item_airdrop` 在确认后重复重入 `selection_manual_choice` 导致的卡死/假死。
-- 关键模块：
+## Ґрунтовне виправлення зависання під час повторного входу після підтвердження десантного вантажу (v0.9.28)
+- Мета: усунути зависання/імітацію зависання, спричинені повторним входом `request_item_airdrop` у `selection_manual_choice` після підтвердження.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/ItemAirdropSafetyPolicy.cs`
-- 链路变化：
-  - `TryBuildAirdropAsyncContext(...)` 新增 `selected_def` 显式透传到 `context.ForcedSelectedDef`，并同步回填 `HasBoundNeed/HadForcedSelectionConflict`，异步链路与同步选择语义对齐。
-  - `ContinueAirdropSelectionStageAsync(...)` 在 `ForcedSelectedDef` 存在时可直接走强制选定，不再反复落入手动选择分支。
-  - `IsResourceCandidate(...)` 诊断日志改为 DevMode + 窗口限频，避免候选扫描时日志洪泛放大主线程卡顿。
+- Зміни ланцюжка:
+  - `TryBuildAirdropAsyncContext(...)` додатково `selected_def` явно передається до `context.ForcedSelectedDef`, а `HasBoundNeed/HadForcedSelectionConflict` синхронно заповнюється у відповідь; семантику асинхронного ланцюжка узгоджено із синхронним вибором.
+  - `ContinueAirdropSelectionStageAsync(...)` за наявності `ForcedSelectedDef` може безпосередньо виконувати примусовий вибір і більше неодноразово переходить до гілки ручного вибору.
+  - `IsResourceCandidate(...)` діагностичні журнали змінено на DevMode + обмеження частоти для вікна, щоб уникнути лавиноподібного зростання журналів під час сканування кандидатів і спричиненого цим зависання головного потоку.
 
-## 空投绑定需求仲裁回归根修（v0.9.27）
-- 目标：根除 `request_item_airdrop` 在交易卡绑定 `WoodLog` 时被 `bound_need_family_conflict` 误阻断的回归。
-- 关键模块：
+## Повне виправлення регресії арбітражу вимог прив’язки десантування (v0.9.27)
+- Мета: усунути `request_item_airdrop` під час прив’язування картки обміну `WoodLog` помилково заблоковане `bound_need_family_conflict` повернення.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropSafetyPolicy.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.BoundNeed.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `IsResourceCandidate(...)` 恢复“强资源信号优先”：`stuffProps` 资源先判通过，再应用通用排除，避免 `IsWeapon` 噪声误杀原材料。
-  - `TryApplyBoundNeedArbitration(...)` 改为绑定优先：`bound_need_def` 可解析时，文本家族冲突改为审计记录（`bound_need_family_conflict_overridden`）而非 fail-fast 阻断。
-  - 绑定物资注入候选的 `Family` 改为由绑定物资反推，避免延续漂移文本的家族标签。
+- Зміни ланцюжка:
+  - `IsResourceCandidate(...)` відновлено пріоритет «сильного сигналу ресурсу»: спочатку перевіряється ресурс `stuffProps`, а потім застосовуються загальні виключення, щоб шум `IsWeapon` помилково не відсіював сировину.
+  - `TryApplyBoundNeedArbitration(...)` змінено на пріоритет прив’язки: якщо `bound_need_def` можна розібрати, конфлікт текстових сімейств перетворюється на запис аудиту (`bound_need_family_conflict_overridden`), а не на блокування fail-fast.
+  - Кандидат для ін’єкції прив’язаних ресурсів у `Family` тепер визначається з прив’язаних ресурсів у зворотному напрямку, щоб уникнути продовження родинних міток тексту з дрейфом.
 
-## `CallEveryone/Waves` 战斗主动消息强制直通与离场闭环（v0.9.26）
-- 目标：实现 `call_everyone` 友中立原版军事支援 + 敌对袭击分流，并保证战斗主动消息不受主动对话频率限制。
-- 关键模块：
+## Примусовий прямий маршрут бойових активних повідомлень `CallEveryone/Waves` і замкнений цикл виходу (v0.9.26)
+- Мета: реалізувати розподіл між оригінальною військовою підтримкою `call_everyone` для дружніх і нейтральних фракцій та ворожими рейдами, а також гарантувати, що бойові активні повідомлення не обмежуються частотою активних діалогів.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/DiplomacyEventManager.cs`
   - `RimChat/DiplomacySystem/DelayedDiplomacyEvent.cs`
   - `RimChat/NpcDialogue/NpcDialogueModels.cs`
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
-- 链路变化：
-  - `ScheduleRaidCallEveryone(...)` 在调度时写入执行意图：敌对 `Raid`，友中立 `MilitaryAidVanilla(FriendlyRaid)`。
-  - `DelayedDiplomacyEvent.ExecuteRaidCallEveryoneEvent(...)` 按执行意图触发 raid/aid，不再把友中立走袭击链路。
-  - 战斗主动消息上下文新增 bypass 标记，`WarningThreat` 在 bypass 条件下不再被入口拦截。
-  - 战斗消息不再受 faction/global 冷却与玩家忙碌门控；AI 生成失败时 fail-fast 投递 fallback 文案。
-  - `Raid/Wave/CallEveryone` 到达消息改为“事件成功后立即触发”。
-  - 新增基于参战 pawn 追踪的离场监控；`RaidWaveEndMessage` 改为“最终波次离场后”触发。
+- Зміни в ланцюжку:
+  - `ScheduleRaidCallEveryone(...)` під час планування записує намір виконання: ворожий `Raid`, дружній або нейтральний `MilitaryAidVanilla(FriendlyRaid)`.
+  - `DelayedDiplomacyEvent.ExecuteRaidCallEveryoneEvent(...)` запускає raid/aid відповідно до наміру виконання й більше не спрямовує дружні та нейтральні фракції через ланцюжок рейду.
+  - До контексту бойових активних повідомлень додано мітку bypass; `WarningThreat` за умов bypass більше не блокується на вході.
+  - На бойові повідомлення більше не поширюються faction/global затримка відновлення та блокування через зайнятість гравця; якщо AI не вдається згенерувати, fallback-текст доставляється негайно.
+  - Повідомлення про прибуття `Raid/Wave/CallEveryone` тепер запускається «одразу після успішного завершення події».
+  - Додано моніторинг виходу на основі відстеження pawn, що беруть участь у бою; `RaidWaveEndMessage` тепер запускається «після виходу останньої хвилі».
 
-## `raid_call_everyone` 日志循环与无效 Def 报错根修（v0.9.25）
-- 目标：根除 `ProcessDelayedEvents` 在执行期间新增延迟事件导致的集合枚举修改异常，并去除 `raid_call_everyone` 链路对 `FriendlyRaid` 的执行依赖。
-- 关键模块：
+## `raid_call_everyone` Виправлення кореневої причини помилок циклу журналу та недійсних Def (v0.9.25)...
+- Мета: усунути аномалію модифікації колекції під час переліку, спричинену новими подіями із затримкою, доданими `ProcessDelayedEvents` під час виконання, і прибрати залежність ланцюжка `raid_call_everyone` від виконання `FriendlyRaid`.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `RimChat/DiplomacySystem/DelayedDiplomacyEvent.cs`
-- 链路变化：
-  - `ProcessDelayedEvents(...)` 改为快照遍历，新增事件通过 `AddDelayedEvent(...)` 先进入待合并队列，处理循环结束再统一合并回 `delayedEvents`。
-  - 增加同 tick 防重入保护，避免异常路径重复进入造成日志刷屏。
-  - `ExecuteRaidCallEveryoneEvent(...)` 统一执行 raid 触发，不再在该链路切入 military aid 执行分支。
+- Зміни в ланцюжку:
+  - `ProcessDelayedEvents(...)` тепер використовує обхід знімка; нові події через `AddDelayedEvent(...)` спочатку потрапляють до черги очікуваного об’єднання, а після завершення циклу обробки об’єднуються назад у `delayedEvents`.
+  - Додано захист від повторного входу в межах одного тіку, щоб уникнути повторного входу на аномальному шляху та переповнення журналу.
+  - `ExecuteRaidCallEveryoneEvent(...)` централізовано виконує запуск raid і більше не переходить у цій ланці до гілки виконання military aid.
 
-## 通讯台原版来源判据收敛（v0.9.24）
-- 目标：根除通讯台菜单“派系可解析即拦截”导致的第三方选项误接管问题（如星环通讯扩展）。
-- 关键模块：
+## Уточнення критерію оригінального джерела для комунікаційної консолі (v0.9.24)...
+- Мета: усунути проблему перехоплення сторонніх варіантів меню комунікаційної консолі через правило «перехоплювати, якщо фракцію можна розібрати» (наприклад, розширення «Зоряне кільце»).
+- Ключові модулі:
   - `RimChat/Patches/CommsConsolePatch.cs`
-- 链路变化：
-  - `GetFloatMenuOptionsPostfix(...)` 现采用 fail-fast 顺序：
-    1) `option/action` 为空直接放行；
-    2) `IsVanillaCommsAction(action)` 不成立直接放行；
-    3) 仅在原版来源成立后再解析派系并决定是否替换 action。
-  - 新增 `IsVanillaCommsAction(...)`：基于 `action.Method/DeclaringType/Assembly` 静态识别原版 `Building_CommsConsole` 链路。
-  - `ExtractFactionFromOption(...)` 移除“全派系列表 + label 模糊匹配”回退，只保留：
-    - action 闭包反射提取 `Faction`；
-    - `console.GetCommTargets(myPawn)` + label 匹配。
-  - 新增放行原因日志（节流）：`NullOption`、`NullAction`、`NonVanillaAction`、`InvalidFaction`。
+- Зміни в ланцюжку:
+  - `GetFloatMenuOptionsPostfix(...)` тепер використовує послідовність fail-fast:
+    1) `option/action` Якщо порожнє — одразу пропустити;
+    2) `IsVanillaCommsAction(action)` Якщо умова не виконується — одразу пропустити;
+    3) Лише після підтвердження походження з оригінальної версії розібрати фракцію та визначити, чи замінювати action.
+  - Додано `IsVanillaCommsAction(...)`: на основі `action.Method/DeclaringType/Assembly` статично визначено оригінальний `Building_CommsConsole` ланцюжок.
+  - `ExtractFactionFromOption(...)` вилучено резервний варіант «повний список фракцій + нечітке зіставлення label», залишено лише:
+    - рефлексивне вилучення `Faction` із замикання action;
+    - зіставлення `console.GetCommTargets(myPawn)` + label.
+  - Додано журналювання причин пропуску (з обмеженням частоти): `NullOption`, `NullAction`, `NonVanillaAction`, `InvalidFaction`.
 
-## 空投聊天卡配色回调与截断修复（v0.9.23）
-- 目标：修正当前灰色内容层与外层气泡的配色协调，同时继续降低物资名、`defName` 与指标行的截断概率。
-- 关键模块：
+## Виправлення кольорового зворотного виклику та обрізання картки чату повітряного десанту (v0.9.23)
+- Мета: виправити узгодженість кольорів поточного сірого шару вмісту та зовнішньої бульбашки, водночас і надалі зменшуючи ймовірність обрізання назв ресурсів, `defName` та рядків показників.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - 中间灰色内容层改为更适合白字的灰阶配色，提升标题、名称、`defName` 与指标的对比度。
-  - 名称区、`defName` 区与指标区高度预算继续放宽，优先保证文本完整可读。
+- Зміни в ланцюжку:
+  - Середній сірий шар вмісту змінено на сіру гаму, що краще підходить для білого тексту, щоб підвищити контрастність заголовка, назви, `defName` та показників.
+  - Бюджет висоти для області назв, області `defName` та області показників і надалі збільшено, щоб насамперед забезпечити повноту й читабельність тексту.
 
-## 空投聊天卡原气泡回调与灰色内容层（v0.9.22）
-- 目标：恢复原来的外层气泡配色，同时只在中间需求/出价内容层加灰底，并修复当前过度紧缩导致的文字裁切。
-- 关键模块：
+## Відновлення початкового зворотного виклику бульбашки та сірого шару вмісту картки повітряного десанту в чаті (v0.9.22)
+- Мета: відновити початкове забарвлення зовнішньої бульбашки, водночас додавши сірий фон лише до середнього шару вмісту запиту/пропозиції та виправити обрізання тексту через надмірне стискання.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - 外层气泡恢复玩家/AI 原配色，不再整张卡统一灰底。
-  - 仅需求物资 / 出价物资中间内容层保留灰色背景。
-  - 名称和底部指标标签的高度预算回调，降低文本被截断的概率。
+- Зміни в ланцюжку:
+  - Для зовнішньої бульбашки відновлено початкове забарвлення гравця/AI, тож уся картка більше не має єдиного сірого фону.
+  - Сірий фон збережено лише для середнього шару вмісту запитуваних / запропонованих ресурсів.
+  - Скориговано висотний бюджет назви та нижніх міток показників, щоб зменшити ймовірність обрізання тексту.
 
-## 空投聊天卡标题层回调（v0.9.21）
-- 目标：在保持单层灰底和紧凑布局的前提下，把空投聊天卡标题重新明确展示出来。
-- 关键模块：
+## Відновлення шару заголовка картки повітряного десанту в чаті (v0.9.21)
+- Мета: чітко відображати заголовок картки повітряного десанту в чаті, зберігаючи одношаровий сірий фон і компактне компонування.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - 标题行高度与上下留白略微回调，保证“【空投物资请求】”在极简样式下仍然清晰可读。
-  - 不恢复多层底色或装饰块，仍保持单层灰底。
+- Зміни в ланцюжку:
+  - Висоту рядка заголовка та верхні й нижні відступи трохи скориговано, щоб «【Запит на ресурси повітряного десанту】» залишався чітким і читабельним навіть у мінімалістичному стилі.
+  - Багатошаровий фон або декоративні блоки не відновлюються; одношаровий сірий фон зберігається.
 
-## 空投聊天卡极简灰底收敛（v0.9.20）
-- 目标：把聊天区空投卡进一步收敛为“单层灰底 + 极简分隔线”样式，去掉多层色块和装饰感，继续压缩整体高度。
-- 关键模块：
+## Гранично спрощене оформлення карток повітряного десанту в чаті на сірому тлі (v0.9.20)
+- Мета: ще більше спростити картки повітряного десанту в чаті до стилю «одношаровий сірий фон + мінімалістичні роздільники», прибрати багатошарові кольорові блоки й декоративність та й надалі зменшити загальну висоту.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - 空投卡外层统一改为单层灰底，不再区分玩家/AI 的彩色气泡底。
-  - 头部标题带、卡内块状底、底栏强调块统一移除，改为轻量文本 + 细分隔线。
-  - 缩略图、标题区、指标区再次压缩，卡片更接近紧凑清单布局。
+- Зміни в ланцюжку:
+  - Зовнішній шар карток десанту уніфіковано до одношарового сірого тла; кольорове тло бульбашок для гравця/AI більше не розрізняється.
+  - Верхню смугу заголовка, блокове тло всередині картки та акцентний блок нижньої панелі уніфіковано прибрано й замінено на легкий текст і тонкі роздільники.
+  - Мініатюри, область заголовка та область показників додатково стиснуто; картки стали більше схожими на компактний список.
 
-## 空投聊天卡紧凑化与入口冷却阻断（v0.9.19）
-- 目标：压缩聊天区空投交易卡高度并根修缩略图/文字遮挡，同时把空投冷却阻断前移到 `+发送信息` 菜单入口，避免玩家在冷却期白填卡。
-- 关键模块：
+## Компактизація карток чату десанту та блокування входу під час затримки відновлення (v0.9.19)
+- Мета: зменшити висоту карток торгівлі через десант у чаті та усунути перекриття мініатюр і тексту, а також перенести блокування десанту під час затримки відновлення до входу в меню `+发送信息`, щоб гравець не заповнював картку даремно в період затримки відновлення.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionHint.cs`
-- 链路变化：
-  - 聊天气泡里的空投卡缩略图、标题带、卡内留白和指标块统一收紧，保留 `label / defName / 数量 / 单价 / 总价`，并按文本真实高度重算卡片高度。
-  - `defName` 改为独立单行裁剪显示，不再和物资名、底部指标区互相挤压。
-  - `+发送信息 -> 发送空投交易请求` 现在会预先复用 `ApiActionEligibilityService.ValidateActionExecution(... request_item_airdrop ...)`；若命中 `airdrop_cooldown`，菜单项直接以不可点击态显示剩余游戏内时间。
-  - 手动打开空投信息卡前会再次做同一份资格校验，确保入口阻断与 `[?]` 提示共用同一条冷却真相源。
+- Зміни в ланцюжку:
+  - Мініатюру картки десантування, смугу заголовка, внутрішні відступи та блок показників у бульбашці чату зробити компактнішими, зберегти `label / defName / 数量 / 单价 / 总价` і перерахувати висоту картки відповідно до фактичної висоти тексту.
+  - `defName` тепер обрізається й відображається в окремому рядку, більше не стискаючись разом із назвою припасів і нижнім блоком показників.
+  - `+发送信息 -> 发送空投交易请求` тепер заздалегідь повторно використовує `ApiActionEligibilityService.ValidateActionExecution(... request_item_airdrop ...)`; якщо спрацьовує `airdrop_cooldown`, пункт меню безпосередньо відображається неактивним із залишком ігрового часу.
+  - Перед ручним відкриттям інформаційної картки десантування повторно виконується та сама перевірка права доступу, щоб блокування входу й підказка `[?]` використовували одне й те саме достовірне джерело стану затримки відновлення.
 
-## 空投卡视觉与 Presence 状态重置修正（v0.9.18）
-- 目标：移除空投卡被忽略时的冗余系统提示，重绘聊天内空投卡视觉，并修正 Presence 中 `DoNotDisturb` 的到期语义。
-- 关键模块：
+## Виправлення візуального вигляду картки десантування та скидання стану Presence (v0.9.18)
+- Мета: прибрати зайве системне повідомлення, коли картку десантування проігноровано, перемалювати вигляд картки десантування в чаті та виправити семантику завершення `DoNotDisturb` у Presence.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionHint.cs`
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `RimChat/Memory/FactionPresenceState.cs`
   - `1.6/Languages/*/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 空投交易卡发起轮次中，若 AI 未执行 `request_item_airdrop`，前台不再追加“空投信息被忽略，无交易行为”系统消息。
-  - 聊天气泡内的空投卡改为沉浸式终端单据风格：顶部标题带、双物资卡分层、独立价格指标区、参考价底栏。
-  - `FactionPresenceState` 新增独立 `doNotDisturbUntilTick`，`set_dnd` 现固定维持 3 个游戏日；到期后回到排班态重算，不再复用 `cacheUntilTick` 模糊表示 DND 生命周期。
-  - `request_item_airdrop` 冷却提示改为按 RimWorld 游戏内时间展示“剩余 X 天 / X 时”，不再把 `RemainingSeconds` 直接当现实时间显示。
+- Зміни в ланцюжку:
+  - Якщо під час раунду ініціювання картки торгівлі десантування AI не виконує `request_item_airdrop`, інтерфейс більше не додає системне повідомлення «Інформацію про десантування проігноровано, торгових дій не виконано».
+  - Картки аірдропів у бульбашках чату змінено на стиль занурювальних термінальних документів: верхня смуга заголовка, дворівневі картки двох ресурсів, окрема зона цінових показників і нижня панель довідкової ціни.
+  - `FactionPresenceState` Додано окремий `doNotDisturbUntilTick`, `set_dnd` тепер фіксовано підтримується протягом 3 ігрових днів; після завершення терміну повертається до стану розкладу для повторного обчислення, а `cacheUntilTick` більше не використовується нечітко для позначення життєвого циклу DND.
+  - `request_item_airdrop` Повідомлення про затримку відновлення тепер показує ігровий час відповідно до RimWorld у форматі «залишилося X дн. / X год.», а не відображає `RemainingSeconds` безпосередньо як реальний час.
 
-## 空投重报价沉浸式解析升级（v0.9.17）
-- 目标：去掉 AI 重报价对“硬编码句式”的依赖，让可见文本恢复角色内对白，同时保持系统对 `item/count/silver/reason` 的稳定提取。
-- 关键模块：
+## Оновлення занурювального аналізу повторного розрахунку ціни аірдропу (v0.9.17)
+- Мета: усунути залежність повторного розрахунку ціни AI від «жорстко закодованих формулювань», повернути видимому тексту внутрішньоперсонажний діалог і водночас зберегти стабільне вилучення `item/count/silver/reason` системою.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropCounteroffer.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
-- 链路变化：
-  - 重报价解析从“只接受固定模板”升级为“固定模板 + 中文自然句 + 英文自然句”三路兼容。
-  - 当自然对白里未显式重复物资名时，解析器会优先回退到当前交易卡绑定的 `NeedDefName`。
-  - 二次打开空投交易卡时，默认回填最近一次重报价里的需求数量和银币价格。
+- Зміни в ланцюжку:
+  - Аналіз повторного розрахунку ціни оновлено з режиму «приймати лише фіксований шаблон» до сумісності у трьох режимах: «фіксований шаблон + природна китайська фраза + природна англійська фраза».
+  - Якщо в природному діалозі назву ресурсу явно не повторено, аналізатор спочатку повертається до `NeedDefName`, прив’язаного до поточної торгової картки.
+  - Під час повторного відкриття торгової картки аірдропу за замовчуванням підставляються кількість запиту та ціна в сріблі з останнього повторного розрахунку.
 
-## 空投确认数量来源纠偏（v0.9.16）
-- 目标：修复交易卡消息同时包含“需求数量 + 付款银币”时，系统把银币数误注入 `request_item_airdrop.count`，导致最终确认数量与谈判数量脱轨的问题。
-- 关键模块：
+## Виправлення джерела кількості для підтвердження аірдропу (v0.9.16)
+- Мета: виправити проблему, через яку, коли повідомлення торгової картки одночасно містить «кількість запиту + оплату сріблом», система помилково записує кількість срібла в `request_item_airdrop.count`, через що остаточно підтверджена кількість розходиться з кількістю, узгодженою під час переговорів.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.AirdropPending.cs`
-- 链路变化：
-  - 空投确认前补 `count` 时，优先使用交易卡结构化保存的 `RequestedCount`，不再从整句玩家消息里盲取最大数字。
-  - 文本回退解析新增“需求 xN / need xN”优先模式，避免把付款金额识别成需求数量。
+- Зміни в ланцюжку:
+  - Під час доповнення `count` до підтвердження десанту, спочатку використовується структуровано збережене в торговій картці `RequestedCount`, замість того щоб навмання брати найбільше число з усього повідомлення гравця.
+  - До резервного розбору тексту додано пріоритетний шаблон «потрібно xN / need xN», щоб суму оплати не було помилково розпізнано як потрібну кількість.
 
-## 原木资源资格误判修复（v0.9.15）
-- 目标：修复 `WoodLog` 等原材料在资源家族判定中被 `IsWeapon` 噪声标记误杀，导致 `bound_need_family_conflict` 错误阻断的问题。
-- 关键模块：
+## Виправлення помилкового визначення придатності ресурсів для деревини (v0.9.15)
+- Мета: виправити проблему, через яку `WoodLog` та інші сировинні матеріали під час визначення родини ресурсів помилково знищуються міткою `IsWeapon` шуму, що призводить до помилкового блокування `bound_need_family_conflict`.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropSafetyPolicy.cs`
-- 链路变化：
-  - 资源资格判定改为“强资源信号优先”。当 `ThingDef` 具备 `stuffProps` 且不属于食物/药物/服装时，先按资源处理，再决定是否排除武器类。
-  - `WoodLog`、布料、皮革、矿物等原材料不再因为噪声性的 `IsWeapon` 标记触发错误家族冲突。
+- Зміни в ланцюжку:
+  - Визначення придатності ресурсу змінено на «сильний сигнал ресурсу має пріоритет». Якщо `ThingDef` має `stuffProps` і не належить до їжі, ліків чи одягу, спочатку його обробляють як ресурс, а потім визначають, чи виключати його як зброю.
+  - Сировина на кшталт `WoodLog`, тканини, шкіри та мінералів більше не спричиняє помилкових конфліктів родин через шумову позначку `IsWeapon`.
 
-## 空投交易卡绑定物品状态贯通根修（v0.9.14）
-- 目标：根除“交易卡精确绑定物品在跨回合确认、延迟意图和最终确认弹窗中丢失”的状态断链问题。
-- 关键模块：
+## Наскрізне виправлення стану прив’язаних предметів у картці торгівлі десанту (v0.9.14)
+- Мета: повністю усунути проблему розриву стану, через яку «предмети, точно прив’язані до торгової картки, губляться під час підтвердження між ходами, відкладеного наміру та фінального вікна підтвердження».
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.AirdropPending.cs`
@@ -921,15 +921,15 @@
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.BoundNeed.cs`
-- 链路变化：
-  - 空投交易卡绑定的 `NeedDefName/NeedLabel/NeedSearchText` 不再在普通确认消息发送前或 AI 回包结束后被无条件清空。
-  - 所有 `request_item_airdrop` 动作在进入 delayed intent、跨回合映射和最终确认前，统一补齐 bound need 元数据。
-  - 显式人工改选候选物资时，会主动解除交易卡绑定，允许玩家真正切换目标物品。
-  - 异步准备完成后新增最终一致性校验；若 `preparedTrade.SelectedDefName` 与交易卡绑定物品不一致，系统直接 fail-fast 阻断，不再弹出错误确认窗。
+- Зміни ланцюжка:
+  - `NeedDefName/NeedLabel/NeedSearchText`, прив’язаний до картки угоди аеродропу, більше не безумовно очищується перед надсиланням звичайного повідомлення підтвердження або після завершення відповіді AI.
+  - Для всіх дій `request_item_airdrop` перед переходом у delayed intent, міжходовим зіставленням і остаточним підтвердженням уніфіковано додаються метадані bound need.
+  - Під час явного ручного вибору іншого кандидата серед ресурсів прив’язка до картки угоди автоматично знімається, що дає гравцеві змогу справді змінити цільовий предмет.
+  - Після завершення асинхронної підготовки додано остаточну перевірку узгодженості; якщо `preparedTrade.SelectedDefName` не відповідає предмету, прив’язаному до картки угоди, система безпосередньо блокує виконання через fail-fast, більше не показуючи помилкове вікно підтвердження.
 
-## 空投绑定需求仲裁根修（v0.9.13）
-- 目标：根除“交易卡已精确绑定需求物资，但候选池/确认窗仍显示错误物资”的链路漂移问题。
-- 关键模块：
+## Кореневе виправлення арбітражу прив’язки вимог до скидання з повітря (v0.9.13)
+- Мета: усунути проблему розходження в ланцюжку, через яку «торгова картка вже точно прив’язана до потрібних ресурсів, але пул кандидатів/вікно підтвердження все ще показує неправильні ресурси».
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropBoundNeed.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
@@ -938,15 +938,15 @@
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/ItemAirdropModels.cs`
-- 链路变化：
-  - 空投交易卡提交后，会话运行态除 `need/count/payment_items/scenario` 外，额外保存 `NeedDefName/NeedLabel/NeedSearchText`。
-  - AI 回包中的 `request_item_airdrop` 动作在执行前统一注入绑定需求元数据，后续异步准备、待确认和最终确认都共享同一份绑定事实。
-  - 若候选池不包含绑定需求物资，执行层会记录冲突审计并把绑定物资注入候选池头部，按绑定物资重建交易。
-  - 若绑定需求物资无法解析，或与需求家族冲突，系统直接 fail-fast 阻断交易并给出前台可见失败信息。
+- Зміни в ланцюжку:
+  - Після надсилання торгової картки скидання з повітря, окрім `need/count/payment_items/scenario`, стан виконання сеансу додатково зберігає `NeedDefName/NeedLabel/NeedSearchText`.
+  - AI У відповіді `request_item_airdrop` до виконання дії узгоджено додаються метадані пов’язаних вимог, а подальша асинхронна підготовка, очікування підтвердження та остаточне підтвердження використовують один і той самий набір фактів щодо прив’язки.
+  - Якщо пул кандидатів не містить ресурсів прив’язаних вимог, рівень виконання записує аудит конфлікту та додає прив’язані ресурси на початок пулу кандидатів, після чого перебудовує торгівлю на основі прив’язаних ресурсів.
+  - Якщо прив’язані необхідні ресурси неможливо розібрати або вони конфліктують із родиною потреби, система негайно блокує торгівлю за принципом fail-fast і виводить видиме користувачу повідомлення про помилку.
 
-## 空投请求 UI/超时/匹配链路重构（v0.9.12）
-- 目标：统一物资空投请求的搜索绑定、参考价格、气泡展示和二阶段超时语义，彻底移除“超时后等待玩家手动选候选”的旧链路。
-- 关键模块：
+## Запит на десант UI/тайм-аут/рефакторинг ланцюжка зіставлення（v0.9.12）
+- Мета: уніфікувати пошук і прив’язування запитів на десант ресурсів, довідкові ціни, відображення бульбашок і семантику тайм-ауту другого етапу, повністю видаливши старий ланцюжок «після тайм-ауту чекати, поки гравець вручну вибере кандидата».
+- Ключові модулі:
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
@@ -956,49 +956,49 @@
   - `RimChat/DiplomacySystem/ThingDefResolver.cs`
   - `RimChat/DiplomacySystem/ItemAirdropPaymentResolver.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
-- 链路变化：
-  - 空投卡顶部改为“精确搜索 + 绑定状态”，中部为“需求卡 / 出价卡”，底部显示需求数量、出价数量与参考价格。
-  - 提交前必须精确绑定 `NeedDefName`，不再允许仅凭自由文本 `need` 裸提交。
-  - 参考价格定义固定为“需求物资市场价 x 需求数量”，并进入消息结构，在聊天气泡中所见即所得展示。
-  - 二次开窗只回填出价区；需求侧不再从上一次重报价或上一条玩家消息自动回灌。
-  - `selection_timeout/queue_timeout` 仅保留“默认 Top1 + 最终确认窗”，移除候选系统消息与待玩家二次回复状态。
-  - `ThingDefMatchEngine` 成为搜索建议、支付物资解析与候选排序的共享评分入口，统一 exact/normalized/alias/token/semantic/near-match 优先级。
+- Зміни в ланцюжку:
+  - У верхній частині картки десанту тепер відображаються «точний пошук + стан прив’язки», посередині — «картка потреби / картка пропозиції», а внизу — кількість необхідних ресурсів, кількість запропонованих ресурсів і довідкова ціна.
+  - Перед надсиланням необхідно точно прив’язати `NeedDefName`; надсилання лише на основі вільного тексту `need` більше не дозволяється.
+  - Фіксоване визначення довідкової ціни: «ринкова ціна потрібного ресурсу × потрібна кількість». Воно входить до структури повідомлення та відображається в бульбашці чату у вигляді, що відповідає результату.
+  - Повторне відкриття вікна заповнює лише поле пропозиції; дані з боку потреби більше не підтягуються автоматично з попередньої повторної пропозиції чи останнього повідомлення персонажа.
+  - `selection_timeout/queue_timeout` зберігає лише «стандартний Top1 + вікно остаточного підтвердження»; системні повідомлення кандидатів і стан очікування повторної відповіді персонажа вилучено.
+  - `ThingDefMatchEngine` стає спільною точкою оцінювання для пошукових підказок, розбору платіжних ресурсів і сортування кандидатів, уніфікуючи пріоритети exact/normalized/alias/token/semantic/near-match.
 
-## 空投请求卡重构 - 结构化选品 + 结构化报价（v0.9.10）
-- 目标：重做空投卡为"结构化选品 + 结构化报价"流程，不再把需求物资当纯文本处理。
-- 关键模块：
-  - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`（重构）
-  - `RimChat/UI/SearchStateManager.cs`（新增）
-  - `RimChat/UI/ItemAirdropTradeCardPayload.cs`（重构自 Dialog_ItemAirdropTradeCard.cs）
+## Перероблення картки запиту на десантний вантаж — структурований вибір ресурсів + структурована пропозиція (v0.9.10)
+- Мета: переробити картку десантного вантажу на процес «структурований вибір ресурсів + структурована пропозиція», більше не обробляючи потрібні ресурси як звичайний текст.
+- Ключові модулі:
+  - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs` (перероблено)
+  - `RimChat/UI/SearchStateManager.cs` (додано)
+  - `RimChat/UI/ItemAirdropTradeCardPayload.cs` (перероблено з Dialog_ItemAirdropTradeCard.cs)
   - `RimChat/DiplomacySystem/ThingDefCatalog.cs`
   - `RimChat/DiplomacySystem/ThingDefResolver.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `1.6/Languages/*/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 需求物资输入改为"搜索框 + 本地建议列表 + 精确绑定 ThingDef"。
-  - 搜索建议完全走本地 `ThingDefCatalog/ThingDefResolver`，不走 AI。
-  - 候选数默认 6 个，优先 exact `defName` / exact `label` / 强匹配 token，再走现有 resolver 排序。
-  - 选中建议后立即建立结构化绑定：保存 `NeedDefName`、`NeedLabel`、`NeedSearchText`、缩略图来源 `ThingDef`。
-  - 玩家继续改动搜索词且不再精确命中当前绑定时，立即清空绑定。
-  - 二次回填改为字段级回填：需求物资卡、需求数量、出价数量分别恢复，不再把上一轮结果粗暴写回搜索框。
-  - 信息卡界面增加"需求物资卡 / 出价物资卡"，两张卡都显示缩略图、名称、`defName`、数量、市场价/堆叠上限。
-  - 底部两个输入标签改为"需求物资数量" / "出价物资数量"。
+- Зміни ланцюжка:
+  - Введення необхідних ресурсів змінено на «поле пошуку + локальний список пропозицій + точне прив’язування ThingDef».
+  - Пропозиції пошуку повністю формуються локально через `ThingDefCatalog/ThingDefResolver`, без використання AI.
+  - За замовчуванням доступно 6 кандидатів: пріоритет мають exact `defName` / exact `label` / токени з високим збігом, після чого застосовується сортування наявним resolver.
+  - Після вибору пропозиції негайно створюється структуроване прив’язування: зберігаються `NeedDefName`, `NeedLabel`, `NeedSearchText`, джерело мініатюри `ThingDef`.
+  - Якщо гравець продовжує змінювати пошуковий запит і він більше точно не відповідає поточному прив’язанню, прив’язування негайно очищується.
+  - Повторне автозаповнення змінено на автозаповнення на рівні полів: окремо відновлюються картка необхідного ресурсу, необхідна кількість і кількість ресурсу для пропозиції; результати попереднього раунду більше не записуються грубо назад у поле пошуку.
+  - В інтерфейсі інформаційної картки додано «картка необхідного ресурсу / картка ресурсу для пропозиції»; обидві картки показують мініатюру, назву, `defName`, кількість, ринкову ціну / максимальний розмір стосу.
+  - Два нижні підписи полів введення змінено на «кількість необхідного ресурсу» / «кількість ресурсу для пропозиції».
 
-## 空投信息卡可用性修复（v0.9.9）
-- 目标：解决空投信息卡“不可用、语义冲突、遮挡”问题。
-- 关键模块：
+## Виправлення доступності інформаційної картки десантування (v0.9.9)
+- Мета: усунути проблеми інформаційної картки десантування — «недоступність, семантичні конфлікти, перекриття».
+- Ключові модулі:
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `1.6/Languages/*/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 卡片交互改为“需求输入 + 以物易物库存选择 + 数量输入”。
-  - 以物易物库存来源限定为通电轨道信标覆盖范围，行内显示可用数量与单价。
-  - 底部控件改为响应式布局，避免输入框与按钮遮挡。
+- Зміни ланцюжка:
+  - Взаємодію з карткою змінено на «введення потреби + вибір запасів для обміну + введення кількості».
+  - Джерело запасів для обміну обмежено зоною покриття увімкненого рейкового маяка; у рядку відображаються доступна кількість і ціна за одиницю.
+  - Нижні елементи керування переведено на адаптивне компонування, щоб уникнути перекриття поля введення кнопками.
 
-## 空投信息卡“AI主导议价”落地（v0.9.8）
-- 目标：将空投信息卡调整为“参考报价输入”，保留 AI 最终决策权（可拒绝、可重报价、可改参数执行）。
-- 关键模块：
+## Реалізація картки інформації про десант «Переговори під керуванням ШІ» (v0.9.8 )
+- Мета: перетворити інформаційну картку повітряного десанту на «введення орієнтовної пропозиції», зберігши за AI право на остаточне рішення (можна відхилити, зробити нову пропозицію або змінити параметри перед виконанням).
+- Ключові модулі:
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
@@ -1007,115 +1007,115 @@
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `1.6/Languages/*/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 信息卡提交仅发送自然语言摘要；结构化参数通过会话运行态隐式注入到 AI 请求，不显示在聊天记录。
-  - AI 若仅给重报价文本且不返回 `request_item_airdrop`，系统提示“空投信息被忽略，无交易行为”。
-  - 新增固定句式重报价解析并缓存到会话，下次开卡自动回填 `item/count/silver`。
-  - 库存列表改为“通电轨道信标可达物资 + 可用数量”。
-  - `[?]` 受限原因展示改为 code 本地化优先，未命中回退 message，再回退通用文案。
+- Зміни в ланцюжку:
+  - Надсилання інформаційної картки містить лише стислий опис природною мовою; структуровані параметри неявно додаються до запиту AI через стан сеансу, і в історії чату не відображаються.
+  - AI Якщо надано лише текст повторної пропозиції без `request_item_airdrop`, система виводить: «Повідомлення десанту проігноровано, жодних торгових дій не виконано».
+  - Доданотекст і кешування повторної пропозиції у фіксованому форматі в сеансі; під час наступного відкриття картки дані автоматично заповнюються в `item/count/silver`.
+  - Список запасів змінено на «доступні через увімкнений орбітальний маяк ресурси + доступна кількість».
+  - `[?]` Відображення причин обмежень змінено: спочатку локалізується code, за відсутності збігу використовується message, а потім — загальний текст.
 
-## 启动期 Harmony 补丁自检与参数规范化（v0.9.6）
-- 目标：避免 Harmony 按参数名绑定漂移导致的启动级崩溃。
-- 关键模块：
+## Самоперевірка патчів Harmony під час запуску та нормалізація параметрів (v0.9.6)
+- Мета: уникнути збоїв під час запуску, спричинених зміщенням прив’язки Harmony за назвами параметрів.
+- Ключові модулі:
   - `RimChat/Patches/TranslatorPatch_RimChatEnglishFallback.cs`
   - `RimChat/Patches/HarmonyPatchStartupSelfCheck.cs`
   - `RimChat/Core/RimChatMod.cs`
-- 链路变化：
-  - 关键补丁参数改为 `__0/__1` 位置参数风格，规避原方法参数命名变化风险。
-  - `RimChatMod` 在 `PatchAll` 前执行最小自检，日志输出通过/失败与失败明细。
+- Зміни в ланцюжку:
+  - Параметри ключових патчів змінено на позиційний стиль `__0/__1`, щоб уникнути ризику зміни назв параметрів оригінального методу.
+  - `RimChatMod` у `PatchAll`Перед виконанням проведіть мінімальну самоперевірку та виведіть у журнал результат: успішно/неуспішно й докладні відомості про помилку.
 
-## 非中英语言键英文回退根修（v0.9.5）
-- 目标：根除切换中英以外语言时 RimChat 键名直出/乱码问题。
-- 关键模块：
+## Повне виправлення відкату до англійської для мов, відмінних від китайської та англійської (v0.9.5)
+- Мета: усунути проблему прямого виведення назв ключів RimChat або некоректного кодування під час перемикання на мову, відмінну від китайської чи англійської.
+- Ключові модулі:
   - `RimChat/Patches/TranslatorPatch_RimChatEnglishFallback.cs`
   - `doc/Api.md`
   - `doc/config.md`
   - `doc/VersionLog.txt`
   - `doc/VersionLog_en.txt`
-- 链路变化：
-  - 对 `Translator.TryTranslate` 增加严格后置补丁，仅在 `RimChat_*` 翻译失败时启用英文键表回退。
-  - 首次命中回退时输出一次明确告警日志，便于在 `Player.log` 定位语言包缺失。
-  - 不影响非 RimChat 翻译键，避免污染游戏本体多语言行为。
+- Зміни в ланцюжку:
+  - Додати до `Translator.TryTranslate` суворий постпроцесинговий патч, який вмикає таблицю англійських ключів для відкату лише в разі помилки перекладу `RimChat_*`.
+  - Під час першого спрацювання відкату один раз вивести чітке попередження в журналі, щоб полегшити виявлення відсутнього мовного пакета в `Player.log`.
+  - Не впливати на ключі перекладу, що не належать до RimChat, щоб не змінювати багатомовну поведінку самої гри.
 
-## 版本日志语言目录直读与动态语言列表（v0.9.4）
-- 目标：移除“中文/其他”硬编码分流，改为按当前活动语言目录直读并在缺失时 fail-fast 回退 English。
-- 关键模块：
+## Пряме читання каталогу мов журналу версій і динамічний список мов (v0.9.4)
+- Мета: вилучити жорстко закодований поділ на «китайську/інші», натомість безпосередньо читати каталог поточної активної мови та в разі відсутності негайно переходити до English.
+- Ключові модулі:
   - `RimChat/Config/RimChatSettings_APIHeader.UX.cs`
   - `doc/Api.md`
   - `doc/config.md`
   - `doc/VersionLog.txt`
   - `doc/VersionLog_en.txt`
-- 链路变化：
-  - `AvailableLanguages` 改为动态扫描 `1.6/Languages` 一级子目录。
-  - 语言目录解析顺序：直读 `activeLanguage.folderName` -> 归一化匹配 -> 别名匹配 -> fail-fast 回退 `English`。
-  - 版本日志文件候选顺序：`VersionLog_<languageFolder>.txt` -> `VersionLog.txt` -> `VersionLog_en.txt`。
-  - 缺失目录/文件时统一打印明确 `Log.Warning`，包含活动语言、尝试路径与最终回退路径。
+- Зміни ланцюжка:
+  - `AvailableLanguages` змінено на динамічне сканування підкаталогів першого рівня `1.6/Languages`.
+  - Порядок аналізу мовних каталогів: пряме читання `activeLanguage.folderName` -> зіставлення після нормалізації -> зіставлення псевдонімів -> аварійне повернення fail-fast до `English`.
+  - Порядок кандидатів для файлу журналу версій: `VersionLog_<languageFolder>.txt` -> `VersionLog.txt` -> `VersionLog_en.txt`.
+  - У разі відсутності каталогу/файлу уніфіковано виводиться чітке `Log.Warning`, що містить активну мову, перевірені шляхи та остаточний шлях відкату.
 
-## 空投信息卡与3天空投冷却（v0.9.7）
-- 目标：在外交窗口 `+发送信息` 下新增"空投交易信息卡"，玩家手动开卡后填写目标物资、数量、银币出价，提交后自动触发 AI 请求；新增按派系维度的 3 天空投冷却（仅成功提交后触发）；升级全部外交动作 `[?]` 提示，显示本地化受限原因（冷却类显示剩余时间）。
-- 关键模块：
-  - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs`（新增）
-  - `RimChat/UI/Dialog_DiplomacyDialogue.cs`（`OpenSendInfoMenu` 扩展）
-  - `RimChat/UI/Dialog_DiplomacyDialogue.ActionHint.cs`（受限原因本地化）
-  - `RimChat/Config/RimChatSettings.cs`（新增 `ItemAirdropCooldownTicks`）
-  - `RimChat/DiplomacySystem/GameAIInterface.cs`（冷却键注册）
-  - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`（成功后设置冷却）
-  - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`（冷却校验接入）
-  - `1.6/Languages/*/Keyed/RimChat_Keys.xml`（新增 Keyed 文本）
-- 链路变化：
-  - `+发送信息` 菜单新增"发送空投交易请求"，打开信息卡窗口（双列表：推荐候选+库存）。
-  - 提交后生成结构化消息块（含 `need/selected_def/count/payment_items`）并立即触发 AI 请求。
-  - `CommitPreparedItemAirdropTrade` 成功后 `SetCooldown(faction, "RequestItemAirdrop")`。
-  - 冷却期内 `request_item_airdrop` 在 eligibility 与 `[?]` 均显示受限+剩余时间。
-  - `[?]` 全部外交动作受限展示本地化原因，冷却时间按天/小时/分钟格式化。
+## Інформаційна картка аеродропу та 3-денна затримка відновлення аеродропу (v0.9.7)
+- Мета: додати у вікні дипломатії `+发送信息` нову «інформаційну картку торгівлі аеродропами». Після того як гравець вручну відкриє картку та вкаже цільові ресурси, кількість і пропозицію в сріблі, після надсилання автоматично запускається запит AI; додати 3-денну затримку відновлення аеродропу для кожної фракції (запускається лише після успішного надсилання); оновити підказки `[?]` для всіх дипломатичних дій, показуючи локалізовану причину обмеження (для затримки відновлення показувати час, що залишився).
+- Ключові модулі:
+  - `RimChat/UI/Dialog_ItemAirdropTradeCard.cs` (новий)
+  - `RimChat/UI/Dialog_DiplomacyDialogue.cs` (розширення `OpenSendInfoMenu`)
+  - `RimChat/UI/Dialog_DiplomacyDialogue.ActionHint.cs` (локалізація причин обмеження)
+  - `RimChat/Config/RimChatSettings.cs`（додано `ItemAirdropCooldownTicks`）
+  - `RimChat/DiplomacySystem/GameAIInterface.cs`（реєстрація клавіші затримки відновлення）
+  - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`（встановлення затримки відновлення після успішного виконання）
+  - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`（підключення перевірки затримки відновлення）
+  - `1.6/Languages/*/Keyed/RimChat_Keys.xml`（додано текст Keyed）
+- Зміни в ланцюжку:
+  - У меню `+发送信息` додано «Надіслати запит на операцію з повітряним десантуванням», що відкриває вікно інформаційної картки (два списки: рекомендовані кандидати + запаси).
+  - Після надсилання створюється структурований блок повідомлення (містить `need/selected_def/count/payment_items`) і негайно запускається запит AI.
+  - Після успішного виконання `CommitPreparedItemAirdropTrade` — `SetCooldown(faction, "RequestItemAirdrop")`.
+  - Протягом періоду затримки відновлення `request_item_airdrop` в eligibility і `[?]` відображається як обмежене із зазначенням часу, що залишився.
+  - Для всіх дипломатичних дій `[?]` відображається локалізована причина обмеження, а час затримки відновлення форматується в днях/годинах/хвилинах.
 
-## 空投二阶段移除与手动改选确认（v0.9.3）
-- 目标：移除二阶段 AI 选择阻塞点，改为“默认 Top1 + 可手动 Top5 改选”确认流，并修复 `quantity` 数量参数未生效。
-- 关键模块：
+## Видалення другого етапу повітряного десантування та підтвердження ручного перевибору（v0.9.3）
+- Мета: усунути блокування вибору AI на другому етапі, замінивши його потоком підтвердження «за замовчуванням Top1 + ручний перевибір Top5», а також виправити проблему, через яку параметр кількості `quantity` не застосовувався.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.SelectionPending.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropAsync.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.AirdropPending.cs`
-- 链路变化：
-  - 二阶段选择改为本地直出 pending 候选，不再请求 AI 第二跳。
-  - 确认窗默认 Top1，并提供低可视度“不是我想要的物品”按钮切换 Top5。
-  - 数量参数新增 `quantity` 兼容，避免回退到 `fallback_default_family` 导致低数量。
+- Зміни ланцюжка:
+  - Вибір на другому етапі змінено на локальне формування кандидатів pending; подальший запит AI більше не виконується.
+  - За замовчуванням у вікні підтвердження вибирається Top1; також доступна малопомітна кнопка «Не той предмет, який я хотів», що перемикає на Top5.
+  - До параметра кількості додано сумісність із `quantity`, щоб уникнути повернення до `fallback_default_family`, яке призводить до малої кількості.
 
-## 空投二阶段超时根修与数量窗口调整（v0.9.2）
-- 目标：根除空投二阶段“固定双轮超时等待”，并移除固定总量截断导致的需求偏移。
-- 关键模块：
+## Ґрунтовне виправлення тайм-ауту другого етапу аеродоставки та коригування вікна кількості (v0.9.2)
+- Мета: усунути «фіксоване дворазове очікування тайм-ауту» на другому етапі аеродоставки та прибрати зміщення потреб, спричинене обмеженням фіксованого загального обсягу.
+- Ключові модулі:
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/AI/AIChatServiceAsync.LocalControl.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/Config/RimChatSettings.cs`
   - `RimChat/Config/RimChatSettings_AI.cs`
-- 链路变化：
-  - `AirdropSelection` 通道禁用本地连接超时重试，超时后直接进入手动候选确认，不再额外叠加一次完整请求超时。
-  - 二阶段请求超时与排队超时解耦：新增 `ItemAirdropSecondPassQueueTimeoutSeconds`，并在 dispatch 审计输出 `timeout/queueTimeout`。
-  - 二阶段传输审计新增 `firstByteMs/attempts/payloadBytes/http/endpoint`，可直接判定“无首包”链路位置。
-  - `hardMax` 由 `预算上限+固定总量上限` 改为 `预算上限+堆叠上限`，数量决策回归“按需求+预算”，同时保留掉落堆叠约束。
+- Зміни ланцюжка:
+  - `AirdropSelection` канал вимикає повторні спроби локального підключення після тайм-ауту; після тайм-ауту він одразу переходить до ручного підтвердження кандидата, без додаткового повного тайм-ауту запиту.
+  - Тайм-аут запиту другого етапу відокремлено від тайм-ауту черги: додано `ItemAirdropSecondPassQueueTimeoutSeconds`, а у вихідних даних аудиту dispatch виводиться `timeout/queueTimeout`.
+  - До аудиту передавання другого етапу додано `firstByteMs/attempts/payloadBytes/http/endpoint`, що дає змогу безпосередньо визначити ділянку ланцюжка, де «перший пакет не надійшов».
+  - `hardMax` змінено з `预算上限+固定总量上限` на `预算上限+堆叠上限`; визначення кількості повертається до підходу «за потребою + бюджетом», водночас обмеження на об’єднання здобичі в стоси зберігається.
 
-## 空投链路诊断与修复（v0.9.1）
-- 目标：修复空投同轮多动作全拒、二阶段候选回复重复超时，以及数量来源退化问题；补充可定位的二阶段诊断日志。
-- 关键模块：
+## Діагностика та виправлення ланцюжка десантування (v0.9.1)
+- Мета: виправити повну відмову всіх дій у тому самому раунді десантування, повторні тайм-аути відповіді кандидатів другого етапу та деградацію джерела кількості; додати діагностичні журнали другого етапу для визначення місця проблеми.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropPreSend.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.SelectionPending.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
-- 链路变化：
-  - 同轮多条 `request_item_airdrop` 从“全部拒绝”改为“首条成功执行，其余拒绝”。
-  - 新增空投候选回复前置直连：发送前命中候选输入即本地映射 `selected_def`，直接走空投确认链路，不再发起新一轮二阶段 AI 请求。
-  - 数量决策新增参数来源融合：`parameters.count` 与 `need` 显式数量并存时取较大值；超过 `hardMax` 自动截断并写入审计来源。
-  - 二阶段新增阶段诊断日志，支持在 `Player.log` 区分 `queue_timeout`、请求超时、解析失败。
+- Зміни ланцюжка:
+  - Кілька `request_item_airdrop` в одному раунді змінено з «усі відхилено» на «перший успішно виконано, решту відхилено».
+  - Додано пряме локальне зіставлення перед відповіддю-кандидатом для десанту: якщо перед надсиланням збігається кандидатний ввід, виконується локальне зіставлення `selected_def`, після чого безпосередньо запускається ланцюжок підтвердження десанту; новий двоетапний запит AI більше не надсилається.
+  - До ухвалення рішення щодо кількості додано об’єднання джерел параметрів: коли одночасно наявні явні кількості `parameters.count` і `need`, береться більше значення; перевищення `hardMax` автоматично обрізається, а джерело записується в аудит.
+  - На другому етапі додано діагностичний журнал етапу, що дає змогу в `Player.log` розрізняти `queue_timeout`, тайм-аут запиту та помилку розбору.
 
-## 囚犯信息卡器官对账与读档报价刷新（v0.8.20）
-- 目标：记录囚犯信息卡核心器官快照，离图后按“新增缺失”延迟判定离图失败；同时根修读档后赎金预估不刷新。
-- 关键模块：
+## Звірка органів у картці інформації про в’язня та оновлення ціни викупу після завантаження збереження (v0.8.20)
+- Мета: зберігати знімок ключових органів із картки інформації про в’язня, а після виходу з карти відкладено визначати невдачу виходу за принципом «нові відсутні»; водночас усунути причину, через яку після завантаження збереження оцінка викупу не оновлюється.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/PrisonerRansomService.cs`
   - `RimChat/DiplomacySystem/PrisonerRansomModels.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs`
@@ -1124,194 +1124,194 @@
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 信息卡发送时写入核心器官快照（心/肝/肺/肾/眼，多重计数），同囚犯后发覆盖前发。
-  - `CalculatePrisonerRansomQuote` 支持 `forceRefresh`，信息卡发布链路固定强刷报价。
-  - 新增赎金运行态清空入口，并在 `StartedNewGame/LoadedGame` 时清空，消除读档后报价缓存残留。
-  - 合约持久化新增器官快照/新增缺失/延迟失败调度字段，旧档默认值兼容。
-  - 离图命中“新增核心器官缺失”时，跳过即时价值缩水处罚，改为 5-10 小时后按超时级重罚并在社交圈谴责文本中带器官缺失事实。
+- Зміни ланцюжка:
+  - Під час надсилання інформаційної картки записується знімок ключових органів (серце/печінка/легені/нирки/очі, з урахуванням кількох екземплярів); для того самого ув’язненого пізніше надсилання перезаписує ранніше.
+  - `CalculatePrisonerRansomQuote` підтримує `forceRefresh`, а ланцюжок публікації інформаційної картки завжди примусово оновлює пропозицію.
+  - Додано вхід для очищення поточного стану викупу; очищення виконується під час `StartedNewGame/LoadedGame`, що усуває залишки кешу пропозицій після завантаження збереження.
+  - До збереження контракту додано поля знімка органів, нових відсутніх органів і відкладеного планування невдачі; для старих збережень використовуються сумісні значення за замовчуванням.
+  - Якщо поза картою виявлено «нову відсутність ключового органу», миттєве покарання у вигляді зменшення вартості пропускається; натомість через 5–10 годин застосовується суворе покарання за прострочення, а в тексті осуду в соціальному колі зазначається факт відсутності органу.
 
-## 赎金合约健康离图回执与超时谴责增强（v0.8.19）
-- 目标：在不移除原惩罚链路的前提下，补全赎金“履约回执”和“超时舆情后果”。
-- 关键模块：
+## Посилення звітів про виконання контракту на викуп поза картою та осуду за простроченням（v0.8.19）
+- Мета: не прибираючи наявний ланцюжок покарань, доповнити для викупу «звіт про виконання» та «наслідки прострочення для громадської думки».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/PrisonerRansomModels.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs`
   - `RimChat/DiplomacySystem/RansomContractManager.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `RansomContractRecord` 新增目标名称快照与健康离图延迟回执状态（调度/到期/已发送）字段，并持久化兼容旧档默认值。
-  - 囚犯离图时启用严格健康判定（健康 >= 85%、意识 >= 85%、非倒地）；命中后写入延迟回执任务（5-10 游戏小时）。
-  - 合约 Tick 循环新增延迟回执扫描：到期后向外交会话注入 NPC 主动回复，并发 `ChoiceLetter_NpcInitiatedDialogue` 来信提醒。
-  - 超时分支保持原有重罚与报复袭击，同时新增会话警告消息 + 来信，并通过 `EnqueuePublicPost(...)` 触发派系首领社交圈谴责（AI 生成）。
+- Зміни в ланцюжку:
+  - `RansomContractRecord` додано знімок назви цілі та поля стану відкладеного підтвердження після зникнення здоров’я з мапи (заплановано/минув термін/надіслано), а також реалізовано збереження із сумісними значеннями за замовчуванням для старих збережень.
+  - Під час виходу бранця застосовується сувора перевірка стану здоров’я (здоров’я >= 85%, свідомість >= 85%, не збитий з ніг); після спрацювання записується завдання відкладеної відповіді (5–10 ігрових годин).
+  - До циклу Tick контрактів додано сканування відкладених відповідей: після завершення затримки в дипломатичну сесію вводиться NPC активна відповідь, а також надсилається `ChoiceLetter_NpcInitiatedDialogue` нагадування про вхідний лист.
+  - Гілка тайм-ауту зберігає початкові суворе покарання та каральний напад, водночас додаючи попередження сесії й вхідний лист, а через `EnqueuePublicPost(...)` запускає осуд у соціальному колі лідера фракції (AI генерується).
 
-## 赎金证据卡二次放大与空白收敛（v0.8.18）
-- 目标：进一步拉近 pawn 贴框效果，同时扩大文字区并减少证据卡内部留白。
-- 关键模块：
+## Подальше збільшення масштабу картки доказів викупу та ущільнення порожнього простору (v0.8.18)
+- Мета: ще більше наблизити ефект pawn до меж картки, одночасно розширивши текстову область і зменшивши порожній простір усередині картки доказів.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
-- 链路变化：
-  - 证据卡缩略图 zoom 从 `1.40` 提升至 `1.75`，并使用略下偏移的中心裁切（`pivot=(0.5, 0.58)`）强化主体占比。
-  - 证据卡内容留白收敛：内边距、头部间距、图文间距、底部 padding 同步下调。
-  - 仅在 `IsOutboundPrisonerInfoMessage(msg)` 分支加宽气泡（`0.72` 比例 + 更高 min/max），其余消息气泡策略不变。
+- Зміни в ланцюжку:
+  - Масштаб мініатюри картки доказів zoom підвищено з `1.40` до `1.75`, а для збільшення частки основного об’єкта використано центральне кадрування з невеликим зміщенням униз (`pivot=(0.5, 0.58)`).
+  - Ущільнено порожній простір у вмісті картки доказів: одночасно зменшено внутрішні поля, інтервал у заголовку, інтервал між зображенням і текстом та нижній padding.
+  - Лише у гілці `IsOutboundPrisonerInfoMessage(msg)` розширювати бульбашку (`0.72` пропорція + вищі min/max), стратегію бульбашок для решти повідомлень не змінювати.
 
-## 赎金证据卡 Pawn 放大与 ID 字段替换（v0.8.17）
-- 目标：在不调整气泡宽度和文字区宽度的前提下放大证据卡 Pawn 可见主体，并将“当前叫价”字段改为可追踪的 Pawn 唯一 ID。
-- 关键模块：
+## Збільшення Pawn на картці доказу викупу та заміна поля ID (v0.8.17)
+- Мета: не змінюючи ширину бульбашки та текстової області, збільшити видиму частину Pawn на картці доказу й замінити поле «поточна ставка» на унікальний відстежуваний ID Pawn.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `DrawOutboundPrisonerInfoBubble(...)` 改为中心裁切放大绘制（固定 zoom），仅影响 `rimchat://ransom-proof` 证据卡缩略图呈现。
-  - `BuildRansomProofCaption(...)` 第 `{5}` 字段从 `currentAsk` 改为 `pawn.GetUniqueLoadID()` 原样字符串（空值回退 `RimChat_Unknown`）。
-  - 囚犯信息卡字段顺序校验从“当前叫价/Current ask”同步到“ID”，并保留 legacy 顺序兼容历史文本。
+- Зміни в ланцюжку:
+  - `DrawOutboundPrisonerInfoBubble(...)` перейти до збільшеного малювання з центральним кадруванням (фіксований zoom), що впливає лише на відображення мініатюри картки доказу `rimchat://ransom-proof`.
+  - `BuildRansomProofCaption(...)` текст `{5}` текст `currentAsk` текст `pawn.GetUniqueLoadID()` текст (текст `RimChat_Unknown`）。
+  - Перевірку порядку полів картки інформації про в’язня синхронізувати з «ID» замість «поточна ставка/Current ask», зберігши сумісність із legacy-порядком для історичних текстів.
 
-## 赎金超时重入与重复选人稳定化（v0.8.14）
-- 目标：根除“超时后自动回复链路重入”与“已有绑定目标时重复 request_info 弹窗”两类抖动。
-- 关键模块：
+## Повторний вхід після завершення часу викупу та стабілізація повторного вибору персонажа (v0.8.14)
+- Мета: усунути два типи нестабільності — «повторний вхід у ланцюжок автоматичної відповіді після завершення часу» та «повторне спливне вікно request_info за вже прив’язаної цілі».
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
-- 链路变化：
-  - `TryHandleRequestInfoActionForPrisoner(...)` 增加去重短路：若会话已绑定有效赎金目标，直接返回成功语义并跳过选人弹窗。
-  - `StartRansomTargetSelection(...)` 增加重入门禁：选人进行中拒绝重复启动；已有有效绑定目标时复用目标并跳过重选。
-  - `TryQueueReplyForPlayerPrisonerInfoCard(...)` 增加超时冷却门禁：命中超时分类后进入 90 秒冷却，冷却期抑制自动重发，手动发送保持可用。
-  - 新增超时分类日志（`queue_timeout/network_timeout/drop_timeout`）与去重命中日志，便于 Player.log 快速定位。
-  - 新增字段仅为运行态：`ransomAutoReplyCooldownUntilRealtime`、`ransomAutoReplyCooldownCategory`，不写入存档。
+- Зміни в ланцюжку:
+  - `TryHandleRequestInfoActionForPrisoner(...)` Додано коротке замикання для дедуплікації: якщо сеанс уже пов’язано з дійсною ціллю викупу, одразу повертається семантика успіху, а діалог вибору персонажа пропускається.
+  - `StartRansomTargetSelection(...)` Додано захист від повторного входу: повторний запуск відхиляється під час вибору персонажа; за наявності дійсної пов’язаної цілі використовується наявна ціль і повторний вибір пропускається.
+  - `TryQueueReplyForPlayerPrisonerInfoCard(...)` Додано захист із затримкою відновлення після тайм-ауту: після спрацювання категорії тайм-ауту починається затримка відновлення на 90 секунд, протягом якої автоматичне повторне надсилання блокується, а ручне надсилання залишається доступним.
+  - Додано журналювання категорій тайм-аутів (`queue_timeout/network_timeout/drop_timeout`) і журналювання збігів дедуплікації для швидкого пошуку Player.log.
+  - Додано поля лише для стану виконання: `ransomAutoReplyCooldownUntilRealtime`, `ransomAutoReplyCooldownCategory`; вони не записуються до збереження.
 
-## 赎金承诺动作一致性（MUST）强化（v0.8.13）
-- 目标：进一步压缩“文本已付款但无动作提交”的概率，覆盖更多完成态措辞。
-- 关键模块：
+## Посилення узгодженості дії обіцянки викупу (MUST) (v0.8.13)
+- Мета: ще більше зменшити ймовірність ситуації «у тексті зазначено оплату, але дію не подано», охопивши більше формулювань завершення.
+- Ключові модулі:
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 将赎金承诺约束提升为 MUST，覆盖“已提交/已支付/钱货两清/已放人离开”等文本。
-  - 通信终端语境约束补充“禁止带人离开/到场处理”等线下完成态叙述。
-  - 压缩响应合同（短上下文）同步注入同一硬规则，避免规则在裁剪模式下丢失。
+- Зміни в ланцюжку:
+  - Підвищити обмеження щодо обіцянки викупу до MUST, охопивши формулювання «вже надіслано/вже сплачено/гроші та товар обміняно/вже відпущено й дозволено піти».
+  - Доповнити обмеження контексту термінала зв’язку описами офлайн-завершення на кшталт «заборонено забирати людей із собою/прибути на місце для вирішення питання».
+  - Синхронно впровадити те саме жорстке правило в контракт стислої відповіді (короткий контекст), щоб воно не втрачалося в режимі обрізання.
 
-## 通信终端与赎金承诺动作一致性强化（v0.8.12）
-- 目标：约束模型始终按“通信终端在线聊天”语境输出，并保证赎金承诺与动作提交同轮一致。
-- 关键模块：
+## Посилення узгодженості дій термінала зв’язку та обіцянок викупу (v0.8.12)
+- Мета: завжди обмежувати модель контекстом «онлайн-чату через термінал зв’язку» та забезпечити узгодженість обіцянки викупу й подання дії в одному раунді.
+- Ключові модулі:
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 默认/系统/迁移规则统一注入“非线下会面”约束，禁止线下到场式表述。
-  - 新增赎金强规则：若文本承诺“已提交/已支付赎金”，同条回复必须包含 `pay_prisoner_ransom` 动作。
+- Зміни в ланцюжку:
+  - До правил за замовчуванням/системних/міграційних правил уніфіковано додано обмеження «без офлайн-зустрічей», що забороняє формулювання про прибуття на місце.
+  - Додано жорстке правило викупу: якщо в тексті обіцяно «викуп уже надіслано/сплачено», та сама відповідь обов’язково має містити дію `pay_prisoner_ransom`.
 
-## 赎金单次支付提交重构（v0.8.11）
-- 目标：将 `pay_prisoner_ransom` 从“代码议价+自动放人”重构为“单次支付+玩家手动放人”。
-- 关键模块：
+## Перероблення подання одноразової сплати викупу (v0.8.11)
+- Мета: переробити `pay_prisoner_ransom` із «торгу через код + автоматичного відпускання» на «одноразову сплату + ручне відпускання гравцем».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs`
   - `RimChat/DiplomacySystem/PrisonerRansomService.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
-- 链路变化：
-  - 移除 `counter_offer/rejected_floor_not_met` 议价状态分支与自动 `ReleasePrisoner` 链路。
-  - `pay_prisoner_ransom` 成功路径变为：参数/目标/区间校验通过 -> 空投银币 -> 登记合约 -> 返回 `paid_submitted`。
-  - 成功后立即清理 `request_info(prisoner)` 绑定状态；放人由玩家手动操作。
-  - 缺失或失效目标时回退到 `request_info(prisoner)` 选人语义。
+- Зміни ланцюжка:
+  - Видалити гілку стану торгу `counter_offer/rejected_floor_not_met` та автоматичний ланцюжок `ReleasePrisoner`.
+  - Успішний шлях `pay_prisoner_ransom`: перевірка параметрів/цілі/діапазону пройдена -> скинути срібло з повітря -> зареєструвати контракт -> повернути `paid_submitted`.
+  - Після успіху негайно очистити стан прив’язки `request_info(prisoner)`; звільнення здійснює гравець вручну.
+  - Якщо ціль відсутня або недійсна, повернутися до семантики вибору персонажа `request_info(prisoner)`.
 
-## 赎金非终态反馈可视化（v0.8.10）
-- 目标：解决 `pay_prisoner_ransom` 执行后返回 `counter_offer/rejected_floor_not_met` 但界面缺少明确反馈的问题。
-- 关键模块：
+## Візуалізація не фінального зворотного зв’язку щодо викупу (v0.8.10)
+- Мета: усунути проблему, коли після виконання `pay_prisoner_ransom` повертається `counter_offer/rejected_floor_not_met`, але інтерфейс не містить чіткого зворотного зв’язку.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 在成功动作系统消息追加链路中新增赎金结果分支。
-  - `counter_offer` 显示“报价被拒 + 当前还价 + 轮次”。
-  - `rejected_floor_not_met` 显示“谈判已结束 + 底价要求”。
+- Зміни в ланцюжку:
+  - До ланцюжка системних повідомлень про успішну дію додано гілку результату викупу.
+  - `counter_offer` показує «Пропозицію відхилено + поточна контрпропозиція + раунд».
+  - `rejected_floor_not_met` показує «Переговори завершено + вимога мінімальної ціни».
 
-## 赎金报价回归区间校验（v0.8.9）
-- 目标：满足“报价在有效区间内即可”的谈判规则，不再强制命中当前叫价。
-- 关键模块：
+## Регресійна перевірка діапазону пропозиції викупу (v0.8.9)
+- Мета: дотриматися правила переговорів «достатньо, щоб пропозиція була в допустимому діапазоні», більше не вимагаючи точно влучати в поточну ціну.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
-- 链路变化：
-  - 移除执行层 `offer_must_match_current_ask` 失败分支，保留报价窗口校验（min/max）作为唯一硬门禁。
-  - 默认提示词与系统/迁移规则不再注入“必须等于当前叫价”约束，避免运行时回灌旧规则。
+- Зміни в ланцюжку:
+  - Видалити гілку помилки `offer_must_match_current_ask` на рівні виконання, залишивши перевірку вікна пропозиції (min/max) єдиним жорстким шлюзом.
+  - Більше не додавати до промпту за замовчуванням і правил системи/міграції обмеження «має дорівнювати поточній ціні викупу», щоб уникнути повторного внесення старих правил під час виконання.
 
-## 赎金当前叫价硬校验（v0.8.8）
-- 目标：根除“文本声称已付款但实际未成交”的误导链路。
-- 关键模块：
+## Жорстка перевірка поточної ціни викупу (v0.8.8)
+- Мета: усунути оманливий ланцюжок, коли текст стверджує, що оплату здійснено, але фактичної угоди не відбулося.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `pay_prisoner_ransom` 在执行层新增硬门禁：若存在 `currentAsk`，`offer_silver` 必须等于 `currentAsk`。
-  - 报价未命中当前叫价时直接 fail-fast，并返回带 `offered/currentAsk/min/max` 的系统提示。
+- Зміни в ланцюжку:
+  - Для `pay_prisoner_ransom` на рівні виконання додано жорсткий шлюз: якщо існує `currentAsk`, `offer_silver` має дорівнювати `currentAsk`.
+  - Якщо пропозиція не відповідає поточній ціні викупу, негайно виконати fail-fast і повернути системне повідомлення з `offered/currentAsk/min/max`.
 
-## 赎金终态清理修复（v0.8.7）
-- 目标：根除“赎金支付成功后误清理目标绑定导致重复选人”的死循环。
-- 关键模块：
+## Виправлення очищення після завершення викупу (v0.8.7)
+- Мета: усунути нескінченний цикл, у якому після успішної оплати викупу помилково очищується прив’язка цілі, що призводить до повторного вибору персонажа.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
-- 链路变化：
-  - `pay_prisoner_ransom` 仅在终态成功 `accepted_and_released` 时清理赎金绑定状态。
-  - `counter_offer` 与 `rejected_floor_not_met` 保留 `boundRansomTargetPawnLoadId / boundRansomTargetFactionId / hasCompletedRansomInfoRequest`，允许同目标继续议价。
-  - 新增赎金成功状态分流日志：终态成功清理、非终态成功保留绑定。
+- Зміни ланцюжка:
+  - `pay_prisoner_ransom` очищує стан прив’язки викупу лише за `accepted_and_released` остаточного успіху.
+  - `counter_offer` і `rejected_floor_not_met` зберігають `boundRansomTargetPawnLoadId / boundRansomTargetFactionId / hasCompletedRansomInfoRequest`, дозволяючи продовжити торгуватися щодо тієї самої цілі.
+  - Додано журнал розподілу станів успіху викупу: очищення після остаточного успіху, збереження прив’язки після неостаточного успіху.
 
-## 赎金 request_info 条件触发化（v0.8.6）
-- 目标：将赎金 `request_info` 从“强制前置”改为“缺信息时才触发”，允许已知目标时直接支付。
-- 关键模块：
+## Умовна активація умови викупу request_info (v0.8.6)
+- Мета: змінити викуп `request_info` із «обов’язкової передумови» на «активацію лише за відсутності інформації», щоб за відомої цілі можна було одразу здійснити платіж.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 移除 `pay_prisoner_ransom` 对 `hasCompletedRansomInfoRequest` 的硬门禁。
-  - `pay_prisoner_ransom` 缺少有效 `target_pawn_load_id` 时才触发选人补信息提示。
-  - 默认提示词与迁移补丁从“必须先 request_info”改为“缺目标信息才 request_info”。
-  - 不改存档结构，继续复用 `isWaitingForRansomTargetSelection / boundRansomTargetPawnLoadId / boundRansomTargetFactionId / hasCompletedRansomInfoRequest` 运行态字段。
+- Зміни ланцюжка:
+  - Усунуто жорстке блокування `pay_prisoner_ransom` для `hasCompletedRansomInfoRequest`.
+  - `pay_prisoner_ransom` бракує дійсного `target_pawn_load_id` — лише тоді з’являється підказка вибрати персонажа для доповнення інформації.
+  - Типовий промпт і патч міграції змінено з «спочатку обов’язково request_info» на «request_info лише за відсутності інформації про ціль».
+  - Структуру збереження не змінювати, і надалі повторно використовувати поля стану виконання `isWaitingForRansomTargetSelection / boundRansomTargetPawnLoadId / boundRansomTargetFactionId / hasCompletedRansomInfoRequest`.
 
-## 囚犯信息卡玩家消息化与自动回复（v0.8.5）
-- 目标：将囚犯信息卡从系统消息调整为玩家消息，并在发送后自动触发 AI 回复。
-- 关键模块：
+## Перетворення картки інформації про в’язня на повідомлення гравця та автоматична відповідь (v0.8.5)
+- Мета: перетворити картку інформації про в’язня із системного повідомлення на повідомлення гравця та після надсилання автоматично ініціювати відповідь AI.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
-- 链路变化：
-  - `PublishRansomProofCard(...)` 中囚犯信息卡改为 `isPlayer=true`，发送者绑定我方谈判者。
-  - 新增 `TryQueueReplyForPlayerPrisonerInfoCard(...)`，在卡片发布后复用外交请求链路自动发起 AI 回复。
-  - 保持赎金状态机与存档结构不变。
+- Зміни в ланцюжку:
+  - Картку інформації про в’язня в `PublishRansomProofCard(...)` змінено на `isPlayer=true`, а відправника прив’язано до нашого перемовника.
+  - Додано `TryQueueReplyForPlayerPrisonerInfoCard(...)`, який після публікації картки повторно використовує ланцюжок дипломатичного запиту для автоматичного надсилання відповіді AI.
+  - Машину станів викупу та структуру збереження залишити без змін.
 
-## 外交“+发送信息”入口与囚犯信息卡重构（v0.8.4）
-- 目标：在外交发送区增加“+发送信息”纯文字入口，并将囚犯信息卡改为我方视觉发送与紧凑布局。
-- 关键模块：
+## Реконструкція дипломатичного входу «+ Надіслати інформацію» та картки інформації про в’язня (v0.8.4)
+- Мета: додати в область надсилання дипломатичних повідомлень текстовий вхід «+ Надіслати інформацію» та перетворити картку інформації про в’язня на повідомлення з візуальним оформленням нашої сторони й компактним макетом.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.Speakers.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
-- 链路变化：
-  - 发送区新增 `+发送信息` 文字入口（无按钮样式），可用性与 `SendGateState` 一致，点击弹出轻量菜单。
-  - 菜单当前仅提供“发送囚犯信息”，复用既有 `Dialog_PrisonerRansomTargetSelector`，并支持手动入口不插入“先选囚犯”系统提示。
-  - 囚犯存活证明卡保持系统语义（`isPlayer=false`），但视觉归属我方：右侧气泡、我方头像、我方配色。
-  - 囚犯卡改为横向紧凑布局（左图右文），缩略图使用 `ScaleAndCrop` 降低留白，占用高度显著下降。
+- Зміни ланцюжка:
+  - У зоні надсилання додано текстовий вхід `+发送信息` (без стилю кнопки), доступність якого відповідає `SendGateState`, а натискання відкриває компактне меню.
+  - Наразі меню пропонує лише «Надіслати інформацію про в'язня», повторно використовуючи наявний `Dialog_PrisonerRansomTargetSelector`, і підтримує ручний вхід без вставлення системної підказки «Спочатку виберіть в'язня».
+  - Картка підтвердження виживання в'язня зберігає системну семантику (`isPlayer=false`), але візуально належить нашій стороні: бульбашка праворуч, наш аватар і наша колірна схема.
+  - Картку в'язня змінено на компактне горизонтальне компонування (зображення ліворуч, текст праворуч), для мініатюри використовується `ScaleAndCrop`, що зменшує порожній простір і помітно скорочує висоту.
 
-## 赎金报价窗口显式注入与越界反馈修复（v0.8.4）
-- 目标：根除“报价越界后用户只看到内部错误串、模型继续盲猜报价”的链路问题。
-- 关键模块：
+## Явне впровадження вікна пропозиції викупу та виправлення зворотного зв'язку при виході за межі (v0.8.4)
+- Мета: усунути проблему ланцюжка, через яку після виходу пропозиції за межі користувач бачить лише внутрішній рядок помилки, а модель продовжує навмання вгадувати пропозицію.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/PrisonerRansomService.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.PrisonerRansom.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-- 链路变化：
-  - 统一提供报价窗口计算入口（min/max），执行层与 UI 前置提示复用同一口径。
-  - `request_info(prisoner)` 成功选人后新增“当前可报价区间”系统消息，注入到谈判上下文。
-  - 越界报价失败改为可读提示：展示 `offered/min/max/currentAsk`，并保留会话状态用于重试。
-## 赎金前置 request_info 链路稳定化（v0.8.3）
-- 目标：根除“赎金意图未稳定触发选人”的链路缺口，强制执行 `request_info(prisoner) -> pay_prisoner_ransom`。
-- 关键模块：
+- Зміни ланцюжка:
+  - Уніфіковано точку входу для розрахунку вікна пропозиції (min/max); рівень виконання та попередня підказка UI використовують однакові правила.
+  - Після успішного вибору персонажа `request_info(prisoner)` додано системне повідомлення «Поточний доступний діапазон пропозиції», яке додається до контексту переговорів.
+  - Помилку пропозиції за межами діапазону замінено на зрозуміле повідомлення: показується `offered/min/max/currentAsk`, а стан сеансу зберігається для повторної спроби.
+## Стабілізація ланцюжка попереднього request_info викупу（v0.8.3）
+- Мета: усунути прогалину в ланцюжку, через яку «намір викупу не запускає стабільний вибір персонажа», і примусово виконувати `request_info(prisoner) -> pay_prisoner_ransom`.
+- Ключові модулі:
   - `RimChat/AI/AIActionNames.cs`
   - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.PrisonerRansomSelection.cs`
@@ -1321,38 +1321,38 @@
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-- 链路变化：
-  - 新增 `request_info` 动作契约（仅支持 `info_type=prisoner`），由外交执行层触发稳定选人弹窗。
-  - `pay_prisoner_ransom` 增加会话级前置门禁：未完成 request_info 或无合法绑定目标时直接 fail-fast。
-  - `AIResponseParser` 将缺参赎金动作统一归一化为 `request_info(prisoner)`，避免动作链路断点。
-  - 赎金支付成功后重置会话赎金状态（waiting/bound/preflight），防止跨轮状态污染。
+- Зміни ланцюжка:
+  - Додано контракт дії `request_info` (підтримує лише `info_type=prisoner`), який викликає стабільне діалогове вікно вибору персонажа на рівні виконання дипломатії.
+  - `pay_prisoner_ransom` додано сеансову попередню перевірку: якщо request_info не виконано або немає дійсної прив’язаної цілі, негайно виконується fail-fast.
+  - `AIResponseParser` уніфіковано неповністю параметризовані дії викупу до `request_info(prisoner)`, щоб уникнути розривів у ланцюжку дій.
+  - Після успішної сплати викупу стан викупу сеансу (waiting/bound/preflight) скидається, щоб запобігти забрудненню стану між раундами.
 
-## 发送区提示按图定位（v0.7.110）
-- 目标：将 `[?]` 移动到发送按钮右下侧（按 UI 示意图红框位置）。
-- 关键模块：
+## Позиціонування підказки в області надсилання за зображенням (v0.7.110)
+- Мета: перемістити `[?]` у правий нижній кут кнопки надсилання (у позицію червоної рамки на ілюстрації UI).
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionHint.cs`
   - `RimChat/UI/Dialog_RPGPawnDialogue.ActionHint.cs`
-- 链路变化：
-  - 提示锚点改为 `sendRect.xMax - 16, sendRect.yMax + 2`。
-  - 提示框尺寸改为 `24x18`，保持可见且不压住输入框。
+- Зміни ланцюжка:
+  - Якорем підказки тепер є `sendRect.xMax - 16, sendRect.yMax + 2`.
+  - Розмір підказки змінено на `24x18`, щоб вона залишалася видимою та не перекривала поле введення.
 
 
-## 空投显式数量优先根修（v0.7.106）
-- 目标：根除 `request_item_airdrop` 在“需求含显式数量”场景下被二阶段模型错误压成 `count=1` 的链路问题。
-- 关键模块：
+## Пріоритет явної кількості для повітряного десанту: кореневе виправлення (v0.7.106)
+- Мета: усунути проблему в ланцюжку, через яку `request_item_airdrop` у випадках, коли «запит містить явну кількість», помилково стискається моделлю другого етапу до `count=1`.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.SelectionPending.cs`
-- 链路变化：
-  - `ValidateAirdropSelection(...)` 新增显式数量优先策略：`need` 抽取到明确数量时，直接覆盖二阶段返回 `count` 并统一做合法窗口校验。
-  - 二阶段提示词移除“single-item/count=1”误导语句，改为“显式数量优先，模型仅负责选品”。
-  - 异步链路的 `selection` 审计改为记录最终生效数量，避免“日志是模型数量、执行是修正数量”的偏差。
-  - `countSource` 统一为 `llm/fallback_explicit/fallback_default_family`，与文档约定一致。
+- Зміни в ланцюжку:
+  - `ValidateAirdropSelection(...)` додано стратегію пріоритету явної кількості: коли `need` вилучає чітко вказану кількість, вона безпосередньо перекриває `count`, повернуту другим етапом, після чого виконується єдина перевірка допустимого діапазону.
+  - Із промпту другого етапу вилучено оманливе формулювання «single-item/count=1» і замінено на «явна кількість має пріоритет, модель відповідає лише за вибір предметів».
+  - Аудит `selection` в асинхронному ланцюжку змінено так, щоб він записував фактичну кінцеву кількість, запобігаючи розбіжності, коли «в журналі вказана кількість моделі, а виконується виправлена кількість».
+  - `countSource` уніфіковано до `llm/fallback_explicit/fallback_default_family` відповідно до домовленостей документації.
 
-## 空投二阶段异步化与主线程阻塞根修（v0.7.105）
-- 目标：根除 `request_item_airdrop` 二阶段 `Task.Wait(timeout)` 主线程阻塞，并保持超时后候选确认链路。
-- 关键模块：
+## Асинхронізація другого етапу повітряного десанту та кореневе виправлення блокування головного потоку (v0.7.105)
+- Мета: усунути блокування головного потоку на другому етапі `request_item_airdrop` `Task.Wait(timeout)` і зберегти ланцюжок підтвердження кандидатів після тайм-ауту.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Async.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ItemAirdropConfirmation.cs`
@@ -1360,25 +1360,25 @@
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/AI/AIChatServiceAsync.RequestScheduling.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
-- 链路变化：
-  - 外交空投准备改为异步入口 `BeginPrepareItemAirdropTradeAsync`，别名扩展与二阶段选择统一走 `AIChatServiceAsync`。
-  - 空投链路移除同步 `Task.Wait` 阻塞，二阶段与别名超时改为请求级超时配置驱动（按空投设置覆盖）。
-  - 对话层新增空投异步 requestId/lease 运行态，窗口关闭时立即取消并清理状态，禁止跨窗口回调落地。
-  - 输入区新增“空投二阶段匹配中”非阻塞状态条；不锁输入，不冻结窗口。
-  - 超时仍进入 Top3 候选确认（`1/2/3` 或 defName/名称）原链路，兼容旧交互。
+- Зміни ланцюжка:
+  - Підготовку дипломатичного десанту змінено на асинхронну точку входу `BeginPrepareItemAirdropTradeAsync`, розширення псевдонімів і вибір другого етапу тепер виконуються через `AIChatServiceAsync`.
+  - Із ланцюжка десантування вилучено синхронне блокування `Task.Wait`; тайм-аути другого етапу та псевдонімів тепер задаються конфігурацією тайм-аутів на рівні запиту (з перевизначенням налаштуваннями десантування).
+  - На рівні діалогу додано асинхронний стан виконання requestId/lease для десантування; під час закриття вікна виконання негайно скасовується, а стан очищується, щоб заборонити застосування зворотних викликів з іншого вікна.
+  - В області введення додано неблокувальну панель стану «Пошук відповідності для другого етапу десантування»; введення не блокується, вікно не заморожується.
+  - Після тайм-ауту все одно виконується підтвердження кандидатів Top3 (`1/2/3` або defName/назва) за початковим ланцюжком, зі збереженням сумісності зі старою взаємодією.
 
-## 空投支付语义匹配修复（v0.7.104）
-- 目标：修复 `payment_item_unresolved` 在“词序变化/插词”的支付品输入下误拒绝问题。
-- 关键模块：
+## Виправлення зіставлення семантики оплати десантування (v0.7.104)
+- Мета: виправити помилкове відхилення `payment_item_unresolved` для введених платіжних предметів із «переставленим порядком слів/вставленими словами».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropPaymentResolver.cs`
-- 链路变化：
-  - 支付解析新增语义分词匹配层（CamelCase/label 拆词 + 全包含匹配打分）。
-  - `MealPackaged` 这类输入可稳定匹配到 `MealSurvivalPackaged` 候选，不再直接 unresolved。
-  - 并列候选仍走 `payment_item_ambiguous` fail-fast，不放宽安全边界。
+- Зміни в ланцюжку:
+  - У платіжний аналіз додано рівень семантичного зіставлення токенізованих слів (CamelCase/label: розбиття на слова + оцінювання за повним збігом усіх компонентів).
+  - Такі введення, як `MealPackaged`, стабільно зіставляються з кандидатом `MealSurvivalPackaged`, а не одразу отримують статус unresolved.
+  - Для паралельних кандидатів і далі використовується `payment_item_ambiguous` fail-fast, межі безпеки не послаблюються.
 
-## 空投预算单一真相源 + 超时提示强制可见（v0.7.103）
-- 目标：根除 `budget_silver` 与 `payment_items` 双字段分歧，并消除 `selection_timeout` 被叙事文本覆盖后的“无提示”体验。
-- 关键模块：
+## Єдине джерело істини для бюджету десанту + примусова видимість повідомлень про тайм-аут (v0.7.103)
+- Мета: усунути розбіжності між полями `budget_silver` і `payment_items` та позбутися ситуації, коли після перекриття `selection_timeout` наративним текстом не відображається жодного повідомлення.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.cs`
@@ -1389,31 +1389,31 @@
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 预算改为由 `payment_items` 市场价汇总后 `Floor` 派生；`budget_silver` 若存在仅用于审计，不参与执行。
-  - 空投准备链路改为先做支付解析/预算派生，再进入候选选择与数量合法校验。
-  - `selection_timeout` 场景下外交 UI 强制追加系统候选提示，不再依赖“台词为空才显示”。
-  - 单金额跟进映射改为仅补 `payment_items`（`Silver x amount`），不再补 `budget_silver`。
+- Зміни ланцюжка:
+  - Бюджет тепер виводиться з підсумованих ринкових цін `payment_items` після `Floor`; `budget_silver` якщо наявний, використовується лише для аудиту й не бере участі у виконанні.
+  - Ланцюжок підготовки десантування тепер спочатку виконує розбір платежу та виведення бюджету, а потім переходить до вибору кандидатів і перевірки допустимості кількості.
+  - У сценарії `selection_timeout` дипломатія UI примусово додає системну підказку щодо кандидатів; залежність від умови «відображати лише якщо репліка порожня» усунуто.
+  - Відображення супроводу для окремої суми тепер доповнює лише `payment_items` (`Silver x amount`), а `budget_silver` більше не доповнює.
 
-## 空投二阶段超时根修 + 可观测增强（v0.7.102）
-- 目标：降低 `request_item_airdrop` 二阶段稳定 `~12s` 超时，并补齐失败语义与调试观测。
-- 关键模块：
+## Ґрунтовне виправлення тайм-ауту другого етапу десантування + покращення спостережуваності (v0.7.102)
+- Мета: зменшити `request_item_airdrop` стабільність другого етапу `~12s` тайм-аутів і додати семантику невдач та засоби спостереження для налагодження.
+- Ключові модулі:
   - `RimChat/AI/AIChatClient.cs`
   - `RimChat/AI/AIChatServiceAsync.DebugTelemetry.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.SelectionPending.cs`
   - `RimChat/Config/RimChatSettings.cs`
   - `RimChat/Config/RimChatSettings_AI.cs`
-- 链路变化：
-  - 二阶段请求改用结构化响应对象（含 `failureReason/http/tokens`），不再只有裸文本。
-  - 失败语义细分：`selection_timeout / selection_queue_timeout / selection_service_error`。
-  - `selection_timeout/selection_queue_timeout` 仍走“待玩家确认候选（Top3）”；`selection_service_error` 保持 fail-fast。
-  - 二阶段提示词候选压缩为关键字段并限制 Top20，减少 token 压力。
-  - `ItemAirdropSecondPassTimeoutSeconds` 默认值从 `12` 调整为 `25`（约束保持 `3..30`）。
+- Зміни ланцюжка:
+  - Запит другого етапу тепер використовує структурований об’єкт відповіді (містить `failureReason/http/tokens`), а не лише необроблений текст.
+  - Семантику помилок деталізовано: `selection_timeout / selection_queue_timeout / selection_service_error`.
+  - `selection_timeout/selection_queue_timeout` і надалі проходить через «кандидатів, що очікують підтвердження гравця (Top3)»; `selection_service_error` зберігає fail-fast.
+  - Промпт другого етапу стиснуто до ключових полів і обмежено Top20, щоб зменшити навантаження на токени.
+  - Значення за замовчуванням для `ItemAirdropSecondPassTimeoutSeconds` змінено з `12` на `25` (обмеження `3..30` збережено).
 
-## 空投支付解析根修 + 超时待确认（v0.7.101）
-- 目标：根除 `payment_item_unresolved/payment_item_ambiguous` 的高频误匹配，并移除二阶段超时自动成交风险。
-- 关键模块：
+## Виправлення кореневої причини помилкового аналізу оплати за десантний вантаж + підтвердження після тайм-ауту (v0.7.101)
+- Мета: усунути часті помилкові збіги `payment_item_unresolved/payment_item_ambiguous` і прибрати ризик автоматичного укладання угоди після тайм-ауту другого етапу.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropPaymentResolver.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
@@ -1424,40 +1424,40 @@
   - `RimChat/Config/SystemPromptConfig.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 支付解析独立模块化：统一“`defName` 精确 -> `label` 精确 -> 归一化强匹配 -> 近似匹配”。
-  - 并列最高分改为 fail-fast：返回 `payment_item_ambiguous` + Top3 候选，禁止自动扣货。
-  - 二阶段 `selection_timeout` 改为“待玩家确认候选（Top3）”，不再自动 Top1 成交。
-  - 外交 UI 新增待确认提示与候选回复映射：玩家回复编号/名称后回填 `selected_def` 并重提同一空投动作。
-  - 契约收口：`payment_items.item` 提示更新为“defName 优先，label 仅备用（需唯一可解析）”。
+- Зміни ланцюжка:
+  - Винесено розбір платежів в окремий модуль: уніфікована послідовність «`defName` точний -> `label` точний -> нормалізований точний збіг -> приблизний збіг».
+  - За однаково найвищого бала застосовується fail-fast: повертається `payment_item_ambiguous` + 3 найкращі кандидати, автоматичне списання товарів заборонено.
+  - Двоетапний `selection_timeout` змінено на «кандидати, що очікують підтвердження гравця (Top3)», автоматичне укладення угоди з Top1 більше не виконується.
+  - У дипломатичний UI додано повідомлення про очікування підтвердження та зіставлення відповідей кандидатів: після відповіді гравця номером/назвою підставляється `selected_def` і повторно пропонується та сама дія повітряного десанту.
+  - Уточнено контракт: повідомлення `payment_items.item` оновлено на «defName має пріоритет, label — лише запасний варіант (має однозначно розбиратися)».
 
-## 外交空投金额简写映射根修（v0.7.100）
-- 目标：修复外交跟进语句仅给金额时的预算/支付错配，防止沿用旧失败文案造成“文本误报”。
-- 关键模块：
+## Виправлення кореня скороченого зіставлення сум дипломатичного повітряного десанту (v0.7.100)
+- Мета: виправити помилкове зіставлення бюджету/платежу, коли у фразі дипломатичного супроводу вказано лише суму, щоб запобігти «хибному повідомленню в тексті» через використання старого тексту про помилку.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.cs`
-  - `RimChat/Memory/FactionDialogueSession.cs`（复用既有运行态意图，不新增持久化字段）
+  - `RimChat/Memory/FactionDialogueSession.cs`（повторно використати наявний намір стану виконання, не додавати нових полів постійного зберігання）
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 新增空投金额简写映射：当存在上一条空投意图且玩家输入匹配单金额（如 `2100银` / `2100 silver`）时，自动补齐 `budget_silver=amount` 与 `payment_items=[{item:Silver,count:amount}]` 并直接入执行链路。
-  - 多金额表达（如“预算2100支付2000”）不会触发该映射，继续走原有确认/澄清路径。
-  - 映射命中后覆盖可见回复为确定性提示（中英语言键），避免沿用模型中的过期失败文本。
+- Зміни в ланцюжку:
+  - Додано скорочене зіставлення суми десантування: якщо існує попередній намір десантування, а введення гравця відповідає одиночній сумі (наприклад, `2100银` / `2100 silver`), автоматично доповнити `budget_silver=amount` і `payment_items=[{item:Silver,count:amount}]` та безпосередньо передати в ланцюжок виконання.
+  - Вирази з кількома сумами (наприклад, «бюджет 2100, сплатити 2000») не активують це зіставлення й надалі проходять початковий шлях підтвердження/уточнення.
+  - Після успішного зіставлення видиму відповідь замінено на детерміноване повідомлення (мовні ключі китайською та англійською), щоб не використовувати застарілий текст помилки з моделі.
 
-## 空投缺参阻断 + 契约收口（v0.7.99）
-- 目标：根除 `request_item_airdrop` 因缺失 `payment_items` 导致的稳定失败链路，避免进入运行时后段才抛错。
-- 关键模块：
+## Блокування десантування за відсутності параметрів + узгодження контракту（v0.7.99）
+- Мета: усунути стабільний ланцюжок помилок `request_item_airdrop`, спричинений відсутністю `payment_items`, щоб помилка не виникала лише на пізнішому етапі виконання.
+- Ключові модулі:
   - `RimChat/AI/AIResponseParser.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/action_rules.txt`
-- 链路变化：
-  - 解析期 fail-fast：`AIResponseParser.AddActionIfValid` 对 `request_item_airdrop` 增加参数结构校验（`need`、`budget_silver`、`payment_items[]`，每项 `item/count`）。
-  - 缺参动作直接丢弃并记录日志，不再进入执行链路触发 `payment_items_missing`。
-  - 紧凑动作目录契约修正：`request_item_airdrop` 明确 `budget_silver/payment_items` 必填，并写明支付价值约束（`>= budget`、超付 `<= 5%`）。
-  - `action_rules` 示例同步更新为包含 `payment_items` 的结构化清单，消除旧示例误导。
+- Зміни в ланцюжку:
+  - Fail-fast на етапі аналізу: `AIResponseParser.AddActionIfValid` додає до `request_item_airdrop` перевірку структури параметрів（`need`, `budget_silver`, `payment_items[]`, кожен — `item/count`）。
+  - Дію з відсутніми параметрами безпосередньо відкидають і записують у журнал, більше не передаючи її в ланцюжок виконання, де вона спричинила б `payment_items_missing`.
+  - Виправлення контракту компактного каталогу дій: `request_item_airdrop` чітко визначає обов’язковість `budget_silver/payment_items` і встановлює обмеження на вартість оплати (`>= budget`, переплата `<= 5%`).
+  - Приклад `action_rules` також оновлено до структурованого переліку, що містить `payment_items`, щоб усунути оманливість старого прикладу.
 
-## AI 空投以物易物 + 最终确认弹窗（v0.7.98）
-- 目标：将 `request_item_airdrop` 升级为“真实物资折银交易 + 玩家最终确认”链路，彻底避免未确认即扣货/发货。
-- 关键模块：
+## AI Бартер із повітряним десантуванням + діалогове вікно остаточного підтвердження (v0.7.98)
+- Мета: перетворити `request_item_airdrop` на ланцюжок «обмін реальними запасами з конвертацією у срібло + остаточне підтвердження гравцем», повністю уникаючи списання товарів або відправлення вантажу без підтвердження.
+- Ключові модулі:
   - `RimChat/AI/AIResponseParser.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.Barter.cs`
@@ -1467,16 +1467,16 @@
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.cs`
   - `RimChat/Config/SystemPromptConfig.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
-- 链路变化：
-  - `request_item_airdrop` 契约升级：`budget_silver` 与 `payment_items` 改为必填。
-  - 交易准备阶段新增：`payment_items` 解析、`item`（defName/label/别名）解析、预算/超付校验、轨道信标覆盖库存校验、扣货计划生成。
-  - 外交 UI 新增最终确认弹窗：确认后立即执行“扣货 + 空投”，取消则终止并写系统消息。
-  - 同轮多条空投动作 fail-fast 拒绝，避免并发确认窗和重复扣货。
-  - `AIResponseParser` 参数解析升级为通用 JSON 值解析，支持 object/array/bool/null，消除数组参数退化为字符串的问题。
+- Зміни в ланцюжку:
+  - `request_item_airdrop` Оновлення контракту: `budget_silver` і `payment_items` тепер обов’язкові.
+  - На етапі підготовки торгів додано: розбір `payment_items`, розбір `item` (defName/label/псевдонім), перевірку бюджету/переплати, перевірку запасів орбітальних маяків у зоні покриття, створення плану вилучення товарів.
+  - Для дипломатичного UI додано фінальне діалогове вікно підтвердження: після підтвердження негайно виконуються «вилучення товарів + десантування», а скасування припиняє дію та записує системне повідомлення.
+  - Кілька дій десантування в одному раунді відхиляються за принципом fail-fast, щоб уникнути одночасних вікон підтвердження та повторного вилучення товарів.
+  - Розбір параметрів `AIResponseParser` оновлено до універсального розбору значень JSON, із підтримкою object/array/bool/null; усунуто проблему перетворення параметрів-масивів на рядки.
 
-## RPG 首轮延迟治理与思维链通道化（v0.7.97）
-- 目标：根治 RPG 新会话首轮“长时间思考中”。
-- 关键模块：
+## RPG Керування затримкою першого раунду та переведенням каналу ланцюжка міркувань у структурований режим (v0.7.97)
+- Мета: усунути проблему «тривалого обдумування» в першому раунді нового сеансу RPG.
+- Ключові модулі:
   - `RimChat/UI/Dialog_RPGPawnDialogue.cs`
   - `RimChat/UI/Dialog_RPGPawnDialogue.RequestContext.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.cs`
@@ -1489,137 +1489,137 @@
   - `RimChat/Config/RimChatSettings.cs`
   - `RimChat/Config/RimChatSettings_AI.cs`
   - `RimChat/Config/PromptChannelToggleConfig.cs`
-- 链路变化：
-  - RPG 窗口首轮改为单次构建缓存复用，移除同窗口首轮双重系统提示词构建。
-  - 开窗即异步预热归档缓存；首轮提示词构建禁用冷加载与压缩调度。
-  - 归档压缩调度改为主线程安全检查点触发，避免后台线程直接触发请求链路。
-  - 思维链开关从全局布尔升级为按通道矩阵，`rpg_dialogue/proactive_rpg_dialogue` 默认关闭。
+- Зміни в ланцюжку:
+  - RPG Перший раунд у вікні тепер повторно використовує кеш, створений одноразово; подвійне створення системного промпту в першому раунді того самого вікна вилучено.
+  - Під час відкриття вікна асинхронно прогрівається кеш архіву; у першому раунді створення промпту вимкнено холодне завантаження та планування стиснення.
+  - Планування стиснення архіву тепер запускається безпечною контрольною точкою головного потоку, щоб фоновий потік не запускав ланцюжок запитів безпосередньо.
+  - Перемикач ланцюжка міркувань оновлено з глобального булевого значення до матриці за каналами, `rpg_dialogue/proactive_rpg_dialogue` вимкнено за замовчуванням.
 
-## 外交意图到动作双层根治（v0.7.96）
-- 目标：根治“识别到意图但未触发动作”与“口头承诺已提交但无实际 action”问题。
-- 关键模块：
+## Подвійне ґрунтовне виправлення переходу від дипломатичних намірів до дій（v0.7.96）
+- Мета: ґрунтовно усунути проблеми «намір розпізнано, але дію не запущено» та «усну обіцянку подано, але фактичної action немає».
+- Ключові модулі:
   - `RimChat/AI/DiplomacyResponseContractGuard.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ActionPolicies.cs`
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
-- 链路变化：
-  - 新增外交契约 fail-fast：检测“强承诺 + 无 actions JSON”，自动重试一次；重试后仍违规时回退为角色内澄清追问。
-  - 外交主链新增意图映射：对模糊催单先追问，收到确认后补发延迟动作；缺必填参数时持续追问，不执行动作。
-  - 覆盖延迟动作：`request_item_airdrop/request_caravan/request_aid/request_raid/trigger_incident/create_quest`。
-  - 新增短窗口防重：同动作同参数在 2 个助手回合内不重复执行。
-  - 运行态新增 `PendingDelayedActionIntent`（不入档）用于跨轮确认与去重。
+- Зміни ланцюжка:
+  - Додано fail-fast для дипломатичних контрактів: виявлення «сильної обіцянки + відсутність actions JSON» автоматично виконує одну повторну спробу; якщо після повторної спроби порушення зберігається, виконується повернення до уточнювального запитання в межах ролі.
+  - До основного дипломатичного ланцюжка додано мапування намірів: на нечітке нагадування спершу ставиться уточнювальне запитання, після отримання підтвердження надсилається відкладена дія; якщо бракує обов’язкових параметрів, уточнювальні запитання ставляться далі, дія не виконується.
+  - Охоплено відкладені дії: `request_item_airdrop/request_caravan/request_aid/request_raid/trigger_incident/create_quest`.
+  - Додано захист від повторів у короткому вікні: та сама дія з тими самими параметрами не виконується повторно протягом 2 ходів помічника.
+  - До стану виконання додано `PendingDelayedActionIntent` (не записується в архів) для підтвердження між ходами та усунення повторів.
 
-## 外交界面空投成功系统提示（v0.7.95）
-- 目标：在外交对话窗口内，为 `request_item_airdrop` 成功执行提供可见系统反馈，且与原有信件并存。
-- 关键模块：
+## Системне повідомлення про успішне виконання скидання в дипломатичному інтерфейсі (v0.7.95)
+- Мета: у вікні дипломатичного діалогу забезпечити видимий системний зворотний зв’язок про успішне виконання `request_item_airdrop`, зберігаючи його поруч із наявними листами.
+- Ключові модулі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
-  - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`（读取返回 payload，不改外部契约）
+  - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs` (зчитує payload відповіді, не змінює зовнішній контракт)
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - `ActionExecutionOutcome` 新增 `Data` 承载，动作执行成功时透传 API 返回数据。
-  - 新增空投成功系统消息注入分支：仅匹配 `request_item_airdrop` 且 `ActionExecutionOutcome.IsSuccess=true`。
-  - 系统消息从 `ItemAirdropResultData` 读取 `ResolvedLabel/Quantity/BudgetUsed`，避免自然语言反解析误差。
-  - 本地化新增键：`RimChat_ItemAirdropTriggeredSystem`（中英双端）。
+- Зміни в ланцюжку:
+  - `ActionExecutionOutcome` Додано `Data` Передається далі разом із даними, коли виконання дії завершується успішно API Повернуті дані.
+  - Додано гілку впровадження системного повідомлення про успішне скидання з повітря: зіставляються лише `request_item_airdrop` і `ActionExecutionOutcome.IsSuccess=true`.
+  - Системне повідомлення зчитується з `ItemAirdropResultData`  `ResolvedLabel/Quantity/BudgetUsed`, щоб уникнути похибок зворотного аналізу природної мови.
+  - Додано ключ локалізації: `RimChat_ItemAirdropTriggeredSystem` (для китайської та англійської версій).
 
-## request_item_airdrop 单物品数量真相源根修（v0.7.94）
-- 目标：统一数量合法性真相源，根除“超时回退默认 25 -> 校验再打回”的链路冲突。
-- 关键模块：
+## request_item_airdrop ґрунтовне виправлення єдиного джерела істини для кількості одного предмета (v0.7.94)
+- Мета: уніфікувати єдине джерело істини для допустимості кількості та усунути конфлікт у ланцюжку «після тайм-ауту повернути значення за замовчуванням 25 -> повторно відхилити під час перевірки».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
-- 链路变化：
-  - 新增统一数量窗口函数 `ComputeLegalCountWindow(...)`，回退、提示词、验证三处共享同一计算。
-  - `ExtractRequestedCount` 改为三态语义（无数字 / 单数字 / 多数字）。
-  - 单物品硬约束：`need` 含多数字直接 fail-safe，返回 `need_count_ambiguous`。
-  - 二阶段超时回退改为“先取 Top1 + 先算 hardMax 再决策”，显式超量直接 `selection_count_out_of_range`。
-  - 二阶段提示词新增预算与候选 `max_legal_count`，并明确 `count must be 1..max_legal_count` 规则。
-  - `selection` 阶段审计新增 `countSource`、`hardMax`、`maxByBudget`，便于区分模型问题与回退策略问题。
+- Зміни в ланцюжку:
+  - Додано єдину функцію діапазону кількості `ComputeLegalCountWindow(...)`; відкат, промпт і перевірка використовують один і той самий розрахунок.
+  - `ExtractRequestedCount` переведено на семантику з трьома станами (без числа / одне число / кілька чисел).
+  - Жорстке обмеження для одного предмета: якщо `need` містить кілька чисел, негайно застосовується fail-safe, повертаючи `need_count_ambiguous`.
+  - Відкат через тайм-аут на другому етапі змінено на «спочатку взяти Top1 + спочатку обчислити hardMax, а потім ухвалювати рішення», явне перевищення ліміту безпосередньо `selection_count_out_of_range`.
+  - До промпту другого етапу додано бюджет і кандидатів `max_legal_count`, а також чітко визначено правила `count must be 1..max_legal_count`.
+  - До аудиту етапу `selection` додано `countSource`, `hardMax` і `maxByBudget`, щоб розрізняти проблеми моделі та проблеми стратегії відкату.
 
-## request_item_airdrop 候选目录过滤根修（v0.7.92）
-- 目标：修复候选目录过度过滤导致的“全量 familyReject + 尸体 near-miss”异常。
-- 关键模块：
+## Кореневе виправлення фільтрації каталогу кандидатів request_item_airdrop (v0.7.92)
+- Мета: виправити аномалію «повний familyReject + near-miss трупа», спричинену надмірною фільтрацією каталогу кандидатів.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ThingDefCatalog.cs`
-- 链路变化：
-  - 取消 `scatterableOnMapGen/mineable` 的目录级硬排除，恢复常见资源进入目录。
-  - 新增 `def.IsCorpse` 目录级排除，防止尸体 Def 污染候选池。
-  - 与 `ItemAirdropSafetyPolicy` 的族群约束配合后，候选召回恢复到“先可见物资，再安全筛选”。
+- Зміни в ланцюжку:
+  - Скасовано жорстке виключення `scatterableOnMapGen/mineable` на рівні каталогу, відновлено додавання поширених ресурсів до каталогу.
+  - Додано виключення `def.IsCorpse` на рівні каталогу, щоб запобігти забрудненню пулу кандидатів Def-ами трупів.
+  - У поєднанні з обмеженнями фракції `ItemAirdropSafetyPolicy` повернення кандидатів відновлено до схеми «спочатку видимі ресурси, потім безпечний відбір».
 
-## request_item_airdrop 候选召回根修与诊断增强（v0.7.91）
-- 目标：在不改变 AI 二阶段选品契约的前提下，根治 `no_candidates` 高概率误空集，并提升失败可定位性。
-- 关键模块：
+## Кореневе виправлення повернення кандидатів і посилення діагностики request_item_airdrop (v0.7.91)
+- Мета: не змінюючи контракт вибору предметів на другому етапі AI, усунути високоймовірне помилкове отримання порожньої множини `no_candidates` і підвищити можливість локалізації збоїв.
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropIntentParser.cs`
   - `RimChat/DiplomacySystem/ThingDefResolver.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/DiplomacySystem/ItemAirdropModels.cs`
-- 链路变化：
-  - 输入归一化增强：支持 `| / \ 、，。；：` 边界分隔与中英数混写拆分（`steel10个` -> `steel|10|个`）。
-  - 噪声清洗：过滤数量/单位 token，减少无意义检索词污染。
-  - 候选召回增强：新增本地同义词扩展（先本地再 AI），并在评分前增加强匹配通道（def/label 归一化包含关系加权）。
-  - 诊断可观测：候选包新增拒绝计数与 near-miss，`prepare/failed` 阶段审计输出完整定位摘要。
+- Зміни в ланцюжку:
+  - Покращено нормалізацію введення: підтримано розділення за межами `| / \ 、，。；：` і розбиття змішаного китайсько-англо-цифрового тексту (`steel10个` -> `steel|10|个`).
+  - Очищення від шуму: відфільтровано токени кількості/одиниць, щоб зменшити забруднення пошукових термінів, які не мають сенсу.
+  - Покращено пошук кандидатів: додано локальне розширення синонімів (спочатку локальне, потім AI), а перед оцінюванням додано канал сильного збігу (зважування зв’язку включення після нормалізації def/label).
+  - Покращено діагностичну спостережуваність: до пакета кандидатів додано кількість відхилень і near-miss, на етапі `prepare/failed` виводиться повний зведений аудит із локалізацією.
 
-## 人格引导请求移除与 RimTalk-only 同步（v0.7.90）
-- 目标：彻底移除 `persona_bootstrap` 外发请求，仅保留 RimTalk 人格复制/同步。
-- 关键文件：
+## Видалення запитів для керування особистістю та синхронізація лише з RimTalk (v0.7.90)
+- Мета: повністю видалити зовнішні запити до `persona_bootstrap`, залишивши лише копіювання/синхронізацію особистості через RimTalk.
+- Ключові файли:
   - `RimChat/DiplomacySystem/GameComponent_RPGManager.PersonaBootstrap.cs`
-- 链路变化：
-  - `StartNpcPersonaGeneration(...)` 不再向 AI 发送 persona 引导请求。
-  - `ProcessNpcPersonaBootstrapTick(...)` 在无 RimTalk 时 fail-fast 完成 bootstrap，不再进入请求链。
-  - `ProcessNpcPersonaRuntimeTick(...)` 在无 RimTalk 时关闭 runtime 扫描，避免无效循环。
-  - `RetryOrFallbackPersonaPrompt(...)` 不再重试 AI 生成人格，也不再写入本地 fallback 文本。
+- Зміни в ланцюжку:
+  - `StartNpcPersonaGeneration(...)` більше не надсилає запити для керування persona до AI.
+  - `ProcessNpcPersonaBootstrapTick(...)` текст RimTalk текст fail-fast текст bootstrap，текст.
+  - `ProcessNpcPersonaRuntimeTick(...)` Вимкнути сканування runtime за відсутності RimTalk, щоб уникнути неефективних циклів.
+  - `RetryOrFallbackPersonaPrompt(...)` Більше не повторювати спробу генерувати особистість для AI і не записувати локальний fallback-текст.
 
-## request_item_airdrop 两阶段链路（v0.7.89）
-- 目标：把单阶段 Def 解析改为“候选构建 + 二次选择 + 严格校验 + 执行投放”。
-- 关键模块：
+## request_item_airdrop Двоетапний ланцюжок (v0.7.89)
+- Мета: замінити одноетапний розбір Def на «побудову кандидатів + повторний вибір + сувору перевірку + виконання розміщення».
+- Ключові модулі:
   - `RimChat/DiplomacySystem/ItemAirdropModels.cs`
   - `RimChat/DiplomacySystem/ItemAirdropIntentParser.cs`
   - `RimChat/DiplomacySystem/ItemAirdropSafetyPolicy.cs`
   - `RimChat/DiplomacySystem/ItemAirdropSelectionParser.cs`
   - `RimChat/DiplomacySystem/ThingDefResolver.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
-- 链路变化：
-  - 阶段1：按自然语言 need 构建候选；首轮候选为空时，自动触发一次 AI 中英文别名扩展并重试。
-  - 阶段1.5：若已识别族群且候选仍为空，执行一次同族群放宽重试（仅放宽类别黑名单，不跨族群）。
-  - 阶段2：`channel:airdrop_selection` 请求进行候选内选择，严格解析 `selected_def/count/reason`。
-  - 阶段3：执行前做候选归属、预算与数量越界校验；失败即 fail-fast，不做降级回退。
-  - 排序优化：`defName/label` 精确命中优先，提高 `steel` 等明确物资词的命中稳定性。
-  - fail-fast：经过别名扩展与重试后仍无法归类或无候选时，返回 `need_family_unknown/no_candidates`。
-  - 审计：统一写入 `RequestItemAirdrop.Stage`（prepare/selection/execute/failed）与最终 `RequestItemAirdrop` 结果。
-  - 可观测性：`AIRequestDebugSource` 新增 `AirdropSelection`，API Debug 窗口可见。
+- Зміни в ланцюжку:
+  - Етап 1: побудувати кандидатів за природномовною потребою; якщо список кандидатів першого раунду порожній, автоматично один раз розширити китайські й англійські псевдоніми в AI і повторити спробу.
+  - текст1.5：текст,текст (текст,текст）。
+  - Етап 2: надіслати запит `channel:airdrop_selection` для вибору серед кандидатів і суворо розібрати `selected_def/count/reason`.
+  - Етап 3: перед виконанням перевірити належність кандидатів, бюджет і вихід кількості за межі; у разі помилки — fail-fast, без запасного зниження вимог.
+  - Оптимізація сортування: точний збіг `defName/label` має пріоритет, що підвищує стабільність збігу чітко визначених термінів ресурсів, як-от `steel`.
+  - fail-fast: якщо після розширення псевдонімів і повторних спроб усе ще неможливо класифікувати запит або немає кандидатів, повернути `need_family_unknown/no_candidates`.
+  - Аудит: уніфіковано записувати `RequestItemAirdrop.Stage` (prepare/selection/execute/failed) і фінальний результат `RequestItemAirdrop`.
+  - Спостережуваність: `AIRequestDebugSource` додано `AirdropSelection`, API видно у вікні Debug.
 
-## 真实物资检索与空投链路（v0.7.86）
-- 目标：让 AI 按需求检索真实 ThingDef（可来自原版与已加载 Mod），并通过原版空投发送到殖民地。
-- 关键文件：
+## Пошук реальних ресурсів і ланцюжок десантування ( v0.7.86 )
+- Мета: дозволити AI шукати потрібні реальні ThingDef (з оригінальної гри та вже завантажених модів) і надсилати їх до колонії через оригінальне десантування.
+- Ключові файли:
   - `RimChat/DiplomacySystem/ThingDefCatalog.cs`
   - `RimChat/DiplomacySystem/ThingDefResolver.cs`
   - `RimChat/DiplomacySystem/GameAIInterface.ItemAirdrop.cs`
   - `RimChat/AI/AIActionExecutor.ItemAirdrop.cs`
-- 链路变化：
-  - 新增动作 `request_item_airdrop`，从解析、资格校验、执行器到 API 层全链路打通。
-  - 检索策略为“规则先筛 + Top1 选择”，命中黑名单/预算不足/无落点/无匹配 Def 时 Fail Fast。
-  - 预算优先级：`budget_silver` > `scenario=ransom`（财富 1%）> AI 默认预算，并统一受配置上下限夹紧。
-  - 执行使用 `DropPodUtility.DropThingsNear(...)`，落点优先使用原版 `DropCellFinder.TradeDropSpot(map)`，失败后才回退为地图中心附近随机合法格。
-  - 新增玩家可见成功/失败信件与开发审计日志（请求参数、候选集、最终 Def、数量、失败码）。
+- Зміни в ланцюжку:
+  - Додано дію `request_item_airdrop`, що охоплює весь ланцюжок — від аналізу, перевірки відповідності та виконавця до рівня API.
+  - Стратегія пошуку: «спочатку фільтрація за правилами + вибір Top1»; у разі потрапляння до чорного списку, недостатнього бюджету, відсутності місця призначення або відповідного Def — Fail Fast.
+  - Пріоритет бюджету: `budget_silver` > `scenario=ransom` (1% багатства) > AI — стандартний бюджет; усі значення обмежуються налаштованими мінімумом і максимумом.
+  - Для виконання використовується `DropPodUtility.DropThingsNear(...)`; спочатку надається перевага оригінальному `DropCellFinder.TradeDropSpot(map)`, і лише після невдачі виконується відкат до випадкової допустимої клітинки поблизу центру мапи.
+  - Додано видимі для гравця листи про успіх/невдачу та журнал аудиту розробника (параметри запиту, набір кандидатів, остаточний Def, кількість, код помилки).
 
-## 主动外交 Warning 触发移除（v0.7.85）
-- 目标：仅在 `NpcDialogue` 主动外交链路中，彻底移除 `WarningThreat` 类型触发，不影响 `PawnRpgPush`。
-- 关键文件：
+## Видалення тригера Warning активної дипломатії (v0.7.85)
+- Мета: лише в ланцюжку активної дипломатії `NpcDialogue` повністю видалити тригери типу `WarningThreat`, не впливаючи на `PawnRpgPush`.
+- Ключові файли:
   - `RimChat/Patches/FactionGoodwillPatch_NpcDialogue.cs`
   - `RimChat/Patches/TradeDealPatch_NpcDialogue.cs`
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
-- 链路变化：
-  - `FactionGoodwillPatch_NpcDialogue` 仅在 `goodwillChange > 0` 时向 `NpcDialogue` 注入主动触发，负向好感不再进入主动外交 Warning 链路。
-  - `TradeDealPatch_NpcDialogue` 不再调用 `RegisterLowQualityTradeTrigger(...)`，低质量交易不再触发主动外交 Warning。
-  - `HandleTriggerContext(...)` 新增 fail-fast：`WarningThreat` 触发上下文立即丢弃。
-  - `BuildRegularTrigger(...)` 在 `goodwill <= -40` 时直接返回 `null`，不再生成 Warning 类定期触发。
-  - `DebugForceRandomProactiveDialogue(...)` 随机类别收敛为 `Social` / `DiplomacyTask`，排除 `WarningThreat`。
-  - `CleanupInvalidState(...)` 读档后会清理历史 `queuedTriggers` 中的 `WarningThreat` 条目，避免旧存档残留触发。
-- 兼容约束：
-  - 保留 `NpcDialogueCategory.WarningThreat` 枚举定义，避免旧存档反序列化兼容性风险。
+- Зміни в ланцюжку:
+  - `FactionGoodwillPatch_NpcDialogue` лише під час `goodwillChange > 0` вводити активне спрацьовування в `NpcDialogue`; негативна прихильність більше не потрапляє до ланцюжка попереджень про активну дипломатію.
+  - `TradeDealPatch_NpcDialogue` більше не викликає `RegisterLowQualityTradeTrigger(...)`; торгівля низької якості більше не запускає Warning активної дипломатії.
+  - `HandleTriggerContext(...)` додано fail-fast: контекст тригера `WarningThreat` негайно відкидається.
+  - `BuildRegularTrigger(...)` у `goodwill <= -40` під час безпосередньо повертає `null`, більше не створюючи періодичних спрацювань типу «Попередження».
+  - Випадкові категорії `DebugForceRandomProactiveDialogue(...)` зводяться до `Social` / `DiplomacyTask`, а `WarningThreat` виключається.
+  - `CleanupInvalidState(...)` Після завантаження збереження очищатиме записи в історії `queuedTriggers`, щоб залишки старого збереження в `WarningThreat` не спричиняли повторну активацію.
+- Обмеження сумісності:
+  - Зберегти визначення `NpcDialogueCategory.WarningThreat` переліку, щоб уникнути ризиків сумісності десеріалізації старих збережень.
 
-## 外交过期回包与跨派系假加载根修（v0.7.84）
-- 目标：根除“已丢弃过期对话回包”在外交关闭/切换后的可见提示，并修复一个派系卡住时其他派系窗口长期假加载的问题。
-- 关键文件：
+## Кореневе виправлення прострочених відповідей дипломатії та хибного завантаження між фракціями (v0.7.84)
+- Мета: усунути видимі сповіщення від «відкинутих прострочених відповідей діалогів» після вимкнення або перемикання дипломатії, а також виправити проблему, через яку вікна інших фракцій надовго зависають у хибному стані завантаження, коли одна з фракцій застрягає.
+- Ключові файли:
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/AI/AIChatServiceAsync.RequestScheduling.cs`
   - `RimChat/AI/AIChatServiceAsync.LocalControl.cs`
@@ -1630,116 +1630,116 @@
   - `RimChat/UI/Dialog_DiplomacyDialogue.TypingStatus.cs`
   - `RimChat/UI/Dialog_RPGPawnDialogue.Lifecycle.cs`
   - `RimChat/Dialogue/DialogueDropPolicy.cs`
-- 链路变化：
-  - `AIRequestState` 新增 `Queued` / `Cancelled`，`AIRequestResult` 新增优先级、队列位置、排队截止、取消原因、失败原因、回调允许标记等运行态元数据。
-  - 本地单飞队列保持并发上限 `1`，但改为“前台交互优先、同优先级 FIFO、超过 `60s` 排队失败”的可观测队列。
-  - `CancelRequest(...)`、窗口关闭、派系切换、同会话新请求顶替旧请求时，统一走“取消并禁止回调”语义；飞行中的 `UnityWebRequest` 会立刻 `Abort()`。
-  - 主线程回调门禁新增 `AllowCallbacks` 校验，已取消/已失效请求的 `onSuccess/onError/onProgress` 不再落到外交或 RPG UI。
-  - 外交窗口的掉包提示改为内部日志；玩家只会看到真实失败（如 queue timeout / timeout / service error）的可见错误提示。
-  - 外交输入状态新增“排队中”文案，区分 queued 与 processing，不再把排队态伪装成正常“对方正在输入”。
-- 行为约束：
-  - 保留本地模型单飞串行，不做真并发。
-  - 手动外交 / RPG / 策略补请求优先于后台人格生成、社交圈新闻、摘要压缩等后台任务。
-  - 旧回包在窗口关闭、切换派系、请求被顶替后即使晚到，也不会污染聊天记录。
+- Зміни ланцюжка:
+  - `AIRequestState` додано `Queued` / `Cancelled`, а до `AIRequestResult` додано метадані стану виконання: пріоритет, позицію в черзі, час завершення очікування, причину скасування, причину помилки, позначку дозволу зворотного виклику тощо.
+  - Локальна черга з одним активним запитом зберігає обмеження паралельності `1`, але перетворюється на спостережувану чергу з правилами «пріоритет для взаємодії на передньому плані, FIFO для однакового пріоритету, помилка постановки в чергу після перевищення `60s`».
+  - У разі `CancelRequest(...)`, закриття вікна, перемикання фракції або заміни старого запиту новим у тій самій сесії всюди застосовується семантика «скасувати та заборонити зворотний виклик»; `UnityWebRequest`, що виконується, негайно `Abort()`.
+  - До перевірок дозволу зворотного виклику в головному потоці додано перевірку `AllowCallbacks`; `onSuccess/onError/onProgress` скасованих або недійсних запитів більше не потрапляє до дипломатії чи RPG UI.
+  - Повідомлення про втрату пакета у вікні дипломатії замінено на внутрішній журнал; гравець бачитиме лише видимі повідомлення про справжні помилки (наприклад queue timeout / timeout / service error).
+  - До стану введення в дипломатичному вікні додано напис «у черзі», щоб розрізняти queued і processing; стан очікування більше не маскується під звичайне «інша сторона вводить текст».
+- Поведінкові обмеження:
+  - Зберегти послідовне виконання локальної моделі з одним активним запитом; справжню паралельність не реалізовувати.
+  - Ручна дипломатія / RPG / додаткові запити стратегії мають пріоритет над фоновою генерацією особистостей, новинами соціального кола, стисканням підсумків та іншими фоновими завданнями.
+  - Навіть якщо стара відповідь надійде із запізненням після закриття вікна, перемикання фракції або заміни запиту, вона не забруднить історію чату.
 
-## 外交输入宿主生命周期根修（v0.7.83）
-- 目标：根修外交窗口在 AI 主回复结束后、策略三选项补请求尚未完成时继续输入触发的 Unity / Windows IME 闪退。
-- 关键文件：
+## Ґрунтовне виправлення життєвого циклу хоста введення дипломатії (v0.7.83)
+- Мета: виправити аварійне завершення роботи Unity / Windows AI IME, яке спричиняється продовженням введення після завершення основної відповіді вікна дипломатії, але до завершення додаткового запиту для трьох стратегічних варіантів.
+- Ключові файли:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.InputLifecycle.cs`
-- 链路变化：
-  - `ShouldRenderInputAsReadOnly(...)`：统一将 `IsHardBlocked` 与 `IsSoftBlocked` 纳入只读输入门控，AI 软阻断期间不再创建可编辑 `Widgets.TextArea(...)`。
-  - `IsAiTurnInputHostOwned(...)`：将主回复请求、图片请求、NPC 逐字机、策略三选项补请求统一视为 AI 持有输入宿主的阶段。
-  - `InputHostReactivationStabilizationSeconds`：AI 链路结束后增加短暂重激活稳定期，仅在稳定期结束后允许 IME 重新绑定输入宿主。
-- 根因分析：
-  - 既有外交输入锁只对 `IsHardBlocked` 生效；
-  - 策略三选项补请求属于 `IsSoftBlocked`，输入框会在补请求完成前提前恢复为可编辑状态；
-  - Windows `textinputframework` / `MSCTF` 在 Unity 文本宿主重建阶段重新接管焦点，导致原生层崩溃。
-- 行为约束：
-  - 三选项策略补请求完成前，外交输入框保持只读；
-  - 三选项就绪后仍需经过短稳定期，才能重新输入；
-  - 不改动策略建议生成逻辑，不阉割功能。
+- Зміни в ланцюжку:
+  - `ShouldRenderInputAsReadOnly(...)`: уніфіковано включити `IsHardBlocked` і `IsSoftBlocked` до шлюзу введення лише для читання; під час м’якого блокування AI більше не створювати редагований `Widgets.TextArea(...)`.
+  - `IsAiTurnInputHostOwned(...)`: запит основної відповіді, запит зображення, NPC посимвольний режим і додатковий запит трьох стратегій розглядати як етапи, на яких AI утримує хост введення.
+  - `InputHostReactivationStabilizationSeconds`: після завершення ланцюжка AI додати короткий стабілізаційний період повторної активації; дозволяти IME повторно прив’язувати хост введення лише після завершення цього періоду.
+- Аналіз першопричини:
+  - наявне блокування дипломатичного введення діє лише для `IsHardBlocked`;
+  - додатковий запит трьох стратегій належить до `IsSoftBlocked`, тому поле введення передчасно відновлюється до редагованого стану ще до завершення додаткового запиту;
+  - Windows `textinputframework` / `MSCTF` повторно перехоплює фокус під час відтворення текстового хоста Unity, що спричиняє збій нативного рівня.
+- Поведінкові обмеження:
+  - до завершення додаткового запиту стратегії з трьома варіантами поле дипломатичного введення залишається доступним лише для читання;
+  - після готовності трьох варіантів усе одно необхідно пройти короткий стабілізаційний період, перш ніж знову дозволити введення;
+  - не змінювати логіку генерування стратегічних пропозицій і не урізати функціональність.
 
-## 压缩通道 runtime 占位符根修（v0.7.82）
-- 目标：修复 `rpg_archive_compression` / `summary_generation` 通道在运行期出现 `Scriban Render Error: Object runtime is null` 的高频日志错误。
-- 关键文件：
+## Кореневе виправлення заповнювачів runtime у стисненому каналі (v0.7.82)
+- Мета: виправити `rpg_archive_compression` / `summary_generation` каналу, що виникають під час виконання, часті помилки журналу `Scriban Render Error: Object runtime is null`.
+- Ключові файли:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-- 链路变化：
-  - `ResolveWorkspaceContextEnvironmentText(...)`：当通道为 `RpgArchiveCompression` 或 `SummaryGeneration` 时，不再返回 `{{ runtime.environment }}` 占位符，而是返回固定文本 `No environment context.`。
-- 原因分析：
-  - 这两个通道属于压缩/摘要链路，不构建完整 runtime 环境对象；
-  - 占位符进入 RimTalk 原生 Scriban 渲染后会访问 `runtime.environment`，触发 null 成员访问。
-- 行为约束：
-  - 仅调整压缩/摘要通道的环境块输出；
-  - RPG 对话主通道（`rpg_dialogue` / `proactive_rpg_dialogue` / `persona_bootstrap`）仍按原逻辑构建环境文本，保持既有行为不变。
+- Зміни в ланцюжку:
+  - `ResolveWorkspaceContextEnvironmentText(...)`: коли каналом є `RpgArchiveCompression` або `SummaryGeneration`, замість заповнювача `{{ runtime.environment }}` тепер повертається фіксований текст `No environment context.`.
+- Аналіз причин:
+  - Ці два канали належать до ланцюжка стиснення/підсумовування й не створюють повний об’єкт середовища runtime;
+  - Після нативного рендерингу Scriban заповнювача в RimTalk відбувається звернення до `runtime.environment`, що спричиняє доступ до null-члена.
+- Обмеження поведінки:
+  - Змінюється лише виведення блоку середовища для каналів стиснення/підсумовування;
+  - Основний канал діалогу RPG (`rpg_dialogue` / `proactive_rpg_dialogue` / `persona_bootstrap`) і надалі створює текст середовища за попередньою логікою, без зміни наявної поведінки.
 
-## 外交通道原生变量受控直通（v0.7.78）
-- 目标：解决外交通道（diplomacy_dialogue / proactive_diplomacy_dialogue）non-mod_variables 区域中原生变量（如 `{{ pawn.ABM }}`、`{{ knowledge_* }}`、`{{ rimchat_summary }}`）不渲染的问题。
-- 关键文件：
+## Кероване наскрізне передавання нативних змінних у каналі дипломатії (v0.7.78)
+- Мета: вирішити проблему, через яку в рідних змінних дипломатичного каналу (diplomacy_dialogue / proactive_diplomacy_dialogue）non-mod_variables зони (як-от `{{ pawn.ABM }}`、`{{ knowledge_* }}`、`{{ rimchat_summary }}`） не відображаються.
+- Ключові файли:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-- 链路变化：
-  - `IsDiplomacyNativeVariablePassthroughSection(...)`：判定 diplomacy 对话通道中需要直通处理的 section（非 `mod_variables`）。
-  - `ShouldPassthroughRimTalkNativeToken(...)`：识别 RimTalk 原生变量 token（检测 `.rimtalk.` 命名空间路径或 legacy 映射）。
-  - `ExtractSectionIdFromTemplateId(...)`：从 templateId 提取 section 标识。
-  - `PreprocessDiplomacyNativeVariables(...)`：对外交通道目标 section 中的原生变量做预处理，在 Scriban 统一渲染前解析为原始文本。
-  - `RenderUnifiedTemplate(...)`：在 diplomacy 对话通道中，先走原生变量预处理，再走统一 Scriban 渲染。
-- 行为约束：
-  - `mod_variables` section 行为不变，仍走 `RenderRawModVariablesSection` 全量 Raw 处理。
-  - 预览时 RimTalk 桥未完整初始化，原生变量 token 保留原样（WYSIWYG）。
-  - 普通模板变量仍走统一 Scriban 渲染，Fail Fast 行为不变。
-  - 不扩展到 diplomacy_strategy / social_circle / summary / image 等非对话通道。
+- Зміни ланцюжка:
+  - `IsDiplomacyNativeVariablePassthroughSection(...)`: визначає section у каналі діалогів diplomacy, який потребує наскрізної обробки (не `mod_variables`).
+  - `ShouldPassthroughRimTalkNativeToken(...)`: розпізнає нативний змінний token RimTalk (перевіряє шлях простору імен `.rimtalk.` або legacy-відповідність).
+  - `ExtractSectionIdFromTemplateId(...)`: витягує ідентифікатор section із templateId.
+  - `PreprocessDiplomacyNativeVariables(...)`: попередньо обробляє нативні змінні в цільовому section каналу зовнішніх комунікацій, розбираючи їх у вихідний текст до єдиного рендерингу Scriban.
+  - `RenderUnifiedTemplate(...)`: у каналі діалогів diplomacy спочатку виконується попередня обробка нативних змінних, а потім єдиний рендеринг Scriban.
+- Обмеження поведінки:
+  - Поведінка section `mod_variables` не змінюється: як і раніше, використовується повна Raw-обробка `RenderRawModVariablesSection`.
+  - Під час попереднього перегляду міст RimTalk ще не повністю ініціалізовано, тому token нативної змінної зберігається без змін (WYSIWYG).
+  - Звичайні змінні шаблону й надалі проходять єдиний рендеринг Scriban; поведінка Fail Fast не змінюється.
+  - Не поширюється на diplomacy_strategy / social_circle / summary / image та інші канали, що не є діалоговими.
 
-## Pawn 右键对话入口排序后移（v0.7.77）
-- 目标：将 Pawn 右键菜单中的 RimChat 对话入口从默认优先级后移，降低其长期位于第一项的概率。
-- 关键文件：
+## Переміщення вниз у порядку пункту діалогу в контекстному меню Pawn (v0.7.77)
+- Мета: перемістити пункт RimChat діалогу в контекстному меню Pawn з рівня пріоритету за замовчуванням нижче, зменшивши ймовірність його тривалого перебування першим пунктом.
+- Ключові файли:
   - `RimChat/Comp/CompPawnDialogue.cs`
-- 链路变化：
-  - `CompPawnDialogue.CompFloatMenuOptions(...)` 中 `RimChat_RPGDialogue_Dialogue` 入口的 `MenuOptionPriority` 从 `Default` 调整为 `Low`。
-- 保持不变：
-  - 对话显示门控、冷却校验、`JobDriver_RPGPawnDialogue` 派发、缺失 `JobDef` 的开窗回退链路均保持原样。
+- Зміни в ланцюжку:
+  - `CompPawnDialogue.CompFloatMenuOptions(...)` текст `RimChat_RPGDialogue_Dialogue` текст `MenuOptionPriority` текст `Default` текст `Low`。
+- Без змін:
+  - Керування відображенням діалогу, перевірка затримки відновлення, диспетчеризація `JobDriver_RPGPawnDialogue` та резервний ланцюжок відкриття вікна за відсутності `JobDef` залишаються без змін.
 
-## Prompt Workspace 预览增量构建（v0.7.76）
-- 目标：消除 `ComposePromptWorkspace` 在工作台首开预览上的同步全量渲染阻塞。
-- 关键文件：
+## Інкрементальна побудова попереднього перегляду Prompt Workspace (v0.7.76)
+- Мета: усунути блокування через синхронний повний рендеринг `ComposePromptWorkspace` під час першого відкриття попереднього перегляду робочого простору.
+- Ключові файли:
   - `RimChat/Persistence/PromptWorkspacePreviewModels.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkspacePreviewIncremental.cs`
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
   - `RimChat/UI/PromptWorkspaceStructuredPreviewRenderer.cs`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
-- 链路变化：
-  - 工作台预览从“同步一次性构建”改为“自动增量分阶段构建”。
-  - 每帧预算固定 2ms，阶段为 `Init -> Sections -> Nodes -> Finalize`。
-  - 失败策略为 fail-fast：停止后续阶段，但保留已完成块并展示错误诊断。
-- 兼容边界：
-  - 运行时 prompt 主链路（`BuildUnifiedChannelSystemPrompt -> ComposePromptWorkspace`）不变。
+- Зміни в ланцюжку:
+  - Попередній перегляд робочого простору змінено з «одноразової синхронної побудови» на «автоматичну поетапну інкрементальну побудову».
+  - Бюджет на кожен кадр фіксований: 2 мс; етап: `Init -> Sections -> Nodes -> Finalize`.
+  - Стратегія помилок — fail-fast: зупинити наступні етапи, але зберегти завершені блоки й показати діагностику помилки.
+- Межі сумісності:
+  - Основний ланцюжок промпту під час виконання (`BuildUnifiedChannelSystemPrompt -> ComposePromptWorkspace`) не змінюється.
 
-## 通讯台派系识别根修（v0.7.72）
-- 关键修复：
+## Кореневе виправлення розпізнавання фракцій на комунікаційній консолі (v0.7.72)
+- Ключові виправлення:
   - `RimChat/Patches/CommsConsolePatch.cs`
-  - `GetFloatMenuOptionsPostfix(...)` 不再依赖标签关键词（call/contact/呼叫/联系）判断。
-  - `ExtractFactionFromOption(...)` 识别链改为：
-    1) action 闭包反射提取 `Faction`
-    2) `console.GetCommTargets(myPawn)` 标签匹配
-    3) 全派系标签匹配回退
-  - 移除 `Find.Selector.SingleSelectedThing` 依赖，避免通讯台场景下选中对象不是 pawn 时识别失败。
-- 新增诊断日志：
+  - `GetFloatMenuOptionsPostfix(...)` більше не визначається за ключовими словами міток (call/contact/текст/текст).
+  - Ланцюжок розпізнавання `ExtractFactionFromOption(...)` змінено на:
+    1) Витягування `Faction` через рефлексію замикання action
+    2) Зіставлення міток `console.GetCommTargets(myPawn)`
+    3) Резервне зіставлення міток усієї фракції
+  - Усунуто залежність від `Find.Selector.SingleSelectedThing`, щоб уникнути помилки розпізнавання, коли вибраний на сцені комунікаційної консолі об’єкт не є персонажем.
+- Додано діагностичний журнал:
   - `Comms option intercepted`
   - `Comms menu patch found no faction options`
 
-## 外交开窗拒绝可观测化与入口阻断（v0.7.71）
-- 入口拒绝原因日志统一接入：
+## Відмова у відкритті дипломатичного вікна: спостережуваність і блокування входу（v0.7.71）
+- Уніфіковане підключення журналу причин відмови на вході:
   - `RimChat/Patches/FactionDialogRimChatBridgePatch.cs`
   - `RimChat/Patches/CommsConsolePatch.cs`（`CommsConsoleCallback`）
   - `RimChat/UI/Dialog_SelectFactionForDialogue.cs`
   - `RimChat/UI/MainTabWindow_RimChat.cs`
   - `RimChat/NpcDialogue/ChoiceLetter_NpcInitiatedDialogue.cs`
-  - `RimChat/UI/Dialog_DiplomacyDialogue.cs`（派系列表切换）
-- 当 `DialogueWindowCoordinator.TryOpen(...)` 返回拒绝时，入口层统一追加“直接开窗”短路阻断，优先恢复外交窗口可达性。
-- 统一日志标识：`Applying direct diplomacy open fallback`，便于在 `Player.log` 直接筛选链路。
+  - `RimChat/UI/Dialog_DiplomacyDialogue.cs`（перемикання списку делегацій）
+- Коли `DialogueWindowCoordinator.TryOpen(...)` повертає відмову, рівень входу уніфіковано додає обхідне блокування «безпосереднього відкриття вікна», щоб насамперед відновити доступність дипломатичного вікна.
+- Уніфікований ідентифікатор журналу: `Applying direct diplomacy open fallback`, для безпосереднього фільтрування ланцюжка в `Player.log`.
 
-## 对话生命周期统一收口（v0.7.70）
-- 新增生命周期核心：
+## Уніфіковане завершення життєвого циклу діалогу（v0.7.70）
+- Додано ядро життєвого циклу:
   - `RimChat/Dialogue/DialogueRuntimeContext.cs`
   - `RimChat/Dialogue/DialogueContextResolver.cs`
   - `RimChat/Dialogue/DialogueContextValidator.cs`
@@ -1747,556 +1747,556 @@
   - `RimChat/Dialogue/DialogueResponseEnvelope.cs`
   - `RimChat/Dialogue/DialogueOpenIntent.cs`
   - `RimChat/Dialogue/DialogueWindowCoordinator.cs`
-- 新增 RPG 请求控制器：
+- Додано контролер запитів RPG:
   - `RimChat/Rpg/RpgDialogueConversationController.cs`
-- 外交与 RPG 开窗入口统一接管（拒绝重复窗口）：
-  - `CommsConsolePatch`、`CompPawnDialogue`、`JobDriver_RPGPawnDialogue`、`ChoiceLetter_*`、`MainTabWindow_RimChat`、`Dialog_SelectFactionForDialogue`、`FactionDialogRimChatBridgePatch`、`Dialog_DiplomacyDialogue`（派系列表切换）。
-- 请求生命周期改造：
-  - `DiplomacyConversationController` 升级为 lease 驱动；
-  - `Dialog_RPGPawnDialogue` 改为控制器发送 + 回包 Envelope 两阶段落地；
-  - 回包失效统一写系统提示并中止动作。
-- RPG 持久层 ID 化迁移：
-  - `GameComponent_RPGManager` 从 `Dictionary<Pawn,...>` 升级为 `Dictionary<string,...>`（`GetUniqueLoadID()`），仅在读档 `PostLoadInit` 一次性迁移旧字段。
-- 多语言键新增：
-  - `RimChat_DialogueResponseDropped`（中英）。
+- Єдиний контроль точок відкриття вікон дипломатії та RPG (запобігання повторним вікнам):
+  - `CommsConsolePatch`, `CompPawnDialogue`, `JobDriver_RPGPawnDialogue`, `ChoiceLetter_*`, `MainTabWindow_RimChat`, `Dialog_SelectFactionForDialogue`, `FactionDialogRimChatBridgePatch`, `Dialog_DiplomacyDialogue` (перемикання списку фракцій).
+- Перероблено життєвий цикл запитів:
+  - `DiplomacyConversationController` переведено на керування через lease;
+  - `Dialog_RPGPawnDialogue` переведено на дворівневу реалізацію: надсилання контролером + Envelope у відповіді;
+  - Недійсну відповідь уніфіковано обробляти системним повідомленням і перериванням дії.
+- Перенесено рівень збереження RPG у формат ID:
+  - `GameComponent_RPGManager` оновлено з `Dictionary<Pawn,...>` до `Dictionary<string,...>` (`GetUniqueLoadID()`), старі поля мігруються одноразово лише під час `PostLoadInit` завантаження.
+- Додано багатомовні ключі:
+  - `RimChat_DialogueResponseDropped` (китайська й англійська).
 
-## 外交 NPC 主动重开会话止血补丁（v0.7.68）
-- 主动投递入口前置复位：
+## Дипломатія NPC — патч для стабілізації шляхом примусового повторного відкриття сесії (v0.7.68)
+- Попереднє скидання перед входом для активного надсилання:
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
-  - `AddMessageToSession(...)` 新增会话结束态判定：当 `isConversationEndedByNpc=true` 时，按顺序执行 `ReinitiateConversation()` -> 强制在线恢复 -> 追加系统提示 -> 追加 NPC 主动消息。
-- Presence 状态强制在线封装：
+  - `AddMessageToSession(...)` Додано визначення стану завершення сесії: коли `isConversationEndedByNpc=true`, послідовно виконати `ReinitiateConversation()` -> примусово відновити онлайн-стан -> додати системний промпт -> додати активне повідомлення NPC.
+- Обгортка для примусового перебування Presence онлайн:
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
-  - 新增 `ForcePresenceOnlineForNpcInitiated(Faction faction)`，统一封装主动投递场景下的在线恢复与缓存清理（`forcedOfflineUntilTick/cacheUntilTick/lastReason`）。
-- 语言键补充：
+  - Додано `ForcePresenceOnlineForNpcInitiated(Faction faction)`, що уніфікує відновлення онлайн-стану й очищення кешу в сценаріях активного надсилання (`forcedOfflineUntilTick/cacheUntilTick/lastReason`).
+- Доповнення мовних ключів:
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-  - 新增 `RimChat_ConversationReinitiatedByNpc`，用于区分“玩家手动重开”与“NPC 主动重开”。
+  - Додано `RimChat_ConversationReinitiatedByNpc`, щоб розрізняти «повторне відкриття вручну гравцем» і «NPC повторне відкриття за ініціативою».
 
-## RPG 动作合同注入与自动记忆门控修复（v0.7.67）
-- RPG `response_contract` 注入恢复：
+## Виправлення впровадження контракту дій RPG і автоматичного керування пам’яттю (v0.7.67)
+- RPG Відновлення впровадження `response_contract`:
   - `RimChat/Config/PromptUnifiedNodeSchemaCatalog.cs`
-  - `rpg_dialogue` 与 `proactive_rpg_dialogue` 允许节点新增 `response_contract_node_template`。
+  - `rpg_dialogue` і `proactive_rpg_dialogue` дозволяють вузлу додавати `response_contract_node_template`.
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `ResolveRpgNodePlacements(...)` 新增 `response_contract_node_template` 渲染分支，`dialogue.response_contract_body` 由 `BuildRpgApiContractText(...)` 注入。
+  - `ResolveRpgNodePlacements(...)` додає гілку рендерингу `response_contract_node_template`, а `dialogue.response_contract_body` інжектується через `BuildRpgApiContractText(...)`.
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - `InjectRuntimeNodeBodies(...)` 补齐 RPG 通道 `response_contract_node_template` 正文注入，避免运行时只剩“引用说明”。
-- 运行时 fail-fast 与布局补全：
+  - `InjectRuntimeNodeBodies(...)` доповнює ін'єкцію основного тексту в каналі RPG через `response_contract_node_template`, щоб під час виконання не залишалося лише «посилання на опис».
+- Fail-fast під час виконання та доповнення макета:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - RPG 运行时必需节点新增 `response_contract_node_template` 校验。
-  - `BuildPromptNodePlacementsForCompose(...)` 增加 allowed node 自动补全，旧自定义布局缺项时自动回填默认布局节点。
-- 自动记忆连发治理：
+  - RPG додає перевірку `response_contract_node_template`, необхідного під час виконання.
+  - `BuildPromptNodePlacementsForCompose(...)` додає автоматичне доповнення дозволених вузлів: якщо в старому користувацькому макеті бракує елементів, вузли макета автоматично заповнюються значеннями за замовчуванням.
+- Керування автоматичним повторним запуском пам'яті:
   - `RimChat/UI/Dialog_RPGPawnDialogue.ActionPolicies.cs`
-  - 新增会话级自动记忆单次门控（仅自动来源计数）；显式 `TryGainMemory` 不受限制。
-  - 缺失动作合同时仅保留退出类兜底，自动记忆映射与兜底整体关闭。
-  - 协作意图关键词收紧，移除高歧义短词，改为明确承诺短语触发。
-- 请求期短期阻断：
+  - Додано одноразове керування автоматичною пам'яттю на рівні сеансу (підраховуються лише автоматичні джерела); явний `TryGainMemory` не обмежується.
+  - Якщо бракує контракту дії, зберігається лише запасний варіант для виходу; зіставлення автоматичної пам'яті та запасний варіант повністю вимикаються.
+  - Уточнено ключові слова наміру співпраці: неоднозначні короткі слова вилучено, а тригером стали чіткі фрази-зобов'язання.
+- Короткострокове блокування періоду запитів:
   - `RimChat/UI/Dialog_RPGPawnDialogue.RequestContext.cs`
-  - `BuildRpgSystemPromptForRequest(...)` 新增动作合同存在性检测；缺失时记录告警并关闭本轮自动记忆兜底。
+  - `BuildRpgSystemPromptForRequest(...)` Додано перевірку наявності контракту дій; у разі відсутності записується попередження та вимикається резервний механізм автоматичної пам’яті для цього циклу.
 
-## 构建告警清零与依赖安全修复（v0.7.64）
-- 通知翻译 API 过时警告修复：
+## Усунення попереджень збірки та виправлення безпеки залежностей (v0.7.64)
+- Виправлення застарілого попередження API щодо перекладу сповіщень:
   - `RimChat/DiplomacySystem/DiplomacyNotificationManager.cs`
-  - `SendNotification(...)` 改为“翻译模板 + `string.Format`”路径，移除过时 `Translate(params object[])` 调用，构建不再触发 `CS0618`。
-- Scriban 依赖漏洞修复：
+  - `SendNotification(...)` Змінено на шлях «шаблон перекладу + `string.Format`», видалено застарілий виклик `Translate(params object[])`, тому збірка більше не спричиняє `CS0618`.
+- Виправлення вразливості залежності Scriban:
   - `RimChat/RimChat.csproj`
-  - `Scriban` 从 `5.10.0` 升级到 `6.6.0`，清除 `NU1902/NU1903` 告警。
-- 验证链路：
-  - `build.ps1` 构建与部署通过（`0 warnings / 0 errors`）；`dotnet list package --vulnerable --include-transitive` 返回无漏洞包。
+  - `Scriban` Оновлено з `5.10.0` до `6.6.0`, попередження `NU1902/NU1903` усунуто.
+- Ланцюжок перевірки:
+  - `build.ps1` Збірку та розгортання пройдено успішно (`0 warnings / 0 errors`); `dotnet list package --vulnerable --include-transitive` повернув пакет без вразливостей.
 
-## NPC 记忆按存档强隔离修复（v0.7.61）
-- 存档标识 fail-fast 阻断：
+## NPC Виправлення жорсткої ізоляції пам’яті за збереженнями (v0.7.61)
+- Блокування ідентифікатора збереження в режимі fail-fast:
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.cs`
-  - `OnBeforeGameSave/RecordTurn/FinalizeSession/RecordDiplomacySummary` 在写盘前强校验当前存档标识；无法解析时直接阻断写入并输出错误日志，不再落入共享 `Default` 桶。
-- 存档名解析链路加固：
+  - `OnBeforeGameSave/RecordTurn/FinalizeSession/RecordDiplomacySummary` Перед записом на диск виконувати сувору перевірку ідентифікатора поточного збереження; якщо його неможливо розібрати, негайно блокувати запис і виводити журнал помилок, не передаючи дані до спільного кошика `Default`.
+- Посилення ланцюжка розбору назви збереження:
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.cs`
-  - `ResolveCurrentSaveKey/GetCurrentSaveName` 增加反射兜底链：`name/Name/fileName/FileName` -> 任意字符串成员启发式 -> `ScribeMetaHeaderUtility.loadedGameName`。
-- 旧数据自动迁移（含备份）：
+  - `ResolveCurrentSaveKey/GetCurrentSaveName` Додати резервний ланцюжок через рефлексію: `name/Name/fileName/FileName` -> евристичний пошук будь-якого текстового члена -> `ScribeMetaHeaderUtility.loadedGameName`.
+- Автоматична міграція старих даних (із резервним копіюванням):
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.cs`
-  - 首次加载目标存档时自动扫描 legacy `Prompt/NPC/Save_*_Default/rpg_npc_dialogues` 与根目录旧结构，先备份到 `Prompt/NPC/_migration_backup/...`，再迁移到当前存档目录，并写一次性迁移标记。
-- 档案写盘所有权字段：
+  - Під час першого завантаження цільового збереження автоматично сканувати legacy `Prompt/NPC/Save_*_Default/rpg_npc_dialogues` і стару структуру в кореневому каталозі, спочатку створити резервну копію в `Prompt/NPC/_migration_backup/...`, потім перенести дані до поточного каталогу збереження та записати одноразову позначку міграції.
+- Поля власника запису файлу збереження:
   - `RimChat/Memory/RpgNpcDialogueArchive.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveJsonCodec.cs`
-  - 新增 `saveKey` 字段，写盘时写入当前存档键；读取时仅接纳当前存档 `saveKey` 或 legacy 无键档案，阻断跨存档串读。
+  - Додати поле `saveKey`, під час запису вказувати ключ поточного збереження; під час читання приймати лише `saveKey` поточного збереження або legacy-архіви без ключа, блокуючи змішування даних між збереженнями.
 
-## 解析失败根因修复（v0.7.60）
-- 请求解析重试收口：
+## Усунення першопричини помилки розбору (v0.7.60)
+- Завершення повторних спроб розбору запиту:
   - `RimChat/AI/AIChatServiceAsync.cs`
-  - `ProcessRequestCoroutine(...)` 在 `HTTP 200` 且无可解析可见文本时，新增一次 parse 重试（附带 `PARSE_RETRY_REASON` 标签），避免直接终止请求链路。
-- 二次失败后的统一回退：
+  - `ProcessRequestCoroutine(...)` у `HTTP 200` а якщо немає видимого тексту, який можна розібрати, додати ще одну спробу parse (із тегом `PARSE_RETRY_REASON`), щоб не припиняти ланцюжок запиту напряму.
+- Уніфікований відкат після другої невдачі:
   - `RimChat/AI/AIChatServiceAsync.cs`
-  - 外交/RPG 通道在 parse 重试后仍无可解析文本时，统一返回本地沉浸台词，阻断主动推送重复报错掉落。
-- 主动推送通道显式绑定：
+  - Якщо після повторної спроби parse у каналі дипломатії/RPG все ще немає тексту, який можна розібрати, уніфіковано повертаються локальні репліки для занурення в гру, щоб блокувати повторне падіння помилок під час активної розсилки.
+- Явне прив’язування каналу активної розсилки:
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
   - `RimChat/PawnRpgPush/GameComponent_PawnRpgDialoguePushManager.Generation.cs`
-  - 主动外交与主动RPG请求统一传入 `usageChannel`（`Diplomacy/Rpg`），不再走 `Unknown` 分支。
-- 多模型响应兼容扩展：
+  - текстRPG-текст `usageChannel`（`Diplomacy/Rpg`），текст `Unknown` текст.
+- Розширено сумісність із відповідями кількох моделей:
   - `RimChat/AI/AIJsonContentExtractor.cs`
-  - `TryExtractPrimaryText(...)` 扩展候选键：`generated_text`、`answer`、`reasoning_content`，提升对不同服务端响应字段的提取成功率。
+  - Для `TryExtractPrimaryText(...)` розширено перелік ключів-кандидатів: `generated_text`, `answer`, `reasoning_content`, що підвищує успішність вилучення даних із полів відповідей різних серверів.
 
-## 对话体验链路修复（v0.7.59）
-- 提示词与风格收敛：
+## Виправлення ланцюжка взаємодії в діалогах（v0.7.59）
+- Узгодження промптів і стилю:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - 运行时主提示词新增风格优先级注入（按 `DialogueStyleMode`），并对 `response_contract/output_specification` 权威重复行做去重，降低机械冗长。
-- 重试链路降噪：
+  - До основного промпту під час виконання додано ін’єкцію пріоритету стилю（за `DialogueStyleMode`）, а повторювані авторитетні рядки `response_contract/output_specification` дедуплікуються, щоб зменшити механічну багатослівність.
+- Зменшення шуму в ланцюжку повторних спроб:
   - `RimChat/AI/AIChatServiceAsync.cs`
-  - 重试合同文本改为精简指令，保持 `actions` 契约不变但减少规则口水文。
-- 主动推送截断修复：
+  - Повторний текст контракту перетворено на стислу інструкцію: контракт `actions` не змінено, але зайві багатослівні правила скорочено.
+- Виправлено обрізання активних push-повідомлень:
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
   - `RimChat/PawnRpgPush/GameComponent_PawnRpgDialoguePushManager.Generation.cs`
-  - 移除固定 260 字硬截断，改为 `ProactiveMessageHardLimit` 配置化（默认 0 不截断）。
-- 动作日志分级与误报抑制：
+  - Жорстке обрізання на фіксованих 260 символах вилучено, натомість додано налаштування `ProactiveMessageHardLimit` (типове значення 0 — без обрізання).
+- Розподіл журналів дій за рівнями та придушення хибних спрацювань:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.Strategy.cs`
-  - 预期拒绝从 Warning 下调为可配置等级（默认 Info）；策略跟进失败回落路径改 Message，降低“任务报错”噪声。
-- 聊天布局错位修复：
+  - Очікувану відмову знижено з Warning до налаштовуваного рівня (типово Info); шлях повернення після невдалого виконання стратегії змінено на Message, щоб зменшити шум від «помилок завдання».
+- Виправлено зміщення макета чату:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.Speakers.cs`
-  - 气泡宽度估算改为与换行高度一致的口径；输入区底部状态文案宽度改自适应；新增一次性 UI 轨道断言日志用于回归定位。
+  - Оцінювання ширини бульбашок тепер використовує той самий підхід, що й розрахунок висоти перенесених рядків; ширину тексту стану внизу області введення змінено на адаптивну; додано одноразовий журнал перевірки треку UI для локалізації регресій.
 
-## API 可用性链路误判修复与速度评级（v0.7.58）
-- UI 入口一致性：
+## Виправлення помилкової оцінки ланцюжка доступності API та рейтинг швидкості (v0.7.58)
+- UI Узгодженість входів:
   - `RimChat/Config/RimChatSettings.cs`
   - `RimChat/Config/RimChatSettings_ApiUsability.cs`
-  - `测试连通性` 与 `测试可用性` 改为同一行 50/50 等宽按钮；任一测试执行中双按钮统一禁用。
-- 本地可用性链路收敛：
+  - `测试连通性` і `测试可用性` перетворити на кнопки однакової ширини 50/50 в одному рядку; під час виконання будь-якого тесту обидві кнопки завжди вимкнені.
+- Оптимізація ланцюжка локальної доступності:
   - `RimChat/Config/ApiUsabilityDiagnosticService.cs`
-  - 本地链路改为 4 步：配置校验 -> 本地服务探测 -> 最小 chat 实测 -> 响应契约校验。
-  - 移除本地 `模型可用性校验` 阻断，避免“模型列表未命中但实际可调用”导致误判失败。
-- 结果文案增强：
+  - Локальний ланцюжок скоротити до 4 кроків: перевірка конфігурації -> виявлення локального сервісу -> мінімальне практичне тестування chat -> перевірка контракту відповіді.
+  - Усунути блокування локального `模型可用性校验`, щоб уникнути хибного визначення невдачі, коли модель не знайдено у списку, але її фактично можна викликати.
+- Покращення текстів результатів:
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-  - 可用性成功摘要新增速度评级（极快/快/正常/慢/极慢）；当评级为“极慢”时追加连接质量差提示并建议更换服务商。
+  - До успішного підсумку перевірки доступності додати оцінку швидкості (дуже швидко/швидко/нормально/повільно/дуже повільно); якщо оцінка «дуже повільно», додати попередження про низьку якість з'єднання та рекомендувати змінити постачальника сервісу.
 
-## API 双测试按钮与深度可用性诊断（v0.7.57）
-- UI 入口分层（快速连通性 / 深度可用性）：
+## API Дві кнопки тестування та поглиблена діагностика доступності (v0.7.57)
+- UI Розділення входів (швидке підключення / поглиблена перевірка доступності):
   - `RimChat/Config/RimChatSettings.cs`
   - `RimChat/Config/RimChatSettings_ApiUsability.cs`
-  - `DrawConnectionTestButton(...)` 改为薄入口，分别接入 `测试连通性` 与 `测试可用性` 两条链路；深度测试执行中双按钮统一禁用。
-- 深度诊断引擎：
+  - `DrawConnectionTestButton(...)` змінити на тонкий вхід, під’єднавши окремо до ланцюжків `测试连通性` і `测试可用性`; під час глибокого тестування обидві кнопки одразу вимикаються.
+- Рушій глибокої діагностики:
   - `RimChat/Config/ApiUsabilityDiagnosticService.cs`
-  - 云端链路：配置校验 -> 运行时端点解析 -> `/models` 探测 -> 模型存在性 -> 最小 chat 实测 -> 响应契约校验。
-  - 本地链路：配置校验 -> 本地服务探测（Ollama/OpenAI 兼容）-> 模型存在性 -> 最小 chat 实测 -> 响应契约校验。
-- 结构化诊断模型：
+  - Хмарний ланцюжок: перевірка конфігурації -> визначення кінцевої точки під час виконання -> виявлення `/models` -> перевірка наявності моделі -> мінімальний практичний тест chat -> перевірка контракту відповіді.
+  - Локальний ланцюжок: перевірка конфігурації -> виявлення локальної служби (сумісність з Ollama/OpenAI) -> перевірка наявності моделі -> мінімальний практичний тест chat -> перевірка контракту відповіді.
+- Структурована діагностична модель:
   - `ApiUsabilityDiagnosticResult` / `ApiUsabilityStepResult` / `ApiUsabilityErrorCode` / `ApiUsabilityStep`
-  - 输出字段覆盖 `Step/ErrorCode/Hint/TechDetail/HTTP/Endpoint/Elapsed`，设置页按 fail-fast 单点失败即时回传。
-- 观测联动：
+  - Вихідні поля охоплюють `Step/ErrorCode/Hint/TechDetail/HTTP/Endpoint/Elapsed`, а сторінка налаштувань за принципом fail-fast негайно повертає помилку в разі першої невдачі.
+- Взаємодія зі спостереженням:
   - `RimChat/AI/AIRequestDebugModels.cs`
   - `RimChat/UI/Dialog_ApiDebugObservability.cs`
-  - 新增 source：`ApiUsabilityTest`，深度测试结果会写入现有日志观测窗口（含 request/response 摘要）。
+  - Додано source: `ApiUsabilityTest`, результати глибокого тестування записуватимуться у наявне вікно спостереження журналів (зокрема зведення request/response).
 
-## 外交主动对话重发链路修复（v0.7.56）
-- 重发覆盖旧请求（同派系会话单活跃请求）：
+## Виправлення ланцюжка повторного надсилання активного дипломатичного діалогу (v0.7.56)
+- Повторне надсилання перекриває старий запит (для сесії тієї самої фракції дозволено лише один активний запит):
   - `RimChat/DiplomacySystem/DiplomacyConversationController.cs`
-  - `TrySendDialogueRequest(...)` 在入队新请求前，先取消并清理 `pendingRequestId` 对应旧请求，避免“旧请求残留锁死”阻断玩家继续发起。
-- 同目标防抖（2 秒，外交会话级）：
+  - `TrySendDialogueRequest(...)` Перед додаванням нового запиту до черги спершу скасувати й очистити старий запит, що відповідає `pendingRequestId`, щоб залишки «старого запиту, що заблокував систему», не перешкоджали гравцеві продовжувати надсилання запитів.
+- Захист від повторних запитів до тієї самої цілі (2 секунди, на рівні дипломатичної сесії):
   - `RimChat/Memory/FactionDialogueSession.cs`
   - `RimChat/DiplomacySystem/DiplomacyConversationController.cs`
-  - 新增运行态字段 `lastDiplomacyRequestQueuedTick`；`CanStartRequest(...)` 与 `IsRequestDebounced(...)` 统一按 tick 做短防抖门控。
-- 输入门控收口（允许等待回复期间再次发起）：
+  - Додано поле стану виконання `lastDiplomacyRequestQueuedTick`; `CanStartRequest(...)` та `IsRequestDebounced(...)` узгоджено використовують короткий захист від повторів із перевіркою за тиками.
+- Узгодження обмежень введення (дозволено повторно надсилати запит під час очікування відповіді):
   - `RimChat/UI/Dialog_DiplomacyDialogue.Presence.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
-  - `CanSendMessageNow()` 不再被 `isWaitingForResponse` 硬阻断；`IsInputLockedByAiTurn(...)` 取消 AI 回合输入硬锁，仅保留状态展示。
-- 失败释放与兜底收敛：
+  - `CanSendMessageNow()` більше не блокується примусово через `isWaitingForResponse`; `IsInputLockedByAiTurn(...)` скасовує жорстке блокування введення на хід AI, залишаючи лише відображення стану.
+- Звільнення після помилки та узгодження резервних сценаріїв:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
-  - 发送未入队时，若命中防抖或仍处等待态，不再误走本地 fallback 回复，避免产生“未真正请求却出现兜底 AI 回复”的链路偏差。
+  - Якщо надсилання не було додано до черги, але спрацював захист від повторів або все ще триває стан очікування, більше не слід помилково переходити до локальної резервної відповіді, щоб уникнути відхилення в ланцюжку, коли з’являється резервна відповідь AI, хоча запит насправді не надсилався.
 
-## 提示词工作台单真源收敛（v0.7.55）
-- Unified-only 主链：
+## Узгодження єдиного джерела істини для робочого середовища промптів (v0.7.55)
+- Основний ланцюжок лише Unified:
   - `RimChat/Config/RimChatSettings_RimTalkCompat.cs`
-  - `SetPromptSectionCatalog(...)` 已降级为迁移专用 fail-fast；正式编辑链路新增 `SetPromptSectionText(...)` / `SetPromptNodeText(..., persistToFiles)` / `PersistUnifiedPromptCatalogToCustom()`。
-- 工作台保存语义：
+  - `SetPromptSectionCatalog(...)` понижено до fail-fast, призначеного лише для міграції; до офіційного ланцюжка редагування додано `SetPromptSectionText(...)` / `SetPromptNodeText(..., persistToFiles)` / `PersistUnifiedPromptCatalogToCustom()`.
+- Семантика збереження в робочій області:
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
   - `RimChat/Config/RimChatSettings_PromptWorkspaceEditorActions.cs`
-  - 编辑过程只改内存 unified，`Save` 才执行统一落盘；切换分段/节点/通道/预设不再自动写盘。
-- 预设单向化：
+  - Під час редагування змінюється лише unified у пам’яті, `Save` виконує єдине збереження на диск; перемикання сегмента/вузла/каналу/пресета більше не зберігає дані автоматично.
+- Односпрямовані пресети:
   - `RimChat/Config/PromptPresets/PromptPresetModels.cs`
   - `RimChat/Config/PromptPresets/PromptPresetService.cs`
-  - payload 正式字段移除 `PromptSectionCatalog`，激活只应用 `UnifiedPromptCatalog`；legacy section 仅导入迁移。
-- RPG custom store 去 section 化：
+  - Поле payload офіційно вилучає `PromptSectionCatalog`, а активація застосовує лише `UnifiedPromptCatalog`; legacy section використовується лише для імпорту та міграції.
+- RPG Перехід custom store без section:
   - `RimChat/Config/RpgPromptCustomStore.cs`
   - `RimChat/Config/RimChatSettings.cs`
-  - `PawnDialoguePrompt_Custom.json` 不再保存 section catalog；旧字段仅通过 `LoadLegacyPromptSectionCatalogSnapshot()` 做一次性导入。
-- 读写职责拆分：
+  - `PawnDialoguePrompt_Custom.json` більше не зберігає каталог section; старі поля імпортуються одноразово лише через `LoadLegacyPromptSectionCatalogSnapshot()`.
+- Розподіл обов’язків читання та запису:
   - `RimChat/Persistence/IPromptPersistenceService.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - 新增 `LoadConfigReadOnly()` / `RepairAndRewritePromptDomains()`；工作台预览链路改走只读加载，避免读取副作用。
+  - Додано `LoadConfigReadOnly()` / `RepairAndRewritePromptDomains()`; ланцюжок попереднього перегляду робочого столу тепер використовує режим завантаження лише для читання, щоб уникнути побічних ефектів читання.
 
-## 提示词工作台预设交互增强（v0.7.54）
-- 保存失败阻断切换（fail-fast）：
+## Розширення взаємодії з пресетами робочого столу промптів (v0.7.54)
+- Блокування перемикання в разі помилки збереження (fail-fast):
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.NodeLayout.cs`
   - `RimChat/Config/RimChatSettings_PromptWorkspacePresetInteractions.cs`
-  - 分段/通道/节点/预设切换前统一检查 `PersistPromptWorkspaceBufferNow(force: true)`，保存未成功时中止切换，避免回滚到旧文本。
-- 主工作台预设交互（仅 `DrawPromptSectionWorkspace` 路径）：
+  - Перед перемиканням сегмента/каналу/вузла/пресета узгоджено перевіряти `PersistPromptWorkspaceBufferNow(force: true)`; якщо збереження не завершилося успішно, перемикання переривається, щоб уникнути повернення до старого тексту.
+- Взаємодія з пресетами основного робочого столу (лише шлях `DrawPromptSectionWorkspace`):
   - `RimChat/Config/RimChatSettings_PromptWorkspacePresetInteractions.cs`
-  - 预设列表行内快捷操作（复制/删除）、双击行内重命名（Enter/失焦保存、Esc 取消）、默认预设删除禁用。
-- 默认预设只读 + 自动分叉：
+  - Швидкі дії в рядку списку пресетів (копіювання/видалення), перейменування подвійним клацанням у рядку (збереження клавішею Enter або після втрати фокуса, скасування клавішею Esc), видалення пресета за замовчуванням вимкнено.
+- Пресет за замовчуванням — лише для читання + автоматичне відгалуження:
   - `RimChat/Config/PromptPresets/PromptPresetModels.cs`
   - `RimChat/Config/PromptPresets/IPromptPresetService.cs`
   - `RimChat/Config/PromptPresets/PromptPresetService.cs`
   - `RimChat/Config/PromptPresets/PromptPresetService.DefaultPreset.cs`
-  - 新增 `DefaultPresetId` 与 schema `2`；工作台写入意图统一经“可编辑预设保障”入口，默认预设首次编辑自动分叉为 `Custom yyyyMMdd-HHmmss`。
-- 主编辑器动作栏替换：
+  - Додано `DefaultPresetId` і схему `2`; запис намірів із робочого столу тепер виконується через єдину точку «захисту редагованого пресету», а стандартний пресет під час першого редагування автоматично відгалужується в `Custom yyyyMMdd-HHmmss`.
+- Заміна панелі дій головного редактора:
   - `RimChat/Config/RimChatSettings_PromptWorkspaceEditorActions.cs`
-  - 工具栏改为 `Undo / Redo / Save / Reset`；Undo/Redo 按 `preset+channel+section|node` 独立历史栈隔离。
-- 分拆与文件阈值治理（< 800 行）：
+  - Панель інструментів перетворено на `Undo / Redo / Save / Reset`; Undo/Redo ізольовано в окремих стеках історії відповідно до `preset+channel+section|node`.
+- Керування розподілом і файловим порогом (< 800 рядків):
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.NodeLayout.cs`
-  - 节点编排列表与 reset 链路拆分，主文件压缩到阈值内。
+  - Список компонування вузлів і ланцюжок reset розділено, а головний файл стиснуто до межі порогу.
 
-## 外交主动推送全局共享冷却池（v0.7.47）
-- 触发编排与全局冷却落点：
+## Глобальний спільний пул затримки відновлення для активних дипломатичних push-сповіщень（v0.7.47）
+- Координація тригерів і застосування глобальної затримки відновлення:
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
-  - 新增全局门控常量 `GlobalDeliveryCooldownTicks = TickPerHour` 与持久化锚点 `lastGlobalDeliveredTick`（Scribe key: `npcPushLastGlobalDeliveredTick`）。
-- 触发链路统一：
-  - `HandleTriggerContext(...)` 在原有派系冷却/重启冷却/忙碌门控后，新增全局冷却门控。
-  - `ProcessQueuedTriggers(...)` 在出队执行前再次校验全局冷却，命中则仅延后 `dueTick`，不丢事件。
-  - `DebugForceRandomProactiveDialogue()` 改为走 `HandleTriggerContext(...)`，与正式链路一致。
-- 生效语义：
-  - 外交主动推送全阵营共享：每 1 游戏小时最多投递 1 条。
-  - 威胁高优先级不再绕过该全局池，统一限流。
+  - Додано глобальну константу керування `GlobalDeliveryCooldownTicks = TickPerHour` і постійний якір `lastGlobalDeliveredTick` (ключ Scribe: `npcPushLastGlobalDeliveredTick`).
+- Уніфікація ланцюжка запуску:
+  - `HandleTriggerContext(...)` Після затримки відновлення/затримки перезапуску фракції та перевірки зайнятості додано глобальну перевірку затримки відновлення.
+  - `ProcessQueuedTriggers(...)` Перед виконанням із черги повторно перевіряється глобальна затримка відновлення; у разі спрацювання лише відкладається `dueTick`, подія не втрачається.
+  - `DebugForceRandomProactiveDialogue()` Тепер використовує `HandleTriggerContext(...)`, узгоджуючись з основним ланцюжком.
+- Семантика застосування:
+  - Спільна для всіх фракцій активна дипломатична розсилка: не більше 1 повідомлення за 1 ігрову годину.
+  - Високопріоритетні загрози більше не обходять цей глобальний пул, а підлягають єдиному обмеженню частоти.
 
-## RPG PromptContext Pawn 根绑定修复（v0.7.53）
-- 通道显式传递到原生渲染器：
+## RPG PromptContext Виправлення кореневого прив’язування Pawn до персонажа (v0.7.53)
+- Явна передача каналу до нативного рендерера:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - `BuildUnifiedChannelSystemPrompt(...)` 调用 `TryRenderRpgPrompt(...)` 时显式传入 `promptChannel`。
-- 原生 Pawn 绑定收口：
+  - `BuildUnifiedChannelSystemPrompt(...)` Під час виклику `TryRenderRpgPrompt(...)` явно передається `promptChannel`.
+- Уніфікація прив’язування нативного Pawn:
   - `RimChat/Prompting/RimTalkNativeRpgPromptRenderer.cs`
-  - `TryRenderRpgPrompt(...)` 通过统一绑定器构建 `CurrentPawn / Pawns / AllPawns / ScopedPawnIndex`，并记录绑定快照诊断字段。
-- Archive 压缩场景真实 pawn 输入：
+  - `TryRenderRpgPrompt(...)` Створює `CurrentPawn / Pawns / AllPawns / ScopedPawnIndex` через уніфікований прив’язувач і записує діагностичні поля знімка прив’язування.
+- Справжній вхідний pawn у сценарії стиснення Archive:
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.Sessions.cs`
-  - `BuildSessionSummaryRequestMessages(...)` 改为 `CreateRpg(interlocutorPawn, npcPawn, ...)`，不再使用 `CreateRpg(null, null, ...)`。
-  - interlocutor 解析顺序：`session.InterlocutorPawnLoadId` -> `archive.LastInterlocutorPawnLoadId`；缺失时仅绑定 NPC 并强告警。
-- 观测增强（非兜底）：
-  - `RimTalkNativeRenderDiagnostic` 新增 `PromptChannel / CurrentPawnLabel / PawnCount / AllPawnCount / ScopedPawnIndex / RemainingTokensPreview`。
-  - 当 prompt 含 `{{ pawn.` 且 `CurrentPawn` 为空时写明确错误日志，但按既定策略继续渲染流程。
+  - `BuildSessionSummaryRequestMessages(...)` змінити на `CreateRpg(interlocutorPawn, npcPawn, ...)`, більше не використовувати `CreateRpg(null, null, ...)`.
+  - Порядоктекст interlocutor: `session.InterlocutorPawnLoadId` -> `archive.LastInterlocutorPawnLoadId`; за відсутності прив’язати лише NPC і видати критичне попередження.
+- Розширене спостереження (не запасний варіант):
+  - Для `RimTalkNativeRenderDiagnostic` додано `PromptChannel / CurrentPawnLabel / PawnCount / AllPawnCount / ScopedPawnIndex / RemainingTokensPreview`.
+  - Коли промпт містить `{{ pawn.`, а `CurrentPawn` порожній, записувати чіткий журнал помилки, але продовжувати процес рендерингу згідно з установленою стратегією.
 
-## RPG 原生 RimTalk 变量收口（v0.7.52）
-- RPG 统一运行时出口：
+## Зведення нативних змінних RPG RimTalk (v0.7.52) в одну точку
+- Єдина точка виходу виконання RPG:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - `BuildUnifiedChannelSystemPrompt(...)` 在 RPG runtime、非 preview 分支调用原生 RimTalk 二次渲染。
-- 原生渲染适配层：
+  - `BuildUnifiedChannelSystemPrompt(...)` у runtime RPG, у гілці не preview, викликає повторний рендеринг нативного RimTalk.
+- Адаптаційний шар нативного рендерингу:
   - `RimChat/Prompting/RimTalkNativeRpgPromptRenderer.cs`
-  - 职责：构建 RimTalk `PromptContext`、执行 `ScribanParser.Render(...)`、记录 structured diagnostic。
-- RPG raw token 保留策略：
-## 默认预设 `mod_variables` 手动化（v0.9.72）
-- 目标：让默认预设中的 `mod_variables` 真正保持空白，不再被加载链、工作台或运行时自动补回。
-- 关键改动：
+  - Обов’язки: побудова RimTalk `PromptContext`, виконання `ScribanParser.Render(...)`, запис structured diagnostic.
+- Стратегія збереження raw token у RPG:
+## Переведення типового пресета `mod_variables` у ручний режим (v0.9.72)
+- Мета: забезпечити, щоб `mod_variables` у типовому пресеті справді залишався порожнім і більше не відновлювався автоматично ланцюжком завантаження, робочим столом або під час виконання.
+- Ключові зміни:
   - `RimChat/Config/RimChatSettings.cs`
-  - 移除设置加载阶段 `AutoPopulatePromptSectionCatalogModVariables()` 自动回填；
-  - `BuildCanonicalSectionEntry(...)` 不再给空白 `mod_variables` 兼容条目写入自动生成的 raw token 列表。
-- 工作台编辑行为：
+  - Видалено автоматичне заповнення `AutoPopulatePromptSectionCatalogModVariables()` на етапі завантаження налаштувань;
+  - `BuildCanonicalSectionEntry(...)` більше не записує автоматично згенерований список raw token до порожнього сумісного запису `mod_variables`.
+- Поведінка редагування на робочому столі:
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
-  - 空白 `mod_variables` 编辑区不再临时显示动态变量列表；校验链按普通 section 处理。
-- 预览/运行时行为：
+  - В області редагування порожнього `mod_variables` більше не відображатиметься тимчасовий список динамічних змінних; ланцюжок перевірки обробляє його як звичайну section.
+- Поведінка попереднього перегляду та під час виконання:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkspacePreviewIncremental.cs`
-  - RPG `mod_variables` section 为空时，不再自动注入 `BuildModVariablesSectionContent()` 结果；只有用户手填内容才参与 raw 渲染。
+  - Коли section RPG `mod_variables` порожня, результат `BuildModVariablesSectionContent()` більше не вставляється автоматично; у raw-рендерингу бере участь лише вміст, введений користувачем вручну.
 
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - `RenderRawModVariablesSection(...)` 遇到 `*.rimtalk.*` 或 legacy RimTalk token 时，不再走本地 provider 替换，统一保留为 raw token。
-- raw token 目录来源：
+  - Якщо `RenderRawModVariablesSection(...)` зустрічає токен `*.rimtalk.*` або legacy RimTalk, він більше не використовує локальну заміну provider, а зберігає їх як raw token.
+- Джерело каталогу raw token:
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
-  - 自定义变量 raw token 现在使用 legacy token 形态（Pawn 为 `pawn.xxx`，其余为 `xxx`），供变量浏览器和 `mod_variables` section 共用。
+  - Користувацькі змінні raw token тепер використовують форму legacy token (Pawn — `pawn.xxx`, решта — `xxx`), спільну для браузера змінних і секції `mod_variables`.
 
-## RimTalk 自定义变量系统性修复（v0.7.51）
-- 自定义变量快照刷新主链：
+## Системне виправлення RimTalk користувацьких змінних (v0.7.51)
+- Основний ланцюжок оновлення знімків користувацьких змінних:
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
-  - `RefreshRimTalkCustomVariableSnapshot(bool force = false)` 改为节流刷新；`GetCustomVariables()` 每次读取前都会触发刷新尝试（受冷却时间控制）。
-- 自定义变量解析兼容：
+  - `RefreshRimTalkCustomVariableSnapshot(bool force = false)` змінено на оновлення з обмеженням частоти; `GetCustomVariables()` перед кожним зчитуванням запускає спробу оновлення (з урахуванням затримки відновлення).
+- Сумісність розбору користувацьких змінних:
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
-  - `ParseCustomVariable(...)` 支持 tuple 字段（`Item1..Item4`）和命名字段（`VariableName/Name/SourceModId/Kind...`）双协议读取。
-- fail-fast 与可观测性：
+  - `ParseCustomVariable(...)` підтримує зчитування за двома протоколами: поля tuple (`Item1..Item4`) і іменовані поля (`VariableName/Name/SourceModId/Kind...`).
+- fail-fast і спостережуваність:
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
-  - 当 raw 枚举数量 > 0 且解析数量 = 0 时，Bridge 链路阻断并输出明确错误日志。
-  - 增加快照日志：`raw_count / parsed_count / duplicate_count / force`。
-- 时序修复（工作台 + 浏览器）：
+  - Якщо кількість raw-елементів > 0, а кількість розібраних елементів = 0, ланцюжок Bridge блокується, і виводиться чіткий журнал помилки.
+  - Додано журнал знімка: `raw_count / parsed_count / duplicate_count / force`.
+- Виправлення порядку операцій (верстак + браузер):
   - `RimChat/Config/RimChatSettings.cs`
-  - 当时曾通过设置加载链在自动填充前强制刷新快照；该默认自动填充链路已在 `v0.9.72` 移除。
+  - Тоді примусово оновлювали знімок через ланцюжок завантаження перед автозаповненням; цей стандартний ланцюжок автозаповнення було видалено в `v0.9.72`.
   - `RimChat/Config/RimChatSettings_RimTalkVariableBrowser.cs`
-  - `EnsurePromptVariableSnapshotCacheFresh()` 在构建展示快照前同步刷新 RimTalk 变量。
+  - `EnsurePromptVariableSnapshotCacheFresh()` синхронно оновлює змінні RimTalk перед побудовою знімка для відображення.
 
-## RimChat ↔ RimTalk 变量桥接重构（v0.7.50）
-- Bridge 启动主链（fail-fast，仅阻断桥接）：
+## Рефакторинг мосту змінних RimChat ↔ RimTalk（v0.7.50）
+- Основний ланцюжок запуску Bridge (fail-fast, блокує лише міст):
   - `RimChat/Core/RimChatMod.cs`
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
-  - 顺序：`StrictLegacyCleanup` -> `ValidateRimTalkBridgeSignaturesOrFail` -> `RegisterRimChatSummaryVariable` -> `RefreshRimTalkCustomVariableSnapshot`。
-- 对外导出变量：
-  - `rimchat_summary`（raw token：`{{ rimchat_summary }}`）
-  - 聚合实现：`BuildRimChatSummaryAggregateText()`，预算 1200 字符。
-- 旧痕迹清理范围：
+  - Порядок: `StrictLegacyCleanup` -> `ValidateRimTalkBridgeSignaturesOrFail` -> `RegisterRimChatSummaryVariable` -> `RefreshRimTalkCustomVariableSnapshot`.
+- Змінні, що експортуються назовні:
+  - `rimchat_summary`（необроблений токен: `{{ rimchat_summary }}`）
+  - Реалізація агрегації: `BuildRimChatSummaryAggregateText()`, бюджет — 1200 символів.
+- Обсяг очищення старих слідів:
   - `ContextHookRegistry.UnregisterMod(...)`
-  - 历史 `rimchat_*` runtime/context key
-  - 旧 `SourceModId` 注入条目 + `DeletedModEntryIds` 残留（`contains("rimchat")`）。
-- 工作台全通道 section：
-  - `mod_variables` 已加入主链 schema 与默认目录结构。
-  - 仅当 section 为空且检测到 RimTalk 自定义变量时，自动填充 raw token 列表。
-- 变量浏览器双轨显示：
-  - `PromptVariableDisplayEntry` 新增 `RawToken` / `NamespacedToken` / `DefaultInsertToken`。
-  - UI 展示 raw + namespaced；插入默认走 raw token。
+  - історичний runtime/context key `rimchat_*`
+  - старий запис ін’єкції `SourceModId` + залишок `DeletedModEntryIds`（`contains("rimchat")`）。
+- Секція повного доступу до каналів робочої станції:
+  - `mod_variables` додано до основної схеми та структури каталогів за замовчуванням.
+  - Лише якщо секція порожня та виявлено RimTalk користувацькі змінні, список raw-токенів заповнюється автоматично.
+- Двоколійне відображення браузера змінних:
+  - `PromptVariableDisplayEntry` додано `RawToken` / `NamespacedToken` / `DefaultInsertToken`.
+  - UI відображає raw + namespaced; вставка за замовчуванням використовує raw-токен.
 
-## create_quest 与 RPG 上下文修复（v0.7.48）
-- 任务链路：
+## Виправлення контексту create_quest та RPG (v0.7.48)
+- Ланцюжок завдань:
   - `RimChat/AI/AIActionExecutor.cs`
-  - `ExecuteCreateQuest(...)` 在 fail-fast 失败分支统一回传 `questDefName` 可用列表，阻断非法模板名反复盲猜。
-- quest_guidance 根因修复：
-  - `RimChat/Config/PromptTextConstants.cs`：`QuestGuidanceNodeLiteralDefault` 改为 `{{ dialogue.quest_guidance_body }}`。
-  - `RimChat/Persistence/PromptPersistenceService.cs`：模板迁移补齐中文旧字面量标记识别，旧配置可自动升级到占位注入。
-- RPG 上下文增强（手动 + 主动）：
+  - `ExecuteCreateQuest(...)` у єдиній гілці збою fail-fast повертає список доступних `questDefName`, блокуючи повторні сліпі спроби вгадати недійсне ім’я шаблону.
+- Виправлення першопричини quest_guidance:
+  - `RimChat/Config/PromptTextConstants.cs`: `QuestGuidanceNodeLiteralDefault` змінено на `{{ dialogue.quest_guidance_body }}`.
+  - `RimChat/Persistence/PromptPersistenceService.cs`: міграцію шаблонів доповнено розпізнаванням старих китайських літеральних позначок; старі конфігурації можна автоматично оновити до інʼєкції заповнювачів.
+- Розширення контексту RPG (ручне + активне):
   - `RimChat/Persistence/PromptPersistenceService.TemplateVariables.cs`
   - `RimChat/Persistence/PromptPersistenceService.RpgProfileVariables.cs`
-  - 新增变量 `pawn.relation.social_summary`，并扩展 `pawn.target.profile` / `pawn.initiator.profile` 输出：Job、Needs/Hediffs、Recent Memories（受 `RpgSceneParamSwitches` 控制）。
-- 默认开关与迁移：
-  - `Prompt/Default/SystemPrompt_Default.json`：`IncludeNeeds`、`IncludeRecentJobState` 默认开启。
-  - `RimChat/Persistence/PromptPersistenceService.cs`：仅命中历史默认签名时自动升级旧开关，避免覆盖用户自定义值。
-- 关系画像模板同步：
+  - Додано змінну `pawn.relation.social_summary`, а також розширено вивід `pawn.target.profile` / `pawn.initiator.profile`: Job, Needs/Hediffs, Recent Memories (контролюється `RpgSceneParamSwitches`).
+- Параметри за замовчуванням і міграція:
+  - `Prompt/Default/SystemPrompt_Default.json`: `IncludeNeeds` і `IncludeRecentJobState` увімкнено за замовчуванням.
+  - `RimChat/Persistence/PromptPersistenceService.cs`: автоматично оновлює старі параметри лише за збігу історичного підпису за замовчуванням, щоб не перезаписувати користувацькі значення.
+- Синхронізація шаблонів профілів стосунків:
   - `Prompt/Default/PawnDialoguePrompt_Default.json`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
   - `RimChat/Config/PromptUnifiedDefaults.cs`
   - `RimChat/Config/RpgPromptDefaultsConfig.cs`
-  - 在 `rpg_relationship_profile` 注入 `pawn.relation.social_summary`。
+  - у `rpg_relationship_profile` ін’єкція `pawn.relation.social_summary`.
 
-## 提示词工作台派系描述/人设变量链路（当前变更）
-- 新增变量：`world.faction.description`
-  - 取值链路：`PromptPersistenceService.TemplateVariables.ResolveTemplateVariableValue(...)` -> `BuildFactionDescriptionVariableText(...)` -> `FactionPromptManager.GetPrompt(faction.def.defName)`。
-  - 数据源：`Prompt/Default/FactionPrompts_Default.json`（默认） + `Prompt/Custom/FactionPrompts_Custom.json`（覆盖）。
-- 收敛 `pawn.personality` 运行时取值：
-  - 入口：`PromptPersistenceService.TemplateVariables.BuildPawnPersonalityVariableText(...)`。
-  - 解析：`GameComponent_RPGManager.ResolveEffectivePawnPersonalityPrompt(...)`。
-  - 顺序：RimTalk 人格 -> RimChat 已存人格（不再触发 persona_bootstrap 外发请求）。
-- 工作台快捷区：
-  - `RimChatSettings_PromptQuickActions.DrawPromptWorkspaceQuickActions(...)` 的“派系提示词”改为派系模板编辑菜单（`Dialog_FactionPromptEditor`）。
-  - “人设提示词”保存后自动尝试把 `{{ pawn.personality }}` 注入当前通道 `character_persona`（幂等）。
-- 背景迁移：
-  - 默认资产：`Prompt/Default/PromptSectionCatalog_Default.json`、`Prompt/Default/PromptUnifiedCatalog_Default.json`、`Prompt/Default/RimTalkPromptEntries_Default.json` 的 `any/system_rules` 均追加背景段落。
-  - 运行时迁移：`RimChatSettings_RimTalkCompat.ApplyUnifiedCatalogOneTimeMigration(...)` 新增背景补入步骤（仅缺失时追加，不覆盖）。
+## Ланцюжок описів фракцій і змінних образу в робочому столі промптів (поточні зміни)
+- Додано змінну: `world.faction.description`
+  - Ланцюжок отримання значення: `PromptPersistenceService.TemplateVariables.ResolveTemplateVariableValue(...)` -> `BuildFactionDescriptionVariableText(...)` -> `FactionPromptManager.GetPrompt(faction.def.defName)`.
+  - Джерела даних: `Prompt/Default/FactionPrompts_Default.json` (за замовчуванням) + `Prompt/Custom/FactionPrompts_Custom.json` (перевизначення).
+- Збіжність `pawn.personality` значення під час виконання:
+  - Точка входу: `PromptPersistenceService.TemplateVariables.BuildPawnPersonalityVariableText(...)`.
+  - Розбір: `GameComponent_RPGManager.ResolveEffectivePawnPersonalityPrompt(...)`.
+  - Порядок: RimTalk особистість -> RimChat збережена особистість (більше не ініціює persona_bootstrap зовнішні запити).
+- Панель швидкого доступу робочого столу:
+  - «Фракційний промпт» для `RimChatSettings_PromptQuickActions.DrawPromptWorkspaceQuickActions(...)` змінено на меню редагування шаблону фракції (`Dialog_FactionPromptEditor`).
+  - Після збереження «Промпту образу» автоматично виконується спроба інʼєкції `{{ pawn.personality }}` у поточний канал `character_persona` (ідемпотентно).
+- Міграція тла:
+  - Типові ресурси:`Prompt/Default/PromptSectionCatalog_Default.json`、`Prompt/Default/PromptUnifiedCatalog_Default.json`、`Prompt/Default/RimTalkPromptEntries_Default.json` для `any/system_rules` усі додатково отримують фоновий абзац.
+  - Міграція під час виконання: `RimChatSettings_RimTalkCompat.ApplyUnifiedCatalogOneTimeMigration(...)` додано крок доповнення тлом (додає лише за відсутності, не перезаписує).
 
-## 提示词工作台沉浸感约束（当前变更）
-- 全局 `system_rules` 节点新增括号使用约束（允许括号叙事，禁止括号内规则/系统/元信息说明）：
+## Обмеження занурення в робочий стіл промптів (поточні зміни)
+- Для всіх вузлів `system_rules` додано обмеження щодо використання дужок (дозволено оповідь у дужках, заборонено пояснення правил/системи/метаінформації в дужках):
   - `Prompt/Default/PromptSectionCatalog_Default.json`
   - `Prompt/Default/RimTalkPromptEntries_Default.json`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
-- 生效方式：
-  - 注入点为 `any -> system_rules`，由工作台主链继承到各通道默认提示词。
+- Спосіб набуття чинності:
+  - Точку ін’єкції `any -> system_rules` успадковує основний ланцюг робочого столу до промптів за замовчуванням усіх каналів.
 
-## RPG关系画像去重 + 移除 kinship=no 限制（v0.7.44）
-- RPG 关系画像去重（停止独立边界节点输出）：
+## RPG-текст + текст kinship=no текст (v0.7.44）
+- Усунення дублювання профілю відносин RPG (припинення виведення незалежних граничних вузлів):
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `ResolveRpgNodePlacements(...)` 中 `rpg_kinship_boundary` 节点保留布局兼容，但不再单独渲染正文，避免与 `relationship_profile` 重复。
-- 亲缘规则语义收口：
+  - У `ResolveRpgNodePlacements(...)` вузол `rpg_kinship_boundary` зберігається для сумісності макета, але більше не рендерить основний текст окремо, щоб уникнути дублювання з `relationship_profile`.
+- Уточнення семантики правил спорідненості:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `BuildRpgKinshipBoundaryGuidanceText(...)` 改为 `kinship=no` 直接返回空字符串，`kinship=yes` 才注入 RomanceAttempt/Date/MarriageProposal 边界限制。
-- 关系画像模板改为条件引导行（no 时整行隐藏）：
+  - `BuildRpgKinshipBoundaryGuidanceText(...)` змінено так, щоб `kinship=no` безпосередньо повертав порожній рядок, а лише `kinship=yes` додавав обмеження меж RomanceAttempt/Date/MarriageProposal.
+- Шаблон профілю відносин змінено на рядки умовних підказок (за значення no увесь рядок приховується):
   - `Prompt/Default/PawnDialoguePrompt_Default.json`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
   - `RimChat/Config/RpgPromptDefaultsConfig.cs`
   - `RimChat/Config/PromptUnifiedDefaults.cs`
-- 历史模板自动迁移（幂等）：
+- Автоматична міграція історичних шаблонів (ідемпотентна):
   - `RimChat/Config/PromptUnifiedCatalog.cs`
-  - 在 unified catalog 归一化阶段自动把旧写法 `引导：{{ dialogue.guidance }}` / `Guidance: {{ dialogue.guidance }}` 升级为条件渲染写法，覆盖 RPG/主动RPG/any 通道，防止旧自定义模板复发。
+  - На етапі нормалізації unified catalog автоматично оновлювати старі записи `引导：{{ dialogue.guidance }}` / `Guidance: {{ dialogue.guidance }}` до записів із умовним рендерингом, охоплюючи канали RPG/текстRPG/any, щоб запобігти повторній появі старих користувацьких шаблонів.
 
-## 日志观测入口 + 30分钟趋势 + RPG开窗卡顿治理（v0.7.43）
-- 日志观测窗口新增设置入口：
+## текст + 30текст + RPG-текст (v0.7.43）
+- У вікні спостереження за журналами додано новий пункт налаштувань:
   - `RimChat/UI/Dialog_ApiDebugObservability.cs`
-  - 头部新增 `RimChat_ApiDebugOpenSettingsButton`，点击后打开 `Dialog_ModSettings(RimChatMod)`。
-  - 缺失 Mod 实例时 fail-fast 提示 `RimChat_ApiDebugOpenSettingsFailed`，不做静默降级。
-- Token 趋势窗口收口为最近 30 分钟、1 分钟粒度：
+  - У верхній частині додано `RimChat_ApiDebugOpenSettingsButton`, після натискання відкривається `Dialog_ModSettings(RimChatMod)`.
+  - Якщо екземпляр Mod відсутній, fail-fast повідомляє `RimChat_ApiDebugOpenSettingsFailed`, без непомітного переходу до запасного режиму.
+- Вікно тренду Token обмежено останніми 30 хвилинами з кроком 1 хвилина:
   - `RimChat/AI/AIChatServiceAsync.DebugTelemetry.cs`
-  - 常量改为 `DebugWindowMinutes=30`、`DebugBucketMinutes=1`、`DebugRetentionMinutes=35`。
-  - 快照构建改为单次遍历：同轮完成 records 克隆、summary 聚合、bucket 聚合。
-- RPG 对话开窗卡顿治理（短期阻断 + 根治）：
+  - Константи змінено на `DebugWindowMinutes=30`, `DebugBucketMinutes=1`, `DebugRetentionMinutes=35`.
+  - Побудову знімка змінено на один прохід: за одну ітерацію виконуються клонування records, агрегація summary та агрегація bucket.
+- RPG Усунення підвисань під час відкриття діалогу (тимчасове блокування + остаточне виправлення):
   - `RimChat/UI/Dialog_RPGPawnDialogue.cs`
-  - 构造期不再调用 `BuildPromptMemoryBlock(...)` 做存在性探测，改为 `HasPromptMemory(...)`，避免开窗瞬间重复重算。
+  - Під час конструювання більше не викликається `BuildPromptMemoryBlock(...)` для перевірки наявності; натомість використовується `HasPromptMemory(...)`, щоб уникнути повторного обчислення в момент відкриття вікна.
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.PromptCache.cs`
-  - 新增 prompt memory 版本戳缓存（target/interlocutor/summary 参数维度）。
+  - Додано кешування міток версій промпту memory за вимірами параметрів target/interlocutor/summary.
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.Sessions.cs`
-  - 在 turn 记录、session finalize、外交摘要、读档重载、压缩成功/失败等路径统一触发缓存失效，保证一致性并避免脏读。
-- 本地化同步：
+  - Уніфіковано запуск інвалідації кешу в таких сценаріях, як запис turn, session finalize, дипломатичне резюме, завантаження збереження, успішне/неуспішне стискання, щоб гарантувати узгодженість і запобігти читанню застарілих даних.
+- Синхронізація локалізації:
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-  - 更新观测窗口趋势文案到 30 分钟/1 分钟，并新增设置按钮相关语言键。
+  - Оновлено тексти тенденцій у вікні спостереження до 30 хвилин/1 хвилини та додано мовні ключі для пов’язаних із налаштуваннями кнопок.
 
-## Think 标签双层过滤收口（v0.7.42）
-- 统一新增模型输出清洗器：
+## Завершення подвійної фільтрації тегів Think (v0.7.42)
+- Уніфіковано додавання очищувача виводу моделі:
   - `RimChat/AI/ModelOutputSanitizer.cs`
-  - 职责：删除 `<think>...</think>` / `<thinking>...</thinking>` 整段内容，并处理未闭合起始标签与残留闭合标签。
-- 服务层入口前置清洗（入业务链前）：
+  - Обов’язок: видаляти весь вміст між `<think>...</think>` / `<thinking>...</thinking>` і обробляти незакриті початкові теги та залишкові закривальні теги.
+- Попереднє очищення на вході сервісного рівня (до входження в ланцюжок бізнес-логіки):
   - `RimChat/AI/AIJsonContentExtractor.cs`
-  - `TryExtractPrimaryText(...)` 在命中文本字段后先执行 `ModelOutputSanitizer.StripReasoningTags(...)`，清洗后为空则继续尝试下一个候选字段。
-- UI 显示层前置清洗（最终渲染前）：
+  - Після знаходження текстового поля `TryExtractPrimaryText(...)` спочатку виконується `ModelOutputSanitizer.StripReasoningTags(...)`, а якщо після очищення воно порожнє, продовжується спроба з наступним полем-кандидатом.
+- UI Попереднє очищення на рівні відображення (перед фінальним рендерингом):
   - `RimChat/AI/ImmersionOutputGuard.cs`
-  - `ValidateVisibleDialogue(...)` 在拆分可见文本/尾部 actions JSON 前先执行同一清洗器，阻断旁路文本直达 UI。
-- 外交解析层同步清洗：
+  - `ValidateVisibleDialogue(...)` Перед розділенням видимого тексту та кінцевих actions JSON спочатку виконується той самий очищувач, блокуючи пряме надходження обхідного тексту до UI.
+- Синхронне очищення на рівні розбору дипломатії:
   - `RimChat/AI/AIResponseParser.cs`
-  - `NormalizeDialogueText(...)` 先执行 think 标签剥离，再执行原有策略段落裁剪与沉浸校验。
-- 影响范围说明：
-  - 通过 `ImmersionOutputGuard` 的外交对话、RPG 对话、NPC 主动推送、PawnRPG 主动推送共享该防线。
-  - 不改动作协议、不改存档结构、不改 Def 与 Patch 链路。
+  - `NormalizeDialogueText(...)` Спочатку вилучаються теги think, потім виконується обрізання наявних стратегічних абзаців і перевірка занурення.
+- Опис сфери впливу:
+  - Дипломатичні діалоги через `ImmersionOutputGuard`, діалоги RPG, активні push-сповіщення NPC та активні push-сповіщення PawnRPG використовують цей спільний захист.
+  - Не змінюються протокол дій, структура збережень, ланцюжки Def і Patch.
 
-## 外交对话头像与说话者补齐（v0.7.41）
-- 外交气泡头像渲染与布局扩展：
+## Доповнення аватарів і мовців у дипломатичних діалогах (v0.7.41)
+- Розширення рендерингу й компонування аватарів у дипломатичних бульбашках:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageRendering.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.Speakers.cs`
-  - 普通/图片消息新增 24px 外角头像；系统消息保持无头像。
-  - 气泡宽度上限提升至可用区 85%，并改为“头像通道 + 气泡通道”排版。
-- 会话说话者解析与补齐：
+  - Для звичайних/графічних повідомлень додається зовнішній аватар розміром 24 px; системні повідомлення залишаються без аватара.
+  - Максимальну ширину бульбашки збільшено до 85% доступної області, а компонування змінено на «канал аватара + канал бульбашки».
+- Визначення та доповнення мовців у сеансі:
   - `RimChat/UI/Dialog_DiplomacyDialogue.Speakers.cs`
-  - 打开外交窗口时自动补齐历史消息说话者与显示名。
-  - 玩家侧缺失说话者回退到“社交最高殖民者”。
-  - 对方侧优先派系领袖；领袖缺失时会话内固定随机发言人。
-- 消息模型持久化扩展（向后兼容）：
+  - Під час відкриття вікна дипломатії автоматично доповнюються мовці та імена для відображення в історичних повідомленнях.
+  - Якщо на боці гравця мовець відсутній, використовується колоніст із найвищим показником соціальності.
+  - На боці іншої сторони спочатку використовується лідер фракції; якщо лідера немає, у межах сеансу фіксовано обирається випадковий мовець.
+- Розширення збереження моделі повідомлень (зворотна сумісність):
   - `RimChat/Memory/FactionDialogueSession.cs`
-  - `DialogueMessageData` 新增 `speakerPawnThingId` 与 `speakerPawn` 引用，支持存档恢复头像来源。
-  - `AddMessage(...)` / `AddImageMessage(...)` 增加可选 `speakerPawn` 参数。
-- 写入链路同步：
+  - `DialogueMessageData` Додано посилання `speakerPawnThingId` і `speakerPawn`, що забезпечують відновлення джерела аватара із збереженої гри.
+  - До `AddMessage(...)` / `AddImageMessage(...)` додано необов’язковий параметр `speakerPawn`.
+- Синхронізація ланцюжка запису:
   - `RimChat/UI/Dialog_DiplomacyDialogue.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageAction.cs`
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
-  - 外交发送、AI 回复、fallback、图片消息、NPC 主动推送统一写入说话者 Pawn。
+  - Надсилання дипломатичних повідомлень, відповіді AI, fallback, повідомлення із зображеннями та активні push-повідомлення NPC тепер уніфіковано записуються із зазначенням Pawn мовця.
 
-## Pawn↔Pawn 右键对话战斗态拦截（v0.7.40）
-- 新增统一判定工具，避免菜单层与执行层规则漂移：
+## Перехоплення бойового стану під час розмови Pawn↔Pawn через праву кнопку миші (v0.7.40)
+- Додано уніфікований інструмент перевірки, щоб запобігти розбіжностям правил між рівнями меню та виконання:
   - `RimChat/Core/PawnCombatStateUtility.cs`
-  - 规则：`Drafted` 或当前 JobDef 属于 `Wait_Combat / AttackMelee / AttackStatic / UseVerbOnThing`
-- 右键入口改为双向战斗态门控：
+  - Правило: `Drafted` або поточний JobDef належить до `Wait_Combat / AttackMelee / AttackStatic / UseVerbOnThing`
+- Вхід через праву кнопку миші тепер має двонапрямлене обмеження за бойовим станом:
   - `RimChat/Comp/CompPawnDialogue.cs`
-  - 当前 pawn 或目标 pawn 任一处于战斗态时，不显示 RimChat 对话选项。
-- 执行层新增 fail-fast 二次拦截：
+  - Якщо поточний персонаж або персонаж-ціль перебуває в бойовому стані, варіант розмови RimChat не відображається.
+- На рівні виконання додано повторне перехоплення за принципом fail-fast:
   - `RimChat/AI/JobDriver_RPGPawnDialogue.cs`
-  - Job 执行到窗口打开前再次判定，阻断时序绕过。
+  - Перед відкриттям вікна під час виконання Job перевірка виконується повторно, блокуючи обхід через часову послідовність.
 
-## RimTalk 污染隔离与 legacy 变量清理（v0.7.39）
-- RimTalk 桥接 provider 改为显式启用门控；未启用时不注册 runtime provider：
+## Ізоляція забруднення RimTalk і очищення застарілих змінних (v0.7.39)
+- Провайдер-мост RimTalk переведено на явне керування активацією; якщо його не активовано, runtime provider не реєструється:
   - `RimChat/Prompting/PromptRuntimeVariableRegistry.cs`
   - `RimChat/Prompting/PromptRuntimeVariableProviders.cs`
-- 启动时尝试清理 RimTalk 中旧版 `rimchat_*` 遗留上下文变量：
+- Під час запуску виконується спроба очистити контекстні змінні, успадковані від старої версії RimTalk у `rimchat_*`:
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
   - `RimChat/Core/RimChatMod.cs`
-- `dialogue.rimtalk.history*` 移除 RimChat 跨通道摘要回退，避免历史污染：
+- `dialogue.rimtalk.history*` Видалити RimChat резервне перемикання міжканального резюме, щоб уникнути забруднення історії:
   - `RimChat/Prompting/PromptRuntimeVariableBridge.cs`
 
-## 生图封闭补强（v0.7.38）
-- 图片生成设置页封板（开发中提示，禁止交互）：
+## Посилене блокування генерації зображень（v0.7.38）
+- Сторінку налаштувань генерації зображень остаточно заблоковано (повідомлення «У розробці», взаємодію заборонено):
   - `RimChat/Config/RimChatSettings_ImageApi.cs`
-- 外交提示词动作目录构建阶段强制排除 `send_image`：
+- На етапі побудови каталогу дій дипломатичного промпту примусово виключати `send_image`:
   - `RimChat/Persistence/PromptPersistenceService.cs`
-- 提示词工作台 `ApiActions` 编辑列表排除 `send_image`：
+- У робочій області промптів `ApiActions` виключити зі списку редагування `send_image`:
   - `RimChat/Config/RimChatSettings_Prompt.cs`
 
-## 生图功能开发中封闭（v0.7.37）
-- 生图功能统一封闭并返回“开发中”提示（UI + 业务执行双层拦截）：
+## Блокування функції генерації зображень на час розробки（v0.7.37）
+- Функцію генерації зображень повністю заблоковано, і вона повертає повідомлення «У розробці»（UI + подвійне блокування на рівні бізнес-логіки та виконання）:
   - `RimChat/Core/ImageGenerationAvailability.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageAction.cs`
   - `RimChat/DiplomacySystem/DiplomacyImageGenerationService.cs`
   - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`
-- 外交窗口生图相关入口改为禁用（相册/自拍）：
+- Відповідні входи для генерації зображень у вікні дипломатії переведено в режим вимкнення (альбом/селфі):
   - `RimChat/UI/Dialog_DiplomacyDialogue.SocialCircleView.cs`
   - `RimChat/UI/Dialog_DiplomacyDialogue.AlbumSelfieActions.cs`
-- 移除生图提示词注入与自拍隐藏注入拼接：
+- Видалено ін’єкцію промпту для генерації зображень і конкатенацію прихованої ін’єкції для селфі:
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/UI/Dialog_DiplomacySelfieConfig.cs`
   - `RimChat/AI/AIResponseParser.cs`
-- 本地化键新增：
+- Додано ключі локалізації:
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
 
-## 输出协议单一权威收敛（v0.7.36）
-- 响应协议正文统一收敛到 `response_contract` 运行时正文（`dialogue.response_contract_body`），`RESPONSE FORMAT` 与 `CRITICAL ACTION RULES` 改为引用式提示：
+## Уніфікація протоколу виводу до єдиного джерела істини（v0.7.36）
+- Основний текст протоколу відповіді уніфіковано до `response_contract` основного тексту середовища виконання（`dialogue.response_contract_body`）, а `RESPONSE FORMAT` і `CRITICAL ACTION RULES` замінено на підказки з посиланнями:
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/Config/PromptTextConstants.cs`
-- 默认 Prompt 各通道 `output_specification` 段统一改为“引用语句”，不再内嵌协议正文：
+- У стандартному Prompt усі канали `output_specification` уніфіковано змінити на «цитатні вислови», більше не вбудовуючи текст протоколу:
   - `RimChat/Config/RimTalkPromptEntryDefaultsConfig.cs`
   - `Prompt/Default/PromptSectionCatalog_Default.json`
   - `Prompt/Default/RimTalkPromptEntries_Default.json`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
-- 开发文档移除旧 `{\"action\":...}` 单对象协议，统一声明 `{\"actions\":[...]}`：
+- Із документації розробника вилучити старий протокол одного об’єкта `{\"action\":...}`, натомість всюди оголосити `{\"actions\":[...]}`:
   - `doc/Api.md`
   - `doc/config.md`
   - `doc/VersionLog.txt`
   - `doc/VersionLog_en.txt`
 
-## 响应契约节点占位符收口（v0.7.35）
-- 响应契约节点默认模板统一为纯运行时占位符 `{{ dialogue.response_contract_body }}`：
+## Уніфікація заповнювачів вузлів контракту відповіді (v0.7.35)
+- Стандартний шаблон вузла контракту відповіді всюди має бути лише заповнювачем середовища виконання `{{ dialogue.response_contract_body }}`:
   - `RimChat/Config/PromptTextConstants.cs`
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
 
-## 任务规则节点变量->文本收口（v0.7.34）
-- 任务规则节点渲染链路改为文本优先，并兼容 legacy token 自动解引用：
+## Зведення змінних вузлів правил завдання до тексту (v0.7.34)
+- Ланцюжок рендерингу вузлів правил завдання змінено на текстовий пріоритет із підтримкою автоматичного розіменування legacy-токенів:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `ResolveDiplomacyNodePlacements(...)` 的 `quest_guidance_node_template` 分支改为 `ResolveQuestGuidanceNodeText(...)`
-- 任务规则节点默认值改为纯文本常量：
+  - `ResolveDiplomacyNodePlacements(...)` текст `quest_guidance_node_template` текст `ResolveQuestGuidanceNodeText(...)`
+- Значення за замовчуванням вузлів правил завдання змінено на текстові константи:
   - `RimChat/Config/PromptTextConstants.cs`
   - `QuestGuidanceNodeLiteralDefault`
-- 节点变量校验上下文移除任务规则注入变量：
+- Із контексту перевірки змінних вузла вилучено змінні, що впроваджуються правилами завдання:
   - `RimChat/Persistence/TemplateVariableValidationContext.cs`
 
-## Prompt Workbench 节点编排表头清理（v0.7.32）
-- 移除“节点编排”列表顶部固定 `正文` 表头，避免正文标签固定占据首行：
+## Очищення заголовка таблиці компонування вузлів Prompt Workbench (v0.7.32)
+- Видалено фіксований заголовок `正文` у верхній частині списку «Компонування вузлів», щоб мітка основного тексту не займала постійно перший рядок:
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
-- 该改动仅影响 UI 呈现，不改变节点布局存储与排序算法。
+- Ця зміна впливає лише на відображення UI, не змінюючи збереження компонування вузлів і алгоритм сортування.
 
-## Prompt Workbench 正文/思维链末尾排序修复（v0.7.31）
-- 结构化预览与导出文本组装顺序统一为“其它节点 -> 正文 -> 思维链 -> 结束标签”，保证思维链固定在正文底部：
+## Виправлення порядку основного тексту/ланцюжка міркувань у кінці Prompt Workbench (v0.7.31)
+- Порядок складання структурованого попереднього перегляду й експортованого тексту уніфіковано як «інші вузли -> основний текст -> ланцюжок міркувань -> кінцева мітка», щоб ланцюжок міркувань завжди був у нижній частині основного тексту:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
-- 思维链识别改为统一函数 `IsThoughtChainPlacement(...)`，不再依赖固定 slot，跨频道一致：
+- Розпізнавання ланцюжка міркувань змінено на уніфіковану функцію `IsThoughtChainPlacement(...)`, більше не залежить від фіксованого slot і є узгодженим між каналами:
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-- 其它节点保持原相对顺序，不引入新的兜底排序逻辑。
+- Інші вузли зберігають початковий відносний порядок; нову резервну логіку сортування не додано.
 
-## Prompt Workbench 节点命名与正文预览统一（v0.7.30）
-- 节点显示名统一改为可读业务名，不再把内部模板 id 直接暴露到节点编辑列表：
+## Уніфікація назв вузлів і попереднього перегляду основного тексту в Prompt Workbench (v0.7.30)
+- Відображувані назви вузлів уніфіковано як зрозумілі робочі назви; внутрішні id шаблонів більше не показуються безпосередньо у списку редагування вузлів:
   - `RimChat/Config/PromptUnifiedNodeSchemaCatalog.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-- 预览中的正文块与思维链顺序统一到同一条组装规则：
+- Порядок основних текстових блоків і ланцюжка міркувань у попередньому перегляді уніфіковано за одним правилом складання:
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `thought_chain_node_template` 统一后置到正文之后
-- 预览标题去技术附加标签：
+  - `thought_chain_node_template` переміщено в кінець після основного тексту
+- У заголовку попереднього перегляду прибрано технічні додаткові мітки:
   - `RimChat/UI/PromptWorkspaceStructuredPreviewRenderer.cs`
-  - 节点块不再显示槽位前缀；正文分段标题不再附加 `&lt;section_id&gt;`
+  - Блоки вузлів більше не відображають префікс слота; заголовки сегментів основного тексту більше не доповнюються `&lt;section_id&gt;`
 
-## 节点模板动态正文回归（v0.7.28）
-- 默认模板事实源收敛到 Scriban 变量正文（不再维护三段说明文硬文本）：
+## Регресія динамічного основного тексту шаблону вузла（v0.7.28）
+- Джерело фактів шаблону за замовчуванням зведено до основного тексту змінних Scriban (більше не підтримується жорстко закодований текст із трьома частинами пояснень):
   - `RimChat/Config/PromptTextConstants.cs`
   - `ApiLimitsNodeLiteralDefault` / `QuestGuidanceNodeLiteralDefault` / `ResponseContractNodeLiteralDefault`
-- 运行时正文继续由旧业务链路实时生成：
+- Основний текст під час виконання й надалі генерується в реальному часі старим робочим ланцюжком:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `ResolveDiplomacyNodePlacements(...)` 内部 `AppendApiLimits(...)`、`AppendDynamicQuestGuidance(...) + AppendQuestSelectionHardRules(...)`、`AppendAdvancedConfig(...) / AppendSimpleConfig(...)`
-- 三段节点新增严格空正文拦截（fail-fast）：
+  - Усередині `ResolveDiplomacyNodePlacements(...)` — `AppendApiLimits(...)`, `AppendDynamicQuestGuidance(...) + AppendQuestSelectionHardRules(...)`, `AppendAdvancedConfig(...) / AppendSimpleConfig(...)`
+- Для трьох частин вузла додано сувору перевірку порожнього основного тексту (fail-fast):
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `RenderPromptNodeTemplate(...)` 在正文为空时抛 `PromptRenderException(TemplateMissing)`。
-- 旧配置一次性迁移入口：
+  - Якщо основний текст `RenderPromptNodeTemplate(...)` порожній, буде викинуто `PromptRenderException(TemplateMissing)`.
+- Точка одноразової міграції старої конфігурації:
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - `EnsurePromptTemplateDefaults(...)` 新增三段旧硬文本识别并自动重写为 Scriban 模板，命中写日志。
+  - `EnsurePromptTemplateDefaults(...)` Додано розпізнавання трьох сегментів застарілих жорстко заданих текстів і автоматичне переписування їх у шаблони Scriban; для збігів записується журнал.
 
-## Social News JSON 合同统一（v0.7.27）
-- 默认统一目录与社交链路合同收敛为同一事实源，避免运行时输出合同漂移：
+## Уніфікація Social News JSON（v0.7.27）
+- Типово уніфікований каталог і контракт соціального ланцюжка зводяться до одного джерела істини, щоб уникнути розбіжностей у контрактах під час виконання:
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
-  - `social_news_style` / `social_news_json_contract` / `social_news_fact` 改为与 `SocialCirclePrompt_Default.json` 一致的完整模板。
-- 代码级回退节点改为引用社交默认模板常量，避免再次出现“默认资产与回退文案不一致”：
+  - `social_news_style` / `social_news_json_contract` / `social_news_fact` змінено на повні шаблони, узгоджені з `SocialCirclePrompt_Default.json`.
+- Вузли відкату на рівні коду тепер посилаються на константи типових соціальних шаблонів, щоб не виникала знову «невідповідність між типовими ресурсами та текстом відкату»:
   - `RimChat/Config/PromptUnifiedDefaults.cs`
   - `PromptTextConstants.SocialCircleNewsStyleTemplateDefault`
   - `PromptTextConstants.SocialCircleNewsJsonContractTemplateDefault`
   - `PromptTextConstants.SocialCircleNewsFactTemplateDefault`
 
-## Strict Workbench WYSIWYG（v0.7.26）
-- 统一运行时主链提示词入口到 Workbench composer（deterministic）：
+## Уніфікація Strict Workbench WYSIWYG（v0.7.26）
+- Уніфіковано вхід основного ланцюжка промптів під час виконання до Workbench composer (deterministic):
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - `BuildFullSystemPrompt(...)` / `BuildRPGFullSystemPrompt(...)` / `BuildDiplomacyStrategySystemPrompt(...)` 全部改为走 `BuildUnifiedChannelSystemPrompt(...)`。
-- 运行时 composer 改为 deterministic 组装，停用环境/动态变量注入差异：
+  - `BuildFullSystemPrompt(...)` / `BuildRPGFullSystemPrompt(...)` / `BuildDiplomacyStrategySystemPrompt(...)` тепер усі проходять через `BuildUnifiedChannelSystemPrompt(...)`.
+- Composer під час виконання тепер збирається детерміновано; відмінності, спричинені ін’єкцією змінних середовища або динамічних змінних, вимкнено:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - `BuildUnifiedChannelSystemPrompt(...)` 内部 `deterministicPreview=true`。
-- 工作台预览改为始终展示完整布局拼接（不再区分 section-only 预览）：
+  - `BuildUnifiedChannelSystemPrompt(...)` усередині `deterministicPreview=true`.
+- Попередній перегляд верстака тепер завжди показує повне компоноване розташування (більше не розрізняє попередній перегляд лише секції):
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
-  - `GetPromptWorkspaceStructuredPreview()` 始终走 `BuildPromptWorkspaceStructuredLayoutPreview(...)`。
-- 移除请求链路中的“工作台外追加文本”：
+  - `GetPromptWorkspaceStructuredPreview()` завжди використовує `BuildPromptWorkspaceStructuredLayoutPreview(...)`.
+- Видалено «додатковий текст поза верстаком» із ланцюжка запиту:
   - `RimChat/NpcDialogue/GameComponent_NpcDialoguePushManager.cs`
   - `RimChat/PawnRpgPush/GameComponent_PawnRpgDialoguePushManager.Generation.cs`
   - `RimChat/UI/Dialog_RPGPawnDialogue.cs`
@@ -2304,251 +2304,251 @@
   - `RimChat/UI/Dialog_DiplomacyDialogue.Strategy.cs`
   - `RimChat/Memory/DialogueSummaryService.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.Sessions.cs`
-- 发送层禁用隐式消息改写/重写重试，确保发包文本不偏离所见：
+- На рівні надсилання вимкнено неявне редагування/повторні спроби переписування повідомлень, щоб текст пакета не відрізнявся від видимого:
   - `RimChat/AI/AIChatServiceAsync.cs`
-  - 取消 system-only 自动补 user；取消 HTTP 400 rejected-input 的降载重写重试。
+  - Скасовано автоматичне додавання user лише для system; скасовано повторну спробу переписування зі зниженням навантаження для HTTP 400 rejected-input.
 
-## Prompt Unified Catalog 生命周期一致性修复（v0.7.25）
-- 节点严格校验入口（仅节点链路启用）：
+## Виправлення узгодженості життєвого циклу єдиного каталогу промптів（v0.7.25）
+- Сувора точка входу для перевірки вузлів（активна лише для ланцюжка вузлів）：
   - `RimChat/Config/PromptUnifiedNodeSchemaCatalog.cs`
-  - 新增 `NormalizeStrictChannelOrThrow(...)`、`GetAllowedNodesStrict(...)`、`EnsureNodeAllowedForChannelOrThrow(...)`，未知/空 channel 不再回退到 `any`。
-- 节点读写 fail-fast：
+  - Додано `NormalizeStrictChannelOrThrow(...)`、`GetAllowedNodesStrict(...)`、`EnsureNodeAllowedForChannelOrThrow(...)`; невідомий або порожній channel більше не повертається до `any`。
+- Fail-fast для читання та запису вузлів：
   - `RimChat/Config/PromptUnifiedCatalog.cs`
-  - `ResolveNode(...)` / `ResolveNodeLayout(...)` / `SetNode(...)` / `SetNodeLayout(...)` 对非法 `channel/nodeId` 立即抛 `InvalidOperationException`。
-- 不变量与归一化报告：
+  - `ResolveNode(...)` / `ResolveNodeLayout(...)` / `SetNode(...)` / `SetNodeLayout(...)` текст `channel/nodeId` текст `InvalidOperationException`。
+- Звіти про інваріанти та нормалізацію：
   - `RimChat/Config/PromptUnifiedCatalog.cs`
-  - 新增 `ValidateInvariantsOrThrow()` 与 `NormalizeWithReport(...)`（含 `RemovedNodeCount/RemovedLayoutCount/FilledDefaultLayoutCount/UnknownChannelCount/HasStructuralChange`）。
-- 兼容初始化与保存判定收敛：
+  - Додано `ValidateInvariantsOrThrow()` і `NormalizeWithReport(...)`（містить `RemovedNodeCount/RemovedLayoutCount/FilledDefaultLayoutCount/UnknownChannelCount/HasStructuralChange`）。
+- Узгодження сумісної ініціалізації та перевірки збереження：
   - `RimChat/Config/RimChatSettings_RimTalkCompat.cs`
-  - `EnsureUnifiedCatalogReady()` 改为基于 `normalizeReport.HasStructuralChange` 判定保存，移除旧 `requiresLayoutSave` 数量推断。
-- 日志分层：
-  - 阻断性不变量错误使用 `Error`（抛异常前）。
-  - 自动清洗使用一次性摘要 `Warning`。
-  - 默认布局补全与迁移完成使用 `Info`。
+  - `EnsureUnifiedCatalogReady()` тепер визначає збереження на основі `normalizeReport.HasStructuralChange`, вилучено старе визначення за кількістю `requiresLayoutSave`。
+- Розшарування журналів：
+  - Помилка блокувального інваріанта використовує `Error` (перед викиданням винятку).
+  - Автоматичне очищення використовує одноразовий дайджест `Warning`.
+  - Завершення доповнення макета за замовчуванням і міграції використовує `Info`.
 
-## 请求消息规范化与派系好感空引用修复（v0.7.24）
-- 全局请求入口 fail-fast 规范化：
+## Нормалізація повідомлень запитів і виправлення порожніх посилань на прихильність фракцій (v0.7.24)
+- Нормалізація з fail-fast у глобальній точці входу запитів:
   - `RimChat/AI/AIChatServiceAsync.cs`
   - `RimChat/AI/AIChatService.cs`
-  - 发送前统一标准化 `role`（仅保留 `system/user/assistant`），并在仅 system 场景自动补最小 `user` 指令，阻断 `HTTP 400 Param Incorrect`。
-- 摘要链路显式 user 消息：
+  - Уніфікована стандартизація перед надсиланням `role` (залишати лише `system/user/assistant`), а в сценарії лише system автоматично додавати мінімальну інструкцію `user`, блокуючи `HTTP 400 Param Incorrect`.
+- Явне user-повідомлення в ланцюжку дайджесту:
   - `RimChat/Memory/DialogueSummaryService.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.Sessions.cs`
-  - `summary_generation`、`rpg_archive_compression` 请求改为 system+user 双消息，避免 provider 参数拒绝。
-- 摘要通道归一化：
+  - Запити `summary_generation` і `rpg_archive_compression` змінено на подвійні повідомлення system+user, щоб уникнути відхилення параметрів провайдером.
+- Нормалізація каналу дайджесту:
   - `RimChat/Memory/DialogueSummaryService.cs`
-  - `TryQueueLlmFallback(...)` 的 `usageChannel` 按 root 通道映射到 `Diplomacy/Rpg`，统一重试与调试归类。
-- 派系档案变量安全读取：
+  - `TryQueueLlmFallback(...)` текст `usageChannel` текст root текст `Diplomacy/Rpg`，текст.
+- Безпечне читання змінних досьє фракції:
   - `RimChat/Persistence/PromptPersistenceService.TemplateVariables.cs`
-  - `BuildCurrentFactionProfileVariableText(...)` 改为安全读取好感；玩家派系/自派系返回 `Goodwill: N/A`，不再触发 `Faction.PlayerGoodwill` 空引用。
+  - `BuildCurrentFactionProfileVariableText(...)` замінено на безпечне читання прихильності; для фракції гравця/власної фракції повертається `Goodwill: N/A`, більше не спричиняючи нульового посилання `Faction.PlayerGoodwill`.
 
-## Prompt Node 通道强约束与 Fail-Fast 清理（v0.7.23）
-- 节点通道白名单（单一事实源）：
+## Жорсткі обмеження каналів Prompt Node та очищення Fail-Fast (v0.7.23)
+- Білий список каналів вузлів (єдине джерело істини):
   - `RimChat/Config/PromptUnifiedNodeSchemaCatalog.cs`
-  - 新增 `GetAllowedNodes(...)` / `IsNodeAllowedForChannel(...)`，按通道限定可编辑与可注入节点集合。
-- 统一目录规范化（加载即清理）：
+  - Додано `GetAllowedNodes(...)` / `IsNodeAllowedForChannel(...)`, які визначають дозволені для редагування та ін’єкції набори вузлів для кожного каналу.
+- Уніфікована нормалізація каталогів (очищення під час завантаження):
   - `RimChat/Config/PromptUnifiedCatalog.cs`
-  - `NormalizeNodes(...)` 与 `NormalizeNodeLayout(...)` 改为按通道白名单裁剪；发现非法节点/布局立即报错日志并移除。
-- 运行时构建强约束：
+  - `NormalizeNodes(...)` і `NormalizeNodeLayout(...)` тепер обрізаються відповідно до білого списку каналів; у разі виявлення недозволеного вузла/макета негайно записується повідомлення про помилку в журнал і він видаляється.
+- Жорсткі обмеження побудови під час виконання:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - `GetOrderedNodeLayouts(...)` 只保留当前通道允许节点，并对越界布局输出错误日志，阻断串线注入。
-- Workbench 编辑面强约束：
+  - `GetOrderedNodeLayouts(...)` залишає лише дозволені для поточного каналу вузли, а для макетів поза межами виводить повідомлення про помилку в журнал, блокуючи ін’єкцію між каналами.
+- Жорсткі обмеження інтерфейсу редагування Workbench:
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
-  - 节点模式选择器、节点下拉、整通道重置均改为“仅当前通道允许节点”，无节点通道自动回退到 section 模式。
-- 统一预览链路收敛：
+  - Вибір режиму вузла, розкривний список вузлів і повне скидання каналу тепер використовують правило «дозволені вузли лише для поточного каналу»; канали без вузлів автоматично повертаються до режиму section.
+- Уніфікований ланцюжок попереднього перегляду зведено до єдиного процесу:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - 组合器在无用户布局时仅为允许节点生成默认布局，避免跨通道节点进入预览。
-- 兼容初始化修正：
+  - Компонувальник генерує макет за замовчуванням лише для дозволених вузлів, якщо макет користувача відсутній, щоб вузли з інших каналів не потрапляли до попереднього перегляду.
+- Виправлено сумісну ініціалізацію:
   - `RimChat/Config/RimChatSettings_RimTalkCompat.cs`
-  - `requiresLayoutSave` 改为按“通道允许节点数”判定，避免通道切换后持续误判需要迁移。
+  - `requiresLayoutSave` тепер визначається за «кількістю дозволених вузлів каналу», щоб після перемикання каналу помилково не вважалося, що міграція все ще потрібна.
 
-## Workbench 所见即所得并轨（v0.7.22）
-- 统一 composer：
+## Уніфікація Workbench у форматі «що бачиш, те й отримуєш» (v0.7.22)
+- Уніфікований composer:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - 新增共享拼装入口 `BuildUnifiedChannelSystemPrompt(...)`，统一 section 聚合、node 编排、变量注入与 payload 合并。
-- 预览与运行时并轨：
+  - Додано спільний вхід `BuildUnifiedChannelSystemPrompt(...)`, який уніфікує агрегування section, компонування node, ін’єкцію змінних і злиття payload.
+- Уніфікація попереднього перегляду та виконання:
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
-  - `BuildPromptWorkspaceStructuredLayoutPreview(...)` / `BuildPromptWorkspaceStructuredSectionPreview(...)` 均改为走同一 composer。
-- 通道映射单一事实源：
+  - `BuildPromptWorkspaceStructuredLayoutPreview(...)` / `BuildPromptWorkspaceStructuredSectionPreview(...)` тепер обидва використовують один і той самий composer.
+- Єдине джерело істини для зіставлення каналів:
   - `RimChat/Config/PromptSectionSchemaCatalog.cs`
   - `RimChat/Config/RimChatSettings_PromptAdvancedFramework.cs`
-  - root 归属、共享通道与运行时归一化全部收敛到 schema 目录。
-- 旁路链路统一成单 system 消息：
+  - Належність root, спільні канали та нормалізація під час виконання повністю зведені до каталогу schema.
+- Обхідний ланцюжок уніфіковано в одне system-повідомлення:
   - `RimChat/DiplomacySystem/Social/SocialNewsPromptBuilder.cs`
   - `RimChat/DiplomacySystem/GameComponent_RPGManager.PersonaBootstrap.cs`
   - `RimChat/Memory/DialogueSummaryService.cs`
   - `RimChat/Memory/RpgNpcDialogueArchiveManager.Sessions.cs`
-- 图像链路 Unified 化：
+- Уніфікація ланцюжка зображень:
   - `RimChat/UI/Dialog_DiplomacyDialogue.ImageAction.cs`
   - `RimChat/DiplomacySystem/ApiActionEligibilityService.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - `template_id` 解析与校验改走 Unified alias，保留历史模板 ID 兼容。
-- 旧配置一次迁移：
+  - Парсинг і перевірка `template_id` тепер виконуються через Unified alias, зі збереженням сумісності з історичним шаблоном ID.
+- Одноразова міграція старої конфігурації:
   - `RimChat/Config/RimChatSettings_RimTalkCompat.cs`
-  - 升级 `PromptUnifiedCatalog.MigrationVersion` 门控，首载导入 legacy RPG/图像模板到 Unified，迁移后运行时只读 Unified。
+  - Оновити шлюз `PromptUnifiedCatalog.MigrationVersion`; під час першого завантаження імпортувати legacy RPG/шаблони зображень до Unified, після міграції під час виконання використовувати лише Unified.
 
-## Prompt Workbench 运行时一致校验与结构化预览（v0.7.21）
-- 校验上下文模型：
+## Узгоджена перевірка під час виконання та структурований попередній перегляд Prompt Workbench（v0.7.21）
+- Модель контексту для перевірки:
   - `RimChat/Persistence/TemplateVariableValidationContext.cs`
-  - 负责“运行时变量目录 + 节点注入变量”合并，工作台按上下文进行严格校验。
-- 模板校验入口重载：
+  - Відповідає за об’єднання «каталогу змінних виконання + змінних, що вводяться у вузол»; робочий стіл виконує сувору перевірку відповідно до контексту.
+- Перезавантаження точки входу перевірки шаблонів:
   - `RimChat/Persistence/PromptPersistenceService.TemplateVariables.cs`
-  - 新增 `ValidateTemplateVariables(templateText, validationContext)`（内部重载）。
-- 结构化预览模型与构建：
+  - Додано `ValidateTemplateVariables(templateText, validationContext)` (внутрішнє перевантаження).
+- Модель і побудова структурованого попереднього перегляду:
   - `RimChat/Persistence/PromptWorkspacePreviewModels.cs`
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
-  - 提供分段模式与节点编排模式的最终顺序预览块。
-  - 主链分段块新增 `PromptWorkspacePreviewSubsection`，支持次级标题渲染。
-- 轻量预览渲染器：
+  - Надає блок попереднього перегляду кінцевого порядку для режимів сегментації та компонування вузлів.
+  - До сегментаційних блоків основного ланцюга додано `PromptWorkspacePreviewSubsection`; підтримується відтворення підзаголовків.
+- Полегшений засіб відтворення попереднього перегляду:
   - `RimChat/UI/PromptWorkspaceStructuredPreviewRenderer.cs`
-  - 取代工作台右侧只读 chip 预览路径，缓存布局高度减少重绘开销。
-  - 主链分段聚合支持 section 级二级标题条与正文分段展示。
-- 防抖保存与关闭前强制落盘：
+  - Заміна шляху попереднього перегляду chip лише для читання праворуч від робочого столу; кешування висоти макета зменшує витрати на перемальовування.
+  - Сегментована агрегація основного ланцюжка підтримує відображення підзаголовків рівня section і сегментів основного тексту.
+- Відкладене збереження та примусовий запис на диск перед закриттям:
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
   - `RimChat/UI/Dialog_PromptWorkbenchLarge.cs`
-  - 编辑态采用内存缓冲 + 500ms 防抖；切换上下文与关闭窗口强制落盘。
+  - У режимі редагування використовується буфер у пам’яті + відкладене збереження на 500 мс; під час перемикання контексту та закриття вікна виконується примусовий запис на диск.
 
-## Prompt Node 编排（v0.7.19）
-- 节点布局模型：
+## Упорядкування Prompt Node（v0.7.19）
+- Модель компонування вузлів:
   - `RimChat/Config/PromptUnifiedCatalog.cs`
   - `PromptUnifiedNodeLayoutConfig`（`NodeId/Slot/Order/Enabled`）
-  - `PromptUnifiedNodeSlot`（5 固定槽位）
-- 节点 schema 与显示名：
+  - `PromptUnifiedNodeSlot`（5 фіксованих слотів）
+- Схема вузлів і відображуване ім’я:
   - `RimChat/Config/PromptUnifiedNodeSchemaCatalog.cs`
-- 运行时槽位注入器：
+- Інжектор слотів під час виконання:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - 外交 / RPG / 策略三链统一按布局注入节点。
-- 工作台节点编排 UI：
+  - Дипломатія / RPG / три стратегічні ланцюги узгоджено додають вузли відповідно до макета.
+- Компонування вузлів робочого столу UI:
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
-  - 槽位分组列表、拖拽重排、槽位切换、完整预览落点摘要。
-- 预览与落点模型：
+  - Список груп слотів, зміна порядку перетягуванням, перемикання слотів, повний підсумок точок розміщення в попередньому перегляді.
+- Модель попереднього перегляду та точок розміщення:
   - `RimChat/Persistence/PromptNodePlacementModels.cs`
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
 
-## Prompt Unified 主干
-- 统一存储：
+## Основне ядро Prompt Unified
+- Уніфіковане сховище:
   - `RimChat/Config/PromptUnifiedCatalog.cs`
   - `RimChat/Config/PromptUnifiedCatalogProvider.cs`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
-- 节点 schema：
+- Схема вузла:
   - `RimChat/Config/PromptUnifiedNodeSchemaCatalog.cs`
-- 统一默认节点兜底：
+- Уніфікований резервний варіант для вузлів за замовчуванням:
   - `RimChat/Config/PromptUnifiedDefaults.cs`
 
-## 运行时拼装
-- 外交/RPG/策略主拼装入口：
+## Монтаж під час виконання
+- Дипломатія/RPG/основна точка складання стратегій:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
   - `RimChat/Persistence/PromptPersistenceService.SectionAggregates.cs`
-- 对外入口（签名保持）：
+- Зовнішня точка входу (сигнатура зберігається):
   - `BuildFullSystemPrompt(...)`
   - `BuildDiplomacyStrategySystemPrompt(...)`
   - `BuildRPGFullSystemPrompt(...)`
 
-## 工作台与编辑
-- Prompt 工作台（Section + Node）：
+## Робоча панель та редагування
+- Робоча панель промптів (Section + Node):
   - `RimChat/Config/RimChatSettings_PromptSectionWorkspace.cs`
-  - `PersistPromptWorkspaceBufferNow(..., persistToDisk:true)` 仅在实质文本变更时同步 preset payload；无改动保存静默成功。
-- 通道/分段 schema：
+  - `PersistPromptWorkspaceBufferNow(..., persistToDisk:true)` синхронізує preset payload лише за умови фактичної зміни тексту; збереження без змін завершується безшумно й успішно.
+- Схема каналів/сегментів:
   - `RimChat/Config/PromptSectionSchemaCatalog.cs`
   - `RimChat/Config/RimTalkPromptEntryChannelCatalog.cs`
 
-## 兼容迁移
-- 旧配置桥接与映射：
+## Міграція сумісності
+- Адаптація та мапування старих конфігурацій:
   - `RimChat/Config/RimChatSettings_RimTalkCompat.cs`
   - `RimChat/Config/PromptLegacyCompatMigration.cs`
-- 迁移策略：
-  - 首次加载将 legacy prompt section/template 映射到 unified catalog；
-  - 迁移完成后运行时只读 unified catalog。
+- Стратегія міграції:
+  - Під час першого завантаження legacy prompt section/template зіставляються з unified catalog;
+  - Після завершення міграції під час виконання виконується лише читання unified catalog.
 
-## 社交链路
-- 社交新闻提示词构建：
+## Соціальний ланцюжок
+- Побудова промптів соціальних новин:
   - `RimChat/DiplomacySystem/Social/SocialNewsPromptBuilder.cs`
-  - 统一从 unified node 读取 `social_news_*` 模板。
+  - Шаблони `social_news_*` уніфіковано зчитуються з unified node.
 
-## Prompt 域链路隔离与自愈（v0.7.24）
-- 运行时与预览构建隔离：
+## Ізоляція та самовідновлення ланцюжка домену промптів (v0.7.24)
+- Ізоляція виконання та побудови попереднього перегляду:
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - `BuildUnifiedChannelSystemPrompt(...)` 新增 `deterministicPreview` 参数，运行时入口固定 `false`，工作台预览保持 `true`。
-- 域装配语义校验升级：
+  - `BuildUnifiedChannelSystemPrompt(...)` додає параметр `deterministicPreview`, точка входу виконання фіксована як `false`, а попередній перегляд у робочій області зберігає `true`.
+- Оновлення семантичної перевірки складання домену:
   - `RimChat/Persistence/PromptPersistenceService.DomainStorage.cs`
-  - `TryLoadPromptDomains(...)` 新增语义校验：外交动作全集、`ResponseFormat.JsonTemplate`、关键节点模板（`api_limits/quest_guidance/response_contract`）缺失即判坏。
-  - default-only 路径新增“聚合重建”回路：直接分域装配失败时，改走 default-only 聚合 JSON 重建并再次校验。
-- 动作源单一化：
+  - `TryLoadPromptDomains(...)` Додано семантичну перевірку: повний набір дипломатичних дій, `ResponseFormat.JsonTemplate` і шаблон ключових вузлів (`api_limits/quest_guidance/response_contract`) — відсутність будь-якого з них означає помилку.
+  - До шляху лише за замовчуванням додано цикл «агрегативної перебудови»: якщо безпосереднє складання за доменами не вдається, виконується перебудова через агрегований JSON лише за замовчуванням із повторною перевіркою.
+- Уніфікація джерела дій:
   - `RimChat/Persistence/PromptPersistenceService.DomainStorage.cs`
-  - `ApiActions` 仅来自外交域，不再合并社交 `PublishPublicPostAction`。
-- 默认回退路径净化：
+  - `ApiActions` надходить лише з дипломатичного домену; більше не об’єднується із соціальним `PublishPublicPostAction`.
+- Очищення шляху відкату за замовчуванням:
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - `CreateDefaultConfig()` 改为严格 default-only 读取（不读 custom）；移除 legacy `InitializeDefaults()` 最小配置回退。
+  - `CreateDefaultConfig()` змінено на суворе читання лише за замовчуванням (без читання custom); вилучено мінімальний відкат конфігурації legacy `InitializeDefaults()`.
   - `RimChat/Persistence/PromptDomainFileCatalog.cs`
-  - 路径解析新增根目录归一化：若 `LoadedMod` 根落在 `.../1.6` 子目录，将自动回退到真实 mod 根目录（含 `Prompt/Default` 的目录）。
+  - До розбору шляхів додано нормалізацію кореневого каталогу: якщо корінь `LoadedMod` розташований у підкаталозі `.../1.6`, автоматично виконується відкат до справжнього кореня моду (каталогу, що містить `Prompt/Default`).
   - `RimChat/Persistence/PromptDomainJsonUtility.cs`
-  - default domain JSON 读取改为反射反序列化优先（`ReflectionJsonFieldDeserializer`），避免 `JsonUtility` 静默吞字段。
-- 启动自愈与迁移追踪：
+  - Читання JSON домену за замовчуванням змінено на пріоритетну рефлексивну десеріалізацію (`ReflectionJsonFieldDeserializer`), щоб уникнути тихого поглинання полів через `JsonUtility`.
+- Відстеження самовідновлення та міграції під час запуску:
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - 检测坏 custom 且 default-only 可用时：先备份 `Prompt/Custom/_backup/<timestamp>`，再用默认配置重建并写回；日志记录回退来源与修复摘要。
-  - 若 default-only 语义也失败：存在缓存则保留缓存并阻断 auto-heal 写回；无缓存则 fail-fast 抛 `PromptRenderException`。
-- 新增域版本锚点：
+  - Якщо виявлено пошкоджений custom, а лише конфігурація за замовчуванням доступна: спочатку створюється резервна копія `Prompt/Custom/_backup/<timestamp>`, потім конфігурація за замовчуванням перебудовується та записується назад; у журналі фіксуються джерело відкату й підсумок виправлення.
+  - Якщо семантика лише default-only також не спрацьовує: за наявності кешу зберегти кеш і заблокувати запис auto-heal; за відсутності кешу — негайно завершити виконання з помилкою `PromptRenderException`.
+- Додано якір версії домену:
   - `RimChat/Persistence/PromptDomainPayloads.cs`
-  - `SystemPromptDomainConfig.PromptDomainSchemaVersion`（单锚点，当前 `1`）。
-- 运行期 fail-fast：
+  - `SystemPromptDomainConfig.PromptDomainSchemaVersion` (єдиний якір, поточний `1`).
+- Негайне завершення виконання з помилкою під час роботи:
   - `RimChat/Persistence/PromptPersistenceService.cs`
   - `RimChat/Persistence/PromptPersistenceService.WorkbenchComposer.cs`
-  - 关键 runtime 节点为空或 `ResponseFormat.JsonTemplate` 为空时抛 `PromptRenderException`，阻断请求，禁止静默降级。
+  - Якщо критичний вузол runtime порожній або `ResponseFormat.JsonTemplate` порожній, викинути `PromptRenderException`, заблокувати запит і заборонити тихе зниження функціональності.
 
-## 文本完整性治理（v0.7.48）
-- 可见对白乱码/碎片检测（外交 + RPG）：
+## Керування цілісністю тексту (v0.7.48)
+- Виявлення спотворених/фрагментованих видимих реплік (дипломатія + RPG):
   - `RimChat/AI/TextIntegrityGuard.cs`
   - `RimChat/AI/AIChatServiceAsync.cs`
-  - 请求链在 `ImmersionOutputGuard` 之后追加文本完整性检测；命中后同链路重试 1 次，仍失败则回退本地沉浸兜底文本。
-- 摘要入库净化与修复：
+  - Після `ImmersionOutputGuard` до ланцюжка запитів додається перевірка цілісності тексту; у разі спрацювання повторити спробу 1 раз у тому самому ланцюжку, а якщо знову не вдасться — повернутися до локального імерсивного запасного тексту.
+- Очищення та виправлення резюме перед збереженням:
   - `RimChat/Memory/LeaderMemoryManager.SummaryIntegrity.cs`
   - `RimChat/Memory/LeaderMemoryManager.cs`
-  - 所有 summary upsert 在入库前统一净化与异常判定；异常触发一次修复请求，修复失败则丢弃并记录结构化告警日志。
-- Faction 风格变量注入：
+  - Усі summary upsert перед записом до сховища уніфіковано очищуються та перевіряються на аномалії; у разі аномалії один раз надсилається запит на виправлення, а якщо виправлення не вдалося — дані відкидаються, а в журналі записується структуроване попередження.
+- Ін’єкція змінних стилю Faction:
   - `RimChat/Persistence/PromptPersistenceService.Hierarchical.cs`
-  - Faction Prompt 文本检测到 Scriban 占位符时按 strict 模式渲染，并注入 `world.faction_settlement_summary` 与 settlement 子变量（派系长期据点/基地视图，而非临时事件地图）。
+  - Якщо в тексті Faction Prompt виявлено заповнювач Scriban, його рендериться в режимі strict, а також ін’єктуються `world.faction_settlement_summary` і підзмінні settlement (подання довготривалого опорного пункту/бази фракції, а не тимчасової мапи події).
 
-## 外交动作注入修复（v0.7.49）
-- 症状与根因：
-  - `request_raid_call_everyone` 与 `request_raid_waves` 在运行期动作目录缺失。
-  - 根因是默认外交域文件 `Prompt/Default/DiplomacyDialoguePrompt_Default.json` 未包含这两个动作，且用户 custom 域可能覆盖默认数组。
-- 修复点：
+## Виправлення ін’єкції дипломатичних дій (v0.7.49)
+- Симптоми та першопричина:
+  - `request_raid_call_everyone` і `request_raid_waves` відсутні в каталозі дій під час виконання.
+  - Першопричина полягає в тому, що стандартний файл дипломатичного домену `Prompt/Default/DiplomacyDialoguePrompt_Default.json` не містить цих двох дій, а користувацький домен custom може замінювати стандартний масив.
+- Виправлення:
   - `RimChat/Persistence/PromptPersistenceService.DomainStorage.cs`
-  - 在 `BuildApiActions(...)` 增加必需袭击变体动作补齐逻辑（仅补齐缺失项，不覆盖已有配置）。
+  - У `BuildApiActions(...)` додано логіку доповнення обов’язковими варіантами дій для рейду (додаються лише відсутні елементи, наявна конфігурація не перезаписується).
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - `BuildCompactActionParameterHint(...)` 增加 `request_raid_waves` 参数签名 `waves(2-6)`，避免动作目录参数语义丢失。
+  - До `BuildCompactActionParameterHint(...)` додано сигнатуру параметрів `request_raid_waves` `waves(2-6)`, щоб уникнути втрати семантики параметрів каталогу дій.
   - `Prompt/Default/DiplomacyDialoguePrompt_Default.json`
-  - 默认外交域补充 `request_raid_call_everyone` / `request_raid_waves` 动作定义。
+  - Доповнити стандартні визначення дій дипломатичної області `request_raid_call_everyone` / `request_raid_waves`.
 
-## 日志观测本局统计与分页（v0.9.51）
-- 目标：
-  - 在日志观测趋势区右侧新增“本局统计”面板，仅显示 3 个均值指标。
-  - 记录列表改为“本次游戏进程完整记录 + 分页浏览”，不再按最近 30 分钟裁剪列表数据。
-- 关键实现：
+## Статистика цього проходження та пагінація в журналі спостережень (v0.9.51)
+- Мета:
+  - Праворуч від області тенденцій у журналі спостережень додати панель «Статистика цього проходження», що відображає лише 3 середні показники.
+  - Список записів змінити на «повний список записів поточного ігрового процесу + перегляд із пагінацією»; більше не обрізати дані списку до останніх 30 хвилин.
+- Ключова реалізація:
   - `RimChat/AI/AIRequestDebugModels.cs`
-  - `AIRequestDebugSnapshot` 新增 `SessionSummary`（`AIRequestDebugSessionSummary`）。
+  - `AIRequestDebugSnapshot` додати `SessionSummary`（`AIRequestDebugSessionSummary`）。
   - `RimChat/AI/AIChatServiceAsync.DebugTelemetry.cs`
-  - `BuildRequestDebugSnapshot(...)` 返回全量 session `Records`；趋势桶与顶部汇总仍按最近 30 分钟。
-  - 新增 session 聚合：`AverageRequestsPerMinute`、`AverageTokensPerMinute`、`AverageTokensPerRequest`。
+  - `BuildRequestDebugSnapshot(...)` повертати всі session `Records`; кошики тенденцій і верхній підсумок усе ще розраховуються за останні 30 хвилин.
+  - Додати агрегацію session: `AverageRequestsPerMinute`、`AverageTokensPerMinute`、`AverageTokensPerRequest`。
   - `RimChat/UI/Dialog_ApiDebugObservability.cs`
-  - 趋势区拆分为左侧趋势图 + 右侧本局统计面板；列表新增分页控件（首页/上一页/下一页/末页）。
-  - 每页条数按可视区域动态计算（`floor(listHeight / RowHeight)`，最小 1）。
-- 本地化：
-  - 新增中英文语言键：本局统计 3 项、分页按钮、页码信息。
+  - Розділити область тенденцій на графік тенденцій ліворуч і панель статистики цього проходження праворуч; до списку додати елементи керування пагінацією (перша/попередня/наступна/остання сторінка).
+  - Кількість записів на сторінці динамічно обчислюється за видимою областю（`floor(listHeight / RowHeight)`，мінімум 1）。
+- Локалізація:
+  - Додано мовні ключі українською та англійською: 3 пункти статистики поточної гри, кнопки пагінації, інформація про номер сторінки.
 
-## 外交在线状态强制时长重构（v0.9.88）
-- 目标：
-  - `go_offline` 固定强制离线 `2` 小时。
-  - `set_dnd` 固定强制免打扰 `4` 小时。
-  - 强制态到期后立即恢复 `Online`，不再先回到排班判定。
-- 关键实现：
+## Реструктуризація примусової тривалості онлайн-статусу дипломатії（v0.9.88）
+- Мета:
+  - `go_offline` фіксовано примусово переводити в офлайн-режим на `2` годин.
+  - `set_dnd` фіксовано примусово вмикати режим «Не турбувати» на `4` годин.
+  - Після завершення примусового стану негайно відновлювати `Online`, більше не повертаючись спочатку до перевірки розкладу.
+- Ключова реалізація:
   - `RimChat/DiplomacySystem/GameComponent_DiplomacyManager.cs`
-  - 新增固定时长常量 `ForcedOfflineDurationHours=2`、`ForcedDoNotDisturbDurationHours=4`。
-  - `GetPresenceForcedOfflineTicks()` / `GetPresenceDoNotDisturbTicks()` 改为固定小时换算，不再读取 `PresenceForcedOfflineHours`。
-  - `RefreshPresenceOnDialogueOpen(...)` 新增到期直达在线分支：到期后清空 `forcedOfflineUntilTick/doNotDisturbUntilTick`，立即设为 `Online` 并刷新 cache。
-  - 新增 `EnforcePresenceForcedDurationCaps(...)`：旧存档长计时在刷新时按“当前 tick + 新上限”即时截断。
-- 配置与文案：
+  - Додано константи фіксованої тривалості `ForcedOfflineDurationHours=2` і `ForcedDoNotDisturbDurationHours=4`.
+  - `GetPresenceForcedOfflineTicks()` / `GetPresenceDoNotDisturbTicks()` тепер конвертуються за фіксованою кількістю годин і більше не зчитують `PresenceForcedOfflineHours`.
+  - Для `RefreshPresenceOnDialogueOpen(...)` додано гілку прямого переходу в онлайн-режим після завершення: після завершення очищати `forcedOfflineUntilTick/doNotDisturbUntilTick`, негайно встановлювати `Online` і оновлювати кеш.
+  - Додано `EnforcePresenceForcedDurationCaps(...)`: під час оновлення тривалі таймери зі старих збережень негайно обрізаються до «поточного ті́ка + нового ліміту».
+- Конфігурація та тексти:
   - `RimChat/Config/RimChatSettings_AI.cs`
   - `1.6/Languages/ChineseSimplified/Keyed/RimChat_Keys.xml`
   - `1.6/Languages/English/Keyed/RimChat_Keys.xml`
-  - 保留 `PresenceForcedOfflineHours` 滑条，但文案明确其不再影响 `go_offline/set_dnd` 强制时长。
+  - Зберегти повзунок `PresenceForcedOfflineHours`, але чітко зазначити в тексті, що він більше не впливає на примусову тривалість `go_offline/set_dnd`.

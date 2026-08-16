@@ -1,24 +1,24 @@
-\### 核心开发规范 项目名：RimChat：Word to Action/RimChat：言行联动/RimChat
+\### Основні правила розробки Проєкт: RimChat: Word to Action/RimChat: Взаємодія слів і дій/RimChat
 
-1\. \*\*代码架构\*\*
+1\. \*\*Архітектура коду\*\*
 
-   - 模块化拆分UI为独立组件，分离UI表现与业务逻辑，降低单文件复杂度。
+   - Розділити інтерфейс на незалежні компоненти, відокремити його відображення від бізнес-логіки та зменшити складність окремих файлів.
 
-   - \*\*禁止“上帝类”\*\*：单文件超150KB、职责不清（混合UI/业务/数据/状态）、高耦合、大量静态字段存UI状态均不允许。
+   - **Заборонено «божественні класи»**: файли понад 150 КБ, нечітка відповідальність (змішування UI/бізнес-логіки/даних/стану), висока зв’язаність і зберігання стану UI у великій кількості статичних полів не допускаються.
 
-   - \*\*硬阈值\*\*：单文件<800行，单函数<30行，嵌套<3层，分支<3个。
+   - **Жорсткі пороги**: один файл <800 рядків, одна функція <30 рядків, вкладеність <3 рівнів, гілок <3.
 
-   - 确保power shell使用UTF-8编码格式
+   - Переконайтеся, що PowerShell використовує кодування UTF-8.
 
-   - 使用英文注释
+   - Використовувати коментарі англійською
 
-   - 提示词构建，做到可维护/可本地化：把文本移到配置或模板文件，再做占位符渲染。
+   - Створюйте промпти з урахуванням супроводжуваності та локалізації: переносьте текст у конфігураційні або шаблонні файли, а потім виконуйте рендеринг заповнювачів.
 
-   - 努力争取全局最优而不是局部最优
+   - Прагніть до глобального оптимуму, а не до локального
 
-2\. \*\*工具与参考\*\*
+2\. **Інструменти та довідкові матеріали**
 
-   - 以下文件夹内容仅作参考，不属于本项目。
+   - Вміст наведених нижче папок наведено лише для довідки й не належить до цього проєкту.
 
    - RimTalk-main
 
@@ -26,161 +26,161 @@
 
    - VanillaExpandedFramework-220226
 
-3\. \*\*文档维护\*\*
+3\. **Супровід документації**
 
-   - \*\*README.md\*\*：检索优先权重，需清晰描述项目模块划分，生成全局地图、各模块成员清单与接口说明，每个文件头部声明依赖和职责；每次代码变更后强制回环检查文件头依 赖、更新模块文档。
+   - \*\*README.md\*\*：вага пріоритету пошуку; потрібно чітко описати поділ проєкту на модулі, згенерувати глобальну карту, перелік учасників кожного модуля та опис інтерфейсів; у заголовку кожного файлу зазначати залежності й призначення; після кожної зміни коду примусово виконувати повторну перевірку залежностей у заголовках файлів і оновлювати документацію модулів.
 
-   - \*\*Api.md\*\*：程序开发接口文档，开发者根据文档辅助编写代码。
+   - \*\*Api.md\*\*：документація до програмного інтерфейсу розробки, за якою розробники можуть допоміжно писати код.
 
-   - \*\*config.md\*\*：外部配置说明文档，提供用户自定义设置选项。
+   - \*\*config.md\*\*：зовнішня документація щодо конфігурації, що надає користувачам параметри для власних налаштувань.
 
-   - \*\*VersionLog.txt\*\*：检索优先权重，每次版本更新时添加更新内容。
+   - \*\*VersionLog.txt\*\*：вага пріоритету пошуку; оновлений вміст додається під час кожного оновлення версії.
 
-4\. \*\*版本与适配\*\*
+4\. **Версії та сумісність**
 
-   - 版本号格式为x.y.z（主/次/修订），每次build前必须升级。禁止删减旧版本号和内容。
+   - Формат номера версії — x.y.z (мажорна/мінорна/виправна), його потрібно підвищувати перед кожною збіркою. Не видаляйте старі номери версій або їхній вміст.
 
-   - 同步维护这两个版本日志: VersionLog\_en.txt, VersionLog.txt
+   - Журнал синхронного обслуговування цих двох версій: VersionLog\_en.txt, VersionLog.txt
 
-   - 新功能涉及UI显示需做语言键适配！禁止硬编码UI文本！
+   - Для відображення нового функціоналу в інтерфейсі потрібно додати мовні ключі! Заборонено жорстко кодувати текст інтерфейсу!
 
-   - 修改已有Def必须用PatchOperation。
+   - Для змінення наявного Def обов’язково використовуйте PatchOperation.
 
-   - Harmony Patch 需谨慎：在对基类（如 `Window`）进行 Patch 时，目标过滤逻辑必须极其严密。
+   - Патч Harmony потребує обережності: під час внесення патчів до базового класу (наприклад, `Window`) логіка фільтрації цілей має бути надзвичайно суворою.
 
-5\. \*\*测试与环境\*\*
+5\. **Тестування та середовище**
 
-   - 项目实际运行测试地址：E:\SteamLibrary\steamapps\common\RimWorld\Mods\RimDiplomacy
+   - Фактична адреса для тестування роботи проєкту:E:\SteamLibrary\steamapps\common\RimWorld\Mods\RimDiplomacy
 
-   - build流程为运行build.ps1,直到修复报错
+   - Процес збірки: запускайте build.ps1, доки помилки не буде виправлено.
 
-   - 项目环境为Rimworld 1.6,.net4.8,注意Harmony Patch相关问题。
+   - Середовище проєкту — Rimworld 1.6,.net4.8, зверніть увагу на проблеми, пов’язані з патчами Harmony.
 
-6\. \*\*开发决策与限制\*\*
+6\. **Рішення та обмеження розробки**
 
-   - 模糊/难实现的开发方向，优先向用户提问。
+   - Розмиті або складні для реалізації напрямки розробки — спочатку поставте запитання користувачеві.
 
-   - 难修复的bug，禁止阉割功能，优先向用户提问。
+   - Важко виправити баг — не урізайте функціональність, спершу поставте запитання користувачеві.
 
-   - \*\*禁止修改游戏本体\*\*：包括直接修改源文件、资源文件、配置文件。
+   - **ЗАБОРОНЕНО змінювати файли самої гри**: зокрема безпосередньо змінювати файли вихідного коду, ресурсів і конфігурації.
 
-   - mod兼容性高，不会导致游戏崩溃或数据丢失是底线。
+   - Висока сумісність мода є обов’язковою умовою: він не має спричиняти аварійного завершення гри чи втрати даних.
 
-   - xml语言文件注意转义字符问题!
+   - У мовних XML-файлах звертайте увагу на проблеми з escape-символами!
 
-   - 你是一名专业的边缘世界unity mod开发者。
+   - Ви професійний розробник модифікацій Unity для RimWorld.
 
-   - 实时维护多语言系统
+   - Підтримка багатомовної системи в реальному часі
 
-   - 一定要考虑存档兼容
+   - Обов’язково врахуйте сумісність із збереженнями
 
-7\. \*\*回答前置\*\* ​【非常重要】
+7\. \*\*Уточнення перед відповіддю\*\* ​【Надзвичайно важливо】
 
-   - 请你在回答前，先向用户提出详细的差异化的问题。​
+   - Перш ніж відповісти, поставте користувачеві детальні уточнювальні запитання щодо відмінностей.
 
-   - 要求:​
+   - Вимога:
 
-   - 根据我的回答，有必要则继续追问。​
+   - Залежно від моєї відповіді, за потреби продовжуй ставити запитання.​
 
-   - 直到你有90%的信心理解我的真实需求和目标。​
+   - Поки ти не матимеш 90% упевненості, що розумієш мої справжні потреби й цілі.​
 
-   - 然后才给出方案并实施。
+   - Лише після цього запропонуйте план і втільте його в життя.
 
 <!-- gitnexus:start -->
 
-# GitNexus — Code Intelligence
+# GitNexus — Інтелектуальний аналіз коду
 
-This project is indexed by GitNexus as **RimChat** (5385 symbols, 14758 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+Цей проєкт проіндексовано GitNexus як **RimChat** (5385 символів, 14758 зв’язків, 300 потоків виконання). Використовуйте інструменти GitNexus MCP, щоб зрозуміти код, оцінити вплив і безпечно здійснювати навігацію.
 
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+> Якщо будь-який інструмент GitNexus попереджає, що індекс застарів, спочатку виконайте `npx gitnexus analyze` у терміналі.
 
 ## Always Do
 
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run** **`gitnexus_detect_changes()`** **before committing** to verify your changes only affect expected symbols and execution flows.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+- **MUST запускайте аналіз впливу перед редагуванням будь-якого символу.** Перед зміною функції, класу або методу запустіть `gitnexus_impact({target: "symbolName", direction: "upstream"})` і повідомте користувачеві масштаб впливу (безпосередні виклики, зачеплені процеси, рівень ризику).
+- **MUST запускайте** **`gitnexus_detect_changes()`** **перед фіксацією змін**, щоб перевірити, що ваші зміни впливають лише на очікувані символи та потоки виконання.
+- **MUST попередьте користувача**, якщо аналіз впливу повертає ризик HIGH або CRITICAL, перш ніж продовжувати редагування.
+- Досліджуючи незнайомий код, використовуйте `gitnexus_query({query: "concept"})`, щоб знаходити потоки виконання, замість grep. Він повертає результати, згруповані за процесами й упорядковані за релевантністю.
+- Коли потрібен повний контекст певного символу — викликачі, викликані елементи та потоки виконання, у яких він бере участь, — використовуйте `gitnexus_context({name: "symbolName"})`.
 
-## When Debugging
+## Налагодження
 
-1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
-2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/RimChat/process/{processName}` — trace the full execution flow step by step
-4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
+1. `gitnexus_query({query: "<error or symptom>"})` — знайти потоки виконання, пов’язані з проблемою
+2. `gitnexus_context({name: "<suspect function>"})` — переглянути всіх викликачів, викликані елементи та участь у процесах
+3. `READ gitnexus://repo/RimChat/process/{processName}` — покроково простежити повний потік виконання
+4. Для регресій: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — переглянути зміни, внесені вашою гілкою
 
-## When Refactoring
+## Рефакторинг
 
-- **Renaming**: MUST use `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` first. Review the preview — graph edits are safe, text\_search edits need manual review. Then run with `dry_run: false`.
-- **Extracting/Splitting**: MUST run `gitnexus_context({name: "target"})` to see all incoming/outgoing refs, then `gitnexus_impact({target: "target", direction: "upstream"})` to find all external callers before moving code.
-- After any refactor: run `gitnexus_detect_changes({scope: "all"})` to verify only expected files changed.
+- **Перейменування**: спочатку MUST використовуйте `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})`. Перегляньте попередній перегляд — зміни графа безпечні, зміни text\_search потребують ручної перевірки. Потім запустіть із `dry_run: false`.
+- **Виокремлення/розділення**: MUST запустіть `gitnexus_context({name: "target"})`, щоб переглянути всі вхідні/вихідні посилання, а потім `gitnexus_impact({target: "target", direction: "upstream"})`, щоб знайти всіх зовнішніх викликачів перед переміщенням коду.
+- Після будь-якого рефакторингу запустіть `gitnexus_detect_changes({scope: "all"})`, щоб переконатися, що змінилися лише очікувані файли.
 
 ## Never Do
 
-- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
-- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+- NEVER редагуйте функцію, клас або метод, не запустивши спочатку для нього `gitnexus_impact`.
+- NEVER ігноруйте попередження про ризики HIGH або CRITICAL з аналізу впливу.
+- NEVER перейменовуйте символи за допомогою пошуку й заміни — використовуйте `gitnexus_rename`, який розуміє граф викликів.
+- NEVER фіксуйте зміни без запуску `gitnexus_detect_changes()` для перевірки зачепленої області.
 
-## Tools Quick Reference
+## Короткий довідник інструментів
 
-| Tool             | When to use                   | Command                                                                 |
+| Інструмент       | Коли використовувати         | Команда                                                                |
 | ---------------- | ----------------------------- | ----------------------------------------------------------------------- |
-| `query`          | Find code by concept          | `gitnexus_query({query: "auth validation"})`                            |
-| `context`        | 360-degree view of one symbol | `gitnexus_context({name: "validateUser"})`                              |
-| `impact`         | Blast radius before editing   | `gitnexus_impact({target: "X", direction: "upstream"})`                 |
-| `detect_changes` | Pre-commit scope check        | `gitnexus_detect_changes({scope: "staged"})`                            |
-| `rename`         | Safe multi-file rename        | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
-| `cypher`         | Custom graph queries          | `gitnexus_cypher({query: "MATCH ..."})`                                 |
+| `query`          | Пошук коду за концепцією          | `gitnexus_query({query: "auth validation"})`                            |
+| `context`        | Огляд одного символу на 360° | `gitnexus_context({name: "validateUser"})`                              |
+| `impact`         | Радіус впливу перед редагуванням   | `gitnexus_impact({target: "X", direction: "upstream"})`                 |
+| `detect_changes` | Перевірка області змін перед комітом        | `gitnexus_detect_changes({scope: "staged"})`                            |
+| `rename`         | Безпечне перейменування в кількох файлах        | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
+| `cypher`         | Користувацькі запити до графа          | `gitnexus_cypher({query: "MATCH ..."})`                                 |
 
-## Impact Risk Levels
+## Рівні ризику впливу
 
-| Depth | Meaning                               | Action                |
+| Глибина | Значення                               | Дія                |
 | ----- | ------------------------------------- | --------------------- |
-| d=1   | WILL BREAK — direct callers/importers | MUST update these     |
-| d=2   | LIKELY AFFECTED — indirect deps       | Should test           |
-| d=3   | MAY NEED TESTING — transitive         | Test if critical path |
+| d=1   | WILL BREAK — прямі викликачі/імпортери | MUST оновити їх     |
+| d=2   | LIKELY AFFECTED — непрямі залежності       | Слід протестувати           |
+| d=3   | MAY NEED TESTING — транзитивні         | Протестувати, якщо це критичний шлях |
 
 ## Resources
 
-| Resource                                 | Use for                                  |
+| Ресурс                                 | Використання                                  |
 | ---------------------------------------- | ---------------------------------------- |
-| `gitnexus://repo/RimChat/context`        | Codebase overview, check index freshness |
-| `gitnexus://repo/RimChat/clusters`       | All functional areas                     |
-| `gitnexus://repo/RimChat/processes`      | All execution flows                      |
-| `gitnexus://repo/RimChat/process/{name}` | Step-by-step execution trace             |
+| `gitnexus://repo/RimChat/context`        | Огляд кодової бази, перевірка актуальності індексу |
+| `gitnexus://repo/RimChat/clusters`       | Усі функціональні області                     |
+| `gitnexus://repo/RimChat/processes`      | Усі потоки виконання                      |
+| `gitnexus://repo/RimChat/process/{name}` | Покрокове відстеження виконання             |
 
-## Self-Check Before Finishing
+## Самоперевірка перед завершенням
 
-Before completing any code modification task, verify:
+Перед завершенням будь-якого завдання зі зміни коду перевірте:
 
-1. `gitnexus_impact` was run for all modified symbols
-2. No HIGH/CRITICAL risk warnings were ignored
-3. `gitnexus_detect_changes()` confirms changes match expected scope
-4. All d=1 (WILL BREAK) dependents were updated
+1. `gitnexus_impact` було виконано для всіх змінених символів
+2. Жодні попередження про ризики HIGH/CRITICAL не було проігноровано
+3. `gitnexus_detect_changes()` підтверджує, що зміни відповідають очікуваному обсягу
+4. Усі залежні елементи d=1 (WILL BREAK) було оновлено
 
-## Keeping the Index Fresh
+## Підтримання актуальності індексу
 
-After committing code changes, the GitNexus index becomes stale. Re-run analyze to update it:
+Після фіксації змін коду індекс GitNexus застаріває. Повторно запустіть analyze, щоб оновити його:
 
 ```bash
 npx gitnexus analyze
 ```
 
-If the index previously included embeddings, preserve them by adding `--embeddings`:
+Якщо індекс раніше містив вбудовування, збережіть їх, додавши `--embeddings`:
 
 ```bash
 npx gitnexus analyze --embeddings
 ```
 
-To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.embeddings` field shows the count (0 means no embeddings). **Running analyze without** **`--embeddings`** **will delete any previously generated embeddings.**
+Щоб перевірити, чи існують вбудовування, перегляньте `.gitnexus/meta.json` — поле `stats.embeddings` показує кількість (0 означає відсутність вбудовувань). **Запуск analyze без** **`--embeddings`** **видалить усі раніше створені вбудовування.**
 
-> Claude Code users: A PostToolUse hook handles this automatically after `git commit` and `git merge`.
+> Користувачі Claude Code: хук PostToolUse автоматично виконує це після `git commit` і `git merge`.
 
 ## CLI
 
-- Re-index: `npx gitnexus analyze`
-- Check freshness: `npx gitnexus status`
-- Generate docs: `npx gitnexus wiki`
+- Повторно індексувати: `npx gitnexus analyze`
+- Перевірити актуальність: `npx gitnexus status`
+- Створити документацію: `npx gitnexus wiki`
 
 <!-- gitnexus:end -->
