@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
-    /// <summary>/// Dependencies: DebugLogger, UnityWebRequest, AIChatServiceAsync shared request state.
- /// Responsibility: local-model queue gating, transient 5xx retry policy, and structured diagnostics.
- ///</summary>
+    /// <summary>
+    /// Dependencies: DebugLogger, AIChatServiceAsync shared request state.
+    /// Responsibility: local-model queue gating, transient 5xx retry policy, and structured diagnostics.
+    /// </summary>
     public partial class AIChatServiceAsync
     {
         private void EnqueueLocalRequest(string requestId)
@@ -299,7 +299,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             int jsonBytes,
             long elapsedMs,
             long httpCode,
-            UnityWebRequest.Result result,
+            string result,
             string stage)
         {
             if (!DebugLogger.LogInternals)

@@ -8,13 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using RimWorld;
 using UnityEngine;
-using UnityEngine.Networking;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Core.AI;
+using Ustas.RimAI.Core.Net;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
@@ -708,54 +708,58 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     }
 
                     var stopwatch = Stopwatch.StartNew();
-                    using (var request = new UnityWebRequest(url, "POST"))
+                    CancellationTokenSource transportCts = new CancellationTokenSource();
+                    RegisterActiveTransportCancellation(requestId, transportCts);
+                    try
                     {
-                        RegisterActiveWebRequest(requestId, request);
                         byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
-                        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                        request.downloadHandler = new DownloadHandlerBuffer();
-                        request.SetRequestHeader("Content-Type", "application/json");
+                        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                         string trimmedApiKey = apiKey?.Trim() ?? string.Empty;
                         if (!isLocalModel || !string.IsNullOrEmpty(trimmedApiKey))
                         {
-                            if (config.Provider == AIProvider.Google)
-                            {
-                                request.SetRequestHeader("Authorization", $"Bearer {trimmedApiKey}");
-                            }
-                            else
-                            {
-                                request.SetRequestHeader("Authorization", $"Bearer {trimmedApiKey}");
-                            }
+                            headers["Authorization"] = $"Bearer {trimmedApiKey}";
                         }
 
-                        // Add provider-specific extra headers (e.g. player2-game-key for Player2)
                         var extraHeaders = config.Provider.GetExtraHeaders();
                         if (extraHeaders != null)
                         {
                             foreach (var header in extraHeaders)
                             {
-                                request.SetRequestHeader(header.Key, header.Value);
+                                headers[header.Key] = header.Value;
                             }
                         }
-                        request.timeout = requestTimeoutSeconds;
 
-                        var operation = request.SendWebRequest();
+                        Task<HttpTransportResponse> sendTask = SharedHttpTransport.Current.SendAsync(
+                            new HttpTransportRequest
+                            {
+                                Method = "POST",
+                                Url = url,
+                                Headers = headers,
+                                BodyBytes = bodyRaw,
+                                ContentType = "application/json",
+                                TimeoutMilliseconds = Math.Max(1, requestTimeoutSeconds) * 1000,
+                                CorrelationId = requestId,
+                                OnBytesReceived = bytes =>
+                                {
+                                    if (bytes > 0)
+                                    {
+                                        RecordRequestFirstResponseByte(requestId);
+                                    }
+                                }
+                            },
+                            cancellationToken: transportCts.Token);
                         float progress = 0f;
 
-                        while (!operation.isDone)
+                        while (!sendTask.IsCompleted)
                         {
                             progress = Mathf.Min(progress + 0.02f, 0.9f);
                             UpdateRequestProgress(requestId, progress);
                             ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onProgress?.Invoke(progress));
-                            if (request.downloadedBytes > 0)
-                            {
-                                RecordRequestFirstResponseByte(requestId);
-                            }
                             yield return new WaitForSeconds(0.1f);
 
                             if (!IsContextVersionCurrent(requestContextVersion))
                             {
-                                request.Abort();
+                                transportCts.Cancel();
                                 MarkRequestAsDroppedByContext(requestId);
                                 debugStatus = AIRequestDebugStatus.Cancelled;
                                 debugErrorText = "Request dropped due to game context change";
@@ -768,7 +772,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                     out string activeMessage,
                                     out bool allowActiveCallback))
                             {
-                                request.Abort();
+                                transportCts.Cancel();
                                 if (allowActiveCallback)
                                 {
                                     ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(activeMessage));
@@ -780,6 +784,20 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 debugErrorText = activeMessage ?? string.Empty;
                                 yield break;
                             }
+                        }
+
+                        HttpTransportResponse http;
+                        try
+                        {
+                            http = sendTask.GetAwaiter().GetResult();
+                        }
+                        catch (Exception ex)
+                        {
+                            http = HttpTransportResponse.Fail(
+                                HttpTransportErrorKind.NetworkFailure,
+                                ex.Message,
+                                SharedHttpTransport.Current.Kind,
+                                correlationId: requestId);
                         }
 
                         stopwatch.Stop();
@@ -796,12 +814,12 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             attemptMessages.Count,
                             jsonBytes,
                             stopwatch.ElapsedMilliseconds,
-                            request.responseCode,
-                            request.result,
+                            http.StatusCode,
+                            http.ErrorKind.ToString(),
                             "completed");
-                        debugHttpCode = request.responseCode;
-                        RecordRequestHttpStatus(requestId, request.responseCode);
-                        if (request.downloadedBytes > 0)
+                        debugHttpCode = http.StatusCode;
+                        RecordRequestHttpStatus(requestId, http.StatusCode);
+                        if (http.BytesReceived > 0)
                         {
                             RecordRequestFirstResponseByte(requestId);
                         }
@@ -824,9 +842,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             yield break;
                         }
 
-                        if (request.result == UnityWebRequest.Result.ConnectionError)
+                        if (http.ErrorKind == HttpTransportErrorKind.NetworkFailure || http.TimedOut)
                         {
-                            if (ShouldRetryLocalConnectionError(isLocalModel, debugSource, request.error, localConnectionRetryCount))
+                            if (ShouldRetryLocalConnectionError(isLocalModel, debugSource, http.ErrorMessage, localConnectionRetryCount))
                             {
                                 localConnectionRetryCount++;
                                 float retryDelaySeconds = GetLocalConnectionRetryDelaySeconds(localConnectionRetryCount);
@@ -834,7 +852,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                     requestId,
                                     attempt,
                                     attempt + 1,
-                                    request.error,
+                                    http.ErrorMessage,
                                     retryDelaySeconds);
                                 yield return new WaitForSeconds(retryDelaySeconds);
                                 attempt++;
@@ -844,27 +862,27 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             string errorMsg = isLocalModel
                                 ? "RimChat_ErrorConnectionLocal".Translate()
                                 : "RimChat_ErrorConnectionCloud".Translate();
-                            if (LooksLikeTimeoutError(request.error))
+                            if (LooksLikeTimeoutError(http.ErrorMessage))
                             {
                                 errorMsg = "RimChat_ErrorTimeout".Translate();
                             }
                             lock (lockObject)
                             {
-                                SetRequestFailureLockless(requestId, errorMsg, LooksLikeTimeoutError(request.error) ? "timeout" : "connection_error");
+                                SetRequestFailureLockless(requestId, errorMsg, LooksLikeTimeoutError(http.ErrorMessage) ? "timeout" : "connection_error");
                             }
                             ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
-                            debugHttpCode = request.responseCode;
-                            debugResponseText = request.error ?? string.Empty;
+                            debugHttpCode = http.StatusCode;
+                            debugResponseText = http.ErrorMessage ?? string.Empty;
                             debugErrorText = errorMsg ?? string.Empty;
                             yield break;
                         }
 
-                        if (request.result == UnityWebRequest.Result.ProtocolError)
+                        if (http.ErrorKind == HttpTransportErrorKind.HttpFailure)
                         {
-                            string responseBody = request.downloadHandler?.text ?? string.Empty;
+                            string responseBody = http.BodyText ?? string.Empty;
 
-                            if (ShouldRetryLocalServerError(isLocalModel, request.responseCode, local5xxRetryCount))
+                            if (ShouldRetryLocalServerError(isLocalModel, http.StatusCode, local5xxRetryCount))
                             {
                                 local5xxRetryCount++;
                                 float retryDelaySeconds = GetLocalServerRetryDelaySeconds(local5xxRetryCount);
@@ -872,7 +890,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                     requestId,
                                     attempt,
                                     attempt + 1,
-                                    request.responseCode,
+                                    http.StatusCode,
                                     retryDelaySeconds,
                                     responseBody);
                                 yield return new WaitForSeconds(retryDelaySeconds);
@@ -880,20 +898,20 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 continue;
                             }
 
-                            DebugLogger.LogFullMessages(attemptMessages, $"HTTP {request.responseCode} ERROR\n{responseBody}");
+                            DebugLogger.LogFullMessages(attemptMessages, $"HTTP {http.StatusCode} ERROR\n{responseBody}");
                             string errorMsg;
-                            string failureTag = $"http_{request.responseCode}";
+                            string failureTag = $"http_{http.StatusCode}";
                             if (config.Provider == AIProvider.OpenAI)
                             {
-                                OpenAIError openAiError = OpenAIProviderAdapter.ParseError(request.responseCode, responseBody);
+                                OpenAIError openAiError = OpenAIProviderAdapter.ParseError(http.StatusCode, responseBody);
                                 errorMsg = openAiError.ToString();
                                 failureTag = openAiError.Category.ToString().ToLowerInvariant();
                                 DebugLogger.Error($"OpenAI request failed: {errorMsg}");
                             }
                             else
                             {
-                                DebugLogger.Error($"AI API Error (HTTP {request.responseCode}): {request.error}");
-                                errorMsg = FormatProtocolError(request.responseCode, isLocalModel);
+                                DebugLogger.Error($"AI API Error (HTTP {http.StatusCode}): {http.ErrorMessage}");
+                                errorMsg = FormatProtocolError(http.StatusCode, isLocalModel);
                             }
 
                             lock (lockObject)
@@ -902,30 +920,30 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             }
                             ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
-                            debugHttpCode = request.responseCode;
+                            debugHttpCode = http.StatusCode;
                             debugResponseText = responseBody;
                             debugErrorText = errorMsg ?? string.Empty;
                             yield break;
                         }
 
-                        if (request.result == UnityWebRequest.Result.DataProcessingError)
+                        if (http.ErrorKind == HttpTransportErrorKind.InvalidTransportResponse)
                         {
-                            string errorMsg = "RimChat_ErrorDataProcessing".Translate(request.error);
+                            string errorMsg = "RimChat_ErrorDataProcessing".Translate(http.ErrorMessage);
                             lock (lockObject)
                             {
                                 SetRequestFailureLockless(requestId, errorMsg, "data_processing_error");
                             }
                             ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
-                            debugHttpCode = request.responseCode;
-                            debugResponseText = request.error ?? string.Empty;
+                            debugHttpCode = http.StatusCode;
+                            debugResponseText = http.ErrorMessage ?? string.Empty;
                             debugErrorText = errorMsg ?? string.Empty;
                             yield break;
                         }
 
-                        if (request.responseCode == 200)
+                        if (http.StatusCode == 200)
                         {
-                            string responseText = request.downloadHandler?.text;
+                            string responseText = http.BodyText;
 
                             DebugLogger.LogFullMessages(attemptMessages, responseText);
 
@@ -1009,7 +1027,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             UpdateRequestState(requestId, AIRequestState.Completed, response: parsedResponse);
                             ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onSuccess?.Invoke(parsedResponse));
                             debugStatus = AIRequestDebugStatus.Success;
-                            debugHttpCode = request.responseCode;
+                            debugHttpCode = http.StatusCode;
                             debugResponseText = responseText ?? string.Empty;
                             debugParsedResponse = parsedResponse;
                             debugErrorText = string.Empty;
@@ -1017,24 +1035,29 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             yield break;
                         }
 
-                        string fallbackError = $"HTTP {request.responseCode}: {request.error}";
+                        string fallbackError = $"HTTP {http.StatusCode}: {http.ErrorMessage}";
                         lock (lockObject)
                         {
                             SetRequestFailureLockless(requestId, fallbackError, "unexpected_http_error");
                         }
                         ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(fallbackError));
                         debugStatus = AIRequestDebugStatus.Error;
-                        debugHttpCode = request.responseCode;
-                        debugResponseText = request.downloadHandler?.text ?? request.error ?? string.Empty;
+                        debugHttpCode = http.StatusCode;
+                        debugResponseText = http.BodyText ?? http.ErrorMessage ?? string.Empty;
                         debugErrorText = fallbackError;
                         yield break;
+                    }
+                    finally
+                    {
+                        UnregisterActiveTransportCancellation(requestId, transportCts);
+                        transportCts.Dispose();
                     }
 
                 }
             }
             finally
             {
-                UnregisterActiveWebRequest(requestId);
+                UnregisterActiveTransportCancellation(requestId);
 
                 if (isLocalModel)
                 {
@@ -1181,7 +1204,17 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 interactiveLocalRequestQueue.Clear();
                 localRequestQueue.Clear();
                 queuedLocalRequestIds.Clear();
-                activeWebRequests.Clear();
+                foreach (CancellationTokenSource cancellation in activeTransportCancellations.Values)
+                {
+                    try
+                    {
+                        cancellation.Cancel();
+                    }
+                    catch
+                    {
+                    }
+                }
+                activeTransportCancellations.Clear();
                 activeLocalRequestId = null;
             }
 
@@ -2321,7 +2354,17 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 interactiveLocalRequestQueue.Clear();
                 localRequestQueue.Clear();
                 queuedLocalRequestIds.Clear();
-                activeWebRequests.Clear();
+                foreach (CancellationTokenSource cancellation in activeTransportCancellations.Values)
+                {
+                    try
+                    {
+                        cancellation.Cancel();
+                    }
+                    catch
+                    {
+                    }
+                }
+                activeTransportCancellations.Clear();
                 activeLocalRequestId = null;
             }
         }

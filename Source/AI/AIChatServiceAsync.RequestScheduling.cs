@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
-using UnityEngine.Networking;
 using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
-    /// Dependencies: AIChatServiceAsync shared request state and UnityWebRequest abort lifecycle.
+    /// Dependencies: AIChatServiceAsync shared request state and shared HTTP transport cancellation.
     /// Responsibility: track local queue priority/timeout metadata and suppress callbacks for cancelled requests.
     /// </summary>
     public enum AIRequestPriority
@@ -21,8 +21,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
         private const float LocalRequestQueueTimeoutSeconds = 60f;
 
         private readonly Queue<string> interactiveLocalRequestQueue = new Queue<string>();
-        private readonly Dictionary<string, UnityWebRequest> activeWebRequests =
-            new Dictionary<string, UnityWebRequest>(StringComparer.Ordinal);
+        private readonly Dictionary<string, CancellationTokenSource> activeTransportCancellations =
+            new Dictionary<string, CancellationTokenSource>(StringComparer.Ordinal);
 
         private static AIRequestPriority ResolveRequestPriority(AIRequestDebugSource source)
         {
@@ -98,20 +98,20 @@ namespace Ustas.RimAI.Communication.Relations.AI
             result.CancelReason = string.Empty;
         }
 
-        private void RegisterActiveWebRequest(string requestId, UnityWebRequest request)
+        private void RegisterActiveTransportCancellation(string requestId, CancellationTokenSource cancellation)
         {
             lock (lockObject)
             {
-                if (string.IsNullOrWhiteSpace(requestId) || request == null)
+                if (string.IsNullOrWhiteSpace(requestId) || cancellation == null)
                 {
                     return;
                 }
 
-                activeWebRequests[requestId] = request;
+                activeTransportCancellations[requestId] = cancellation;
             }
         }
 
-        private void UnregisterActiveWebRequest(string requestId, UnityWebRequest request = null)
+        private void UnregisterActiveTransportCancellation(string requestId, CancellationTokenSource cancellation = null)
         {
             lock (lockObject)
             {
@@ -120,42 +120,42 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     return;
                 }
 
-                if (!activeWebRequests.TryGetValue(requestId, out UnityWebRequest current))
+                if (!activeTransportCancellations.TryGetValue(requestId, out CancellationTokenSource current))
                 {
                     return;
                 }
 
-                if (request != null && !ReferenceEquals(current, request))
+                if (cancellation != null && !ReferenceEquals(current, cancellation))
                 {
                     return;
                 }
 
-                activeWebRequests.Remove(requestId);
+                activeTransportCancellations.Remove(requestId);
             }
         }
 
-        private void AbortActiveWebRequestLockless(string requestId)
+        private void CancelActiveTransportLockless(string requestId)
         {
             if (string.IsNullOrWhiteSpace(requestId))
             {
                 return;
             }
 
-            if (!activeWebRequests.TryGetValue(requestId, out UnityWebRequest request) || request == null)
+            if (!activeTransportCancellations.TryGetValue(requestId, out CancellationTokenSource cancellation) || cancellation == null)
             {
                 return;
             }
 
             try
             {
-                request.Abort();
+                cancellation.Cancel();
             }
             catch (Exception ex)
             {
                 DebugLogger.LogInternal("AIChatServiceAsync", $"Abort request failed: requestId={requestId}, error={ex.Message}");
             }
 
-            activeWebRequests.Remove(requestId);
+            activeTransportCancellations.Remove(requestId);
         }
 
         private void SetRequestFailureLockless(string requestId, string error, string failureReason)
@@ -196,7 +196,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             result.QueuePosition = 0;
             result.Duration = DateTime.Now - result.StartTime;
             RemoveLocalRequestLockless(requestId);
-            AbortActiveWebRequestLockless(requestId);
+            CancelActiveTransportLockless(requestId);
             return true;
         }
 
