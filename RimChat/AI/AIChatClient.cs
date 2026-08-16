@@ -10,6 +10,7 @@ using Verse;
 using RimChat.Config;
 using RimChat.Util;
 using RimChat.Core;
+using Ustas.RimAI.Core.AI;
 
 namespace RimChat.AI
 {
@@ -131,6 +132,35 @@ namespace RimChat.AI
         private AIChatClientResponse SendRequestDetailedSync(string url, string apiKey, string jsonBody, Action<float> onProgress, AIProvider provider)
         {
             bool isLocalModel = RimChatMod.Instance == null || !(RimChatMod.Instance.InstanceSettings?.UseCloudProviders ?? false);
+            if (!isLocalModel && provider == AIProvider.OpenAI)
+            {
+                var shared = SharedTextAiOrchestrator.Complete(new TextAiRequest
+                {
+                    PrebuiltJson = jsonBody,
+                    BaseUrl = url,
+                    ApiShape = TextAiApiShape.Responses,
+                    UseSharedGameplayCredential = true,
+                    Caller = "relations-legacy"
+                });
+                onProgress?.Invoke(1f);
+                if (!shared.Succeeded)
+                {
+                    return new AIChatClientResponse
+                    {
+                        Success = false,
+                        ErrorText = shared.Error ?? "Shared text-AI failed",
+                        FailureReason = shared.ErrorKind ?? "shared_transport"
+                    };
+                }
+
+                return new AIChatClientResponse
+                {
+                    Success = true,
+                    ParsedContent = string.IsNullOrEmpty(shared.Text) ? shared.RawPayload : shared.Text,
+                    RawResponse = shared.RawPayload,
+                    HttpStatusCode = shared.StatusCode
+                };
+            }
 
             using (var request = new UnityWebRequest(url, "POST"))
             {

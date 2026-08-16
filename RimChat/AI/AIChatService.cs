@@ -9,6 +9,7 @@ using Verse;
 using RimChat.Config;
 using RimChat.Util;
 using RimChat.Core;
+using Ustas.RimAI.Core.AI;
 
 namespace RimChat.AI
 {
@@ -221,6 +222,22 @@ namespace RimChat.AI
 
         private string SendRequestSync(string url, string apiKey, string jsonBody, Action<float> onProgress, bool isLocalModel, List<ChatMessageData> messages, AIProvider provider)
         {
+            if (!isLocalModel && provider == AIProvider.OpenAI)
+            {
+                var shared = SharedTextAiOrchestrator.Complete(new TextAiRequest
+                {
+                    PrebuiltJson = jsonBody,
+                    BaseUrl = url,
+                    ApiShape = TextAiApiShape.Responses,
+                    UseSharedGameplayCredential = true,
+                    Caller = "relations-legacy"
+                });
+                onProgress?.Invoke(1f);
+                if (!shared.Succeeded)
+                    throw new Exception(shared.Error ?? "Shared text-AI failed");
+                return string.IsNullOrEmpty(shared.RawPayload) ? shared.Text : shared.RawPayload;
+            }
+
             DebugLogger.LogInternal("AIChatService", $"Creating UnityWebRequest to {url}");
             var stopwatch = Stopwatch.StartNew();
 

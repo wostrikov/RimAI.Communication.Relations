@@ -14,6 +14,7 @@ using RimChat.Config;
 using RimChat.Util;
 using RimChat.Core;
 using RimChat.Dialogue;
+using Ustas.RimAI.Core.AI;
 
 namespace RimChat.AI
 {
@@ -581,6 +582,114 @@ namespace RimChat.AI
 
                     SetRequestDebugPayload(requestId, jsonBody);
                     RecordRequestAttemptTelemetry(requestId, attempt, Encoding.UTF8.GetByteCount(jsonBody));
+
+                    if (!isLocalModel && config.Provider == AIProvider.OpenAI)
+                    {
+                        TextAiResponse shared = null;
+                        bool sharedDone = false;
+                        var sharedRequest = new TextAiRequest
+                        {
+                            Messages = attemptMessages.Select(m => new TextAiMessage(m.role, m.content)).ToList(),
+                            Model = model,
+                            BaseUrl = url,
+                            ApiShape = TextAiApiShape.Responses,
+                            UseSharedGameplayCredential = true,
+                            PrebuiltJson = jsonBody,
+                            TimeoutMs = requestTimeoutSeconds * 1000,
+                            Caller = "relations"
+                        };
+                        ThreadPool.QueueUserWorkItem(_ =>
+                        {
+                            try
+                            {
+                                shared = SharedTextAiOrchestrator.Complete(sharedRequest);
+                            }
+                            finally
+                            {
+                                sharedDone = true;
+                            }
+                        });
+                        while (!sharedDone)
+                        {
+                            yield return null;
+                        }
+
+                        if (shared != null && shared.Transient && ShouldRetryLocalServerError(false, shared.StatusCode, local5xxRetryCount))
+                        {
+                            local5xxRetryCount++;
+                            yield return new WaitForSeconds(GetLocalServerRetryDelaySeconds(local5xxRetryCount));
+                            attempt++;
+                            continue;
+                        }
+
+                        if (shared == null || !shared.Succeeded)
+                        {
+                            string errorMsg = shared?.Error ?? "RimChat_ErrorConnectionCloud".Translate();
+                            if (shared != null && shared.StatusCode > 0 && config.Provider == AIProvider.OpenAI)
+                            {
+                                OpenAIError openAiError = OpenAIProviderAdapter.ParseError(shared.StatusCode, shared.RawPayload);
+                                errorMsg = openAiError.ToString();
+                            }
+                            lock (lockObject)
+                            {
+                                SetRequestFailureLockless(requestId, errorMsg, shared?.ErrorKind ?? "shared_transport");
+                            }
+                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                            debugStatus = AIRequestDebugStatus.Error;
+                            debugHttpCode = shared?.StatusCode ?? 0;
+                            debugResponseText = shared?.RawPayload ?? string.Empty;
+                            debugErrorText = errorMsg ?? string.Empty;
+                            yield break;
+                        }
+
+                        string sharedResponseText = string.IsNullOrEmpty(shared.RawPayload) ? shared.Text : shared.RawPayload;
+                        DebugLogger.LogFullMessages(attemptMessages, sharedResponseText);
+                        PrimaryTextExtractionResult parseResult = ParseResponse(sharedResponseText, config.Provider);
+                        DebugLogger.LogParseExtraction("AIChatServiceAsync", parseResult);
+                        if (!parseResult.IsSuccess)
+                        {
+                            string retryReason = BuildParseRetryReason(sharedResponseText, parseResult.ReasonTag);
+                            bool isRetryableParseFailure = string.Equals(retryReason, "empty_primary_text", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(retryReason, "assistant_role_without_content", StringComparison.OrdinalIgnoreCase);
+                            if (isRetryableParseFailure && parseRetryCount < MaxParseRetryCount)
+                            {
+                                parseRetryCount++;
+                                attemptMessages = AppendParseRetryMessage(attemptMessages, usageChannel, sharedResponseText, retryReason, parseResult.MatchedPath);
+                                attempt++;
+                                continue;
+                            }
+
+                            string errorMsg = "RimChat_ErrorParseResponse".Translate();
+                            lock (lockObject)
+                            {
+                                SetRequestFailureLockless(requestId, errorMsg, "parse_error");
+                            }
+                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                            debugStatus = AIRequestDebugStatus.Error;
+                            debugResponseText = sharedResponseText;
+                            debugErrorText = errorMsg;
+                            yield break;
+                        }
+
+                        string parsedResponse = parseResult.Content;
+                        if (ShouldUseStructuredDialogueEnvelope(debugSource, usageChannel))
+                        {
+                            DialogueResponseEnvelope parsedEnvelope = DialogueResponseEnvelopeParser.Parse(parsedResponse, usageChannel);
+                            if (parsedEnvelope.IsValid)
+                                parsedResponse = parsedEnvelope.ToStructuredResponseText();
+                        }
+
+                        TryRecordDialogueTokenUsage(attemptMessages, sharedResponseText, parsedResponse, usageChannel);
+                        UpdateRequestState(requestId, AIRequestState.Completed, response: parsedResponse);
+                        ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onSuccess?.Invoke(parsedResponse));
+                        debugStatus = AIRequestDebugStatus.Success;
+                        debugHttpCode = shared.StatusCode;
+                        debugResponseText = sharedResponseText;
+                        debugParsedResponse = parsedResponse;
+                        debugErrorText = string.Empty;
+                        debugTokenMessages = attemptMessages;
+                        yield break;
+                    }
 
                     var stopwatch = Stopwatch.StartNew();
                     using (var request = new UnityWebRequest(url, "POST"))
