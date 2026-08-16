@@ -1,11 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Persistence;
@@ -15,6 +11,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Core.Communication;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {
@@ -54,8 +51,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
     internal static class PromptRuntimeVariableBridge
     {
-        private static readonly BindingFlags InstancePublic = BindingFlags.Instance | BindingFlags.Public;
-        private static readonly BindingFlags StaticPublic = BindingFlags.Static | BindingFlags.Public;
         private static readonly object LegacyCleanupSyncRoot = new object();
         private static readonly string[] LegacyRimChatContextVariableKeys =
         {
@@ -63,22 +58,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             "rimchat_last_diplomacy_summary",
             "rimchat_last_rpg_summary",
             "rimchat_recent_session_summaries"
-        };
-
-        private static readonly string[] VariableRemovalMethods =
-        {
-            "TryRemoveContextVariable",
-            "RemoveContextVariable",
-            "DeleteContextVariable",
-            "TryDeleteContextVariable",
-            "ClearContextVariable",
-            "TryClearContextVariable"
-        };
-
-        private static readonly string[] VariableSetterMethods =
-        {
-            "TrySetContextVariable",
-            "SetContextVariable"
         };
 
         private const string RimChatSummaryVariableName = "rimchat_summary";
@@ -129,6 +108,13 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
                 try
                 {
+                    if (!PromptVariableHostAccess.HasHost)
+                    {
+                        _bridgeRuntimeAvailable = false;
+                        _bridgeFailureReason = "Prompt variable host is not registered.";
+                        return;
+                    }
+
                     StrictLegacyCleanup();
                     ValidateRimTalkBridgeSignaturesOrFail();
                     RegisterRimChatSummaryVariable();
@@ -152,27 +138,9 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
         public static void ValidateRimTalkBridgeSignaturesOrFail()
         {
-            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
-            if (registryType == null)
+            if (!PromptVariableHostAccess.HasHost)
             {
-                throw new MissingMemberException("Missing type Ustas.RimAI.Communication.API.ContextHookRegistry.");
-            }
-
-            ValidateRequiredMethod(registryType, "RegisterContextVariable");
-            ValidateRequiredMethod(registryType, "GetAllCustomVariables");
-            ValidateRequiredMethod(registryType, "UnregisterMod");
-            ValidateRequiredMethod(registryType, "TryGetContextVariable");
-
-            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
-            if (promptContextType == null)
-            {
-                throw new MissingMemberException("Missing type Ustas.RimAI.Communication.Prompt.PromptContext.");
-            }
-
-            Type variableStoreType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.VariableStore");
-            if (variableStoreType == null)
-            {
-                throw new MissingMemberException("Missing type Ustas.RimAI.Communication.Prompt.VariableStore.");
+                throw new MissingMemberException("Prompt variable host is not registered.");
             }
         }
 
@@ -213,9 +181,8 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                     return;
                 }
 
-                Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
-                MethodInfo method = registryType == null ? null : AccessTools.Method(registryType, "GetAllCustomVariables");
-                if (method == null)
+                var host = PromptVariableHostAccess.Current;
+                if (host == null)
                 {
                     return;
                 }
@@ -227,30 +194,27 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 var uniquePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 try
                 {
-                    if (method.Invoke(null, null) is IEnumerable values)
+                    foreach (PromptCustomVariableDescriptor item in host.GetCustomVariables() ?? Array.Empty<PromptCustomVariableDescriptor>())
                     {
-                        foreach (object item in values)
+                        rawCount++;
+                        if (string.IsNullOrWhiteSpace(sampleType) && item != null)
                         {
-                            rawCount++;
-                            if (string.IsNullOrWhiteSpace(sampleType) && item != null)
-                            {
-                                sampleType = item.GetType().FullName ?? item.GetType().Name;
-                            }
-
-                            ReflectedCustomVariable variable = ParseCustomVariable(item);
-                            if (variable == null || string.IsNullOrWhiteSpace(variable.Path))
-                            {
-                                continue;
-                            }
-
-                            if (!uniquePaths.Add(variable.Path))
-                            {
-                                duplicateCount++;
-                                continue;
-                            }
-
-                            results.Add(variable);
+                            sampleType = nameof(PromptCustomVariableDescriptor);
                         }
+
+                        ReflectedCustomVariable variable = ParseCustomVariableDescriptor(item);
+                        if (variable == null || string.IsNullOrWhiteSpace(variable.Path))
+                        {
+                            continue;
+                        }
+
+                        if (!uniquePaths.Add(variable.Path))
+                        {
+                            duplicateCount++;
+                            continue;
+                        }
+
+                        results.Add(variable);
                     }
                 }
                 catch (Exception ex)
@@ -327,39 +291,18 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
         public static void RegisterRimChatSummaryVariable()
         {
-            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
-            MethodInfo registerMethod = registryType == null ? null : AccessTools.Method(registryType, "RegisterContextVariable");
-            if (registerMethod == null)
+            var host = PromptVariableHostAccess.Current;
+            if (host == null)
             {
-                throw new MissingMethodException("Missing ContextHookRegistry.RegisterContextVariable.");
+                throw new MissingMethodException("Prompt variable host is not registered.");
             }
 
-            ParameterInfo[] parameters = registerMethod.GetParameters();
-            if (parameters.Length < 3)
-            {
-                throw new MissingMethodException("Unexpected RegisterContextVariable signature.");
-            }
-
-            Delegate provider = BuildContextProviderDelegate(parameters[2].ParameterType);
-            string modId = SanitizeModId(KnownRelationsModIds[0]);
-            var args = new List<object>
-            {
+            host.RegisterContextVariable(
+                SanitizeModId(KnownRelationsModIds[0]),
                 RimChatSummaryVariableName,
-                modId,
-                provider
-            };
-
-            if (parameters.Length >= 4)
-            {
-                args.Add("RimChat cross-channel summary aggregate.");
-            }
-
-            if (parameters.Length >= 5)
-            {
-                args.Add(RimChatSummaryVariablePriority);
-            }
-
-            registerMethod.Invoke(null, args.ToArray());
+                _ => BuildRimChatSummaryAggregateText(),
+                "RimChat cross-channel summary aggregate.",
+                RimChatSummaryVariablePriority);
         }
 
         public static string BuildRimChatSummaryAggregateText()
@@ -637,15 +580,18 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
             if (variable.Kind == ReflectedCustomVariableKind.Pawn)
             {
-                return InvokeOutString("TryGetPawnVariable", variable.LegacyName, ResolvePrimaryPawn(context), out value);
+                return PromptVariableHostAccess.Current?.TryGetPawnVariable(variable.LegacyName, ResolvePrimaryPawn(context), out value) == true;
             }
 
             if (variable.Kind == ReflectedCustomVariableKind.Environment)
             {
-                return InvokeOutString("TryGetEnvironmentVariable", variable.LegacyName, ResolveMap(context), out value);
+                return PromptVariableHostAccess.Current?.TryGetEnvironmentVariable(variable.LegacyName, ResolveMap(context), out value) == true;
             }
 
-            return InvokeOutString("TryGetContextVariable", variable.LegacyName, BuildPromptContextInstance(context), out value);
+            return PromptVariableHostAccess.Current?.TryGetContextVariable(
+                variable.LegacyName,
+                ToResolveRequest(context),
+                out value) == true;
         }
 
         public static string BuildRimTalkContextBlock(PromptRuntimeVariableContext context)
@@ -745,24 +691,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
         {
             try
             {
-                Type constantType = AccessTools.TypeByName("Ustas.RimAI.Communication.Data.Constant");
-                MethodInfo method = constantType == null ? null : AccessTools.Method(constantType, "GetJsonInstruction", new[] { typeof(bool) });
-                if (method == null)
-                {
-                    return GetFallbackJsonInstruction();
-                }
-
-                bool includeSocialEffects = false;
-                Type settingsType = AccessTools.TypeByName("Ustas.RimAI.Communication.Settings");
-                MethodInfo getMethod = settingsType == null ? null : AccessTools.Method(settingsType, "Get");
-                object settings = getMethod?.Invoke(null, null);
-                PropertyInfo property = settings?.GetType().GetProperty("ApplyMoodAndSocialEffects", InstancePublic);
-                if (property != null && property.PropertyType == typeof(bool))
-                {
-                    includeSocialEffects = (bool)property.GetValue(settings, null);
-                }
-
-                return method.Invoke(null, new object[] { includeSocialEffects })?.ToString() ?? GetFallbackJsonInstruction();
+                return PromptVariableHostAccess.Current?.GetJsonInstruction() ?? GetFallbackJsonInstruction();
             }
             catch (Exception ex)
             {
@@ -777,21 +706,15 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                    value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        private static ReflectedCustomVariable ParseCustomVariable(object item)
+        private static ReflectedCustomVariable ParseCustomVariableDescriptor(PromptCustomVariableDescriptor item)
         {
-            if (item == null)
+            if (item == null || string.IsNullOrWhiteSpace(item.Name))
             {
                 return null;
             }
 
-            string name = ReadCustomVariableField(item, "Item1", "VariableName", "Name", "LegacyName", "Key");
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return null;
-            }
-
-            ReflectedCustomVariableKind kind = ParseKind(ReadCustomVariableField(item, "Item4", "Kind", "VariableKind", "Type", "Scope"));
-            string normalizedName = NormalizeLegacyName(name, kind);
+            ReflectedCustomVariableKind kind = ParseKind(item.Kind);
+            string normalizedName = NormalizeLegacyName(item.Name, kind);
             if (string.IsNullOrWhiteSpace(normalizedName))
             {
                 return null;
@@ -801,8 +724,8 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             {
                 LegacyName = normalizedName,
                 Path = BuildNamespacedPath(normalizedName, kind),
-                ModId = ReadCustomVariableField(item, "Item2", "SourceModId", "ModId", "SourceId"),
-                Description = ReadCustomVariableField(item, "Item3", "Description", "Desc", "Tooltip"),
+                ModId = item.ModId ?? string.Empty,
+                Description = item.Description ?? string.Empty,
                 Kind = kind
             };
         }
@@ -860,38 +783,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             return ReflectedCustomVariableKind.Context;
         }
 
-        private static string ReadCustomVariableField(object item, params string[] memberNames)
-        {
-            if (item == null || memberNames == null || memberNames.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            for (int i = 0; i < memberNames.Length; i++)
-            {
-                string value = ReadTupleValue(item, memberNames[i]);
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return value.Trim();
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private static string ReadTupleValue(object item, string memberName)
-        {
-            Type type = item.GetType();
-            FieldInfo field = type.GetField(memberName, InstancePublic);
-            if (field != null)
-            {
-                return field.GetValue(item)?.ToString() ?? string.Empty;
-            }
-
-            PropertyInfo property = type.GetProperty(memberName, InstancePublic);
-            return property?.GetValue(item, null)?.ToString() ?? string.Empty;
-        }
-
         private static bool ShouldThrottleCustomVariableRefresh(bool force)
         {
             if (force)
@@ -947,98 +838,29 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 $"raw_count={rawCount}, parsed_count={parsedCount}, duplicate_count={duplicateCount}, force={force}.");
         }
 
-        private static bool InvokeOutString(string methodName, string variableName, object arg, out string value)
+        private static PromptVariableResolveRequest ToResolveRequest(PromptRuntimeVariableContext context)
         {
-            value = string.Empty;
-            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
-            MethodInfo method = registryType == null ? null : AccessTools.Method(registryType, methodName);
-            if (method == null)
+            DialogueScenarioContext scenario = context?.ScenarioContext;
+            Pawn pawn = ResolvePrimaryPawn(context);
+            var pawns = new List<object>();
+            if (scenario?.Initiator != null)
             {
-                return false;
+                pawns.Add(scenario.Initiator);
             }
 
-            object[] args = { variableName, arg, null };
-            bool success = (bool)method.Invoke(null, args);
-            value = args[2]?.ToString() ?? string.Empty;
-            return success;
+            if (scenario?.Target != null && !pawns.Contains(scenario.Target))
+            {
+                pawns.Add(scenario.Target);
+            }
+
+            return new PromptVariableResolveRequest
+            {
+                CurrentPawn = pawn,
+                Map = ResolveMap(context),
+                Pawns = pawns
+            };
         }
 
-        private static object BuildPromptContextInstance(PromptRuntimeVariableContext context)
-        {
-            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
-            if (promptContextType == null)
-            {
-                return null;
-            }
-
-            try
-            {
-                object instance = Activator.CreateInstance(promptContextType);
-                DialogueScenarioContext scenario = context?.ScenarioContext;
-                Pawn pawn = ResolvePrimaryPawn(context);
-                List<Pawn> pawns = new List<Pawn>();
-                if (scenario?.Initiator != null)
-                {
-                    pawns.Add(scenario.Initiator);
-                }
-
-                if (scenario?.Target != null && !pawns.Contains(scenario.Target))
-                {
-                    pawns.Add(scenario.Target);
-                }
-
-                SetProperty(instance, "CurrentPawn", pawn);
-                SetProperty(instance, "AllPawns", pawns);
-                SetProperty(instance, "Map", ResolveMap(context));
-                SetProperty(instance, "PawnContext", BuildRimTalkContextBlock(context));
-                SetProperty(instance, "DialoguePrompt", BuildRimTalkPromptBlock(context));
-                SetProperty(instance, "DialogueType", scenario?.IsRpg == true ? "conversation" : "diplomacy");
-                SetProperty(instance, "DialogueStatus", scenario?.IsProactive == true ? "proactive" : "manual");
-                SetProperty(instance, "IsPreview", false);
-
-                Type variableStoreType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.VariableStore");
-                if (variableStoreType != null)
-                {
-                    SetProperty(instance, "VariableStore", Activator.CreateInstance(variableStoreType));
-                }
-
-                return instance;
-            }
-            catch (Exception ex)
-            {
-                DebugLogger.WarningGated($"Failed to build reflected RimTalk PromptContext: {ex.Message}");
-                return null;
-            }
-        }
-
-        private static void SetProperty(object target, string name, object value)
-        {
-            if (target == null || string.IsNullOrWhiteSpace(name))
-            {
-                return;
-            }
-
-            PropertyInfo property = target.GetType().GetProperty(name, InstancePublic);
-            if (property == null || !property.CanWrite)
-            {
-                return;
-            }
-
-            if (value == null)
-            {
-                if (!property.PropertyType.IsValueType)
-                {
-                    property.SetValue(target, null, null);
-                }
-
-                return;
-            }
-
-            if (property.PropertyType.IsInstanceOfType(value))
-            {
-                property.SetValue(target, value, null);
-            }
-        }
 
         private static Pawn ResolvePrimaryPawn(PromptRuntimeVariableContext context)
         {
@@ -1071,142 +893,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             return "Output gameplay effects only as a trailing {\"actions\":[...]} JSON object. Omit the JSON block when no action is needed. Hard immersion rules for visible dialogue: start directly in-character and never begin with parenthetical notes/metadata (for example \"(重复问候...)\" or \"（状态说明...）\"); do not expose mechanism terms or system values (goodwill/threshold/cooldown/API/system prompt/token/requestId/api_limits/blocked actions); do not output status-panel sentence patterns such as key:123.";
         }
 
-        private static bool TryRemoveLegacyContextVariable(Type registryType, string key)
-        {
-            if (registryType == null || string.IsNullOrWhiteSpace(key))
-            {
-                return false;
-            }
-
-            return TryInvokeStringMethodCandidates(registryType, VariableRemovalMethods, key, string.Empty) ||
-                   TryInvokeStringMethodCandidates(registryType, VariableSetterMethods, key, string.Empty);
-        }
-
-        private static bool TryInvokeStringMethodCandidates(
-            Type registryType,
-            IEnumerable<string> methodNames,
-            string key,
-            string value)
-        {
-            if (registryType == null || methodNames == null)
-            {
-                return false;
-            }
-
-            foreach (string methodName in methodNames)
-            {
-                if (TryInvokeMethodOverloads(registryType, methodName, key, value, out bool success))
-                {
-                    return success;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool TryInvokeMethodOverloads(
-            Type registryType,
-            string methodName,
-            string key,
-            string value,
-            out bool success)
-        {
-            success = false;
-            if (registryType == null || string.IsNullOrWhiteSpace(methodName))
-            {
-                return false;
-            }
-
-            MethodInfo[] methods = registryType.GetMethods(StaticPublic)
-                .Where(item => string.Equals(item.Name, methodName, StringComparison.Ordinal))
-                .ToArray();
-            for (int i = 0; i < methods.Length; i++)
-            {
-                if (TryInvokeStringMethod(methods[i], key, value, out success))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool TryInvokeStringMethod(
-            MethodInfo method,
-            string key,
-            string value,
-            out bool success)
-        {
-            success = false;
-            if (method == null)
-            {
-                return false;
-            }
-
-            ParameterInfo[] parameters = method.GetParameters();
-            try
-            {
-                if (TryInvokeSingleStringParameterMethod(method, parameters, key, out success))
-                {
-                    return true;
-                }
-
-                if (TryInvokeTwoStringParameterMethod(method, parameters, key, value, out success))
-                {
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                DebugLogger.WarningGated($"Failed to invoke RimTalk variable cleanup method '{method.Name}': {ex.Message}");
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ToBoolResult(object result)
-        {
-            return result is bool ok ? ok : true;
-        }
-
-        private static bool TryInvokeSingleStringParameterMethod(
-            MethodInfo method,
-            IReadOnlyList<ParameterInfo> parameters,
-            string key,
-            out bool success)
-        {
-            success = false;
-            if (parameters.Count != 1 || parameters[0].ParameterType != typeof(string))
-            {
-                return false;
-            }
-
-            object result = method.Invoke(null, new object[] { key });
-            success = ToBoolResult(result);
-            return true;
-        }
-
-        private static bool TryInvokeTwoStringParameterMethod(
-            MethodInfo method,
-            IReadOnlyList<ParameterInfo> parameters,
-            string key,
-            string value,
-            out bool success)
-        {
-            success = false;
-            if (parameters.Count != 2 ||
-                parameters[0].ParameterType != typeof(string) ||
-                parameters[1].ParameterType != typeof(string))
-            {
-                return false;
-            }
-
-            object result = method.Invoke(null, new object[] { key, value ?? string.Empty });
-            success = ToBoolResult(result);
-            return true;
-        }
-
         private static bool ShouldSkipLegacyCleanup(bool force)
         {
             return !force && _legacyCleanupAttempted;
@@ -1214,60 +900,19 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
         private static void CleanupLegacyVariablesInternal()
         {
-            if (!IsDependencyAvailable("rimtalk"))
+            var host = PromptVariableHostAccess.Current;
+            if (host == null)
             {
                 return;
             }
 
-            Type registryType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.ContextHookRegistry");
-            if (registryType == null)
-            {
-                return;
-            }
-
-            int removedContextKeys = 0;
-            for (int i = 0; i < LegacyRimChatContextVariableKeys.Length; i++)
-            {
-                if (TryRemoveLegacyContextVariable(registryType, LegacyRimChatContextVariableKeys[i]))
-                {
-                    removedContextKeys++;
-                }
-            }
-
-            int unregisteredMods = UnregisterLegacyRelationsMods(registryType);
-            int removedRuntimeKeys = CleanupLegacyRuntimeVariableStoreKeys();
-            (int removedEntries, int removedDeletedIds) = CleanupLegacyPromptPresetEntries();
-
-            if (removedContextKeys > 0 ||
-                unregisteredMods > 0 ||
-                removedRuntimeKeys > 0 ||
-                removedEntries > 0 ||
-                removedDeletedIds > 0)
-            {
-                Log.Message(
-                    "[RimAI.Relations] RimTalk strict legacy cleanup completed. " +
-                    $"context_keys={removedContextKeys}, mods_unregistered={unregisteredMods}, " +
-                    $"runtime_keys={removedRuntimeKeys}, preset_entries={removedEntries}, " +
-                    $"deleted_mod_ids={removedDeletedIds}.");
-            }
-        }
-
-        private static int UnregisterLegacyRelationsMods(Type registryType)
-        {
-            MethodInfo unregisterMethod = registryType == null ? null : AccessTools.Method(registryType, "UnregisterMod");
-            if (unregisterMethod == null)
-            {
-                return 0;
-            }
-
-            int removed = 0;
-            HashSet<string> modIds = CollectLegacyRelationsModIds();
-            foreach (string modId in modIds)
+            int unregisteredMods = 0;
+            foreach (string modId in CollectLegacyRelationsModIds())
             {
                 try
                 {
-                    unregisterMethod.Invoke(null, new object[] { modId });
-                    removed++;
+                    host.UnregisterMod(modId);
+                    unregisteredMods++;
                 }
                 catch (Exception ex)
                 {
@@ -1275,156 +920,19 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 }
             }
 
-            return removed;
+            int removedRuntimeKeys = host.RemoveRuntimeVariables(key =>
+                LegacyRimChatContextVariableKeys.Any(item =>
+                    string.Equals(item, key, StringComparison.OrdinalIgnoreCase)) ||
+                ContainsToken(key, "rimchat"));
+
+            if (unregisteredMods > 0 || removedRuntimeKeys > 0)
+            {
+                Log.Message(
+                    "[RimAI.Relations] Typed legacy cleanup completed. " +
+                    $"mods_unregistered={unregisteredMods}, runtime_keys={removedRuntimeKeys}.");
+            }
         }
 
-        private static int CleanupLegacyRuntimeVariableStoreKeys()
-        {
-            Type apiType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.RimTalkPromptAPI");
-            MethodInfo getStoreMethod = apiType == null ? null : AccessTools.Method(apiType, "GetVariableStore");
-            object store = getStoreMethod?.Invoke(null, null);
-            if (store == null)
-            {
-                return 0;
-            }
-
-            MethodInfo getAllMethod = AccessTools.Method(store.GetType(), "GetAllVariables");
-            MethodInfo removeMethod = AccessTools.Method(store.GetType(), "RemoveVar");
-            if (getAllMethod == null || removeMethod == null)
-            {
-                return 0;
-            }
-
-            var keys = new List<string>();
-            object allVariables = getAllMethod.Invoke(store, null);
-            if (allVariables is IDictionary dictionary)
-            {
-                foreach (object key in dictionary.Keys)
-                {
-                    keys.Add(key?.ToString() ?? string.Empty);
-                }
-            }
-            else if (allVariables is IEnumerable enumerable)
-            {
-                foreach (object item in enumerable)
-                {
-                    string key = ReadMemberValue(item, "Key")?.ToString() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(key))
-                    {
-                        keys.Add(key);
-                    }
-                }
-            }
-
-            int removed = 0;
-            for (int i = 0; i < keys.Count; i++)
-            {
-                string key = keys[i];
-                bool matchesLegacyKey = LegacyRimChatContextVariableKeys.Any(item =>
-                    string.Equals(item, key, StringComparison.OrdinalIgnoreCase));
-                if (!matchesLegacyKey && !ContainsToken(key, "rimchat"))
-                {
-                    continue;
-                }
-
-                try
-                {
-                    object result = removeMethod.Invoke(store, new object[] { key });
-                    if (ToBoolResult(result))
-                    {
-                        removed++;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    DebugLogger.WarningGated($"Failed to remove legacy runtime key '{key}': {ex.Message}");
-                }
-            }
-
-            return removed;
-        }
-
-        private static (int removedEntries, int removedDeletedIds) CleanupLegacyPromptPresetEntries()
-        {
-            Type apiType = AccessTools.TypeByName("Ustas.RimAI.Communication.API.RimTalkPromptAPI");
-            MethodInfo getAllPresetsMethod = apiType == null ? null : AccessTools.Method(apiType, "GetAllPresets");
-            object presets = getAllPresetsMethod?.Invoke(null, null);
-            if (!(presets is IEnumerable enumerable))
-            {
-                return (0, 0);
-            }
-
-            int removedEntries = 0;
-            int removedDeletedIds = 0;
-            foreach (object preset in enumerable)
-            {
-                if (preset == null)
-                {
-                    continue;
-                }
-
-                object entries = ReadMemberValue(preset, "Entries");
-                if (entries is IList list)
-                {
-                    for (int i = list.Count - 1; i >= 0; i--)
-                    {
-                        object entry = list[i];
-                        string sourceModId = ReadMemberValue(entry, "SourceModId")?.ToString() ?? string.Empty;
-                        if (!ContainsToken(sourceModId, "rimchat"))
-                        {
-                            continue;
-                        }
-
-                        list.RemoveAt(i);
-                        removedEntries++;
-                    }
-                }
-
-                object deletedCollection = ReadMemberValue(preset, "DeletedModEntryIds");
-                removedDeletedIds += RemoveMatchingDeletedEntryIds(deletedCollection, value => ContainsToken(value, "rimchat"));
-            }
-
-            return (removedEntries, removedDeletedIds);
-        }
-
-        private static int RemoveMatchingDeletedEntryIds(object collection, Func<string, bool> predicate)
-        {
-            if (collection == null || predicate == null)
-            {
-                return 0;
-            }
-
-            var targets = new List<string>();
-            if (collection is IEnumerable enumerable)
-            {
-                foreach (object item in enumerable)
-                {
-                    string text = item?.ToString() ?? string.Empty;
-                    if (predicate(text))
-                    {
-                        targets.Add(text);
-                    }
-                }
-            }
-
-            MethodInfo removeMethod = AccessTools.Method(collection.GetType(), "Remove");
-            if (removeMethod == null || targets.Count == 0)
-            {
-                return 0;
-            }
-
-            int removed = 0;
-            for (int i = 0; i < targets.Count; i++)
-            {
-                object result = removeMethod.Invoke(collection, new object[] { targets[i] });
-                if (ToBoolResult(result))
-                {
-                    removed++;
-                }
-            }
-
-            return removed;
-        }
 
         private static HashSet<string> CollectLegacyRelationsModIds()
         {
@@ -1457,59 +965,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             }
 
             return ids;
-        }
-
-        private static void ValidateRequiredMethod(Type type, string methodName)
-        {
-            if (type == null || string.IsNullOrWhiteSpace(methodName))
-            {
-                throw new MissingMethodException("Invalid method validation request.");
-            }
-
-            MethodInfo method = AccessTools.Method(type, methodName);
-            if (method == null)
-            {
-                throw new MissingMethodException($"Missing {type.FullName}.{methodName}.");
-            }
-        }
-
-        private static Delegate BuildContextProviderDelegate(Type delegateType)
-        {
-            Type targetType = delegateType == typeof(Delegate) ? typeof(Func<object, string>) : delegateType;
-            MethodInfo invokeMethod = targetType.GetMethod("Invoke");
-            if (invokeMethod == null)
-            {
-                throw new MissingMethodException("Unable to build context provider delegate.");
-            }
-
-            ParameterInfo[] parameters = invokeMethod.GetParameters();
-            if (parameters.Length != 1 || invokeMethod.ReturnType != typeof(string))
-            {
-                throw new MissingMethodException("Unsupported RegisterContextVariable delegate signature.");
-            }
-
-            ParameterExpression contextParameter = Expression.Parameter(parameters[0].ParameterType, "ctx");
-            MethodInfo callback = AccessTools.Method(typeof(PromptRuntimeVariableBridge), nameof(BuildRimChatSummaryAggregateText));
-            MethodCallExpression body = Expression.Call(callback);
-            return Expression.Lambda(targetType, body, contextParameter).Compile();
-        }
-
-        private static object ReadMemberValue(object target, string name)
-        {
-            if (target == null || string.IsNullOrWhiteSpace(name))
-            {
-                return null;
-            }
-
-            Type type = target.GetType();
-            PropertyInfo property = type.GetProperty(name, InstancePublic);
-            if (property != null)
-            {
-                return property.GetValue(target, null);
-            }
-
-            FieldInfo field = type.GetField(name, InstancePublic);
-            return field?.GetValue(target);
         }
 
         private static string ResolveRawTokenFromVariable(ReflectedCustomVariable variable)

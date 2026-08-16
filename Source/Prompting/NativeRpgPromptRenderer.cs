@@ -1,14 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Core.Communication;
 using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
@@ -38,8 +36,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
     /// </summary>
     internal static class NativeRpgPromptRenderer
     {
-        private const BindingFlags StaticPublic = BindingFlags.Static | BindingFlags.Public;
-        private const BindingFlags InstancePublic = BindingFlags.Instance | BindingFlags.Public;
         private const long DuplicateFailureLogCooldownMs = 15000;
         private static readonly Regex RemainingTokenRegex = new Regex(@"\{\{\s*[^}]+\s*\}\}", RegexOptions.Compiled);
         private static readonly Regex PawnTokenRegex = new Regex(@"\{\{\s*pawn\.", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -54,11 +50,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Dictionary<string, long> failureLogTicksBySignature =
             new Dictionary<string, long>(StringComparer.Ordinal);
-        private static readonly object renderMethodBindLock = new object();
-        private static MethodInfo cachedRenderMethod;
-        private static string cachedRenderMethodVariant = string.Empty;
-        private static bool renderMethodResolved;
-        private static string renderMethodBindError = string.Empty;
 
         public static bool TryRenderRpgPrompt(
             string promptText,
@@ -104,13 +95,11 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             NativeRenderDiagnostic diagnostic,
             out string rendered)
         {
-            if (!TryResolveRenderMethod(out MethodInfo renderMethod, out string methodVariant, out string bindError))
+            if (!PromptTemplateAccess.HasRenderer)
             {
                 diagnostic.IsCompatibilityFailure = true;
                 diagnostic.FailureStage = "resolve_render_method";
-                diagnostic.ErrorMessage = string.IsNullOrWhiteSpace(bindError)
-                    ? "Missing compatible Ustas.RimAI.Communication.Prompt.ScribanParser.Render."
-                    : bindError;
+                diagnostic.ErrorMessage = "Prompt template renderer is not registered.";
                 rendered = CleanInvalidRimTalkTokens(promptText);
                 diagnostic.RemainingTokenCount = CountRemainingTokens(rendered);
                 if (diagnostic.RemainingTokenCount > 0)
@@ -130,24 +119,28 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 return false;
             }
 
-            diagnostic.BoundMethod = BuildMethodSignature(renderMethod);
-            diagnostic.BoundMethodVariant = methodVariant ?? string.Empty;
+            diagnostic.BoundMethod = "IPromptTemplateRenderer.TryRender";
+            diagnostic.BoundMethodVariant = "typed";
             PawnBindingSpec binding = ResolvePawnBindingSpec(scenarioContext, diagnostic);
-            object promptContext = BuildPromptContext(promptText, scenarioContext, binding, diagnostic);
-            diagnostic.ContextBuilt = promptContext != null;
-            if (promptContext == null)
+            ApplyBindingDiagnostic(binding, diagnostic);
+            TryReportNullPawnTokenBinding(promptText, binding.CurrentPawn, diagnostic);
+            var request = new PromptRenderRequest
             {
-                diagnostic.ErrorMessage = AppendError(
-                    diagnostic.ErrorMessage,
-                    "PromptContext build failed.");
-                rendered = promptText;
-                LogFailure(diagnostic);
-                return false;
-            }
+                CurrentPawn = binding.CurrentPawn,
+                Pawns = binding.Pawns?.Cast<object>().ToList(),
+                Map = binding.CurrentPawn?.MapHeld ?? Find.CurrentMap,
+                DialogueType = "conversation",
+                DialogueStatus = scenarioContext.IsProactive ? "proactive" : "manual",
+                PawnContext = BuildPawnContextText(binding.CurrentPawn),
+                DialoguePrompt = BuildDialoguePromptText(promptText),
+                ScopedPawnIndex = binding.ScopedPawnIndex,
+                ChatHistory = BuildChatHistory(scenarioContext)
+            };
+            diagnostic.ContextBuilt = true;
 
             try
             {
-                if (!TryInvokeRenderMethod(renderMethod, promptText, promptContext, out string nativeRendered, out string invokeError))
+                if (!PromptTemplateAccess.Current.TryRender(promptText, request, out string nativeRendered, out string invokeError))
                 {
                     diagnostic.ErrorMessage = AppendError(
                         diagnostic.ErrorMessage,
@@ -198,209 +191,32 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             }
         }
 
-        private static bool TryResolveRenderMethod(
-            out MethodInfo renderMethod,
-            out string methodVariant,
-            out string error)
+        private static IReadOnlyList<PromptHistoryMessage> BuildChatHistory(DialogueScenarioContext scenarioContext)
         {
-            if (renderMethodResolved)
+            var history = new List<PromptHistoryMessage>();
+            bool allowMemoryCompressionScheduling = RpgPromptTurnContextScope.Current?.AllowMemoryCompressionScheduling ?? true;
+            bool allowMemoryColdLoad = RpgPromptTurnContextScope.Current?.AllowMemoryColdLoad ?? true;
+            string memoryText = RpgNpcDialogueArchiveManager.Instance.BuildPromptMemoryBlock(
+                scenarioContext.Target,
+                scenarioContext.Initiator,
+                8,
+                900,
+                allowCompressionScheduling: allowMemoryCompressionScheduling,
+                allowCacheLoad: allowMemoryColdLoad);
+            if (!string.IsNullOrWhiteSpace(memoryText))
             {
-                renderMethod = cachedRenderMethod;
-                methodVariant = cachedRenderMethodVariant;
-                error = renderMethodBindError;
-                return renderMethod != null;
+                history.Add(new PromptHistoryMessage { Role = "System", Content = memoryText.Trim() });
             }
 
-            lock (renderMethodBindLock)
+            string currentTurnUserIntent = RpgPromptTurnContextScope.Current?.CurrentTurnUserIntent ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(currentTurnUserIntent))
             {
-                if (!renderMethodResolved)
-                {
-                    ResolveRenderMethodCore(
-                        out cachedRenderMethod,
-                        out cachedRenderMethodVariant,
-                        out renderMethodBindError);
-                    renderMethodResolved = true;
-                }
+                history.Add(new PromptHistoryMessage { Role = "User", Content = currentTurnUserIntent.Trim() });
             }
 
-            renderMethod = cachedRenderMethod;
-            methodVariant = cachedRenderMethodVariant;
-            error = renderMethodBindError;
-            return renderMethod != null;
+            return history;
         }
 
-        private static void ResolveRenderMethodCore(
-            out MethodInfo renderMethod,
-            out string methodVariant,
-            out string error)
-        {
-            renderMethod = null;
-            methodVariant = string.Empty;
-            error = string.Empty;
-
-            Type scribanParserType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.ScribanParser");
-            if (scribanParserType == null)
-            {
-                error = "Missing type Ustas.RimAI.Communication.Prompt.ScribanParser.";
-                return;
-            }
-
-            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
-            MethodInfo[] candidates = scribanParserType.GetMethods(StaticPublic)
-                .Where(method => string.Equals(method.Name, "Render", StringComparison.Ordinal))
-                .ToArray();
-            foreach (MethodInfo candidate in candidates)
-            {
-                if (TryBuildRenderVariant(candidate, promptContextType, out string variant))
-                {
-                    renderMethod = candidate;
-                    methodVariant = variant;
-                    return;
-                }
-            }
-
-            if (candidates.Length == 0)
-            {
-                error = "Missing Ustas.RimAI.Communication.Prompt.ScribanParser.Render.";
-                return;
-            }
-
-            string signatures = string.Join(" | ", candidates.Select(BuildMethodSignature));
-            error = "No compatible ScribanParser.Render signature. available=" + signatures;
-        }
-
-        private static bool TryInvokeRenderMethod(
-            MethodInfo renderMethod,
-            string promptText,
-            object promptContext,
-            out string rendered,
-            out string error)
-        {
-            rendered = string.Empty;
-            error = string.Empty;
-            if (renderMethod == null)
-            {
-                error = "Render method is null.";
-                return false;
-            }
-
-            if (!TryBuildRenderArguments(renderMethod, promptText, promptContext, out object[] args))
-            {
-                error = "Unsupported Render argument layout: " + BuildMethodSignature(renderMethod);
-                return false;
-            }
-
-            object raw = renderMethod.Invoke(null, args);
-            rendered = raw?.ToString() ?? string.Empty;
-            return true;
-        }
-
-        private static bool TryBuildRenderArguments(
-            MethodInfo method,
-            string promptText,
-            object promptContext,
-            out object[] args)
-        {
-            args = null;
-            ParameterInfo[] parameters = method?.GetParameters() ?? Array.Empty<ParameterInfo>();
-            if (parameters.Length < 2 || parameters.Length > 3)
-            {
-                return false;
-            }
-
-            args = new object[parameters.Length];
-            bool assignedText = false;
-            bool assignedContext = false;
-            bool assignedBool = false;
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                Type parameterType = parameters[i].ParameterType;
-                if (parameterType == typeof(string) && !assignedText)
-                {
-                    args[i] = promptText ?? string.Empty;
-                    assignedText = true;
-                    continue;
-                }
-
-                if (parameterType == typeof(bool) && !assignedBool)
-                {
-                    args[i] = true;
-                    assignedBool = true;
-                    continue;
-                }
-
-                if (!assignedContext && IsPromptContextParameter(parameterType, promptContext))
-                {
-                    args[i] = promptContext;
-                    assignedContext = true;
-                    continue;
-                }
-
-                return false;
-            }
-
-            if (!assignedText || !assignedContext)
-            {
-                return false;
-            }
-
-            return parameters.Length != 3 || assignedBool;
-        }
-
-        private static bool TryBuildRenderVariant(MethodInfo method, Type promptContextType, out string variant)
-        {
-            variant = string.Empty;
-            ParameterInfo[] parameters = method?.GetParameters() ?? Array.Empty<ParameterInfo>();
-            if (parameters.Length < 2 || parameters.Length > 3)
-            {
-                return false;
-            }
-
-            bool hasString = parameters.Any(parameter => parameter.ParameterType == typeof(string));
-            bool hasContext = parameters.Any(parameter => IsPromptContextParameter(parameter.ParameterType, promptContextType));
-            bool boolOk = parameters.Length != 3 || parameters.Any(parameter => parameter.ParameterType == typeof(bool));
-            if (!hasString || !hasContext || !boolOk)
-            {
-                return false;
-            }
-
-            variant = parameters.Length == 3 ? "render_v3" : "render_v2";
-            return true;
-        }
-
-        private static bool IsPromptContextParameter(Type parameterType, object promptContext)
-        {
-            if (parameterType == null)
-            {
-                return false;
-            }
-
-            if (promptContext != null && parameterType.IsInstanceOfType(promptContext))
-            {
-                return true;
-            }
-
-            return parameterType.FullName?.IndexOf(
-                "Ustas.RimAI.Communication.Prompt.PromptContext",
-                StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private static bool IsPromptContextParameter(Type parameterType, Type promptContextType)
-        {
-            if (parameterType == null)
-            {
-                return false;
-            }
-
-            if (promptContextType != null && parameterType.IsAssignableFrom(promptContextType))
-            {
-                return true;
-            }
-
-            return parameterType.FullName?.IndexOf(
-                "Ustas.RimAI.Communication.Prompt.PromptContext",
-                StringComparison.OrdinalIgnoreCase) >= 0;
-        }
 
         private static bool HasUnresolvableTokens(string promptText)
         {
@@ -421,159 +237,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             return false;
         }
 
-        private static object BuildPromptContext(
-            string promptText,
-            DialogueScenarioContext scenarioContext,
-            PawnBindingSpec binding,
-            NativeRenderDiagnostic diagnostic)
-        {
-            Type promptContextType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.PromptContext");
-            if (promptContextType == null)
-            {
-                diagnostic.ErrorMessage = AppendError(
-                    diagnostic.ErrorMessage,
-                    "Missing Ustas.RimAI.Communication.Prompt.PromptContext.");
-                return null;
-            }
-
-            try
-            {
-                object context = Activator.CreateInstance(promptContextType);
-                ApplyBindingDiagnostic(binding, diagnostic);
-                SetProperty(context, "CurrentPawn", binding.CurrentPawn);
-                SetProperty(context, "Pawns", binding.Pawns);
-                SetProperty(context, "AllPawns", binding.AllPawns);
-                SetProperty(context, "ScopedPawnIndex", binding.ScopedPawnIndex);
-                SetProperty(context, "Map", binding.CurrentPawn?.MapHeld ?? Find.CurrentMap);
-                SetProperty(context, "DialogueType", "conversation");
-                SetProperty(context, "DialogueStatus", scenarioContext.IsProactive ? "proactive" : "manual");
-                SetProperty(context, "IsPreview", false);
-                TrySetVariableStore(context, diagnostic);
-                TrySetChatHistory(context, scenarioContext, diagnostic);
-                SetProperty(context, "PawnContext", BuildPawnContextText(binding.CurrentPawn));
-                SetProperty(context, "DialoguePrompt", BuildDialoguePromptText(promptText));
-                TryReportNullPawnTokenBinding(promptText, binding.CurrentPawn, diagnostic);
-                return context;
-            }
-            catch (Exception ex)
-            {
-                diagnostic.ErrorMessage = AppendError(
-                    diagnostic.ErrorMessage,
-                    "PromptContext init exception: " + ex.GetBaseException().Message);
-                return null;
-            }
-        }
-
-        private static void TrySetVariableStore(object promptContext, NativeRenderDiagnostic diagnostic)
-        {
-            Type variableStoreType = AccessTools.TypeByName("Ustas.RimAI.Communication.Prompt.VariableStore");
-            if (variableStoreType == null)
-            {
-                diagnostic.ErrorMessage = AppendError(
-                    diagnostic.ErrorMessage,
-                    "Missing Ustas.RimAI.Communication.Prompt.VariableStore.");
-                return;
-            }
-
-            try
-            {
-                object store = Activator.CreateInstance(variableStoreType);
-                Type systemType = AccessTools.TypeByName("Scriban.Runtime.ScriptObject");
-                if (systemType != null)
-                {
-                    object systemObject = Activator.CreateInstance(systemType);
-                    object customObject = Activator.CreateInstance(systemType);
-                    SetProperty(systemObject, "custom", customObject);
-                    SetProperty(store, "system", systemObject);
-                }
-
-                SetProperty(promptContext, "VariableStore", store);
-            }
-            catch (Exception ex)
-            {
-                diagnostic.ErrorMessage = AppendError(
-                    diagnostic.ErrorMessage,
-                    "VariableStore init failed: " + ex.GetBaseException().Message);
-            }
-        }
-
-        private static void TrySetChatHistory(
-            object promptContext,
-            DialogueScenarioContext scenarioContext,
-            NativeRenderDiagnostic diagnostic)
-        {
-            PropertyInfo property = promptContext?.GetType().GetProperty("ChatHistory", InstancePublic);
-            if (property == null || !property.CanWrite)
-            {
-                return;
-            }
-
-            try
-            {
-                Type roleType = AccessTools.TypeByName("Ustas.RimAI.Communication.Data.Role");
-                Type historyType = property.PropertyType;
-                if (roleType == null || historyType == null)
-                {
-                    diagnostic.ErrorMessage = AppendError(
-                        diagnostic.ErrorMessage,
-                        "ChatHistory type bind failed.");
-                    return;
-                }
-
-                object history = Activator.CreateInstance(historyType);
-                MethodInfo addMethod = historyType.GetMethod("Add", InstancePublic);
-                if (history == null || addMethod == null)
-                {
-                    diagnostic.ErrorMessage = AppendError(
-                        diagnostic.ErrorMessage,
-                        "ChatHistory list init failed.");
-                    return;
-                }
-
-                Type tupleType = addMethod.GetParameters()[0].ParameterType;
-                bool allowMemoryCompressionScheduling = RpgPromptTurnContextScope.Current?.AllowMemoryCompressionScheduling ?? true;
-                bool allowMemoryColdLoad = RpgPromptTurnContextScope.Current?.AllowMemoryColdLoad ?? true;
-                string memoryText = RpgNpcDialogueArchiveManager.Instance.BuildPromptMemoryBlock(
-                    scenarioContext.Target,
-                    scenarioContext.Initiator,
-                    8,
-                    900,
-                    allowCompressionScheduling: allowMemoryCompressionScheduling,
-                    allowCacheLoad: allowMemoryColdLoad);
-                if (!string.IsNullOrWhiteSpace(memoryText))
-                {
-                    addMethod.Invoke(
-                        history,
-                        new[] { CreateHistoryEntry(tupleType, roleType, "System", memoryText.Trim()) });
-                }
-
-                string currentTurnUserIntent = RpgPromptTurnContextScope.Current?.CurrentTurnUserIntent ?? string.Empty;
-                if (!string.IsNullOrWhiteSpace(currentTurnUserIntent))
-                {
-                    addMethod.Invoke(
-                        history,
-                        new[] { CreateHistoryEntry(tupleType, roleType, "User", currentTurnUserIntent.Trim()) });
-                }
-
-                property.SetValue(promptContext, history, null);
-            }
-            catch (Exception ex)
-            {
-                diagnostic.ErrorMessage = AppendError(
-                    diagnostic.ErrorMessage,
-                    "ChatHistory init failed: " + ex.GetBaseException().Message);
-            }
-        }
-
-        private static object CreateHistoryEntry(
-            Type tupleType,
-            Type roleType,
-            string roleName,
-            string text)
-        {
-            object role = Enum.Parse(roleType, roleName, true);
-            return Activator.CreateInstance(tupleType, role, text ?? string.Empty);
-        }
 
         private static PawnBindingSpec ResolvePawnBindingSpec(
             DialogueScenarioContext scenarioContext,
@@ -696,52 +359,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             return sb.ToString().Trim();
         }
 
-        private static void SetProperty(object target, string name, object value)
-        {
-            if (target == null || string.IsNullOrWhiteSpace(name))
-            {
-                return;
-            }
-
-            PropertyInfo property = target.GetType().GetProperty(name, InstancePublic);
-            if (property == null || !property.CanWrite)
-            {
-                return;
-            }
-
-            if (value == null)
-            {
-                if (!property.PropertyType.IsValueType)
-                {
-                    property.SetValue(target, null, null);
-                }
-
-                return;
-            }
-
-            if (property.PropertyType.IsInstanceOfType(value))
-            {
-                property.SetValue(target, value, null);
-                return;
-            }
-
-            if (property.PropertyType == typeof(int) && value is int intValue)
-            {
-                property.SetValue(target, intValue, null);
-                return;
-            }
-
-            if (property.PropertyType == typeof(string) && value is string text)
-            {
-                property.SetValue(target, text, null);
-                return;
-            }
-
-            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && value is IEnumerable enumerable)
-            {
-                property.SetValue(target, enumerable, null);
-            }
-        }
 
         private static int CountRemainingTokens(string text)
         {
@@ -954,32 +571,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             return current.Trim() + " | " + next.Trim();
         }
 
-        private static string BuildMethodSignature(MethodInfo method)
-        {
-            if (method == null)
-            {
-                return string.Empty;
-            }
-
-            ParameterInfo[] parameters = method.GetParameters();
-            var sb = new StringBuilder();
-            sb.Append(method.DeclaringType?.FullName ?? "unknown");
-            sb.Append(".");
-            sb.Append(method.Name);
-            sb.Append("(");
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                if (i > 0)
-                {
-                    sb.Append(", ");
-                }
-
-                sb.Append(parameters[i].ParameterType.Name);
-            }
-
-            sb.Append(")");
-            return sb.ToString();
-        }
 
         private static string CleanInvalidRimTalkTokens(string promptText)
         {
