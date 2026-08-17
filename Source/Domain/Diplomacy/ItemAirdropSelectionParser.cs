@@ -64,61 +64,15 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         private static string ExtractTopLevelJson(string text)
         {
-            int start = text.IndexOf('{');
-            if (start < 0)
+            string json = Ustas.RimAI.Communication.Relations.AI.JsonBoundedExtractor.TryExtractFirstObject(text, out string extracted)
+                ? extracted
+                : string.Empty;
+            if (string.IsNullOrWhiteSpace(json))
             {
                 return string.Empty;
             }
 
-            int depth = 0;
-            bool inString = false;
-            bool escaped = false;
-            for (int i = start; i < text.Length; i++)
-            {
-                char current = text[i];
-                if (inString)
-                {
-                    if (escaped)
-                    {
-                        escaped = false;
-                    }
-                    else if (current == '\\')
-                    {
-                        escaped = true;
-                    }
-                    else if (current == '"')
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '"')
-                {
-                    inString = true;
-                    continue;
-                }
-
-                if (current == '{')
-                {
-                    depth++;
-                    continue;
-                }
-
-                if (current != '}')
-                {
-                    continue;
-                }
-
-                depth--;
-                if (depth == 0)
-                {
-                    return text.Substring(start, i - start + 1);
-                }
-            }
-
-            return string.Empty;
+            return json;
         }
 
         private static string ExtractJsonString(string json, string key)

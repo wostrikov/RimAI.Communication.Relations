@@ -64,11 +64,11 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
             out DialogueResponseEnvelope envelope)
         {
             envelope = null;
-            string payload = StripMarkdownCodeFence(sanitized);
-            if (!LooksLikeSingleJsonObject(payload))
+            string payload = JsonMarkdownFence.StripWrappingFence(sanitized);
+            if (!JsonBoundedExtractor.LooksLikeSingleJsonObject(payload))
             {
                 payload = ExtractJsonFromMixedContent(sanitized);
-                if (string.IsNullOrWhiteSpace(payload) || !LooksLikeSingleJsonObject(payload))
+                if (string.IsNullOrWhiteSpace(payload) || !JsonBoundedExtractor.LooksLikeSingleJsonObject(payload))
                 {
                     return false;
                 }
@@ -156,7 +156,7 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
                 VisibleDialogue = (visibleDialogue ?? string.Empty).Trim(),
                 ActionsJson = (actionsJson ?? string.Empty).Trim(),
                 Actions = usageChannel == DialogueUsageChannel.Rpg
-                    ? LLMRpgApiResponse.ParseActionsFromJson(actionsJson)
+                    ? RpgActionParser.ParseActionsFromJson(actionsJson)
                     : new List<LLMRpgApiResponse.ApiAction>(),
                 IsValid = true,
                 FailureReason = string.Empty,
@@ -185,134 +185,19 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
                 return string.Empty;
             }
 
-            // Look for ```json ... ``` blocks and extract the JSON object with visible_dialogue.
-            int fenceStart = text.IndexOf("```json", StringComparison.OrdinalIgnoreCase);
-            if (fenceStart < 0)
+            if (JsonMarkdownFence.TryExtractFencedBlock(text, out string block))
             {
-                fenceStart = text.IndexOf("```", StringComparison.Ordinal);
-            }
-
-            if (fenceStart < 0)
-            {
-                // No code fence — try to find the first top-level JSON object containing visible_dialogue.
-                return ExtractJsonObjectContainingKey(text, "visible_dialogue");
-            }
-
-            int contentStart = text.IndexOf('\n', fenceStart);
-            if (contentStart < 0 || contentStart >= text.Length - 1)
-            {
-                return string.Empty;
-            }
-
-            contentStart++;
-            int fenceEnd = text.IndexOf("```", contentStart);
-            string block = fenceEnd > contentStart
-                ? text.Substring(contentStart, fenceEnd - contentStart).Trim()
-                : text.Substring(contentStart).Trim();
-
-            if (LooksLikeSingleJsonObject(block))
-            {
-                return block;
-            }
-
-            return ExtractJsonObjectContainingKey(block, "visible_dialogue");
-        }
-
-        private static string ExtractJsonObjectContainingKey(string text, string requiredKey)
-        {
-            if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(requiredKey))
-            {
-                return string.Empty;
-            }
-
-            string needle = "\"" + requiredKey + "\"";
-            int keyIndex = text.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
-            if (keyIndex < 0)
-            {
-                return string.Empty;
-            }
-
-            // Walk backwards to find the opening { of the containing object.
-            int depth = 0;
-            int objectStart = -1;
-            for (int i = keyIndex; i >= 0; i--)
-            {
-                char c = text[i];
-                if (c == '}')
+                if (JsonBoundedExtractor.LooksLikeSingleJsonObject(block))
                 {
-                    depth++;
+                    return block;
                 }
-                else if (c == '{')
-                {
-                    if (depth == 0)
-                    {
-                        objectStart = i;
-                        break;
-                    }
 
-                    depth--;
-                }
+                return JsonBoundedExtractor.ExtractObjectContainingKey(block, "visible_dialogue");
             }
 
-            if (objectStart < 0)
-            {
-                return string.Empty;
-            }
-
-            int objectEnd = FindMatchingBracket(text, objectStart, '{', '}');
-            if (objectEnd <= objectStart)
-            {
-                return string.Empty;
-            }
-
-            return text.Substring(objectStart, objectEnd - objectStart + 1).Trim();
+            return JsonBoundedExtractor.ExtractObjectContainingKey(text, "visible_dialogue");
         }
 
-        private static string StripMarkdownCodeFence(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return string.Empty;
-            }
-
-            string trimmed = text.Trim();
-            if (!trimmed.StartsWith("```", StringComparison.Ordinal) ||
-                !trimmed.EndsWith("```", StringComparison.Ordinal))
-            {
-                return trimmed;
-            }
-
-            int firstNewLine = trimmed.IndexOf('\n');
-            if (firstNewLine < 0 || firstNewLine >= trimmed.Length - 3)
-            {
-                return trimmed;
-            }
-
-            string body = trimmed.Substring(firstNewLine + 1);
-            if (body.EndsWith("```", StringComparison.Ordinal))
-            {
-                body = body.Substring(0, body.Length - 3);
-            }
-
-            return body.Trim();
-        }
-
-        private static bool LooksLikeSingleJsonObject(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            string trimmed = text.Trim();
-            if (!trimmed.StartsWith("{", StringComparison.Ordinal) ||
-                !trimmed.EndsWith("}", StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return FindMatchingBracket(trimmed, 0, '{', '}') == trimmed.Length - 1;
-        }
 
         private static string ExtractFirstNonEmptyString(string json, params string[] keys)
         {
@@ -426,7 +311,7 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
                 return string.Empty;
             }
 
-            int arrayEnd = FindMatchingBracket(json, valueStart, '[', ']');
+            int arrayEnd = JsonBoundedExtractor.FindMatchingBracket(json, valueStart, '[', ']');
             if (arrayEnd <= valueStart)
             {
                 return string.Empty;
@@ -496,60 +381,6 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
                 if (current == '}')
                 {
                     depth = Math.Max(0, depth - 1);
-                }
-            }
-
-            return -1;
-        }
-
-        private static int FindMatchingBracket(string text, int start, char open, char close)
-        {
-            bool inString = false;
-            bool escaped = false;
-            int depth = 0;
-
-            for (int i = start; i < text.Length; i++)
-            {
-                char current = text[i];
-                if (inString)
-                {
-                    if (escaped)
-                    {
-                        escaped = false;
-                    }
-                    else if (current == '\\')
-                    {
-                        escaped = true;
-                    }
-                    else if (current == '"')
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '"')
-                {
-                    inString = true;
-                    continue;
-                }
-
-                if (current == open)
-                {
-                    depth++;
-                    continue;
-                }
-
-                if (current != close)
-                {
-                    continue;
-                }
-
-                depth--;
-                if (depth == 0)
-                {
-                    return i;
                 }
             }
 

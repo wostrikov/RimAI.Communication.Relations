@@ -85,6 +85,7 @@ internal static class Program
             Check(!unsupported.ToString().Contains(secret), "48 observability excludes secret");
 
             RelationsDecompositionTests.Run(Check);
+            ParserLayerTests.Run(Check);
 
             Console.WriteLine($"OPENAI_FOCUSED_TESTS_OK passed={passed}");
             Console.WriteLine($"TESTS total={passed} failed={failed}");

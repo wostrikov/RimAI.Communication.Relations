@@ -107,22 +107,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         public static string ParseOutputText(string json)
         {
-            if (string.IsNullOrWhiteSpace(json)) return string.Empty;
-            var values = new List<string>();
-            MatchCollection objects = Regex.Matches(json, "\\{(?<object>(?:[^{}\\\"]|\\\"(?:[^\\\"\\\\]|\\\\.)*\\\")*)\\}", RegexOptions.Singleline);
-            foreach (Match match in objects)
-            {
-                string item = match.Groups["object"].Value;
-                if (!Regex.IsMatch(item, "\\\"type\\\"\\s*:\\s*\\\"output_text\\\"", RegexOptions.IgnoreCase)) continue;
-                Match text = Regex.Match(item, "\\\"text\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                if (text.Success) values.Add(Unescape(text.Groups["v"].Value));
-            }
-            if (values.Count == 0)
-            {
-                Match convenience = Regex.Match(json, "\\\"output_text\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                if (convenience.Success) values.Add(Unescape(convenience.Groups["v"].Value));
-            }
-            return string.Join(" ", values).Trim();
+            return OpenAiResponsesEnvelopeParser.ExtractOutputText(json);
         }
 
         public static OpenAIErrorCategory Classify(long status, string type, string code)

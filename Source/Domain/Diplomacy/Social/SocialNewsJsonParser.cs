@@ -78,29 +78,27 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         private static string ExtractJsonObject(string response)
         {
             string source = NormalizeResponse(response);
-            int start = source.IndexOf('{');
-            int end = source.LastIndexOf('}');
-            if (start < 0 || end <= start)
+            if (!Ustas.RimAI.Communication.Relations.AI.JsonBoundedExtractor.TryExtractFirstObject(source, out string json))
             {
                 return string.Empty;
             }
 
-            return source.Substring(start, end - start + 1).Trim();
+            return json.Trim();
         }
 
         private static string NormalizeResponse(string response)
         {
             string text = (response ?? string.Empty).Trim();
-            if (!text.StartsWith("```", StringComparison.Ordinal))
+            if (text.StartsWith("```", StringComparison.Ordinal))
             {
-                return text;
+                text = Ustas.RimAI.Communication.Relations.AI.JsonMarkdownFence.StripWrappingFence(text);
+                if (text.StartsWith("```", StringComparison.Ordinal))
+                {
+                    text = Ustas.RimAI.Communication.Relations.AI.JsonMarkdownFence.StripFenceMarkers(text);
+                }
             }
 
-            return text
-                .Replace("```json", string.Empty)
-                .Replace("```JSON", string.Empty)
-                .Replace("```", string.Empty)
-                .Trim();
+            return text;
         }
 
         private static bool HasRequiredFields(SocialNewsDraft draft)

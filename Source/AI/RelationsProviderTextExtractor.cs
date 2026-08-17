@@ -1,11 +1,10 @@
 using System;
+using System.Collections.Generic;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
-    /// Generic provider-envelope text extraction. Internals (SSE framing, envelope
-    /// normalization, stream chunks) are deferred to the JSON/SSE checkpoint; this
-    /// class only preserves the current extraction behavior behind one owner.
+    /// Boundary between provider envelope normalization and Relations domain parsing.
     /// </summary>
     internal static class RelationsProviderTextExtractor
     {
@@ -13,47 +12,19 @@ namespace Ustas.RimAI.Communication.Relations.AI
         {
             if (string.IsNullOrEmpty(json))
             {
-                return new PrimaryTextExtractionResult
-                {
-                    IsSuccess = false,
-                    Content = string.Empty,
-                    ReasonTag = "invalid_payload",
-                    MatchedPath = string.Empty
-                };
+                return ProviderTextResult.Fail(ProviderTextErrorKind.Empty, "invalid_payload").ToExtractionResult();
             }
 
             try
             {
-                if (provider == AIProvider.OpenAI)
-                {
-                    string outputText = OpenAIProviderAdapter.ParseOutputText(json);
-                    return string.IsNullOrWhiteSpace(outputText)
-                        ? new PrimaryTextExtractionResult { IsSuccess = false, Content = string.Empty, ReasonTag = "no_output_text", MatchedPath = string.Empty }
-                        : new PrimaryTextExtractionResult { IsSuccess = true, Content = outputText, ReasonTag = "ok", MatchedPath = "output[].content[].output_text" };
-                }
-
-                if (AIJsonContentExtractor.IsErrorPayload(json))
-                {
-                    return new PrimaryTextExtractionResult
-                    {
-                        IsSuccess = false,
-                        Content = string.Empty,
-                        ReasonTag = "error_payload",
-                        MatchedPath = string.Empty
-                    };
-                }
-
-                return AIJsonContentExtractor.TryExtractPrimaryText(json);
+                ProviderTextResult parsed = provider == AIProvider.OpenAI
+                    ? ParseOpenAi(json)
+                    : ParseCompatible(json);
+                return parsed.ToExtractionResult();
             }
             catch (Exception)
             {
-                return new PrimaryTextExtractionResult
-                {
-                    IsSuccess = false,
-                    Content = string.Empty,
-                    ReasonTag = "extractor_exception",
-                    MatchedPath = string.Empty
-                };
+                return ProviderTextResult.Fail(ProviderTextErrorKind.Malformed, "extractor_exception").ToExtractionResult();
             }
         }
 
@@ -61,6 +32,47 @@ namespace Ustas.RimAI.Communication.Relations.AI
         {
             return string.Equals(reasonTag, "empty_primary_text", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(reasonTag, "assistant_role_without_content", StringComparison.OrdinalIgnoreCase);
+        }
+
+        static ProviderTextResult ParseOpenAi(string json)
+        {
+            if (SseFrameReader.LooksLikeSse(json))
+            {
+                return ParseOpenAiSse(json);
+            }
+
+            return OpenAiResponsesEnvelopeParser.Parse(json);
+        }
+
+        static ProviderTextResult ParseOpenAiSse(string json)
+        {
+            List<string> dataPayloads = SseFrameReader.EnumerateDataPayloads(json);
+            var segments = new List<string>();
+            for (int i = 0; i < dataPayloads.Count; i++)
+            {
+                ProviderTextResult chunk = OpenAiResponsesEnvelopeParser.Parse(dataPayloads[i]);
+                if (chunk.Success && !string.IsNullOrWhiteSpace(chunk.Text))
+                {
+                    segments.Add(chunk.Text.Trim());
+                }
+            }
+
+            if (segments.Count == 0)
+            {
+                return ProviderTextResult.Fail(ProviderTextErrorKind.Empty, "sse_no_extractable_text", "sse.data");
+            }
+
+            return ProviderTextResult.Ok(string.Join(" ", segments).Trim(), "sse.data", isStreamingFinal: true);
+        }
+
+        static ProviderTextResult ParseCompatible(string json)
+        {
+            if (CompatibleChatEnvelopeParser.IsErrorPayload(json))
+            {
+                return ProviderTextResult.Fail(ProviderTextErrorKind.ErrorEnvelope, "error_payload");
+            }
+
+            return CompatibleChatEnvelopeParser.Parse(json);
         }
     }
 }

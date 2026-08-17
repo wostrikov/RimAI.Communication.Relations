@@ -47,6 +47,11 @@ internal static class RelationsDecompositionTests
             AIProvider.DeepSeek);
         check(!error.IsSuccess && error.ReasonTag == "error_payload", "error envelope is not assistant text");
 
+        PrimaryTextExtractionResult openaiError = RelationsProviderTextExtractor.Extract(
+            "{\"error\":{\"message\":\"nope\"}}",
+            AIProvider.OpenAI);
+        check(!openaiError.IsSuccess && openaiError.ReasonTag == "error_payload", "openai error envelope is not assistant text");
+
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("empty_primary_text"), "empty primary text is retryable");
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("assistant_role_without_content"), "assistant without content is retryable");
         check(!RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("error_payload"), "error payload is not parse-retryable");
