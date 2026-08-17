@@ -196,14 +196,26 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 // Module list labels + kind tags
                 foreach (var m in GetCachedPromptWorkspaceModules())
                     sb.Append(m.Label).Append(' ');
-                sb.Append("RimChat_PromptWorkspaceKind_Section RimChat_PromptWorkspaceKind_Node ".Translate());
-                // Header / common strings
-                sb.Append("RimChat_Tab_PromptWorkbench RimChat_PromptWorkbench_PresetHeader "
-                    + "RimChat_PromptWorkbench_ModuleHeader RimChat_PromptPreset_Create "
-                    + "RimChat_PromptPreset_Duplicate RimChat_Import RimChat_Export "
-                    + "RimChat_PreviewTitleShort RimChat_PromptWorkbench_FullPreviewTab "
-                    + "RimChat_PromptWorkbench_VariablesTab RimChat_RimTalkCompatEnable "
-                    + "RimChat_PromptWorkbench_ChannelDiplomacy RimChat_PromptWorkbench_ChannelRpg".Translate());
+                string[] glyphKeys =
+                {
+                    "RimChat_PromptWorkspaceKind_Section",
+                    "RimChat_PromptWorkspaceKind_Node",
+                    "RimChat_Tab_PromptWorkbench",
+                    "RimChat_PromptWorkbench_PresetHeader",
+                    "RimChat_PromptWorkbench_ModuleHeader",
+                    "RimChat_PromptPreset_Create",
+                    "RimChat_PromptPreset_Duplicate",
+                    "RimChat_Import",
+                    "RimChat_Export",
+                    "RimChat_PreviewTitleShort",
+                    "RimChat_PromptWorkbench_FullPreviewTab",
+                    "RimChat_PromptWorkbench_VariablesTab",
+                    "RimChat_RimTalkCompatEnable",
+                    "RimChat_PromptWorkbench_ChannelDiplomacy",
+                    "RimChat_PromptWorkbench_ChannelRpg",
+                };
+                foreach (string glyphKey in glyphKeys)
+                    sb.Append(glyphKey.Translate()).Append(' ');
                 // Pre-render all CJK glyphs into the font texture to avoid per-frame rasterization
                 GUI.skin.font.RequestCharactersInTexture(sb.ToString());
                 Log.Message($"[RimAI.Relations] Font pre-rasterized, {sb.Length} chars");
