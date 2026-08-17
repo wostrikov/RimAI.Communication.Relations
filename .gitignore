@@ -29,3 +29,7 @@ __pycache__/
 # Generated debug logs
 log.txt
 **/log.txt
+
+# Donor CLR must not ship in versioned Assemblies folders
+**/Assemblies/*.dll
+**/Assemblies/*.pdb
