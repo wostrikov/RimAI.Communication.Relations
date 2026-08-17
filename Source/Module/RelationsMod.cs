@@ -11,6 +11,7 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Comp;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Core.Handshake;
 using Ustas.RimAI.Core.Modules;
 using Ustas.RimAI.Core.Relations;
 
@@ -18,6 +19,7 @@ namespace Ustas.RimAI.Communication.Relations.Module
 {
     public class RelationsMod : Mod
     {
+        public const string HandshakeModuleVersion = "1.5.9";
         public static RelationsSettings Settings;
         public static RelationsMod Instance;
         public RelationsSettings InstanceSettings => Settings;
@@ -26,23 +28,26 @@ namespace Ustas.RimAI.Communication.Relations.Module
         {
             Instance = this;
             Settings = GetSettings<RelationsSettings>();
+            RimAiHandshake.TryActivate(
+                RimAiHandshakeDescriptor.Current(RimAiModuleIds.Relations, HandshakeModuleVersion, isOptional: true),
+                Activate);
+        }
+
+        void Activate()
+        {
             Settings?.EnsureRpgPromptTextsLoaded();
             Settings?.EnsurePawnPersonalityTokenForRpgChannelsSafe();
             RefreshDefaultPresetSnapshotOnStartup();
 
-            // Initialize FactionPromptManager
             FactionPromptManager.Instance.Initialize();
 
-            // Apply Harmony patches
             var harmony = new Harmony("ustas.rimai.communication.relations");
             Ustas.RimAI.Communication.Relations.Patches.HarmonyPatchStartupSelfCheck.Run();
             harmony.PatchAll();
 
-            // Initialize custom patches that require dynamic method lookup
             Ustas.RimAI.Communication.Relations.Patches.CommsConsolePatch.Initialize(harmony);
             Ustas.RimAI.Communication.Relations.Patches.QuestGenPatch.Initialize(harmony);
 
-            // Inject CompPawnDialogue to all eligible pawn ThingDefs after all defs are loaded
             LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
 
             RelationsApplicationAccess.Register(new RelationsApplication());
