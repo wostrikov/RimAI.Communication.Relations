@@ -1,3 +1,4 @@
+using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
 using UnityEngine;
 using Verse;

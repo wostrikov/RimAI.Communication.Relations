@@ -1500,7 +1500,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
             try
             {
-                if (!QuestSlatePrebuilder.TryBuild(faction, questDef, parameters, out RimWorld.QuestGen.Slate slate, out string prebuildCode, out string prebuildMessage))
+                if (!QuestSlatePrebuilder.TryBuild(faction, questDef, parameters, out global::RimWorld.QuestGen.Slate slate, out string prebuildCode, out string prebuildMessage))
                 {
                     DebugLogger.WarningGated($"CreateQuest prebuild failed. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{prebuildCode}', message='{prebuildMessage}'");
                     return APIResult.FailureResult(prebuildMessage);
@@ -1510,7 +1510,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 try
                 {
                     Ustas.RimAI.Communication.Relations.Patches.QuestGenPatch.LockSlateVariables = true;
-                    quest = RimWorld.QuestGen.QuestGen.Generate(questDef, slate);
+                    quest = global::RimWorld.QuestGen.QuestGen.Generate(questDef, slate);
                 }
                 finally
                 {
@@ -1524,7 +1524,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 }
 
                 Find.QuestManager.Add(quest);
-                RimWorld.QuestUtility.SendLetterQuestAvailable(quest);
+                global::RimWorld.QuestUtility.SendLetterQuestAvailable(quest);
 
                 string logMsg = $"Quest '{questDefName}' created";
 

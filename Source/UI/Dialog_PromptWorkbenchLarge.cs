@@ -33,7 +33,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 return;
             }
 
-            _settings.DrawTab_PromptSettingsDirect(inRect);
+            RelationsSettingsWindow.DrawPromptWorkbench(inRect, _settings);
         }
 
         public override void PreClose()

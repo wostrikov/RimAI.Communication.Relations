@@ -88,6 +88,7 @@ internal static class Program
             ParserLayerTests.Run(Check);
             PromptDecompositionTests.Run(Check);
             TemplateCleanupTests.Run(Check);
+            RelationsSettingsPolicyTests.Run(Check);
 
             Console.WriteLine($"OPENAI_FOCUSED_TESTS_OK passed={passed}");
             Console.WriteLine($"TESTS total={passed} failed={failed}");

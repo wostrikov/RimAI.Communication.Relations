@@ -37,7 +37,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            if (!QuestSlatePrebuilder.TryBuild(faction, questDef, parameters, out RimWorld.QuestGen.Slate slate, out code, out message))
+            if (!QuestSlatePrebuilder.TryBuild(faction, questDef, parameters, out global::RimWorld.QuestGen.Slate slate, out code, out message))
             {
                 return false;
             }
@@ -157,7 +157,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         public static bool TryValidateGeneratedQuest(
             Quest quest,
             QuestScriptDef questDef,
-            RimWorld.QuestGen.Slate slate,
+            global::RimWorld.QuestGen.Slate slate,
             out string code,
             out string message)
         {
@@ -198,7 +198,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool ValidatePawnLendContract(RimWorld.QuestGen.Slate slate, out string code, out string message)
+        private static bool ValidatePawnLendContract(global::RimWorld.QuestGen.Slate slate, out string code, out string message)
         {
             code = "allowed";
             message = "Allowed";
@@ -267,7 +267,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return false;
         }
 
-        private static bool ContainsUnresolvedTokens(Quest quest, QuestScriptDef questDef, RimWorld.QuestGen.Slate slate, out string token)
+        private static bool ContainsUnresolvedTokens(Quest quest, QuestScriptDef questDef, global::RimWorld.QuestGen.Slate slate, out string token)
         {
             List<string> sources = new List<string>();
             token = null;
@@ -304,7 +304,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return false;
         }
 
-        private static void AddSlateText(List<string> sources, RimWorld.QuestGen.Slate slate, string key)
+        private static void AddSlateText(List<string> sources, global::RimWorld.QuestGen.Slate slate, string key)
         {
             if (!slate.Exists(key))
             {
@@ -333,7 +333,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 .Any();
         }
 
-        private static bool ValidateRequiredSlateKeys(QuestScriptDef questDef, RimWorld.QuestGen.Slate slate, out string code, out string message)
+        private static bool ValidateRequiredSlateKeys(QuestScriptDef questDef, global::RimWorld.QuestGen.Slate slate, out string code, out string message)
         {
             code = "allowed";
             message = "Allowed";

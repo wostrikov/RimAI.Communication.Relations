@@ -1,3 +1,4 @@
+using Ustas.RimAI.Communication.Relations.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;

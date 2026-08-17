@@ -104,32 +104,16 @@ namespace Ustas.RimAI.Communication.Relations.Module
         public override void DoSettingsWindowContents(Rect inRect)
         {
             RimAISettingsNavigation.Open("communication", "relations");
-            bool workbenchActive = Settings.selectedTab == 2;
+            bool workbenchActive = Ustas.RimAI.Communication.Relations.UI.RelationsSettingsWindow.IsPromptWorkbenchPage;
             ResizeSettingsWindowForWorkbench(workbenchActive);
 
-            if (workbenchActive)
-            {
-                // Escape hatch: a small "back to settings" button so the user is never trapped.
-                // selectedTab is a sticky instance field — without this, closing & reopening
-                // the dialog while on this tab leaves the user with no way to navigate away.
-                Rect backRect = new Rect(inRect.x, inRect.y, 140f, 24f);
-                if (Widgets.ButtonText(backRect, "RimChat_ReturnToSettings".Translate()))
-                {
-                    Settings.selectedTab = 0;
-                    return;
-                }
-
-                Rect contentRect = new Rect(inRect.x, inRect.y + 28f, inRect.width, inRect.height - 28f);
-                // Block GUI.changed from propagating to parent Dialog_ModSettings,
-                // which would otherwise trigger WriteSettings() → ExposeData() (80+ Scribe fields) every Repaint.
-                bool guiChanged = GUI.changed;
-                Settings.DrawTab_PromptSettingsDirect(contentRect);
+            bool guiChanged = GUI.changed;
+            Ustas.RimAI.Communication.Relations.UI.RelationsSettingsWindow.Draw(inRect, Settings);
+            if (Ustas.RimAI.Communication.Relations.UI.RelationsSettingsWindow.IsPromptWorkbenchPage)
                 GUI.changed = guiChanged;
-            }
-            else
-            {
-                Settings.DoWindowContents(inRect);
-            }
+
+            if (Ustas.RimAI.Communication.Relations.UI.RelationsSettingsWindow.IsPromptWorkbenchPage != workbenchActive)
+                ResizeSettingsWindowForWorkbench(Ustas.RimAI.Communication.Relations.UI.RelationsSettingsWindow.IsPromptWorkbenchPage);
         }
 
         private static void ResizeSettingsWindowForWorkbench(bool workbenchActive)

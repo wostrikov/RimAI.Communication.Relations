@@ -25,7 +25,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Faction faction,
             QuestScriptDef questDef,
             Dictionary<string, object> parameters,
-            out RimWorld.QuestGen.Slate slate,
+            out global::RimWorld.QuestGen.Slate slate,
             out string code,
             out string message)
         {
@@ -59,7 +59,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            slate = new RimWorld.QuestGen.Slate();
+            slate = new global::RimWorld.QuestGen.Slate();
             foreach (var kvp in source)
             {
                 if (isItemStashQuest && string.Equals(kvp.Key, "siteFaction", StringComparison.OrdinalIgnoreCase))
@@ -248,7 +248,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool TryBuildPawnLendSlate(Faction faction, RimWorld.QuestGen.Slate slate, Map playerMap, out string code, out string message)
+        private static bool TryBuildPawnLendSlate(Faction faction, global::RimWorld.QuestGen.Slate slate, Map playerMap, out string code, out string message)
         {
             code = "allowed";
             message = "Allowed";
@@ -320,7 +320,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static Pawn ResolvePawnLendAsker(Faction faction, RimWorld.QuestGen.Slate slate)
+        private static Pawn ResolvePawnLendAsker(Faction faction, global::RimWorld.QuestGen.Slate slate)
         {
             if (slate.Exists("asker"))
             {
@@ -408,7 +408,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return faction?.def?.techLevel >= TechLevel.Industrial;
         }
 
-        private static int ResolvePositiveInt(RimWorld.QuestGen.Slate slate, string key)
+        private static int ResolvePositiveInt(global::RimWorld.QuestGen.Slate slate, string key)
         {
             if (!slate.Exists(key))
             {
@@ -433,7 +433,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return 0;
         }
 
-        private static bool IsInvalidPawnLendValue(RimWorld.QuestGen.Slate slate, string key)
+        private static bool IsInvalidPawnLendValue(global::RimWorld.QuestGen.Slate slate, string key)
         {
             object value = slate.Get<object>(key);
             if (value == null)

@@ -52,7 +52,12 @@
   <ItemGroup>
     <PackageReference Include="Scriban" Version="5.10.0" />
   </ItemGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\..\RimAI.Core\src\RimAI.Core\RimAI.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Source\SettingsPolicy\RelationsSettingsCatalog.cs" Link="SettingsPolicy\RelationsSettingsCatalog.cs" />
+    <Compile Include="..\Source\SettingsPolicy\RelationsSettingsModel.cs" Link="SettingsPolicy\RelationsSettingsModel.cs" />
+    <Compile Include="..\Source\SettingsPolicy\RelationsSettingsPolicy.cs" Link="SettingsPolicy\RelationsSettingsPolicy.cs" />
   </ItemGroup>
 </Project>

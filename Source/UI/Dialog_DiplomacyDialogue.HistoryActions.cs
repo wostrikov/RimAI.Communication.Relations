@@ -13,7 +13,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
         {
             if (faction == null)
             {
-                Messages.Message("RimChat_DiplomacyHistoryNoFaction".Translate(), RimWorld.MessageTypeDefOf.RejectInput, false);
+                Messages.Message("RimChat_DiplomacyHistoryNoFaction".Translate(), global::RimWorld.MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
