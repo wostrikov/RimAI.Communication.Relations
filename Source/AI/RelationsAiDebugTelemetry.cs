@@ -5,18 +5,24 @@ using System.Linq;
 namespace Ustas.RimAI.Communication.Relations.AI
 {
     /// <summary>
-    /// Dependencies: AIChatServiceAsync request lifecycle and token parser helpers.
-    /// Responsibility: in-memory API request telemetry collection, cleanup, and read-only snapshots.
+    /// Relations-owned in-memory API request telemetry. Distinct from arbiter
+    /// admission telemetry and from HTTP transport execution logs.
     /// </summary>
-    public partial class AIChatServiceAsync
+    internal sealed class RelationsAiDebugTelemetry
     {
-        private const int DebugWindowMinutes = 30;
-        private const int PendingDebugRetentionMinutes = 120;
-        private const int DebugBucketMinutes = 1;
+        const int DebugWindowMinutes = 30;
+        const int PendingDebugRetentionMinutes = 120;
+        const int DebugBucketMinutes = 1;
 
-        private readonly List<AIRequestDebugRecord> requestDebugRecords = new List<AIRequestDebugRecord>();
-        private readonly Dictionary<string, PendingDebugRecordContext> pendingDebugRecords = new Dictionary<string, PendingDebugRecordContext>(StringComparer.Ordinal);
-        private readonly DateTime debugSessionStartedAtUtc = DateTime.UtcNow;
+        readonly object gate;
+        readonly List<AIRequestDebugRecord> requestDebugRecords = new List<AIRequestDebugRecord>();
+        readonly Dictionary<string, PendingDebugRecordContext> pendingDebugRecords = new Dictionary<string, PendingDebugRecordContext>(StringComparer.Ordinal);
+        readonly DateTime debugSessionStartedAtUtc = DateTime.UtcNow;
+
+        public RelationsAiDebugTelemetry(object gate)
+        {
+            this.gate = gate ?? new object();
+        }
 
         private sealed class PendingDebugRecordContext
         {
@@ -35,14 +41,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             public bool IsEstimated;
         }
 
-        private void BeginRequestDebugRecord(string requestId, DialogueUsageChannel usageChannel, AIRequestDebugSource source)
+        public void BeginRequestDebugRecord(string requestId, DialogueUsageChannel usageChannel, AIRequestDebugSource source)
         {
             if (string.IsNullOrWhiteSpace(requestId))
             {
                 return;
             }
 
-            lock (lockObject)
+            lock (gate)
             {
                 pendingDebugRecords[requestId] = new PendingDebugRecordContext
                 {
@@ -55,14 +61,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private void SetRequestDebugModel(string requestId, string model)
+        public void SetRequestDebugModel(string requestId, string model)
         {
             if (string.IsNullOrWhiteSpace(requestId))
             {
                 return;
             }
 
-            lock (lockObject)
+            lock (gate)
             {
                 if (!pendingDebugRecords.TryGetValue(requestId, out PendingDebugRecordContext context))
                 {
@@ -73,14 +79,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private void SetRequestDebugPayload(string requestId, string requestPayload)
+        public void SetRequestDebugPayload(string requestId, string requestPayload)
         {
             if (string.IsNullOrWhiteSpace(requestId))
             {
                 return;
             }
 
-            lock (lockObject)
+            lock (gate)
             {
                 if (!pendingDebugRecords.TryGetValue(requestId, out PendingDebugRecordContext context))
                 {
@@ -91,7 +97,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private void FinalizeRequestDebugRecord(
+        public void FinalizeRequestDebugRecord(
             string requestId,
             List<ChatMessageData> messages,
             string rawResponseText,
@@ -108,7 +114,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return;
             }
 
-            lock (lockObject)
+            lock (gate)
             {
                 if (!pendingDebugRecords.TryGetValue(requestId, out PendingDebugRecordContext context))
                 {
@@ -149,19 +155,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return BuildRequestDebugSnapshot(DateTime.UtcNow);
         }
 
-        public static bool TryGetRequestDebugSnapshot(out AIRequestDebugSnapshot snapshot)
-        {
-            snapshot = null;
-            if (_instance == null)
-            {
-                return false;
-            }
-
-            snapshot = _instance.GetRequestDebugSnapshot();
-            return snapshot != null;
-        }
-
-        public static void RecordExternalDebugRecord(
+        public void RecordExternal(
             AIRequestDebugSource source,
             DialogueUsageChannel channel,
             string model,
@@ -173,12 +167,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string errorText,
             DateTime? startedAtUtc = null)
         {
-            if (_instance == null)
-            {
-                return;
-            }
-
-            _instance.AppendExternalDebugRecord(
+            AppendExternalDebugRecord(
                 source,
                 channel,
                 model,
@@ -191,7 +180,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 startedAtUtc);
         }
 
-        public static void RecordExternalDebugRecord(
+        public void RecordExternal(
             AIRequestDebugSource source,
             DialogueUsageChannel channel,
             string model,
@@ -207,12 +196,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string errorText,
             DateTime? startedAtUtc = null)
         {
-            if (_instance == null)
-            {
-                return;
-            }
-
-            _instance.AppendExternalDebugRecord(
+            AppendExternalDebugRecord(
                 source,
                 channel,
                 model,
@@ -314,7 +298,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 ContractFailureReason = string.Empty
             };
 
-            lock (lockObject)
+            lock (gate)
             {
                 requestDebugRecords.Add(record);
                 CleanupPendingDebugRecordsLockless(nowUtc);
@@ -323,7 +307,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         private AIRequestDebugSnapshot BuildRequestDebugSnapshot(DateTime nowUtc)
         {
-            lock (lockObject)
+            lock (gate)
             {
                 CleanupPendingDebugRecordsLockless(nowUtc);
                 DateTime windowStartUtc = nowUtc.AddMinutes(-DebugWindowMinutes);
@@ -579,9 +563,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string rawResponseText,
             string parsedResponse)
         {
-            EstimateTokenUsage(messages, parsedResponse, out int estimatedPromptTokens, out int estimatedCompletionTokens, out int estimatedTotalTokens);
-            bool hasProviderUsage = TryExtractUsage(rawResponseText, out int providerPromptTokens, out int providerCompletionTokens, out int providerTotalTokens);
-            bool providerLooksAbnormal = hasProviderUsage && ShouldUseEstimatedUsage(
+            DialogueTokenUsageTracker.Estimate(messages, parsedResponse, out int estimatedPromptTokens, out int estimatedCompletionTokens, out int estimatedTotalTokens);
+            bool hasProviderUsage = DialogueTokenUsageTracker.TryExtract(rawResponseText, out int providerPromptTokens, out int providerCompletionTokens, out int providerTotalTokens);
+            bool providerLooksAbnormal = hasProviderUsage && DialogueTokenUsageTracker.ShouldUseEstimatedUsage(
                 providerPromptTokens,
                 providerCompletionTokens,
                 providerTotalTokens,
@@ -607,7 +591,15 @@ namespace Ustas.RimAI.Communication.Relations.AI
             };
         }
 
-        private static AIRequestDebugStatus ClassifyDebugStatusFromError(string errorText)
+        public void CleanupPending(DateTime nowUtc)
+        {
+            lock (gate)
+            {
+                CleanupPendingDebugRecordsLockless(nowUtc);
+            }
+        }
+
+        public static AIRequestDebugStatus ClassifyDebugStatusFromError(string errorText)
         {
             if (string.IsNullOrWhiteSpace(errorText))
             {

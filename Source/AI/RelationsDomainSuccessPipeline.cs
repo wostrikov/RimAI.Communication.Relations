@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
@@ -6,19 +5,20 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
-    public partial class AIChatServiceAsync
+    internal enum DomainSuccessAction
     {
-        internal enum DomainSuccessAction
-        {
-            Complete,
-            Retry
-        }
+        Complete,
+        Retry
+    }
 
-        /// <summary>
-        /// Shared Relations domain processing after any transport returns a parsed assistant payload.
-        /// Transport retries stay in Core; semantic/contract retries stay here.
-        /// </summary>
-        internal DomainSuccessAction ProcessSuccessfulPayload(
+    /// <summary>
+    /// Relations domain processing after any transport returns a parsed assistant payload.
+    /// Order: envelope parse → immersion → text integrity → Diplomacy/RPG contract.
+    /// Transport retries stay in Core; semantic/contract retries stay here.
+    /// </summary>
+    internal static class RelationsDomainSuccessPipeline
+    {
+        public static DomainSuccessAction Process(
             string parsedResponse,
             AIRequestDebugSource debugSource,
             DialogueUsageChannel usageChannel,
@@ -39,10 +39,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
             if (ShouldUseStructuredDialogueEnvelope(debugSource, usageChannel))
             {
                 parsedEnvelope = DialogueResponseEnvelopeParser.Parse(processedResponse, usageChannel);
-                if (!parsedEnvelope.IsValid && parseRetryCount < MaxParseRetryCount)
+                if (!parsedEnvelope.IsValid && parseRetryCount < RelationsSemanticRetry.MaxParseRetryCount)
                 {
                     parseRetryCount++;
-                    attemptMessages = AppendDialogueEnvelopeRetryMessage(
+                    attemptMessages = RelationsSemanticRetry.AppendDialogueEnvelopeRetryMessage(
                         attemptMessages,
                         usageChannel,
                         parsedEnvelope.FailureReason);
@@ -61,7 +61,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     processedResponse = useStableRpgFallback && !string.IsNullOrWhiteSpace(safeVisible)
                         ? safeVisible
                         : rawPassthrough;
-                    string responsePreview = BuildResponsePreviewForLog(rawPassthrough, 280);
+                    string responsePreview = RelationsLocalProviderRetry.BuildResponsePreviewForLog(rawPassthrough, 280);
                     DebugLogger.WarningGated(
                         $"Dialogue envelope raw passthrough used after retry: reason={envelopeFailureReason}, response_preview={responsePreview}");
                 }
@@ -76,10 +76,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 ImmersionGuardResult guardResult = parsedEnvelope != null
                     ? ImmersionOutputGuard.ValidateVisibleDialogueParts(parsedEnvelope.VisibleDialogue, parsedEnvelope.ActionsJson)
                     : ImmersionOutputGuard.ValidateVisibleDialogue(processedResponse);
-                if (!guardResult.IsValid && immersionRetryCount < MaxImmersionRetryCount)
+                if (!guardResult.IsValid && immersionRetryCount < RelationsSemanticRetry.MaxImmersionRetryCount)
                 {
                     immersionRetryCount++;
-                    attemptMessages = AppendImmersionRetryMessage(attemptMessages, usageChannel, guardResult);
+                    attemptMessages = RelationsSemanticRetry.AppendImmersionRetryMessage(attemptMessages, usageChannel, guardResult);
                     DebugLogger.WarningGated(
                         $"Immersion guard requested retry: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
                     return DomainSuccessAction.Retry;
@@ -118,10 +118,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 TextIntegrityCheckResult integrityResult = parsedEnvelope != null
                     ? TextIntegrityGuard.ValidateVisibleDialogueParts(parsedEnvelope.VisibleDialogue, parsedEnvelope.ActionsJson)
                     : TextIntegrityGuard.ValidateVisibleDialogue(processedResponse);
-                if (!integrityResult.IsValid && textIntegrityRetryCount < MaxTextIntegrityRetryCount)
+                if (!integrityResult.IsValid && textIntegrityRetryCount < RelationsSemanticRetry.MaxTextIntegrityRetryCount)
                 {
                     textIntegrityRetryCount++;
-                    attemptMessages = AppendTextIntegrityRetryMessage(attemptMessages, usageChannel, integrityResult);
+                    attemptMessages = RelationsSemanticRetry.AppendTextIntegrityRetryMessage(attemptMessages, usageChannel, integrityResult);
                     DebugLogger.WarningGated($"Text integrity guard requested retry: reason={integrityResult.ReasonTag}");
                     return DomainSuccessAction.Retry;
                 }
@@ -158,12 +158,12 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 DiplomacyResponseContractCheckResult contractResult = parsedEnvelope != null
                     ? DiplomacyResponseContractGuard.ValidateVisibleDialogueParts(parsedEnvelope.VisibleDialogue, parsedEnvelope.ActionsJson)
                     : DiplomacyResponseContractGuard.Validate(processedResponse);
-                if (!contractResult.IsValid && contractRetryCount < MaxDiplomacyContractRetryCount)
+                if (!contractResult.IsValid && contractRetryCount < RelationsSemanticRetry.MaxDiplomacyContractRetryCount)
                 {
                     contractRetryCount++;
                     contractValidationStatus = "retry";
                     contractFailureReason = DiplomacyResponseContractGuard.BuildViolationTag(contractResult.Violation);
-                    attemptMessages = AppendDiplomacyContractRetryMessage(attemptMessages, contractResult);
+                    attemptMessages = RelationsSemanticRetry.AppendDiplomacyContractRetryMessage(attemptMessages, contractResult);
                     Log.Warning($"[RimAI.Relations] Diplomacy contract guard requested retry: reason={contractFailureReason}");
                     return DomainSuccessAction.Retry;
                 }
@@ -201,12 +201,12 @@ namespace Ustas.RimAI.Communication.Relations.AI
                         parsedEnvelope.ActionsJson,
                         parsedEnvelope.ActionsJson)
                     : RpgResponseContractGuard.Validate(processedResponse);
-                if (!contractResult.IsValid && contractRetryCount < MaxRpgContractRetryCount)
+                if (!contractResult.IsValid && contractRetryCount < RelationsSemanticRetry.MaxRpgContractRetryCount)
                 {
                     contractRetryCount++;
                     contractValidationStatus = "retry";
                     contractFailureReason = RpgResponseContractGuard.BuildViolationTag(contractResult.Violation);
-                    attemptMessages = AppendRpgContractRetryMessage(attemptMessages, contractResult);
+                    attemptMessages = RelationsSemanticRetry.AppendRpgContractRetryMessage(attemptMessages, contractResult);
                     DebugLogger.WarningGated($"RPG contract guard requested retry: reason={contractFailureReason}");
                     return DomainSuccessAction.Retry;
                 }
@@ -244,6 +244,26 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
 
             return DomainSuccessAction.Complete;
+        }
+
+        public static bool ShouldGuardImmersion(DialogueUsageChannel usageChannel)
+        {
+            return usageChannel == DialogueUsageChannel.Diplomacy || usageChannel == DialogueUsageChannel.Rpg;
+        }
+
+        public static bool ShouldUseStructuredDialogueEnvelope(
+            AIRequestDebugSource debugSource,
+            DialogueUsageChannel usageChannel)
+        {
+            if (!ShouldGuardImmersion(usageChannel))
+            {
+                return false;
+            }
+
+            return debugSource == AIRequestDebugSource.DiplomacyDialogue ||
+                debugSource == AIRequestDebugSource.RpgDialogue ||
+                debugSource == AIRequestDebugSource.NpcPush ||
+                debugSource == AIRequestDebugSource.PawnRpgPush;
         }
     }
 }

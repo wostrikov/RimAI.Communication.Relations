@@ -2,12 +2,19 @@ using System;
 using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.AI;
 
-namespace Ustas.RimAI.Communication.Relations.AI { public sealed class ChatMessageData { public string role; public string content; } }
-
 internal static class Program
 {
     private static int passed;
-    private static void Check(bool value, string name) { if (!value) throw new Exception("FAILED: " + name); passed++; }
+    private static int failed;
+    private static void Check(bool value, string name)
+    {
+        if (!value)
+        {
+            failed++;
+            throw new Exception("FAILED: " + name);
+        }
+        passed++;
+    }
     private static OpenAIError Err(long status, string type, string code = "", string param = "") =>
         OpenAIProviderAdapter.ParseError(status, "{\"error\":{\"message\":\"safe\",\"type\":\"" + type + "\",\"param\":" + (param == "" ? "null" : "\"" + param + "\"") + ",\"code\":" + (code == "" ? "null" : "\"" + code + "\"") + "}}");
 
@@ -72,13 +79,17 @@ internal static class Program
             Check(!OpenAIProviderAdapter.CredentialPresent, "42 missing fails closed");
             Environment.SetEnvironmentVariable("OPENAI_API_KEY", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "43 no OPENAI_API_KEY fallback");
             Environment.SetEnvironmentVariable("OPENAI_RIMTRANS", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "44 no RIMTRANS fallback");
-            Environment.SetEnvironmentVariable("OPENAI_RIMTALK", secret); Check(OpenAIProviderAdapter.CredentialPresent, "45 legacy OPENAI_RIMTALK accepted");
+            Environment.SetEnvironmentVariable("OPENAI_RIMTALK", secret); Check(!OpenAIProviderAdapter.CredentialPresent, "45 no OPENAI_RIMTALK fallback");
             Check(!OpenAIProviderAdapter.CredentialDisplay.Contains(secret), "46 UI secret masked");
             Check(!request.Contains(secret), "47 request builder does not persist secret");
             Check(!unsupported.ToString().Contains(secret), "48 observability excludes secret");
-            Console.WriteLine($"OPENAI_FOCUSED_TESTS_OK passed={passed}"); return 0;
+
+            RelationsDecompositionTests.Run(Check);
+
+            Console.WriteLine($"OPENAI_FOCUSED_TESTS_OK passed={passed}");
+            Console.WriteLine($"TESTS total={passed} failed={failed}");
+            return failed == 0 ? 0 : 1;
         }
         finally { Environment.SetEnvironmentVariable(OpenAIProviderAdapter.CredentialVariable, old); Environment.SetEnvironmentVariable("OPENAI_API_KEY", null); Environment.SetEnvironmentVariable("OPENAI_RIMTRANS", null); Environment.SetEnvironmentVariable("OPENAI_RIMTALK", null); }
     }
-
 }
