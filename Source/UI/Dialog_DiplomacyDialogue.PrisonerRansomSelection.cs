@@ -343,7 +343,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             ClearPendingRansomBatchSelection(currentSession);
             ClearPendingRansomOfferReference(currentSession);
             MarkRansomInfoRequestIncomplete(currentSession);
-            Log.Message("[RimAI.Relations] request_info(prisoner) canceled by player.");
+            Log.Message("[RimAI.Relations] request_info(prisoner) cancelled by player.");
             currentSession.AddMessage(
                 "System",
                 "RimChat_RansomSelectionCancelledSystem".Translate().ToString(),
