@@ -16,12 +16,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             resolver => new UserDefinedVariableProvider(resolver)
         };
 
-        private static readonly Func<Func<string, PromptRuntimeVariableContext, object>, IPromptRuntimeVariableProvider>[] RimTalkProviderFactories =
-        {
-            _ => new RimTalkVariableProvider(),
-            _ => new RimTalkMemoryPatchVariableProvider()
-        };
-
         public static IReadOnlyList<PromptRuntimeVariableDefinition> GetDefinitions()
         {
             return BuildDefinitions();
@@ -108,14 +102,8 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
         public static List<IPromptRuntimeVariableProvider> CreateRuntimeProviders(
             Func<string, PromptRuntimeVariableContext, object> coreResolver)
         {
-            var providers = new List<IPromptRuntimeVariableProvider>(
-                CoreProviderFactories.Length + RimTalkProviderFactories.Length);
+            var providers = new List<IPromptRuntimeVariableProvider>(CoreProviderFactories.Length);
             AppendProviders(providers, CoreProviderFactories, coreResolver);
-            if (PromptRuntimeVariableBridge.IsRimTalkBridgeEnabled())
-            {
-                AppendProviders(providers, RimTalkProviderFactories, coreResolver);
-            }
-
             return providers;
         }
 

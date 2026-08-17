@@ -68,9 +68,27 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const int RimTalkPersonaCopyTemplateMaxLength = 2000;
 
         public const string DefaultRimTalkCompatTemplate =
+@"=== RIMAI TEMPLATE SECTION ===
+You may reference current RimAI namespaced variables in this section.";
+        public const string DefaultRimTalkPersonaCopyTemplate = "{{ pawn.personality }}";
+        private const string PreviousEnglishCompatTemplate =
 @"=== RIMTALK SCRIBAN COMPAT (RIMCHAT) ===
 You may reference RimTalk variables/plugins directly in this section.";
-        public const string DefaultRimTalkPersonaCopyTemplate = "{{ pawn.personality }}";
+        private const string PreviousUkrainianCompatTemplate =
+            "=== Сумісність із RIMTALK SCRIBAN (RIMCHAT) ===\nУ цьому блоці можна безпосередньо посилатися на змінні/плагіни RimTalk.";
+
+        internal static bool IsShippedCompatTemplateDefault(string text)
+        {
+            string normalized = (text ?? string.Empty).Trim();
+            if (normalized.Length == 0)
+            {
+                return true;
+            }
+
+            return string.Equals(normalized, DefaultRimTalkCompatTemplate.Trim(), StringComparison.Ordinal) ||
+                   string.Equals(normalized, PreviousEnglishCompatTemplate.Trim(), StringComparison.Ordinal) ||
+                   string.Equals(normalized, PreviousUkrainianCompatTemplate.Trim(), StringComparison.Ordinal);
+        }
 
         internal void ExposeData_RimTalkCompat()
         {

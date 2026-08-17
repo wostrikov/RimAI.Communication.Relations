@@ -84,18 +84,6 @@ internal sealed partial class PromptWorkspaceComposer
                     prompt = InjectPromptPayloadBlock(prompt, payloadTag, payloadText);
                 }
 
-                if (rootChannel == RimTalkPromptChannel.Rpg &&
-                    !deterministicPreview &&
-                    NativeRpgPromptRenderer.TryRenderRpgPrompt(
-                        prompt,
-                        composed?.PromptChannel ?? promptChannel,
-                        scenarioContext,
-                        out string rendered,
-                        out _))
-                {
-                    prompt = rendered;
-                }
-
                 if (rootChannel == RimTalkPromptChannel.Rpg && !deterministicPreview)
                 {
                     // Only inject via post-processing if the expandmemory_npc_memory node is NOT already enabled.
@@ -106,29 +94,6 @@ internal sealed partial class PromptWorkspaceComposer
                     if (!nodeEnabled)
                     {
                         prompt = host.ContextAssembler.InjectExpandMemoryIntoPrompt(prompt, scenarioContext?.Target);
-                    }
-                }
-
-                if (rootChannel == RimTalkPromptChannel.Diplomacy &&
-                    !deterministicPreview)
-                {
-                    bool diplomacyRenderSucceeded = NativeRpgPromptRenderer.TryRenderDiplomacyPrompt(
-                        prompt,
-                        composed?.PromptChannel ?? promptChannel,
-                        scenarioContext,
-                        out string diplomacyRendered,
-                        out NativeRenderDiagnostic diagnostic);
-                    if (diplomacyRenderSucceeded)
-                    {
-                        prompt = diplomacyRendered;
-                    }
-                    else if (IsSocialCirclePostChannel(composed?.PromptChannel ?? promptChannel) &&
-                        diagnostic?.IsCompatibilityFailure == true)
-                    {
-                        string message = string.IsNullOrWhiteSpace(diagnostic.ErrorMessage)
-                            ? "social_circle_post native RimTalk render compatibility failed."
-                            : diagnostic.ErrorMessage;
-                        throw new PromptRenderCompatibilityException(message, diagnostic);
                     }
                 }
 
@@ -679,73 +644,6 @@ internal sealed partial class PromptWorkspaceComposer
                 StringComparison.Ordinal);
         }
 
-        internal bool IsDiplomacyNativeVariablePassthroughSection(
-            RimTalkPromptChannel rootChannel,
-            string promptChannel,
-            string templateId)
-        {
-            if (rootChannel != RimTalkPromptChannel.Diplomacy)
-            {
-                return false;
-            }
-
-            string normalized = RimTalkPromptEntryChannelCatalog.NormalizeLoose(promptChannel);
-            bool isDiplomacyDialogueChannel =
-                normalized == RimTalkPromptEntryChannelCatalog.DiplomacyDialogue ||
-                normalized == RimTalkPromptEntryChannelCatalog.ProactiveDiplomacyDialogue;
-            if (!isDiplomacyDialogueChannel)
-            {
-                return false;
-            }
-
-            string sectionId = ExtractSectionIdFromTemplateId(templateId);
-            if (string.IsNullOrWhiteSpace(sectionId))
-            {
-                return false;
-            }
-
-            return !IsRpgModVariablesRawOutputSection(rootChannel, promptChannel, sectionId);
-        }
-
-        internal string ExtractSectionIdFromTemplateId(string templateId)
-        {
-            if (string.IsNullOrWhiteSpace(templateId))
-            {
-                return string.Empty;
-            }
-
-            string[] parts = (templateId ?? string.Empty).Split('.');
-            if (parts.Length < 3)
-            {
-                return string.Empty;
-            }
-
-            return parts[parts.Length - 1];
-        }
-
-        internal bool ShouldPassthroughRimTalkNativeToken(string normalizedToken)
-        {
-            if (string.IsNullOrWhiteSpace(normalizedToken))
-            {
-                return false;
-            }
-
-            string trimmed = normalizedToken.Trim();
-            if (trimmed.IndexOf(".rimtalk.", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return true;
-            }
-
-            string mappedPath = PromptRuntimeVariableRegistry.ResolveLegacyToken(trimmed);
-            if (!string.IsNullOrWhiteSpace(mappedPath) &&
-                mappedPath.IndexOf(".rimtalk.", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         internal string RenderRawModVariablesSection(
             string template,
             RimTalkPromptChannel rootChannel,
@@ -762,82 +660,17 @@ internal sealed partial class PromptWorkspaceComposer
                 return source.Trim();
             }
 
-            // Preprocess RimTalk native tokens and then delegate to lenient Scriban rendering.
-            // The lenient engine handles case-insensitive lookup and returns empty string for unknowns.
-            string preprocessed = PreprocessDiplomacyNativeVariables(source);
-
             string templateId = "prompt_sections." + (promptChannel ?? string.Empty) + ".mod_variables_raw";
             return RenderUnifiedTemplateLenient(
                 templateId,
                 promptChannel,
-                preprocessed,
+                source,
                 rootChannel,
                 deterministicPreview,
                 scenarioContext,
                 environmentConfig,
                 additionalValues,
                 cachedComposeValues);
-        }
-
-        internal string TryBuildRawVariableToken(string normalizedToken)
-        {
-            if (string.IsNullOrWhiteSpace(normalizedToken))
-            {
-                return string.Empty;
-            }
-
-            string[] parts = normalizedToken.Split('.');
-            if (parts.Length < 1)
-            {
-                return string.Empty;
-            }
-
-            if (parts[0].Equals("pawn", StringComparison.OrdinalIgnoreCase) && parts.Length >= 2)
-            {
-                return "{{ pawn." + parts[1] + " }}";
-            }
-
-            if (normalizedToken.IndexOf(".rimtalk.", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                string token = PromptRuntimeVariableBridge.ResolveRawToken(normalizedToken);
-                if (!string.IsNullOrWhiteSpace(token))
-                {
-                    return token;
-                }
-            }
-
-            return "{{ " + normalizedToken + " }}";
-        }
-
-        internal bool TryResolveRimTalkNativeToken(string normalizedToken, out string rawToken)
-        {
-            rawToken = string.Empty;
-            if (string.IsNullOrWhiteSpace(normalizedToken))
-            {
-                return false;
-            }
-
-            string normalized = normalizedToken.Trim();
-            if (normalized.IndexOf(".rimtalk.", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                rawToken = PromptRuntimeVariableBridge.ResolveRawToken(normalized);
-                return !string.IsNullOrWhiteSpace(rawToken);
-            }
-
-            string mappedPath = PromptRuntimeVariableRegistry.ResolveLegacyToken(normalized);
-            if (string.IsNullOrWhiteSpace(mappedPath) ||
-                mappedPath.IndexOf(".rimtalk.", StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                return false;
-            }
-
-            rawToken = PromptRuntimeVariableBridge.ResolveRawToken(mappedPath);
-            if (string.IsNullOrWhiteSpace(rawToken))
-            {
-                rawToken = "{{ " + normalized + " }}";
-            }
-
-            return true;
         }
 
         internal string ConvertRawModVariableValueToText(object value)
@@ -1132,11 +965,6 @@ internal sealed partial class PromptWorkspaceComposer
                 return string.Empty;
             }
 
-            if (IsDiplomacyNativeVariablePassthroughSection(rootChannel, promptChannel, templateId))
-            {
-                template = PreprocessDiplomacyNativeVariables(template);
-            }
-
             string renderChannel = ResolveTemplateRenderChannel(promptChannel, rootChannel, scenarioContext);
             Dictionary<string, object> values;
             if (cachedComposeValues != null)
@@ -1195,11 +1023,6 @@ internal sealed partial class PromptWorkspaceComposer
                 return string.Empty;
             }
 
-            if (IsDiplomacyNativeVariablePassthroughSection(rootChannel, promptChannel, templateId))
-            {
-                template = PreprocessDiplomacyNativeVariables(template);
-            }
-
             string renderChannel = ResolveTemplateRenderChannel(promptChannel, rootChannel, scenarioContext);
             Dictionary<string, object> values;
             if (cachedComposeValues != null)
@@ -1221,44 +1044,6 @@ internal sealed partial class PromptWorkspaceComposer
             PromptRenderContext renderContext = PromptRenderContext.Create(templateId, renderChannel);
             renderContext.SetValues(values);
             return PromptTemplateRenderer.RenderLenient(templateId, renderChannel, template, renderContext).Trim();
-        }
-
-        internal string PreprocessDiplomacyNativeVariables(string template)
-        {
-            if (string.IsNullOrWhiteSpace(template) || template.IndexOf("{{", StringComparison.Ordinal) < 0)
-            {
-                return template;
-            }
-
-            return PromptTemplateVariableService.TemplateVariableRegex.Replace(template, match =>
-            {
-                string normalized = host.TemplateVariables.NormalizeTemplateVariableName(match.Groups[1].Value);
-                if (normalized.Length == 0)
-                {
-                    return match.Value;
-                }
-
-                if (ShouldPassthroughRimTalkNativeToken(normalized))
-                {
-                    string rawToken = PromptRuntimeVariableBridge.ResolveRawToken(normalized);
-                    if (!string.IsNullOrWhiteSpace(rawToken))
-                    {
-                        return rawToken;
-                    }
-
-                    string mappedPath = PromptRuntimeVariableRegistry.ResolveLegacyToken(normalized);
-                    if (!string.IsNullOrWhiteSpace(mappedPath))
-                    {
-                        rawToken = PromptRuntimeVariableBridge.ResolveRawToken(mappedPath);
-                        if (!string.IsNullOrWhiteSpace(rawToken))
-                        {
-                            return rawToken;
-                        }
-                    }
-                }
-
-                return match.Value;
-            });
         }
 
         internal Dictionary<string, object> BuildRuntimeComposeValues(

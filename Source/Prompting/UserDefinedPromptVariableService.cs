@@ -11,13 +11,13 @@ using Verse;
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
-    /// Dependencies: RimChat settings, prompt validation service, and RimWorld defs.
+    /// Dependencies: Relations settings, prompt validation service, and RimWorld defs.
     /// Responsibility: own normalized CRUD, validation, migration, runtime rendering, and editor metadata for user-defined prompt variables.
     /// </summary>
     internal static partial class UserDefinedPromptVariableService
     {
         public const string NamespaceRoot = "system.custom";
-        private const string SourceId = "rimchat.user";
+        private const string SourceId = "rimai.relations.user";
         private const string SourceLabel = "User Variable";
 
         private static readonly string[] SuggestedKeys =

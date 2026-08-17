@@ -202,23 +202,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 failureReason = SocialPostEnqueueFailureReason.PromptRenderIncompatible;
                 return false;
             }
-            catch (PromptRenderCompatibilityException ex)
-            {
-                NativeRenderDiagnostic diagnostic = ex.Diagnostic;
-                Log.Warning(
-                    "[RimAI.Relations] Social news render fail-fast. " +
-                    $"requestId=not_dispatched, debugSource={AIRequestDebugSource.SocialNews}, stage=render_failfast, " +
-                    $"origin_type={seed.OriginType}, origin_key={seed.OriginKey ?? string.Empty}, " +
-                    $"channel={diagnostic?.PromptChannel ?? string.Empty}, " +
-                    $"bound_method={diagnostic?.BoundMethod ?? string.Empty}, " +
-                    $"bound_variant={diagnostic?.BoundMethodVariant ?? string.Empty}, " +
-                    $"failure_stage={diagnostic?.FailureStage ?? string.Empty}, " +
-                    $"error={(ex.Message ?? diagnostic?.ErrorMessage ?? string.Empty)}");
-                socialCircleState.MarkOriginState(seed.OriginType, seed.OriginKey, SocialNewsGenerationState.Failed, currentTick);
-                AddSocialGenerationMessage(seed, false, SocialPostGenerationFailureReason.PromptRenderIncompatible);
-                failureReason = SocialPostEnqueueFailureReason.PromptRenderIncompatible;
-                return false;
-            }
 
             socialCircleState.MarkOriginState(seed.OriginType, seed.OriginKey, SocialNewsGenerationState.Pending, currentTick);
             string localRequestId = string.Empty;

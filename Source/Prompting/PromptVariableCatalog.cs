@@ -35,18 +35,12 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 {
                     PromptVariableTooltipInfo info = PromptVariableTooltipCatalog.Resolve(definition.Path);
                     string namespacedToken = BuildWrappedToken(definition.Path);
-                    string rawToken = PromptRuntimeVariableBridge.ResolveRawToken(definition.Path);
-                    if (string.IsNullOrWhiteSpace(rawToken))
-                    {
-                        rawToken = namespacedToken;
-                    }
-
                     return new PromptVariableDisplayEntry
                     {
                         Path = definition.Path,
-                        RawToken = rawToken,
+                        RawToken = namespacedToken,
                         NamespacedToken = namespacedToken,
-                        DefaultInsertToken = rawToken,
+                        DefaultInsertToken = namespacedToken,
                         Scope = ResolveScope(definition.Path),
                         SourceId = definition.SourceId,
                         SourceLabel = definition.SourceLabel,

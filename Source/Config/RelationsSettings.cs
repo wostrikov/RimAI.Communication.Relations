@@ -1152,7 +1152,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     continue;
                 }
 
-                if (!string.Equals(text, DefaultRimTalkCompatTemplate.Trim(), StringComparison.Ordinal))
+                if (!RelationsSettings.IsShippedCompatTemplateDefault(text))
                 {
                     return true;
                 }

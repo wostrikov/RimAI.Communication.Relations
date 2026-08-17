@@ -210,7 +210,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
 
             if (!string.IsNullOrWhiteSpace(config.CompatTemplate) &&
-                !string.Equals(config.CompatTemplate.Trim(), RelationsSettings.DefaultRimTalkCompatTemplate.Trim(), StringComparison.Ordinal))
+                !RelationsSettings.IsShippedCompatTemplateDefault(config.CompatTemplate))
             {
                 return true;
             }
@@ -497,7 +497,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             var result = new List<LegacyTemplateSeed>();
             string normalized = compatTemplate?.Replace("\r\n", "\n").Replace('\r', '\n').Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(normalized) ||
-                string.Equals(normalized, RelationsSettings.DefaultRimTalkCompatTemplate.Trim(), StringComparison.Ordinal))
+                RelationsSettings.IsShippedCompatTemplateDefault(normalized))
             {
                 return result;
             }

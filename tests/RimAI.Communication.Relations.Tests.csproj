@@ -38,6 +38,9 @@
     <Compile Include="..\Source\Prompting\PromptRuntimeChannels.cs" Link="PromptRuntimeChannels.cs" />
     <Compile Include="..\Source\Prompting\PromptRenderException.cs" Link="PromptRenderException.cs" />
     <Compile Include="..\Source\Prompting\PromptTemplateCache.cs" Link="PromptTemplateCache.cs" />
+    <Compile Include="..\Source\Prompting\ScribanTemplateParser.cs" Link="ScribanTemplateParser.cs" />
+    <Compile Include="..\Source\Prompting\PromptCanonicalVariablePaths.cs" Link="PromptCanonicalVariablePaths.cs" />
+    <Compile Include="..\Source\Prompting\PromptLegacyVariableMap.cs" Link="PromptLegacyVariableMap.cs" />
     <Compile Include="..\Source\Prompting\Builders\DiplomacyStrategyRuntimeValues.cs" Link="DiplomacyStrategyRuntimeValues.cs" />
     <Compile Include="..\Source\Prompting\Builders\DiplomacyPromptContractComposer.cs" Link="DiplomacyPromptContractComposer.cs" />
     <Compile Include="..\Source\Prompting\Builders\RpgPromptComposition.cs" Link="RpgPromptComposition.cs" />

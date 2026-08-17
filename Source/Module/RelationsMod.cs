@@ -26,7 +26,6 @@ namespace Ustas.RimAI.Communication.Relations.Module
         {
             Instance = this;
             Settings = GetSettings<RelationsSettings>();
-            PromptRuntimeVariableBridge.InitializeBridgeChain();
             Settings?.EnsureRpgPromptTextsLoaded();
             Settings?.EnsurePawnPersonalityTokenForRpgChannelsSafe();
             RefreshDefaultPresetSnapshotOnStartup();

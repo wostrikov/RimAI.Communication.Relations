@@ -189,7 +189,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             ["pawn.pronouns.seek_verb"] = "Verb text",
             ["pawn.profile"] = "Structured text block",
             ["pawn.personality"] = "Structured text block",
-            ["pawn.rimtalk.context"] = "Structured text block",
             ["dialogue.summary"] = "Structured text block",
             ["dialogue.guidance"] = "Structured text block",
             ["dialogue.intent_hint"] = "Structured text block",
@@ -205,9 +204,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             ["dialogue.quest_guidance_body"] = "Structured text block",
             ["dialogue.response_contract_body"] = "Structured text block",
             ["dialogue.mandatory_race_profile_body"] = "Structured text block",
-            ["dialogue.rimtalk.prompt"] = "Structured text block",
-            ["dialogue.rimtalk.history"] = "Structured text block",
-            ["dialogue.rimtalk.history_simplified"] = "Structured text block",
             ["system.punctuation.open_paren"] = "Single character",
             ["system.punctuation.close_paren"] = "Single character"
         };

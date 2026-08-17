@@ -159,7 +159,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
             PromptRenderTelemetry.RecordCacheMiss();
             long startedTicks = Stopwatch.GetTimestamp();
-            Template parsed = ParseTemplateOrThrow(templateId, channel, source);
+            Template parsed = ScribanTemplateParser.ParseOrThrow(templateId, channel, source);
             PromptRenderTelemetry.RecordParseTicks(Stopwatch.GetTimestamp() - startedTicks);
             if (TemplateCache.Set(cacheKey, parsed))
             {
@@ -172,61 +172,6 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
         private static string BuildCacheKey(string templateId, string channel, string source)
         {
             return (templateId ?? string.Empty) + "|" + (channel ?? string.Empty) + "|" + (source ?? string.Empty);
-        }
-
-        private static Template ParseTemplateOrThrow(string templateId, string channel, string source)
-        {
-            Template template = Template.Parse(source);
-            if (!template.HasErrors)
-            {
-                return template;
-            }
-
-            string message = "Scriban parse failed.";
-            int line = 0;
-            int column = 0;
-            TryExtractParseDiagnostic(template, ref message, ref line, ref column);
-            throw BuildException(
-                templateId,
-                channel,
-                PromptRenderErrorCode.ParseError,
-                message,
-                line,
-                column);
-        }
-
-        private static void TryExtractParseDiagnostic(Template template, ref string message, ref int line, ref int column)
-        {
-            if (template == null)
-            {
-                return;
-            }
-
-            try
-            {
-                PropertyInfo messagesProperty = template.GetType().GetProperty("Messages");
-                object messages = messagesProperty?.GetValue(template, null);
-                if (!(messages is System.Collections.IEnumerable enumerable))
-                {
-                    return;
-                }
-
-                foreach (object item in enumerable)
-                {
-                    if (item == null)
-                    {
-                        continue;
-                    }
-
-                    message = item.ToString() ?? message;
-                    (line, column) = ExtractPosition(item, "Span");
-                    return;
-                }
-            }
-            catch
-            {
-                // Keep default parse message when runtime API differs.
-            }
         }
 
         private static void TryWriteTelemetryLog(long renderCount)
@@ -381,49 +326,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 
         private static (int line, int column) ExtractPosition(object value, string spanPropertyName)
         {
-            if (value == null)
-            {
-                return (0, 0);
-            }
-
-            try
-            {
-                object span = value.GetType().GetProperty(spanPropertyName)?.GetValue(value, null);
-                if (span == null)
-                {
-                    return (0, 0);
-                }
-
-                object start = span.GetType().GetProperty("Start")?.GetValue(span, null);
-                if (start == null)
-                {
-                    return (0, 0);
-                }
-
-                int rawLine = ReadIntProperty(start, "Line");
-                int rawColumn = ReadIntProperty(start, "Column");
-                return (Math.Max(1, rawLine), Math.Max(1, rawColumn));
-            }
-            catch
-            {
-                return (0, 0);
-            }
-        }
-
-        private static int ReadIntProperty(object target, string propertyName)
-        {
-            if (target == null)
-            {
-                return 0;
-            }
-
-            object raw = target.GetType().GetProperty(propertyName)?.GetValue(target, null);
-            if (raw == null)
-            {
-                return 0;
-            }
-
-            return raw is int value ? value : 0;
+            return ScribanTemplateParser.ExtractPosition(value, spanPropertyName);
         }
 
         private static PromptRenderException BuildException(

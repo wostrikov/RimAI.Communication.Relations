@@ -77,19 +77,19 @@
     "RimTalkSummaryHistoryLimit": 10,
     "RimTalkPresetInjectionMaxEntries": 0,
     "RimTalkPresetInjectionMaxChars": 0,
-    "RimTalkCompatTemplate": "=== Сумісність із RIMTALK SCRIBAN (RIMCHAT) ===\nУ цьому блоці можна безпосередньо посилатися на змінні/плагіни RimTalk.",
+    "RimTalkCompatTemplate": "=== Секція шаблонів RimAI ===\nУ цьому блоці можна посилатися на поточні змінні RimAI з просторами імен (pawn, dialogue, world, system, ctx).",
     "RimTalkPersonaCopyTemplate": "pawn.personality",
     "RimTalkDiplomacy": {
         "EnablePromptCompat": true,
         "PresetInjectionMaxEntries": 0,
         "PresetInjectionMaxChars": 0,
-        "CompatTemplate": "=== Сумісність із RIMTALK SCRIBAN (RIMCHAT) ===\nУ цьому блоці можна безпосередньо посилатися на змінні/плагіни RimTalk."
+        "CompatTemplate": "=== Секція шаблонів RimAI ===\nУ цьому блоці можна посилатися на поточні змінні RimAI з просторами імен (pawn, dialogue, world, system, ctx)."
     },
     "RimTalkRpg": {
         "EnablePromptCompat": true,
         "PresetInjectionMaxEntries": 0,
         "PresetInjectionMaxChars": 0,
-        "CompatTemplate": "=== Сумісність із RIMTALK SCRIBAN (RIMCHAT) ===\nУ цьому блоці можна безпосередньо посилатися на змінні/плагіни RimTalk."
+        "CompatTemplate": "=== Секція шаблонів RimAI ===\nУ цьому блоці можна посилатися на поточні змінні RimAI з просторами імен (pawn, dialogue, world, system, ctx)."
     },
     "RimTalkChannelSplitMigrated": true
 }

@@ -33,11 +33,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             Rect inner = card.ContractedBy(12f);
             float contentY = inner.y + 46f;
 
-            DrawBridgeStatusLine(new Rect(inner.x, contentY, inner.width, 24f), "rimchat.core", "RimChat Core");
-            contentY += 28f;
-            DrawBridgeStatusLine(new Rect(inner.x, contentY, inner.width, 24f), "rimtalk.bridge", "RimTalk Bridge");
-            contentY += 28f;
-            DrawBridgeStatusLine(new Rect(inner.x, contentY, inner.width, 24f), "rimtalk.memorypatch", "MemoryPatch Bridge");
+            DrawBridgeStatusLine(new Rect(inner.x, contentY, inner.width, 24f), PromptCanonicalVariablePaths.CoreSourceId, PromptCanonicalVariablePaths.CoreSourceLabel);
             contentY += 36f;
 
             Rect diplomacyRect = new Rect(inner.x, contentY, 220f, 30f);

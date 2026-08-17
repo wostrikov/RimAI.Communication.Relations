@@ -398,13 +398,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         private static string ResolveGroupedSourceLabel(PromptVariableDisplayEntry variable)
         {
-            string sourceId = (variable?.SourceId ?? string.Empty).Trim();
-            if (string.Equals(sourceId, "rimtalk.bridge", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(sourceId, "rimtalk.memorypatch", StringComparison.OrdinalIgnoreCase))
-            {
-                return "RimTalk Bridge";
-            }
-
             return string.IsNullOrWhiteSpace(variable?.SourceLabel) ? "Unknown" : variable.SourceLabel;
         }
 
