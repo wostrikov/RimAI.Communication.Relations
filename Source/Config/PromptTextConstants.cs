@@ -1,30 +1,11 @@
-using Ustas.RimAI.Communication.Relations.Persistence;
-
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>/// Dependencies: none.
- /// Responsibility: provide a single source of truth for repeated prompt default text literals.
- ///</summary>
-    internal static class PromptTextConstants
+    /// <summary>
+    /// Dependencies: none.
+    /// Responsibility: provide a single source of truth for repeated prompt default text literals.
+    /// </summary>
+    internal static partial class PromptTextConstants
     {
-        private static RpgPromptDefaultsConfig _cachedRpgDefaults;
-        private static SocialCirclePromptDomainConfig _cachedSocialDefaults;
-
-        private static RpgPromptDefaultsConfig RpgDefaults =>
-            _cachedRpgDefaults ?? (_cachedRpgDefaults = RpgPromptDefaultsProvider.GetDefaults());
-
-        private static SocialCirclePromptDomainConfig SocialDefaults =>
-            _cachedSocialDefaults ?? (_cachedSocialDefaults = SocialCirclePromptDefaultsProvider.GetDefaults());
-
-        public static string RpgRoleSettingDefault =>
-            RpgDefaults.RoleSetting;
-
-        public static string RpgDialogueStyleDefault =>
-            RpgDefaults.DialogueStyle;
-
-        public static string RpgFormatConstraintDefault =>
-            RpgDefaults.FormatConstraint;
-
         public const string RequestRaidActionDescription =
             "Здійснити напад на гравця (прибуття із затримкою). Можна використовувати як тактичне рішення після образи, погрози або під час ворожості.";
 
@@ -58,15 +39,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const string SetDndActionDescription =
             "Перемкнутися в статус 'не турбувати' й припинити обмін повідомленнями";
 
-        public static string PublishPublicPostActionDescription =>
-            SocialDefaults.PublishPublicPostAction?.Description ?? string.Empty;
-
-        public static string PublishPublicPostActionParameters =>
-            SocialDefaults.PublishPublicPostAction?.Parameters ?? string.Empty;
-
-        public static string PublishPublicPostActionRequirement =>
-            SocialDefaults.PublishPublicPostAction?.Requirement ?? string.Empty;
-
         public const string SendImageActionDescription =
             "Цю дію вимкнено; функцію зображень дозволено запускати лише гравцеві вручну через вхід для селфі.";
 
@@ -88,15 +60,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             "为这位派系领袖创建一个贴合设定、符合世界观的 RimWorld 肖像场景。"
             + "环境、服饰与科技水平需与派系背景一致。"
             + "使用自然材质与实用装备，并保证面部清晰可辨。";
-
-        public static string SocialCircleNewsStyleTemplateDefault =>
-            SocialDefaults.SocialCircleNewsStyleTemplate ?? string.Empty;
-
-        public static string SocialCircleNewsJsonContractTemplateDefault =>
-            SocialDefaults.SocialCircleNewsJsonContractTemplate ?? string.Empty;
-
-        public static string SocialCircleNewsFactTemplateDefault =>
-            SocialDefaults.SocialCircleNewsFactTemplate ?? string.Empty;
 
         public const string ApiLimitsNodeLiteralDefault =
             "{{ dialogue.api_limits_body }}";
@@ -147,4 +110,3 @@ namespace Ustas.RimAI.Communication.Relations.Config
             "- 若选择 create_quest，和谈应使用 questDefName '{0}'。";
     }
 }
-

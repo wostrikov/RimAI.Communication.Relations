@@ -14,11 +14,20 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
-    public partial class PromptPersistenceService
+internal sealed class PromptTemplateVariableService
     {
-        private static readonly Regex TemplateVariableRegex = new Regex(@"\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}", RegexOptions.Compiled);
+        private readonly PromptPersistenceService host;
+
+        internal PromptTemplateVariableService(PromptPersistenceService host)
+        {
+            this.host = host ?? throw new System.ArgumentNullException(nameof(host));
+        }
+
+        internal static readonly Regex TemplateVariableRegex = new Regex(@"\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}", RegexOptions.Compiled);
         private static readonly HashSet<string> AllowedTemplateVariableNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "ctx",
@@ -130,7 +139,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptTemplateRenderer.RenderOrThrow(templateId, resolvedChannel, templateText, renderContext);
         }
 
-        private PromptRenderContext BuildTemplateRenderContext(
+        internal PromptRenderContext BuildTemplateRenderContext(
             string templateId,
             string channel,
             DialogueScenarioContext context,
@@ -141,13 +150,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return renderContext;
         }
 
-        private Dictionary<string, object> BuildTemplateVariableValues(
+        internal Dictionary<string, object> BuildTemplateVariableValues(
             string templateId,
             string channel,
             DialogueScenarioContext context,
             EnvironmentPromptConfig envConfig)
         {
-            var values = CreatePromptVariableSeed();
+            var values = host.NodeSupport.CreatePromptVariableSeed();
             var variableContext = new PromptRuntimeVariableContext(templateId, channel, context, envConfig);
             List<IPromptRuntimeVariableProvider> providers = PromptRuntimeVariableRegistry.CreateRuntimeProviders(
                 (path, runtimeContext) => ResolveTemplateVariableValue(path, runtimeContext.ScenarioContext, runtimeContext.EnvironmentConfig));
@@ -164,15 +173,15 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
             values["system.game_language"] = LanguageDatabase.activeLanguage?.FriendlyNameNative
                 ?? (RelationsMod.Settings?.GetEffectivePromptLanguage() ?? string.Empty);
-            values["dialogue.mandatory_race_profile_body"] = BuildMandatoryRaceProfileBody(context);
-            bool isPreview = IsPreviewScenario(context);
+            values["dialogue.mandatory_race_profile_body"] = host.NodeSupport.BuildMandatoryRaceProfileBody(context);
+            bool isPreview = host.NodeSupport.IsPreviewScenario(context);
             if (context?.Initiator != null)
             {
                 values["pawn.initiator"] = context.Initiator;
             }
             else if (isPreview)
             {
-                values["pawn.initiator"] = CreatePreviewPawnPlaceholder("PreviewInitiator");
+                values["pawn.initiator"] = host.NodeSupport.CreatePreviewPawnPlaceholder("PreviewInitiator");
             }
 
             if (context?.Target != null)
@@ -181,7 +190,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
             else if (isPreview)
             {
-                values["pawn.target"] = CreatePreviewPawnPlaceholder("PreviewTarget");
+                values["pawn.target"] = host.NodeSupport.CreatePreviewPawnPlaceholder("PreviewTarget");
             }
 
             if (context?.Faction != null)
@@ -190,13 +199,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
             else if (isPreview)
             {
-                values["world.faction"] = CreatePreviewFactionPlaceholder("PreviewFaction");
+                values["world.faction"] = host.NodeSupport.CreatePreviewFactionPlaceholder("PreviewFaction");
             }
 
             return values;
         }
 
-        private static string NormalizeTemplateVariableName(string rawName)
+        internal string NormalizeTemplateVariableName(string rawName)
         {
             if (string.IsNullOrWhiteSpace(rawName))
             {
@@ -206,7 +215,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return rawName.Trim().ToLowerInvariant();
         }
 
-        private static bool IsNamespacedVariablePath(string variableName)
+        internal bool IsNamespacedVariablePath(string variableName)
         {
             if (string.IsNullOrWhiteSpace(variableName))
             {
@@ -223,7 +232,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return AllowedTemplateVariableNamespaces.Contains(rootNamespace);
         }
 
-        private static void TryCollectScribanDiagnostic(
+        internal void TryCollectScribanDiagnostic(
             string templateText,
             IEnumerable<string> variablePaths,
             TemplateVariableValidationResult result)
@@ -251,7 +260,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private object ResolveTemplateVariableValue(
+        internal object ResolveTemplateVariableValue(
             string variableName,
             DialogueScenarioContext context,
             EnvironmentPromptConfig envConfig)
@@ -305,9 +314,9 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 case "world.current_faction_profile":
                     return BuildCurrentFactionProfileVariableText(context);
                 case "pawn.target.profile":
-                    return BuildPawnProfileVariableText(context?.Target, context, envConfig);
+                    return host.RpgBuilder.BuildPawnProfileVariableText(context?.Target, context, envConfig);
                 case "pawn.initiator.profile":
-                    return BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
+                    return host.RpgBuilder.BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
                 case "pawn.player.profile":
                     return BuildPlayerPawnProfileVariableText(context);
                 case "pawn.player.royalty_summary":
@@ -375,7 +384,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 case "pawn.initiator":
                     return context?.Initiator?.LabelShortCap ?? "Unknown";
                 case "pawn.profile":
-                    return BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
+                    return host.RpgBuilder.BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
                 case "pawn.pronouns.be_verb":
                     return "is";
                 case "pawn.pronouns.object":
@@ -425,13 +434,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private string ResolveDialoguePrimaryObjectiveVariableValue(DialogueScenarioContext context)
+        internal string ResolveDialoguePrimaryObjectiveVariableValue(DialogueScenarioContext context)
         {
             string unresolvedIntent = ResolveDialogueLatestUnresolvedIntentVariableValue(context);
-            return BuildPrimaryObjectiveFromIntent(unresolvedIntent);
+            return host.NodeSupport.BuildPrimaryObjectiveFromIntent(unresolvedIntent);
         }
 
-        private static string ResolveDialogueOptionalFollowupVariableValue(DialogueScenarioContext context)
+        internal string ResolveDialogueOptionalFollowupVariableValue(DialogueScenarioContext context)
         {
             if (context?.IsRpg == true)
             {
@@ -441,7 +450,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.Empty;
         }
 
-        private string ResolveDialogueLatestUnresolvedIntentVariableValue(DialogueScenarioContext context)
+        internal string ResolveDialogueLatestUnresolvedIntentVariableValue(DialogueScenarioContext context)
         {
             if (context?.IsRpg != true || context.Target == null || context.Initiator == null)
             {
@@ -451,26 +460,26 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return RpgNpcDialogueArchiveManager.Instance.BuildUnresolvedIntentSummary(context.Target, context.Initiator) ?? string.Empty;
         }
 
-        private RpgRelationSnapshot ResolveRpgRelationSnapshot(DialogueScenarioContext context)
+        internal RpgRelationSnapshot ResolveRpgRelationSnapshot(DialogueScenarioContext context)
         {
             if (context?.IsRpg != true || context.Initiator == null || context.Target == null)
             {
                 return RpgRelationSnapshot.Empty;
             }
 
-            bool kinship = HasAnyBloodRelationBetweenPair(context.Initiator, context.Target);
+            bool kinship = host.NodeSupport.HasAnyBloodRelationBetweenPair(context.Initiator, context.Target);
             string kinshipValue = kinship ? "yes" : "no";
-            string romanceState = ResolvePairRomanceState(context.Initiator, context.Target);
-            string guidance = BuildRpgKinshipBoundaryGuidanceText(
+            string romanceState = host.NodeSupport.ResolvePairRomanceState(context.Initiator, context.Target);
+            string guidance = host.NodeSupport.BuildRpgKinshipBoundaryGuidanceText(
                 RelationsMod.Settings,
                 context.Initiator,
                 context.Target,
                 context) ?? string.Empty;
-            string socialSummary = BuildPairSocialSummary(context.Initiator, context.Target, kinshipValue, romanceState);
+            string socialSummary = host.RpgBuilder.BuildPairSocialSummary(context.Initiator, context.Target, kinshipValue, romanceState);
             return new RpgRelationSnapshot(kinshipValue, romanceState, socialSummary, guidance);
         }
 
-        private readonly struct RpgRelationSnapshot
+        internal readonly struct RpgRelationSnapshot
         {
             public static readonly RpgRelationSnapshot Empty = new RpgRelationSnapshot(string.Empty, string.Empty, string.Empty, string.Empty);
 
@@ -488,64 +497,64 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             public string Guidance { get; }
         }
 
-        private int BuildWorldTimeHourVariableValue(DialogueScenarioContext context)
+        internal int BuildWorldTimeHourVariableValue(DialogueScenarioContext context)
         {
             return GenDate.HourOfDay(GetAbsoluteTicks(), GetLongitude(context));
         }
 
-        private int BuildWorldTimeDayVariableValue(DialogueScenarioContext context)
+        internal int BuildWorldTimeDayVariableValue(DialogueScenarioContext context)
         {
             return GenDate.DayOfQuadrum(GetAbsoluteTicks(), GetLongitude(context)) + 1;
         }
 
-        private string BuildWorldTimeQuadrumVariableValue(DialogueScenarioContext context)
+        internal string BuildWorldTimeQuadrumVariableValue(DialogueScenarioContext context)
         {
             return GenDate.Quadrum(GetAbsoluteTicks(), GetLongitude(context)).Label();
         }
 
-        private int BuildWorldTimeYearVariableValue(DialogueScenarioContext context)
+        internal int BuildWorldTimeYearVariableValue(DialogueScenarioContext context)
         {
             return GenDate.Year(GetAbsoluteTicks(), GetLongitude(context));
         }
 
-        private string BuildWorldTimeSeasonVariableValue(DialogueScenarioContext context)
+        internal string BuildWorldTimeSeasonVariableValue(DialogueScenarioContext context)
         {
-            Map map = ResolveEnvironmentMap(context);
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             return map != null ? GenLocalDate.Season(map).Label() : Season.Undefined.Label();
         }
 
-        private string BuildWorldTimeDateVariableValue(DialogueScenarioContext context)
+        internal string BuildWorldTimeDateVariableValue(DialogueScenarioContext context)
         {
             return GenDate.DateFullStringAt(GetAbsoluteTicks(), GetLongLat(context));
         }
 
-        private string BuildWorldWeatherVariableValue(DialogueScenarioContext context)
+        internal string BuildWorldWeatherVariableValue(DialogueScenarioContext context)
         {
-            Map map = ResolveEnvironmentMap(context);
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             return map?.weatherManager?.curWeather?.label ?? "Unknown";
         }
 
-        private string BuildWorldTemperatureVariableValue(DialogueScenarioContext context)
+        internal string BuildWorldTemperatureVariableValue(DialogueScenarioContext context)
         {
-            Map map = ResolveEnvironmentMap(context);
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             return map == null
                 ? "Unknown"
                 : Mathf.RoundToInt(map.mapTemperature?.OutdoorTemp ?? 0f).ToString();
         }
 
-        private static int GetAbsoluteTicks()
+        internal int GetAbsoluteTicks()
         {
             return Find.TickManager?.TicksAbs ?? 0;
         }
 
-        private float GetLongitude(DialogueScenarioContext context)
+        internal float GetLongitude(DialogueScenarioContext context)
         {
             return GetLongLat(context).x;
         }
 
-        private Vector2 GetLongLat(DialogueScenarioContext context)
+        internal Vector2 GetLongLat(DialogueScenarioContext context)
         {
-            Map map = ResolveEnvironmentMap(context);
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             if (map == null || !WorldTileGuard.IsValidTile(map.Tile))
             {
                 return Vector2.zero;
@@ -554,9 +563,9 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return Find.WorldGrid.LongLatOf(map.Tile);
         }
 
-        private string BuildSceneTagsVariableText(DialogueScenarioContext context)
+        internal string BuildSceneTagsVariableText(DialogueScenarioContext context)
         {
-            HashSet<string> tags = BuildScenarioTags(context, includePresetTags: true);
+            HashSet<string> tags = host.ContextAssembler.BuildScenarioTags(context, includePresetTags: true);
             if (tags == null || tags.Count == 0)
             {
                 return "none";
@@ -565,21 +574,21 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.Join(", ", tags.OrderBy(tag => tag));
         }
 
-        private string BuildEnvironmentParamsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
+        internal string BuildEnvironmentParamsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
         {
-            Map map = ResolveEnvironmentMap(context);
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             if (map == null)
             {
                 return "No map context.";
             }
 
-            if (!TryResolveFocusCell(map, context, out IntVec3 focusCell))
+            if (!host.ContextAssembler.TryResolveFocusCell(map, context, out IntVec3 focusCell))
             {
                 return "No focus cell.";
             }
 
             EnvironmentContextSwitchesConfig switches = envConfig?.EnvironmentContextSwitches ?? new EnvironmentContextSwitchesConfig();
-            List<string> lines = BuildEnvironmentContextLines(map, focusCell, context, switches);
+            List<string> lines = host.ContextAssembler.BuildEnvironmentContextLines(map, focusCell, context, switches);
             if (lines == null || lines.Count == 0)
             {
                 return "No environment parameters.";
@@ -594,7 +603,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return "See <environment> for full environment details. Snapshot: " + snapshot;
         }
 
-        private string BuildRecentWorldEventsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
+        internal string BuildRecentWorldEventsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
         {
             var clonedEnv = envConfig?.Clone() ?? new EnvironmentPromptConfig();
             if (clonedEnv.EventIntelPrompt == null)
@@ -605,7 +614,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             clonedEnv.EventIntelPrompt.Enabled = true;
             clonedEnv.EventIntelPrompt.ApplyToDiplomacy = true;
             clonedEnv.EventIntelPrompt.ApplyToRpg = true;
-            string digest = BuildRecentWorldEventIntelCompactDigest(
+            string digest = host.ContextAssembler.BuildRecentWorldEventIntelCompactDigest(
                 clonedEnv,
                 context,
                 maxItems: 2,
@@ -613,7 +622,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.IsNullOrWhiteSpace(digest) ? "No recent world events." : digest;
         }
 
-        private static string BuildEnvironmentSnapshotVariableText(
+        internal string BuildEnvironmentSnapshotVariableText(
             IEnumerable<string> lines,
             int maxItems,
             int maxChars)
@@ -664,7 +673,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return snapshot.Substring(0, Math.Max(16, maxChars)).TrimEnd() + "...";
         }
 
-        private string BuildColonyStatusVariableText()
+        internal string BuildColonyStatusVariableText()
         {
             List<Map> homeMaps = Find.Maps?.Where(map => map != null && map.IsPlayerHome).ToList();
             if (homeMaps == null || homeMaps.Count == 0)
@@ -681,7 +690,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return $"Colony: {colonyName}\nHomeMaps: {homeMaps.Count}\nColonists: {colonists}\nTotalWealth: {wealth}\nDate: {dateText}";
         }
 
-        private string BuildColonyFactionsVariableText()
+        internal string BuildColonyFactionsVariableText()
         {
             IEnumerable<Faction> factions = Find.FactionManager?.AllFactionsVisible?
                 .Where(faction => faction != null && !faction.IsPlayer && !faction.defeated)
@@ -702,7 +711,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return lines.Count == 0 ? "No known factions." : string.Join("\n", lines);
         }
 
-        private string BuildCurrentFactionProfileVariableText(DialogueScenarioContext context)
+        internal string BuildCurrentFactionProfileVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction == null)
@@ -720,7 +729,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return $"Faction: {faction.Name}\nDef: {faction.def?.defName}\nTech: {faction.def?.techLevel}\nGoodwill: {goodwillText}\nRelation: {relation}\nLeader: {leader}";
         }
 
-        private string BuildFactionDescriptionVariableText(DialogueScenarioContext context)
+        internal string BuildFactionDescriptionVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction?.def == null)
@@ -734,7 +743,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : prompt.Trim();
         }
 
-        private static string BuildFactionRelationTowardPlayerText(Faction faction, Faction playerFaction)
+        internal string BuildFactionRelationTowardPlayerText(Faction faction, Faction playerFaction)
         {
             if (faction == null || playerFaction == null)
             {
@@ -749,7 +758,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return faction.RelationKindWith(playerFaction).ToString();
         }
 
-        private static int? TryGetGoodwillTowardPlayer(Faction faction)
+        internal int? TryGetGoodwillTowardPlayer(Faction faction)
         {
             Faction playerFaction = Faction.OfPlayer;
             if (faction == null || playerFaction == null || faction == playerFaction || faction.IsPlayer)
@@ -768,7 +777,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private string BuildPawnPersonalityVariableText(DialogueScenarioContext context)
+        internal string BuildPawnPersonalityVariableText(DialogueScenarioContext context)
         {
             Pawn primary = context?.Target ?? context?.Initiator;
             if (primary == null)
@@ -784,34 +793,34 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : text.Trim();
         }
 
-        private string BuildPlayerPawnProfileVariableText(DialogueScenarioContext context)
+        internal string BuildPlayerPawnProfileVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             Pawn preferred = context?.Initiator != null && context.Initiator.Faction == Faction.OfPlayer
                 ? context.Initiator
                 : null;
-            string text = BuildPlayerPawnContextForPrompt(faction, preferred);
+            string text = host.ContextAssembler.BuildPlayerPawnContextForPrompt(faction, preferred);
             return string.IsNullOrWhiteSpace(text) ? "No player pawn context." : text;
         }
 
-        private string BuildPlayerRoyaltySummaryVariableText(DialogueScenarioContext context)
+        internal string BuildPlayerRoyaltySummaryVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             Pawn preferred = context?.Initiator != null && context.Initiator.Faction == Faction.OfPlayer
                 ? context.Initiator
                 : null;
-            string text = BuildPlayerRoyaltySummaryForPrompt(faction, preferred);
+            string text = host.ContextAssembler.BuildPlayerRoyaltySummaryForPrompt(faction, preferred);
             return string.IsNullOrWhiteSpace(text) ? "No empire royalty context." : text;
         }
 
-        private string BuildFactionSettlementSummaryVariableText(DialogueScenarioContext context)
+        internal string BuildFactionSettlementSummaryVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
-            string text = BuildFactionSettlementSummaryForPrompt(faction);
+            string text = host.ContextAssembler.BuildFactionSettlementSummaryForPrompt(faction);
             return string.IsNullOrWhiteSpace(text) ? "No settlement context." : text;
         }
 
-        private static string BuildFactionRelationBandVariableValue(DialogueScenarioContext context)
+        internal string BuildFactionRelationBandVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction == null || faction == Faction.OfPlayer)
@@ -822,7 +831,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return faction.PlayerRelationKind.ToString();
         }
 
-        private string BuildPawnTraitsSummaryVariableValue(DialogueScenarioContext context)
+        internal string BuildPawnTraitsSummaryVariableValue(DialogueScenarioContext context)
         {
             Pawn target = context?.Target;
             if (target?.story?.traits == null)
@@ -848,7 +857,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return traitStrings.Count > 0 ? string.Join(", ", traitStrings) : "No traits.";
         }
 
-        private static string BuildFactionIdeologySummaryVariableValue(DialogueScenarioContext context)
+        internal string BuildFactionIdeologySummaryVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             Ideo ideo = faction?.ideos?.PrimaryIdeo;
@@ -860,14 +869,14 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return ideo.name ?? "Unknown ideology";
         }
 
-        private static string BuildFactionTechLevelVariableValue(DialogueScenarioContext context)
+        internal string BuildFactionTechLevelVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             TechLevel techLevel = faction?.def?.techLevel ?? TechLevel.Undefined;
             return techLevel.ToString();
         }
 
-        private static string BuildSocialDiplomacyStanceVariableValue(DialogueScenarioContext context)
+        internal string BuildSocialDiplomacyStanceVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction == null || faction == Faction.OfPlayer)
@@ -880,7 +889,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return $"{relationKind} (Goodwill: {goodwill})";
         }
 
-        private static string BuildAvailableActionNamesVariableValue(DialogueScenarioContext context)
+        internal string BuildAvailableActionNamesVariableValue(DialogueScenarioContext context)
         {
             return "adjust_goodwill, send_gift, request_aid, request_caravan, request_visitor, "
                  + "request_raid, request_item_airdrop, request_info, pay_prisoner_ransom, "
@@ -888,7 +897,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                  + "reject_request, publish_public_post";
         }
 
-        private static string BuildResponseContractBodyVariableValue(DialogueScenarioContext context)
+        internal string BuildResponseContractBodyVariableValue(DialogueScenarioContext context)
         {
             return "Return exactly one JSON object. Required key: visible_dialogue. "
                  + "Optional key: actions (array of {action, parameters} objects). "

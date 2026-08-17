@@ -7,15 +7,17 @@ using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
     /// <summary>
     /// Dependencies: DialogueScenarioContext, RpgSceneParamSwitchesConfig, pawn relation/job runtime APIs.
     /// Responsibility: build expanded RPG pawn profile and bilateral social summary prompt variables.
     /// </summary>
-    public partial class PromptPersistenceService
+internal sealed partial class RpgPromptBuilder
     {
-        private string BuildPawnProfileVariableText(Pawn pawn, DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
+        internal string BuildPawnProfileVariableText(Pawn pawn, DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
         {
             if (pawn == null)
             {
@@ -42,7 +44,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.Join("\n", lines);
         }
 
-        private static List<string> BuildBasePawnProfileLines(Pawn pawn)
+        internal List<string> BuildBasePawnProfileLines(Pawn pawn)
         {
             float mood = pawn.needs?.mood?.CurLevelPercentage ?? -1f;
             float health = pawn.health?.summaryHealth?.SummaryHealthPercent ?? -1f;
@@ -58,7 +60,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             };
         }
 
-        private void AppendRpgProfileExtensions(
+        internal void AppendRpgProfileExtensions(
             List<string> lines,
             Pawn pawn,
             RpgSceneParamSwitchesConfig switches)
@@ -66,7 +68,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             AppendRpgProfileExtensions(lines, pawn, switches, null);
         }
 
-        private void AppendRpgProfileExtensions(
+        internal void AppendRpgProfileExtensions(
             List<string> lines,
             Pawn pawn,
             RpgSceneParamSwitchesConfig switches,
@@ -109,7 +111,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             AppendRpgColonyProfileExtensions(lines, pawn, switches, otherPawn);
         }
 
-        private void AppendRpgColonyProfileExtensions(
+        internal void AppendRpgColonyProfileExtensions(
             List<string> lines,
             Pawn pawn,
             RpgSceneParamSwitchesConfig switches,
@@ -154,7 +156,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         /// A prisoner, hostile, or foreign faction member should not see
         /// colony stock levels or active alerts.
         /// </summary>
-        private static bool IsPawnPrivyToColonyInfo(Pawn pawn, Pawn otherPawn)
+        internal bool IsPawnPrivyToColonyInfo(Pawn pawn, Pawn otherPawn)
         {
             // No other participant: no restriction
             if (otherPawn == null)
@@ -172,7 +174,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return false;
         }
 
-        private static string BuildPairSocialSummary(Pawn initiator, Pawn target, string kinshipValue, string romanceState)
+        internal string BuildPairSocialSummary(Pawn initiator, Pawn target, string kinshipValue, string romanceState)
         {
             if (initiator == null || target == null)
             {
@@ -192,7 +194,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 $"FactionGoodwillToPlayer: {initiatorName}={initiatorGoodwill}, {targetName}={targetGoodwill}.";
         }
 
-        private static string BuildPairDirectRelationsSummary(Pawn first, Pawn second)
+        internal string BuildPairDirectRelationsSummary(Pawn first, Pawn second)
         {
             var labels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             AddDirectRelationLabels(labels, first, second);
@@ -202,7 +204,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : string.Join(", ", labels.OrderBy(item => item));
         }
 
-        private static void AddDirectRelationLabels(HashSet<string> labels, Pawn fromPawn, Pawn toPawn)
+        internal void AddDirectRelationLabels(HashSet<string> labels, Pawn fromPawn, Pawn toPawn)
         {
             if (labels == null || fromPawn?.relations?.DirectRelations == null || toPawn == null)
             {
@@ -229,7 +231,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static string BuildFactionGoodwillSummary(Faction faction)
+        internal string BuildFactionGoodwillSummary(Faction faction)
         {
             if (faction == null)
             {
@@ -244,7 +246,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return faction.PlayerGoodwill.ToString();
         }
 
-        private string BuildRecentJobStateLine(Pawn pawn)
+        internal string BuildRecentJobStateLine(Pawn pawn)
         {
             if (pawn?.jobs == null)
             {
@@ -275,7 +277,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : $"Recent Job State: {string.Join(" | ", parts)}";
         }
 
-        private static void AddProfileLineFromBuilder(
+        internal void AddProfileLineFromBuilder(
             List<string> lines,
             Pawn pawn,
             Action<StringBuilder, Pawn> appendBuilder)
@@ -294,7 +296,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static void AddProfileLineFromBuilder(
+        internal void AddProfileLineFromBuilder(
             List<string> lines,
             Action<StringBuilder> appendBuilder)
         {

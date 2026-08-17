@@ -1,15 +1,20 @@
+using System;
 using System.Collections.Generic;
-using Ustas.RimAI.Communication.Relations.Config;
-using Ustas.RimAI.Communication.Relations.Persistence;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Communication.Relations.Module;
+using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
-    /// <summary>/// Dependencies: PromptPersistenceService hierarchical diplomacy builder core.
- /// Responsibility: orchestrate diplomacy prompt build entry without changing output behavior.
- ///</summary>
-    internal sealed class DiplomacyPromptBuilder
+    /// <summary>
+    /// Dependencies: PromptWorkspaceComposer and Diplomacy runtime context.
+    /// Responsibility: orchestrate Diplomacy prompt composition without persistence or HTTP.
+    /// </summary>
+    internal sealed partial class DiplomacyPromptBuilder
     {
         private readonly PromptPersistenceService promptService;
 
@@ -23,14 +28,28 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             SystemPromptConfig config,
             bool isProactive,
             IEnumerable<string> additionalSceneTags,
-            Pawn playerNegotiator = null)
+            Pawn playerNegotiator = null,
+            DiplomacyPromptRuntimeSnapshot runtimeSnapshot = null)
         {
-            return promptService.BuildFullSystemPromptHierarchicalCore(
+            DialogueScenarioContext scenarioContext = DialogueScenarioContext.CreateDiplomacy(
                 faction,
-                config,
                 isProactive,
-                additionalSceneTags,
-                playerNegotiator);
+                additionalSceneTags);
+            string promptChannel = PromptRuntimeChannels.ResolveDiplomacy(isProactive);
+            Dictionary<string, object> additionalValues = playerNegotiator == null
+                ? null
+                : new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    [PromptRuntimeChannels.PlayerNegotiatorValueKey] = playerNegotiator
+                };
+            return promptService.WorkspaceComposer.BuildUnifiedChannelSystemPrompt(
+                RimTalkPromptChannel.Diplomacy,
+                promptChannel,
+                scenarioContext,
+                config?.EnvironmentPrompt,
+                additionalValues,
+                deterministicPreview: false,
+                runtimeSnapshot: runtimeSnapshot);
         }
     }
 }

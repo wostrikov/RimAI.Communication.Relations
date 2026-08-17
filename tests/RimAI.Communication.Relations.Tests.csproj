@@ -29,6 +29,25 @@
     <Compile Include="..\Source\AI\TextIntegrityGuard.cs" Link="TextIntegrityGuard.cs" />
     <Compile Include="..\Source\AI\DiplomacyResponseContractGuard.cs" Link="DiplomacyResponseContractGuard.cs" />
     <Compile Include="..\Source\AI\RpgResponseContractGuard.cs" Link="RpgResponseContractGuard.cs" />
+    <Compile Include="..\Source\Serialization\PromptJsonText.cs" Link="PromptJsonText.cs" />
+    <Compile Include="..\Source\Prompting\Transfer\PromptBundleEnvelope.cs" Link="PromptBundleEnvelope.cs" />
+    <Compile Include="..\Source\Prompting\Transfer\PromptBundleTransferModels.cs" Link="PromptBundleTransferModels.cs" />
+    <Compile Include="..\Source\Persistence\PromptConfigStore.cs" Link="PromptConfigStore.cs" />
+    <Compile Include="..\Source\Persistence\PromptConfigDocumentNormalizer.cs" Link="PromptConfigDocumentNormalizer.cs" />
+    <Compile Include="..\Source\Config\PromptTextConstants.cs" Link="PromptTextConstants.cs" />
+    <Compile Include="..\Source\Prompting\PromptRuntimeChannels.cs" Link="PromptRuntimeChannels.cs" />
+    <Compile Include="..\Source\Prompting\PromptRenderException.cs" Link="PromptRenderException.cs" />
+    <Compile Include="..\Source\Prompting\PromptTemplateCache.cs" Link="PromptTemplateCache.cs" />
+    <Compile Include="..\Source\Prompting\Builders\DiplomacyStrategyRuntimeValues.cs" Link="DiplomacyStrategyRuntimeValues.cs" />
+    <Compile Include="..\Source\Prompting\Builders\DiplomacyPromptContractComposer.cs" Link="DiplomacyPromptContractComposer.cs" />
+    <Compile Include="..\Source\Prompting\Builders\RpgPromptComposition.cs" Link="RpgPromptComposition.cs" />
+    <Compile Include="..\Source\Context\DiplomacyStrategyPromptContext.cs" Link="DiplomacyStrategyPromptContext.cs" />
+    <Compile Include="..\Source\Context\PromptTextTruncate.cs" Link="PromptTextTruncate.cs" />
+    <Compile Include="..\Source\Context\RelationsContextContributorOrder.cs" Link="RelationsContextContributorOrder.cs" />
+    <Compile Include="..\Source\Prompting\Diplomacy\PromptConfigMetadataSnapshot.cs" Link="PromptConfigMetadataSnapshot.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Scriban" Version="5.10.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\RimAI.Core\src\RimAI.Core\RimAI.Core.csproj" />

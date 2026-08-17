@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Context;
+using Ustas.RimAI.Communication.Relations.Module;
+using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
     /// <summary>/// Dependencies: PromptPersistenceService hierarchical RPG builder core.
  /// Responsibility: orchestrate RPG prompt build entry without changing output behavior.
  ///</summary>
-    internal sealed class RpgPromptBuilder
+    internal sealed partial class RpgPromptBuilder
     {
         private readonly PromptPersistenceService promptService;
 
@@ -20,13 +24,26 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             Pawn initiator,
             Pawn target,
             bool isProactive,
-            IEnumerable<string> additionalSceneTags)
+            IEnumerable<string> additionalSceneTags,
+            bool allowMemoryCompressionScheduling = true,
+            bool allowMemoryColdLoad = true)
         {
-            return promptService.BuildRpgSystemPromptHierarchicalCore(
+            DialogueScenarioContext scenarioContext = DialogueScenarioContext.CreateRpg(
                 initiator,
                 target,
                 isProactive,
                 additionalSceneTags);
+            string promptChannel = PromptRuntimeChannels.ResolveRpg(isProactive);
+            SystemPromptConfig config = promptService.LoadConfig() ?? promptService.DomainStore.CreateDefaultConfig();
+            return promptService.WorkspaceComposer.BuildUnifiedChannelSystemPrompt(
+                RimTalkPromptChannel.Rpg,
+                promptChannel,
+                scenarioContext,
+                config?.EnvironmentPrompt,
+                null,
+                deterministicPreview: false,
+                allowMemoryCompressionScheduling: allowMemoryCompressionScheduling,
+                allowMemoryColdLoad: allowMemoryColdLoad);
         }
     }
 }

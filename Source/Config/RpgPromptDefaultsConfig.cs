@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Ustas.RimAI.Communication.Relations.Module;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 
@@ -342,8 +343,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         private const string PromptFolderName = "Prompt";
         private const string DefaultSubFolderName = "Default";
         private const string DefaultConfigFileName = "PawnDialoguePrompt_Default.json";
-        private const string FallbackRoot = "E:\\SteamLibrary\\steamapps\\common\\RimWorld\\Mods\\RimChat";
-
         private static readonly object SyncRoot = new object();
         private static string cachedPath = string.Empty;
         private static RpgPromptDefaultsConfig cachedConfig;
@@ -416,8 +415,8 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 return modPath;
             }
 
-            string fallbackPath = Path.Combine(FallbackRoot, PromptFolderName, DefaultSubFolderName, DefaultConfigFileName);
-            LogResolvedDefaultPath(fallbackPath, "hardcoded-fallback");
+            string fallbackPath = PromptDomainFileCatalog.GetDefaultPath(DefaultConfigFileName);
+            LogResolvedDefaultPath(fallbackPath, "domain-catalog");
             return fallbackPath;
         }
 

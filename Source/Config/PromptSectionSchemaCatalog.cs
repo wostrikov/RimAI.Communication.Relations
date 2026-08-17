@@ -172,16 +172,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         internal static string ResolveRuntimePromptChannel(RimTalkPromptChannel rootChannel, bool isProactive)
         {
-            if (rootChannel == RimTalkPromptChannel.Diplomacy)
-            {
-                return isProactive
-                    ? RimTalkPromptEntryChannelCatalog.ProactiveDiplomacyDialogue
-                    : RimTalkPromptEntryChannelCatalog.DiplomacyDialogue;
-            }
-
-            return isProactive
-                ? RimTalkPromptEntryChannelCatalog.ProactiveRpgDialogue
-                : RimTalkPromptEntryChannelCatalog.RpgDialogue;
+            return rootChannel == RimTalkPromptChannel.Diplomacy
+                ? Prompting.PromptRuntimeChannels.ResolveDiplomacy(isProactive)
+                : Prompting.PromptRuntimeChannels.ResolveRpg(isProactive);
         }
 
         internal static string NormalizeWorkspaceChannel(string promptChannel, RimTalkPromptChannel rootChannel)

@@ -7,15 +7,17 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Context;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>
     /// Dependencies: prompt section aggregate builder, prompt render pipeline, and runtime prompt variable context.
     /// Responsibility: render canonical PromptSectionCatalog aggregates for diplomacy and RPG main-chain prompts.
     /// </summary>
-    public partial class PromptPersistenceService
+internal sealed partial class PromptWorkspaceComposer
     {
-        private PromptHierarchyNode BuildMainChainPromptSectionNode(
+        internal PromptHierarchyNode BuildMainChainPromptSectionNode(
             RimTalkPromptChannel rootChannel,
             SystemPromptConfig config,
             DialogueScenarioContext context,
@@ -27,7 +29,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return BuildPromptSectionAggregateNode(config, promptChannel, context, environmentConfig);
         }
 
-        private PromptHierarchyNode BuildPromptSectionAggregateNode(
+        internal PromptHierarchyNode BuildPromptSectionAggregateNode(
             SystemPromptConfig config,
             string promptChannel,
             DialogueScenarioContext context,
@@ -115,12 +117,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return RenderStructuredPreviewAsText(preview);
         }
 
-        private static string BuildPromptWorkspaceContextBlock(string normalizedChannel)
+        internal string BuildPromptWorkspaceContextBlock(string normalizedChannel)
         {
             return BuildPromptWorkspaceContextBlock(normalizedChannel, "manual", "{{ runtime.environment }}");
         }
 
-        private static string BuildPromptWorkspaceContextBlock(
+        internal string BuildPromptWorkspaceContextBlock(
             string normalizedChannel,
             string mode,
             string environment)
@@ -131,7 +133,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 + "  <environment>" + (environment ?? "{{ runtime.environment }}") + "</environment>";
         }
 
-        private PromptSectionAggregate BuildPromptSectionAggregateForPreview(
+        internal PromptSectionAggregate BuildPromptSectionAggregateForPreview(
             RimTalkPromptChannel rootChannel,
             string promptChannel)
         {
@@ -147,7 +149,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 sectionLayouts);
         }
 
-        private static PromptWorkspacePreviewBlock BuildSectionAggregateBlock(
+        internal PromptWorkspacePreviewBlock BuildSectionAggregateBlock(
             string promptChannel,
             string content,
             PromptSectionAggregate aggregate)
@@ -162,7 +164,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return block;
         }
 
-        private static IEnumerable<PromptWorkspacePreviewSubsection> BuildSectionAggregateSubsections(
+        internal IEnumerable<PromptWorkspacePreviewSubsection> BuildSectionAggregateSubsections(
             PromptSectionAggregate aggregate)
         {
             foreach (PromptSectionAggregateSection section in aggregate?.Sections ?? Enumerable.Empty<PromptSectionAggregateSection>())
@@ -180,7 +182,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static void AddPromptWorkspaceNodeBlocks(
+        internal void AddPromptWorkspaceNodeBlocks(
             ICollection<PromptWorkspacePreviewBlock> blocks,
             IEnumerable<ResolvedPromptNodePlacement> placements,
             PromptUnifiedNodeSlot slot)
@@ -212,7 +214,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static string WrapNodeContentWithXml(string nodeId, string content)
+        internal string WrapNodeContentWithXml(string nodeId, string content)
         {
             if (string.IsNullOrWhiteSpace(nodeId) || string.IsNullOrWhiteSpace(content))
             {
@@ -223,7 +225,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return $"<{normalizedTag}>\n{IndentMultilineContent(content, 2)}\n</{normalizedTag}>";
         }
 
-        private static string NormalizeNodeIdToXmlTag(string nodeId)
+        internal string NormalizeNodeIdToXmlTag(string nodeId)
         {
             if (string.IsNullOrWhiteSpace(nodeId))
             {
@@ -247,7 +249,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.IsNullOrEmpty(result) ? "node" : result;
         }
 
-        private static string IndentMultilineContent(string content, int spaces)
+        internal string IndentMultilineContent(string content, int spaces)
         {
             if (string.IsNullOrWhiteSpace(content))
             {
@@ -258,7 +260,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.Join("\n", content.Split('\n').Select(line => indent + line.TrimEnd()));
         }
 
-        private static List<PromptWorkspacePreviewBlock> ReorderWorkspacePreviewBlocks(
+        internal List<PromptWorkspacePreviewBlock> ReorderWorkspacePreviewBlocks(
             IEnumerable<PromptWorkspacePreviewBlock> blocks)
         {
             var contexts = new List<PromptWorkspacePreviewBlock>();
@@ -303,7 +305,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return ordered;
         }
 
-        private static string BuildPreviewSignature(
+        internal string BuildPreviewSignature(
             string normalizedChannel,
             IEnumerable<PromptWorkspacePreviewBlock> blocks)
         {
@@ -343,13 +345,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString();
         }
 
-        private static string BuildTextSignature(string text)
+        internal string BuildTextSignature(string text)
         {
             string normalized = text ?? string.Empty;
             return normalized.Length + ":" + ComputeStableHash(normalized).ToString("X8");
         }
 
-        private static int ComputeStableHash(string text)
+        internal int ComputeStableHash(string text)
         {
             unchecked
             {
@@ -367,7 +369,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static string RenderStructuredPreviewAsText(PromptWorkspaceStructuredPreview preview)
+        internal string RenderStructuredPreviewAsText(PromptWorkspaceStructuredPreview preview)
         {
             if (preview?.Blocks == null || preview.Blocks.Count == 0)
             {
@@ -394,7 +396,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString();
         }
 
-        private string RenderPromptSectionAggregateSection(
+        internal string RenderPromptSectionAggregateSection(
             string promptChannel,
             string sectionId,
             string templateText,
@@ -409,7 +411,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
             string renderChannel = context?.IsRpg == true ? "rpg" : "diplomacy";
             string templateId = $"prompt_sections.{promptChannel}.{sectionId}";
-            Dictionary<string, object> values = BuildTemplateVariableValues(
+            Dictionary<string, object> values = host.TemplateVariables.BuildTemplateVariableValues(
                 templateId,
                 renderChannel,
                 context,
@@ -419,14 +421,14 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptTemplateRenderer.RenderOrThrow(templateId, renderChannel, normalized, renderContext).Trim();
         }
 
-        private RimTalkPromptEntryDefaultsConfig GetRuntimePromptSectionCatalog(SystemPromptConfig config)
+        internal RimTalkPromptEntryDefaultsConfig GetRuntimePromptSectionCatalog(SystemPromptConfig config)
         {
             return RelationsMod.Settings?.GetPromptSectionCatalogClone()
                 ?? RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot();
         }
 
 
-        private bool SyncLegacyPromptMirrorsFromSections(SystemPromptConfig config)
+        internal bool SyncLegacyPromptMirrorsFromSections(SystemPromptConfig config)
         {
             if (config == null)
             {
@@ -463,7 +465,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return changed;
         }
 
-        private string BuildLegacyPromptMirrorText(string promptChannel, params string[] sectionIds)
+        internal string BuildLegacyPromptMirrorText(string promptChannel, params string[] sectionIds)
         {
             RimTalkPromptEntryDefaultsConfig catalog = RelationsMod.Settings?.GetPromptSectionCatalogClone()
                                                    ?? RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot();

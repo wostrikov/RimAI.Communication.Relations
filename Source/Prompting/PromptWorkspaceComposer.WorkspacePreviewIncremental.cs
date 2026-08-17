@@ -6,9 +6,11 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Verse;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
-    public partial class PromptPersistenceService
+internal sealed partial class PromptWorkspaceComposer
     {
         internal PromptWorkspaceIncrementalPreviewBuildState CreatePromptWorkspaceIncrementalPreviewBuild(
             RimTalkPromptChannel rootChannel,
@@ -49,7 +51,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             StepBuildStateCore(state);
         }
 
-        private void StepBuildStateCore(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void StepBuildStateCore(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             try
             {
@@ -79,7 +81,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private void RecordStepErrorAndAdvance(
+        internal void RecordStepErrorAndAdvance(
             PromptWorkspaceIncrementalPreviewBuildState state,
             PromptWorkspacePreviewErrorDiagnostic diagnostic)
         {
@@ -107,7 +109,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             AdvanceStageAfterError(state);
         }
 
-        private void AdvanceStageAfterError(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void AdvanceStageAfterError(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             switch (state.Preview.Stage)
             {
@@ -126,7 +128,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private void StepInitStage(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void StepInitStage(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             state.Preview.Blocks.Add(new PromptWorkspacePreviewBlock
             {
@@ -147,7 +149,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             UpdateBuildSignature(state);
         }
 
-        private void StepSectionStage(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void StepSectionStage(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             if (state.SectionCursor >= state.Sections.Count)
             {
@@ -187,7 +189,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             UpdateBuildSignature(state);
         }
 
-        private void StepNodeStage(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void StepNodeStage(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             if (state.NodeCursor >= state.NodeLayouts.Count)
             {
@@ -218,7 +220,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             UpdateBuildSignature(state);
         }
 
-        private void StepFinalizeStage(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void StepFinalizeStage(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             EnsureFooterBlock(state.Preview.Blocks, state.PromptChannel);
             state.Preview.Blocks = ReorderWorkspacePreviewBlocks(state.Preview.Blocks);
@@ -229,7 +231,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             UpdateBuildSignature(state);
         }
 
-        private string RenderPreviewSectionStep(
+        internal string RenderPreviewSectionStep(
             RimTalkPromptChannel rootChannel,
             string promptChannel,
             string sectionId,
@@ -259,7 +261,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                     cachedComposeValues: cachedComposeValues);
         }
 
-        private PromptWorkspacePreviewBlock RenderPreviewNodeStep(
+        internal PromptWorkspacePreviewBlock RenderPreviewNodeStep(
             RimTalkPromptChannel rootChannel,
             string promptChannel,
             PromptUnifiedNodeLayoutConfig layout,
@@ -298,7 +300,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             };
         }
 
-        private static void EnsureBuildStateComposeValues(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void EnsureBuildStateComposeValues(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             if (state.ComposeValuesInitialized)
             {
@@ -312,7 +314,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             state.ComposeValuesInitialized = true;
         }
 
-        private static void EnsureFooterBlock(ICollection<PromptWorkspacePreviewBlock> blocks, string promptChannel)
+        internal void EnsureFooterBlock(ICollection<PromptWorkspacePreviewBlock> blocks, string promptChannel)
         {
             if (blocks == null || blocks.Any(block => block?.Kind == PromptWorkspacePreviewBlockKind.Footer))
             {
@@ -327,7 +329,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             });
         }
 
-        private int UpdateSectionAggregatePreviewBlock(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal int UpdateSectionAggregatePreviewBlock(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             PromptSectionAggregate aggregate = BuildSectionAggregateSnapshot(state.PromptChannel, state.RenderedSections);
             string content = aggregate?.RenderedText?.Trim() ?? string.Empty;
@@ -349,7 +351,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return blocks.Count - 1;
         }
 
-        private static PromptSectionAggregate BuildSectionAggregateSnapshot(
+        internal PromptSectionAggregate BuildSectionAggregateSnapshot(
             string promptChannel,
             IEnumerable<PromptSectionAggregateSection> sections)
         {
@@ -363,14 +365,14 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return aggregate;
         }
 
-        private IReadOnlyList<PromptSectionSchemaItem> GetOrderedSectionsForPreview(string promptChannel)
+        internal IReadOnlyList<PromptSectionSchemaItem> GetOrderedSectionsForPreview(string promptChannel)
         {
             List<PromptSectionLayoutConfig> sectionLayouts =
                 RelationsMod.Settings?.GetPromptSectionLayouts(promptChannel) ?? new List<PromptSectionLayoutConfig>();
             return PromptSectionSchemaCatalog.GetOrderedMainChainSections(sectionLayouts, enabledOnly: true);
         }
 
-        private List<PromptUnifiedNodeLayoutConfig> GetOrderedNodeLayoutsForPreview(string promptChannel)
+        internal List<PromptUnifiedNodeLayoutConfig> GetOrderedNodeLayoutsForPreview(string promptChannel)
         {
             List<PromptUnifiedNodeLayoutConfig> layouts =
                 RelationsMod.Settings?.GetPromptNodeLayouts(promptChannel) ??
@@ -386,7 +388,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 .ToList();
         }
 
-        private void MarkBuildFailed(
+        internal void MarkBuildFailed(
             PromptWorkspaceIncrementalPreviewBuildState state,
             PromptWorkspacePreviewErrorDiagnostic diagnostic)
         {
@@ -410,7 +412,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             UpdateBuildSignature(state);
         }
 
-        private static PromptWorkspacePreviewErrorDiagnostic BuildErrorDiagnostic(PromptRenderException ex)
+        internal PromptWorkspacePreviewErrorDiagnostic BuildErrorDiagnostic(PromptRenderException ex)
         {
             return new PromptWorkspacePreviewErrorDiagnostic
             {
@@ -423,7 +425,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             };
         }
 
-        private static PromptWorkspacePreviewErrorDiagnostic BuildErrorDiagnostic(Exception ex, string channel)
+        internal PromptWorkspacePreviewErrorDiagnostic BuildErrorDiagnostic(Exception ex, string channel)
         {
             return new PromptWorkspacePreviewErrorDiagnostic
             {
@@ -436,7 +438,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             };
         }
 
-        private static void UpdateBuildProgress(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void UpdateBuildProgress(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             PromptWorkspaceStructuredPreview preview = state.Preview;
             preview.TotalSections = state.Sections.Count;
@@ -449,7 +451,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             preview.IsBuilding = preview.Stage != PromptWorkspacePreviewBuildStage.Completed && !preview.IsFailed;
         }
 
-        private static void UpdateBuildSignature(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void UpdateBuildSignature(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             PromptWorkspaceStructuredPreview preview = state.Preview;
             string baseSignature = UpdatePreviewSignatureIncremental(state);
@@ -467,7 +469,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             preview.Signature = baseSignature + progress;
         }
 
-        private static string UpdatePreviewSignatureIncremental(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal string UpdatePreviewSignatureIncremental(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             PromptWorkspaceStructuredPreview preview = state.Preview;
             if (!state.SignatureCacheInitialized)
@@ -500,7 +502,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "|blocks=" + preview.Blocks.Count;
         }
 
-        private static void EnsureBlockSignatureCacheCapacity(PromptWorkspaceIncrementalPreviewBuildState state, int count)
+        internal void EnsureBlockSignatureCacheCapacity(PromptWorkspaceIncrementalPreviewBuildState state, int count)
         {
             count = Math.Max(0, count);
             while (state.BlockSignatureHashes.Count < count)
@@ -527,14 +529,14 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static void InvalidateIncrementalSignatureCache(PromptWorkspaceIncrementalPreviewBuildState state)
+        internal void InvalidateIncrementalSignatureCache(PromptWorkspaceIncrementalPreviewBuildState state)
         {
             state.SignatureCacheInitialized = false;
             state.DirtyBlockIndices.Clear();
             state.SubsectionSignatureHashesByBlock.Clear();
         }
 
-        private static void MarkBlockDirty(PromptWorkspaceIncrementalPreviewBuildState state, int index)
+        internal void MarkBlockDirty(PromptWorkspaceIncrementalPreviewBuildState state, int index)
         {
             if (state == null || index < 0)
             {
@@ -544,7 +546,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             state.DirtyBlockIndices.Add(index);
         }
 
-        private static int ComputePreviewBlockSignatureHash(
+        internal int ComputePreviewBlockSignatureHash(
             PromptWorkspaceIncrementalPreviewBuildState state,
             int blockIndex,
             PromptWorkspacePreviewBlock block)
@@ -592,7 +594,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return hash;
         }
 
-        private static int ComputePreviewSubsectionSignatureHash(PromptWorkspacePreviewSubsection subsection)
+        internal int ComputePreviewSubsectionSignatureHash(PromptWorkspacePreviewSubsection subsection)
         {
             if (subsection == null)
             {
@@ -605,7 +607,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return hash;
         }
 
-        private static int ComputePreviewAggregateHash(string channel, List<int> blockHashes, int count)
+        internal int ComputePreviewAggregateHash(string channel, List<int> blockHashes, int count)
         {
             int hash = BeginHash();
             hash = MixHash(hash, ComputeStableSignatureHash(channel));
@@ -619,7 +621,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return hash;
         }
 
-        private static int BeginHash()
+        internal int BeginHash()
         {
             unchecked
             {
@@ -627,7 +629,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static int MixHash(int hash, int value)
+        internal int MixHash(int hash, int value)
         {
             unchecked
             {
@@ -637,7 +639,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static int ComputeStableSignatureHash(string text)
+        internal int ComputeStableSignatureHash(string text)
         {
             unchecked
             {

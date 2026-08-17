@@ -32,7 +32,37 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         public void WriteAllText(string content)
         {
             ensureDirectoryExists?.Invoke();
-            string path = ResolvePath();
+            WriteAllText(ResolvePath(), content);
+        }
+
+        public static bool FileExists(string path)
+        {
+            return !string.IsNullOrWhiteSpace(path) && File.Exists(path);
+        }
+
+        public static string ReadAllText(string path)
+        {
+            if (!FileExists(path))
+            {
+                return string.Empty;
+            }
+
+            return File.ReadAllText(path);
+        }
+
+        public static void WriteAllText(string path, string content)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            string directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             File.WriteAllText(path, content ?? string.Empty);
         }
 

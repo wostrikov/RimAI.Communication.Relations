@@ -25,11 +25,18 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             IEnumerable<string> additionalSceneTags,
             DiplomacyStrategyPromptContext strategyContext)
         {
-            return promptService.BuildDiplomacyStrategySystemPromptCore(
+            DialogueScenarioContext scenarioContext = DialogueScenarioContext.CreateDiplomacy(
                 faction,
-                config,
-                additionalSceneTags,
-                strategyContext);
+                false,
+                additionalSceneTags);
+            Dictionary<string, object> runtimeValues = promptService.BuildStrategyRuntimeValuesOrThrow(strategyContext);
+            return promptService.WorkspaceComposer.BuildUnifiedChannelSystemPrompt(
+                RimTalkPromptChannel.Diplomacy,
+                RimTalkPromptEntryChannelCatalog.DiplomacyStrategy,
+                scenarioContext,
+                config?.EnvironmentPrompt,
+                runtimeValues,
+                deterministicPreview: false);
         }
     }
 }

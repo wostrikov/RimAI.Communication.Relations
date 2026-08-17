@@ -2,13 +2,22 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Core.Memory;
 using Verse;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Context
 {
     /// <summary>
     /// Typed Memory/Knowledge prompt blocks. Optional when Memory module is absent.
     /// </summary>
-    public partial class PromptPersistenceService
+internal sealed partial class RelationsContextAssembler
     {
+        private readonly PromptPersistenceService host;
+
+        internal RelationsContextAssembler(PromptPersistenceService host)
+        {
+            this.host = host ?? throw new System.ArgumentNullException(nameof(host));
+        }
+
         private const int CommonKnowledgeMaxEntries = 10;
         internal const int ExpandMemoryPawnMemoryMaxCharsDefault = 1200;
         internal const int ExpandMemoryPawnMemoryMaxCharsMin = 200;
@@ -18,7 +27,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         internal const int ExpandMemoryPawnMemoryMaxEntriesMax = 500;
         internal const int ExpandMemoryPawnMemoryMaxEntriesPerLayer = 20;
 
-        private string BuildCommonKnowledgeBlock(string playerMessage)
+        internal string BuildCommonKnowledgeBlock(string playerMessage)
         {
             var provider = MemoryContextAccess.Knowledge;
             if (provider == null || string.IsNullOrWhiteSpace(playerMessage))
@@ -66,30 +75,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return result;
         }
 
-        private static string TruncateAtNaturalBoundary(string text, int maxChars)
+        internal string TruncateAtNaturalBoundary(string text, int maxChars)
         {
-            if (string.IsNullOrEmpty(text) || text.Length <= maxChars)
-                return text;
-            if (maxChars <= 0)
-                return string.Empty;
-
-            int cutoff = maxChars - 3;
-            if (cutoff <= 0)
-                return "...";
-
-            int newline = text.LastIndexOf('\n', cutoff);
-            int dot = text.LastIndexOf('.', cutoff);
-            int space = text.LastIndexOf(' ', cutoff);
-
-            int boundary = newline > dot ? newline : dot;
-            boundary = boundary > space ? boundary : space;
-            if (boundary < cutoff / 2)
-                boundary = space > cutoff / 2 ? space : cutoff;
-
-            return text.Substring(0, boundary + 1) + "\n...";
+            return PromptTextTruncate.AtNaturalBoundary(text, maxChars);
         }
 
-        private string InjectExpandMemoryIntoPrompt(string prompt, Pawn target)
+        internal string InjectExpandMemoryIntoPrompt(string prompt, Pawn target)
         {
             string memory = BuildExpandMemoryPawnBlock(target);
             if (string.IsNullOrWhiteSpace(memory))

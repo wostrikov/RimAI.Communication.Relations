@@ -6,6 +6,7 @@ using System.Text;
 using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
+using Ustas.RimAI.Communication.Relations.Persistence;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -267,9 +268,8 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 Log.Warning($"[RimAI.Relations] Failed to get assembly path: {ex.Message}");
             }
 
-            // 后备2: 使用已知path
-            string fallbackPath = Path.Combine("E:\\SteamLibrary\\steamapps\\common\\RimWorld\\Mods\\RimChat", PromptFolderName, DefaultSubFolderName, DefaultConfigFileName);
-            Log.Message($"[RimAI.Relations] Default config path fallback: {fallbackPath}");
+            string fallbackPath = PromptDomainFileCatalog.GetDefaultPath(DefaultConfigFileName);
+            Log.Message($"[RimAI.Relations] Default config path from domain catalog: {fallbackPath}");
             return fallbackPath;
         }
 

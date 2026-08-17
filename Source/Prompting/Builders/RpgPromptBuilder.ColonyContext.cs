@@ -9,11 +9,13 @@ using RimWorld;
 using Verse;
 using Verse.AI;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 {
     /// <summary>/// Responsibility: append player-colony context blocks for RPG pawn prompts.
  ///</summary>
-    public partial class PromptPersistenceService
+internal sealed partial class RpgPromptBuilder
     {
         private const int MaxInventorySummaryItems = 8;
         private const int MaxNativeAlertItems = 8;
@@ -23,7 +25,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         private static readonly FieldInfo JobQueueField =
             typeof(Pawn_JobTracker).GetField("jobQueue", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        private void AppendPlayerColonyContextIfEnabled(StringBuilder sb, Pawn pawn, RpgSceneParamSwitchesConfig switches)
+        internal void AppendPlayerColonyContextIfEnabled(StringBuilder sb, Pawn pawn, RpgSceneParamSwitchesConfig switches)
         {
             if (sb == null || switches == null || pawn?.Faction != Faction.OfPlayer)
             {
@@ -64,14 +66,14 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private List<Map> GetPlayerHomeMaps()
+        internal List<Map> GetPlayerHomeMaps()
         {
             return Find.Maps?
                 .Where(map => map != null && map.IsPlayerHome)
                 .ToList() ?? new List<Map>();
         }
 
-        private void AppendPlayerColonyInventorySummary(StringBuilder sb, List<Map> homeMaps)
+        internal void AppendPlayerColonyInventorySummary(StringBuilder sb, List<Map> homeMaps)
         {
             Dictionary<ThingDef, int> stock = AggregateColonyStock(homeMaps);
             if (stock.Count == 0)
@@ -94,7 +96,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 $"Colony Inventory Summary: Silver={silver}, Food~{foodDays:F1} days, TopStocks={string.Join(", ", topStocks)}");
         }
 
-        private Dictionary<ThingDef, int> AggregateColonyStock(List<Map> homeMaps)
+        internal Dictionary<ThingDef, int> AggregateColonyStock(List<Map> homeMaps)
         {
             var aggregate = new Dictionary<ThingDef, int>();
             for (int i = 0; i < homeMaps.Count; i++)
@@ -120,7 +122,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return aggregate;
         }
 
-        private void AppendPlayerHomeAlerts(StringBuilder sb)
+        internal void AppendPlayerHomeAlerts(StringBuilder sb)
         {
             List<string> alerts = GetNativeActiveAlerts();
             string line = alerts.Count > 0
@@ -129,7 +131,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             sb.AppendLine($"Home World Alerts: {line}");
         }
 
-        private List<string> GetNativeActiveAlerts()
+        internal List<string> GetNativeActiveAlerts()
         {
             var labels = new List<string>();
             try
@@ -163,7 +165,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return labels.Distinct().Take(MaxNativeAlertItems).ToList();
         }
 
-        private string BuildNativeAlertLabel(Alert alert)
+        internal string BuildNativeAlertLabel(Alert alert)
         {
             if (alert == null)
             {
@@ -185,7 +187,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return $"[{alert.Priority}] {label}";
         }
 
-        private void AppendPlayerRecentJobState(StringBuilder sb, Pawn pawn)
+        internal void AppendPlayerRecentJobState(StringBuilder sb, Pawn pawn)
         {
             if (pawn?.jobs == null)
             {
@@ -217,7 +219,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private string BuildJobSummary(Job job)
+        internal string BuildJobSummary(Job job)
         {
             if (job?.def == null)
             {
@@ -238,7 +240,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return label;
         }
 
-        private List<string> GetQueuedJobSummaries(Pawn pawn)
+        internal List<string> GetQueuedJobSummaries(Pawn pawn)
         {
             var results = new List<string>();
             IEnumerable queue = JobQueueField?.GetValue(pawn?.jobs) as IEnumerable;
@@ -265,7 +267,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return results;
         }
 
-        private Job ExtractQueuedJob(object queued)
+        internal Job ExtractQueuedJob(object queued)
         {
             if (queued == null)
             {
@@ -283,7 +285,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return property?.GetValue(queued, null) as Job;
         }
 
-        private void AppendPlayerAttributeLevels(StringBuilder sb, Pawn pawn)
+        internal void AppendPlayerAttributeLevels(StringBuilder sb, Pawn pawn)
         {
             if (pawn?.health?.capacities == null)
             {
@@ -304,7 +306,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private void AppendCapacityPart(List<string> parts, Pawn pawn, PawnCapacityDef capacity)
+        internal void AppendCapacityPart(List<string> parts, Pawn pawn, PawnCapacityDef capacity)
         {
             if (parts == null || pawn?.health?.capacities == null || capacity == null)
             {

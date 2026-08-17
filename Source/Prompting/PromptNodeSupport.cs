@@ -13,13 +13,22 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
 
-namespace Ustas.RimAI.Communication.Relations.Persistence
+using Ustas.RimAI.Communication.Relations.Persistence;
+
+namespace Ustas.RimAI.Communication.Relations.Prompting
 {
     /// <summary>/// Dependencies: SystemPromptConfig, DialogueScenarioContext, PromptHierarchyRenderer.
  /// Responsibility: build diplomacy/RPG prompts with strict Scriban rendering and hierarchical policy pipeline.
  ///</summary>
-    public partial class PromptPersistenceService
+internal sealed class PromptNodeSupport
     {
+        private readonly PromptPersistenceService host;
+
+        internal PromptNodeSupport(PromptPersistenceService host)
+        {
+            this.host = host ?? throw new System.ArgumentNullException(nameof(host));
+        }
+
         private const string DefaultDiplomacyFallbackRoleTemplate =
             "You are the leader of {{ world.faction.name }} in RimWorld.";
 
@@ -69,7 +78,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 strategyContext);
         }
 
-        private string BuildFullSystemPromptHierarchical(
+        internal string BuildFullSystemPromptHierarchical(
             Faction faction,
             SystemPromptConfig config,
             bool isProactive,
@@ -87,11 +96,11 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             var root = new PromptHierarchyNode("prompt_context");
             AddTextNodeIfNotEmpty(root, "channel", "diplomacy");
             AddTextNodeIfNotEmpty(root, "mode", isProactive ? "proactive" : "manual");
-            AddTextNodeIfNotEmpty(root, "environment", BuildEnvironmentPromptBlocks(config, scenarioContext));
+            AddTextNodeIfNotEmpty(root, "environment", host.BuildEnvironmentPromptBlocks(config, scenarioContext));
             AddTextNodeIfNotEmpty(root, "mandatory_race_profile", BuildMandatoryRaceProfileBlock(config, scenarioContext));
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MetadataAfter);
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MainChainBefore);
-            AddNodeIfAnyChildren(root, BuildMainChainPromptSectionNode(
+            AddNodeIfAnyChildren(root, host.WorkspaceComposer.BuildMainChainPromptSectionNode(
                 RimTalkPromptChannel.Diplomacy,
                 config,
                 scenarioContext,
@@ -117,13 +126,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptHierarchyRenderer.Render(root);
         }
 
-        private string BuildDiplomacyStrategySystemPromptHierarchical(
+        internal string BuildDiplomacyStrategySystemPromptHierarchical(
             Faction faction,
             SystemPromptConfig config,
             IEnumerable<string> additionalSceneTags,
             DiplomacyStrategyPromptContext strategyContext)
         {
-            config ??= LoadConfig() ?? CreateDefaultConfig();
+            config ??= host.DomainStore.LoadConfig() ?? host.DomainStore.CreateDefaultConfig();
             var scenarioContext = DialogueScenarioContext.CreateDiplomacy(faction, false, additionalSceneTags);
             strategyContext ??= new DiplomacyStrategyPromptContext();
             string promptChannel = RimTalkPromptEntryChannelCatalog.DiplomacyStrategy;
@@ -136,10 +145,10 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             var root = new PromptHierarchyNode("prompt_context");
             AddTextNodeIfNotEmpty(root, "channel", RimTalkPromptEntryChannelCatalog.DiplomacyStrategy);
             AddTextNodeIfNotEmpty(root, "mode", "manual");
-            AddTextNodeIfNotEmpty(root, "environment", BuildEnvironmentPromptBlocks(config, scenarioContext));
+            AddTextNodeIfNotEmpty(root, "environment", host.BuildEnvironmentPromptBlocks(config, scenarioContext));
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MetadataAfter);
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MainChainBefore);
-            AddNodeIfAnyChildren(root, BuildPromptSectionAggregateNode(
+            AddNodeIfAnyChildren(root, host.WorkspaceComposer.BuildPromptSectionAggregateNode(
                 config,
                 RimTalkPromptEntryChannelCatalog.DiplomacyStrategy,
                 scenarioContext,
@@ -160,7 +169,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptHierarchyRenderer.Render(root);
         }
 
-        private string BuildRpgSystemPromptHierarchical(
+        internal string BuildRpgSystemPromptHierarchical(
             Pawn initiator,
             Pawn target,
             bool isProactive,
@@ -168,7 +177,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         {
             var settings = RelationsMod.Settings;
             settings?.EnsureRpgPromptTextsLoaded();
-            SystemPromptConfig config = LoadConfig() ?? CreateDefaultConfig();
+            SystemPromptConfig config = host.DomainStore.LoadConfig() ?? host.DomainStore.CreateDefaultConfig();
             var scenarioContext = DialogueScenarioContext.CreateRpg(initiator, target, isProactive, additionalSceneTags);
             bool samePlayerFaction =
                 initiator?.Faction != null &&
@@ -196,7 +205,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             var root = new PromptHierarchyNode("prompt_context");
             AddTextNodeIfNotEmpty(root, "channel", "rpg");
             AddTextNodeIfNotEmpty(root, "mode", isProactive ? "proactive" : "manual");
-            string environmentBlock = BuildEnvironmentPromptBlocks(config, scenarioContext);
+            string environmentBlock = host.BuildEnvironmentPromptBlocks(config, scenarioContext);
             if (preferCompactContext)
             {
                 environmentBlock = CompactRpgEnvironmentBlock(environmentBlock);
@@ -205,7 +214,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             AddTextNodeIfNotEmpty(root, "mandatory_race_profile", BuildMandatoryRaceProfileBlock(config, scenarioContext));
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MetadataAfter);
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MainChainBefore);
-            AddNodeIfAnyChildren(root, BuildMainChainPromptSectionNode(
+            AddNodeIfAnyChildren(root, host.WorkspaceComposer.BuildMainChainPromptSectionNode(
                 RimTalkPromptChannel.Rpg,
                 config,
                 scenarioContext,
@@ -214,7 +223,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             ApplyResolvedNodePlacements(root, placements, PromptUnifiedNodeSlot.MainChainAfter);
 
             var roleStack = root.AddChild("role_stack");
-            AddTextNodeIfNotEmpty(roleStack, "personality_override", ResolveRpgPawnPersonaPrompt(target));
+            AddTextNodeIfNotEmpty(roleStack, "personality_override", host.ContextAssembler.ResolveRpgPawnPersonaPrompt(target));
 
             AddTextNodeIfNotEmpty(root, "dynamic_faction_memory",
                 DialogueSummaryService.BuildRpgDynamicFactionMemoryBlock(target?.Faction, target));
@@ -245,7 +254,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptHierarchyRenderer.Render(root);
         }
 
-        private PromptHierarchyNode BuildDiplomacyDynamicDataNode(SystemPromptConfig config, Faction faction, Pawn playerNegotiator)
+        internal PromptHierarchyNode BuildDiplomacyDynamicDataNode(SystemPromptConfig config, Faction faction, Pawn playerNegotiator)
         {
             if (config?.DynamicDataInjection == null)
             {
@@ -256,22 +265,22 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             DynamicDataInjectionConfig dyn = config.DynamicDataInjection;
             if (dyn.InjectMemoryData)
             {
-                AddTextNodeIfNotEmpty(node, "memory_data", BuildTextBlock(sb => AppendMemoryData(sb, faction)));
+                AddTextNodeIfNotEmpty(node, "memory_data", BuildTextBlock(sb => host.ContextAssembler.AppendMemoryData(sb, faction)));
             }
 
             if (dyn.InjectFactionInfo)
             {
-                AddTextNodeIfNotEmpty(node, "faction_info", BuildTextBlock(sb => AppendFactionInfo(sb, faction)));
-                AddTextNodeIfNotEmpty(node, "player_pawn_profile", BuildPlayerPawnContextForPrompt(faction, playerNegotiator));
-                AddTextNodeIfNotEmpty(node, "player_royalty_summary", BuildPlayerRoyaltySummaryForPrompt(faction, playerNegotiator));
-                AddTextNodeIfNotEmpty(node, "faction_settlement_summary", BuildFactionSettlementSummaryForPrompt(faction));
-                AddTextNodeIfNotEmpty(node, "faction_quest_status", BuildFactionQuestStatusBlockForPrompt(faction));
+                AddTextNodeIfNotEmpty(node, "faction_info", BuildTextBlock(sb => host.ContextAssembler.AppendFactionInfo(sb, faction)));
+                AddTextNodeIfNotEmpty(node, "player_pawn_profile", host.ContextAssembler.BuildPlayerPawnContextForPrompt(faction, playerNegotiator));
+                AddTextNodeIfNotEmpty(node, "player_royalty_summary", host.ContextAssembler.BuildPlayerRoyaltySummaryForPrompt(faction, playerNegotiator));
+                AddTextNodeIfNotEmpty(node, "faction_settlement_summary", host.ContextAssembler.BuildFactionSettlementSummaryForPrompt(faction));
+                AddTextNodeIfNotEmpty(node, "faction_quest_status", host.ContextAssembler.BuildFactionQuestStatusBlockForPrompt(faction));
             }
 
             return node.Children.Count > 0 ? node : null;
         }
 
-        private PromptHierarchyNode BuildRpgActorStateNode(
+        internal PromptHierarchyNode BuildRpgActorStateNode(
             RelationsSettings settings,
             SystemPromptConfig config,
             Pawn initiator,
@@ -287,7 +296,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             if (settings?.RPGInjectSelfStatus == true)
             {
                 AddTextNodeIfNotEmpty(node, "self_status",
-                    BuildTextBlock(sb => AppendRPGPawnInfo(
+                    BuildTextBlock(sb => host.RpgBuilder.AppendRPGPawnInfo(
                         sb,
                         target,
                         true,
@@ -299,7 +308,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             if (settings?.RPGInjectInterlocutorStatus == true)
             {
                 AddTextNodeIfNotEmpty(node, "interlocutor_status",
-                    BuildTextBlock(sb => AppendRPGPawnInfo(
+                    BuildTextBlock(sb => host.RpgBuilder.AppendRPGPawnInfo(
                         sb,
                         initiator,
                         false,
@@ -310,18 +319,18 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
             if (settings?.RPGInjectFactionBackground == true)
             {
-                AddTextNodeIfNotEmpty(node, "target_faction_context", BuildTextBlock(sb => AppendRPGFactionContext(sb, target)));
+                AddTextNodeIfNotEmpty(node, "target_faction_context", BuildTextBlock(sb => host.RpgBuilder.AppendRPGFactionContext(sb, target)));
                 if (initiator?.Faction != target?.Faction)
                 {
                     AddTextNodeIfNotEmpty(node, "interlocutor_faction_context",
-                        BuildTextBlock(sb => AppendRPGFactionContext(sb, initiator)));
+                        BuildTextBlock(sb => host.RpgBuilder.AppendRPGFactionContext(sb, initiator)));
                 }
             }
 
             return node.Children.Count > 0 ? node : null;
         }
 
-        private void ApplyResolvedNodePlacements(
+        internal void ApplyResolvedNodePlacements(
             PromptHierarchyNode root,
             IEnumerable<ResolvedPromptNodePlacement> placements,
             PromptUnifiedNodeSlot slot)
@@ -349,7 +358,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private List<PromptUnifiedNodeLayoutConfig> GetOrderedNodeLayouts(string promptChannel)
+        internal List<PromptUnifiedNodeLayoutConfig> GetOrderedNodeLayouts(string promptChannel)
         {
             var allowedNodeIds = new HashSet<string>(
                 PromptUnifiedNodeSchemaCatalog.GetAllowedNodes(promptChannel).Select(item => item.Id),
@@ -402,29 +411,29 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 .ToList();
         }
 
-        private List<ResolvedPromptNodePlacement> ResolveDiplomacyNodePlacements(
+        internal List<ResolvedPromptNodePlacement> ResolveDiplomacyNodePlacements(
             string promptChannel,
             SystemPromptConfig config,
             DialogueScenarioContext context,
             Faction faction,
             Pawn playerNegotiator)
         {
-            string apiLimitsBody = BuildTextBlock(sb => AppendApiLimits(sb, faction));
-            Dictionary<string, object> questContext = BuildQuestPromptContext(context);
+            string apiLimitsBody = BuildTextBlock(sb => host.DiplomacyBuilder.AppendApiLimits(sb, faction));
+            Dictionary<string, object> questContext = host.DiplomacyBuilder.BuildQuestPromptContext(context);
             string questGuidanceBody = BuildTextBlock(sb =>
             {
-                AppendDynamicQuestGuidance(sb, faction, questContext);
-                AppendQuestSelectionHardRules(sb);
+                host.DiplomacyBuilder.AppendDynamicQuestGuidance(sb, faction, questContext);
+                host.DiplomacyBuilder.AppendQuestSelectionHardRules(sb);
             });
             string responseContractBody = BuildTextBlock(sb =>
             {
                 if (config.UseAdvancedMode)
                 {
-                    AppendAdvancedConfig(sb, config, faction);
+                    host.DiplomacyBuilder.AppendAdvancedConfig(sb, config, faction);
                 }
                 else
                 {
-                    AppendSimpleConfig(sb, config, faction);
+                    host.DiplomacyBuilder.AppendSimpleConfig(sb, config, faction);
                 }
             });
 
@@ -511,7 +520,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                         break;
                     case "common_knowledge":
                         placement.OutputTag = "common_knowledge";
-                        placement.Content = BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
+                        placement.Content = host.ContextAssembler.BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
                         break;
                     default:
                         placement.Content = string.Empty;
@@ -528,7 +537,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 .ToList();
         }
 
-        private List<ResolvedPromptNodePlacement> ResolveRpgNodePlacements(
+        internal List<ResolvedPromptNodePlacement> ResolveRpgNodePlacements(
             string promptChannel,
             RelationsSettings settings,
             SystemPromptConfig config,
@@ -638,11 +647,11 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                         break;
                     case "common_knowledge":
                         placement.OutputTag = "common_knowledge";
-                        placement.Content = BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
+                        placement.Content = host.ContextAssembler.BuildCommonKnowledgeBlock(ExpandMemoryMatchContext.PlayerMessage);
                         break;
                     case "expandmemory_npc_memory":
                         placement.OutputTag = "expandmemory_npc_memory";
-                        placement.Content = BuildExpandMemoryPawnBlock(target);
+                        placement.Content = host.ContextAssembler.BuildExpandMemoryPawnBlock(target);
                         break;
 
                     default:
@@ -660,7 +669,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 .ToList();
         }
 
-        private List<ResolvedPromptNodePlacement> ResolveStrategyNodePlacements(
+        internal List<ResolvedPromptNodePlacement> ResolveStrategyNodePlacements(
             string promptChannel,
             SystemPromptConfig config,
             DialogueScenarioContext context,
@@ -750,7 +759,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 .ToList();
         }
 
-        private string BuildRpgKinshipBoundaryGuidanceText(
+        internal string BuildRpgKinshipBoundaryGuidanceText(
             RelationsSettings settings,
             Pawn initiator,
             Pawn target,
@@ -789,7 +798,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private static void AddTextNodeIfNotEmpty(PromptHierarchyNode parent, string id, string text, bool fromFile = false)
+        internal void AddTextNodeIfNotEmpty(PromptHierarchyNode parent, string id, string text, bool fromFile = false)
         {
             if (parent == null || string.IsNullOrWhiteSpace(text))
             {
@@ -799,7 +808,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             parent.AddChild(id, ApplyPromptSourceTag(text.Trim(), fromFile));
         }
 
-        private static void AddNodeIfAnyChildren(PromptHierarchyNode parent, PromptHierarchyNode child)
+        internal void AddNodeIfAnyChildren(PromptHierarchyNode parent, PromptHierarchyNode child)
         {
             if (parent == null || child == null || child.Children.Count == 0)
             {
@@ -809,12 +818,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             parent.Children.Add(child);
         }
 
-        private static string ApplyPromptSourceTag(string text, bool fromFile)
+        internal string ApplyPromptSourceTag(string text, bool fromFile)
         {
             return text?.Trim() ?? string.Empty;
         }
 
-        private static string BuildTextBlock(Action<StringBuilder> appendAction)
+        internal string BuildTextBlock(Action<StringBuilder> appendAction)
         {
             if (appendAction == null)
             {
@@ -826,7 +835,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString().Trim();
         }
 
-        private string BuildMandatoryRaceProfileBlock(SystemPromptConfig config, DialogueScenarioContext context)
+        internal string BuildMandatoryRaceProfileBlock(SystemPromptConfig config, DialogueScenarioContext context)
         {
             string channel = ResolveRenderChannel(context);
             string template = config?.PromptTemplates?.MandatoryRaceInjectionTemplate ?? string.Empty;
@@ -842,7 +851,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string BuildMandatoryRaceProfileBody(DialogueScenarioContext context)
+        internal string BuildMandatoryRaceProfileBody(DialogueScenarioContext context)
         {
             var sb = new StringBuilder();
             if (context?.IsRpg == true)
@@ -854,7 +863,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             {
                 Faction faction = context?.Faction;
                 Pawn leader = faction?.leader;
-                Pawn negotiator = ResolveBestPlayerNegotiator(context?.Initiator);
+                Pawn negotiator = host.ContextAssembler.ResolveBestPlayerNegotiator(context?.Initiator);
                 AppendMandatoryRaceEntry(sb, "RimChat_MandatoryRaceRole_Leader", leader);
                 AppendMandatoryRaceEntry(sb, "RimChat_MandatoryRaceRole_Negotiator", negotiator);
             }
@@ -862,7 +871,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString().Trim();
         }
 
-        private static void AppendMandatoryRaceEntry(StringBuilder sb, string roleKey, Pawn pawn)
+        internal void AppendMandatoryRaceEntry(StringBuilder sb, string roleKey, Pawn pawn)
         {
             if (sb == null)
             {
@@ -883,12 +892,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             sb.AppendLine($"RaceDescription: {ResolveMandatoryRaceDescription(pawn)}");
         }
 
-        private static string ResolveMandatoryRaceName(Pawn pawn)
+        internal string ResolveMandatoryRaceName(Pawn pawn)
         {
             return pawn?.LabelShortCap ?? "N/A";
         }
 
-        private static string ResolveMandatoryRaceKind(Pawn pawn)
+        internal string ResolveMandatoryRaceKind(Pawn pawn)
         {
             RaceProperties raceProps = pawn?.RaceProps;
             if (raceProps == null)
@@ -914,12 +923,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return "Other";
         }
 
-        private static string ResolveMandatoryRaceDef(Pawn pawn)
+        internal string ResolveMandatoryRaceDef(Pawn pawn)
         {
             return pawn?.def?.defName ?? "N/A";
         }
 
-        private static string ResolveMandatoryRaceLabel(Pawn pawn)
+        internal string ResolveMandatoryRaceLabel(Pawn pawn)
         {
             string label = pawn?.def?.label;
             if (string.IsNullOrWhiteSpace(label))
@@ -930,7 +939,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return NormalizeMandatoryRaceText(label, "N/A", 120);
         }
 
-        private static string ResolveMandatoryRaceXenotype(Pawn pawn)
+        internal string ResolveMandatoryRaceXenotype(Pawn pawn)
         {
             object genesObj = pawn?.genes;
             if (genesObj == null)
@@ -969,7 +978,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return "N/A";
         }
 
-        private static string ResolveMandatoryRaceDescription(Pawn pawn)
+        internal string ResolveMandatoryRaceDescription(Pawn pawn)
         {
             string description = pawn?.def?.description;
             if (string.IsNullOrWhiteSpace(description))
@@ -989,7 +998,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return NormalizeMandatoryRaceText(description, "N/A", 220);
         }
 
-        private static string NormalizeMandatoryRaceText(string text, string fallback, int maxChars)
+        internal string NormalizeMandatoryRaceText(string text, string fallback, int maxChars)
         {
             string normalized = (text ?? string.Empty)
                 .Replace('\r', ' ')
@@ -1008,21 +1017,21 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return normalized;
         }
 
-        private static string ReadMemberAsString(object target, string memberName)
+        internal string ReadMemberAsString(object target, string memberName)
         {
             object value = ReadMemberValue(target, memberName);
             string text = value?.ToString();
             return string.IsNullOrWhiteSpace(text) ? null : text;
         }
 
-        private static string TryReadMemberAsStringNoThrow(object target, string memberName, ref bool reflectionFaulted)
+        internal string TryReadMemberAsStringNoThrow(object target, string memberName, ref bool reflectionFaulted)
         {
             object value = TryReadMemberValueNoThrow(target, memberName, ref reflectionFaulted);
             string text = value?.ToString();
             return string.IsNullOrWhiteSpace(text) ? null : text;
         }
 
-        private static object ReadMemberValue(object target, string memberName)
+        internal object ReadMemberValue(object target, string memberName)
         {
             if (target == null || string.IsNullOrWhiteSpace(memberName))
             {
@@ -1040,7 +1049,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return field?.GetValue(target);
         }
 
-        private static object TryReadMemberValueNoThrow(object target, string memberName, ref bool reflectionFaulted)
+        internal object TryReadMemberValueNoThrow(object target, string memberName, ref bool reflectionFaulted)
         {
             try
             {
@@ -1055,7 +1064,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
         }
 
-        private static string RenderTemplateOrThrow(
+        internal string RenderTemplateOrThrow(
             string templateId,
             string channel,
             string templateText,
@@ -1067,7 +1076,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptTemplateRenderer.RenderOrThrow(templateId, channel, requiredTemplate, renderContext);
         }
 
-        private static string RequireTemplateText(
+        internal string RequireTemplateText(
             string templateId,
             string channel,
             string templateText)
@@ -1087,7 +1096,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 });
         }
 
-        private string BuildDecisionPolicyText(SystemPromptConfig config, DialogueScenarioContext context)
+        internal string BuildDecisionPolicyText(SystemPromptConfig config, DialogueScenarioContext context)
         {
             bool isRpg = context?.IsRpg == true;
             string legacyTemplate = isRpg
@@ -1107,7 +1116,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string BuildTurnObjectiveText(
+        internal string BuildTurnObjectiveText(
             SystemPromptConfig config,
             DialogueScenarioContext context,
             string primaryObjective,
@@ -1133,7 +1142,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string BuildOpeningObjectiveText(
+        internal string BuildOpeningObjectiveText(
             SystemPromptConfig config,
             DialogueScenarioContext context,
             string unresolvedIntent)
@@ -1155,7 +1164,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string BuildTopicShiftRuleText(SystemPromptConfig config, DialogueScenarioContext context)
+        internal string BuildTopicShiftRuleText(SystemPromptConfig config, DialogueScenarioContext context)
         {
             bool isRpg = context?.IsRpg == true;
             string legacyTemplate = isRpg
@@ -1175,12 +1184,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private static string BuildPrimaryObjectiveFromIntent(string unresolvedIntent)
+        internal string BuildPrimaryObjectiveFromIntent(string unresolvedIntent)
         {
             return string.Empty;
         }
 
-        private static bool IsOpeningTurnContext(DialogueScenarioContext context)
+        internal bool IsOpeningTurnContext(DialogueScenarioContext context)
         {
             if (context?.IsProactive == true)
             {
@@ -1197,12 +1206,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 || context.Tags.Contains("opening");
         }
 
-        private static PromptPolicyConfig ResolvePromptPolicyConfig(SystemPromptConfig config)
+        internal PromptPolicyConfig ResolvePromptPolicyConfig(SystemPromptConfig config)
         {
             return config?.PromptPolicy?.Clone() ?? PromptPolicyConfig.CreateDefault();
         }
 
-        private static Dictionary<string, object> BuildPolicyTemplateVariables(
+        internal Dictionary<string, object> BuildPolicyTemplateVariables(
             DialogueScenarioContext context,
             string primaryObjective,
             string optionalFollowup,
@@ -1216,7 +1225,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return variables;
         }
 
-        private string BuildFactGroundingGuidanceText(SystemPromptConfig config, DialogueScenarioContext context)
+        internal string BuildFactGroundingGuidanceText(SystemPromptConfig config, DialogueScenarioContext context)
         {
             string legacyTemplate = config?.PromptTemplates?.FactGroundingTemplate;
             string channel = ResolveRenderChannel(context);
@@ -1233,7 +1242,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string ResolveFactionPromptText(
+        internal string ResolveFactionPromptText(
             Faction faction,
             SystemPromptConfig config,
             DialogueScenarioContext context)
@@ -1300,7 +1309,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return ApplyPromptSourceTag(AppendFixedFactionIntelBlock(enrichedFallback, finalFaction, promptChannel), true);
         }
 
-        private static string AppendFixedFactionIntelBlock(string baseText, Faction faction, string promptChannel)
+        internal string AppendFixedFactionIntelBlock(string baseText, Faction faction, string promptChannel)
         {
             string fixedIntelBlock = DiplomacyFactionFixedIntelBuilder.Build(faction, promptChannel);
             if (string.IsNullOrWhiteSpace(fixedIntelBlock))
@@ -1320,7 +1329,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString();
         }
 
-        private static string TryAppendFactionToneVariables(string baseText)
+        internal string TryAppendFactionToneVariables(string baseText)
         {
             string current = baseText ?? string.Empty;
             string lower = current.ToLowerInvariant();
@@ -1352,7 +1361,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString().TrimEnd();
         }
 
-        private static string NormalizeFactionPromptTemplateAliases(string template)
+        internal string NormalizeFactionPromptTemplateAliases(string template)
         {
             if (string.IsNullOrWhiteSpace(template))
             {
@@ -1378,21 +1387,21 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return normalized;
         }
 
-        private void PopulateFactionSettlementTemplateVariables(Dictionary<string, object> variables, Faction faction)
+        internal void PopulateFactionSettlementTemplateVariables(Dictionary<string, object> variables, Faction faction)
         {
             if (variables == null)
             {
                 return;
             }
 
-            string summary = BuildFactionSettlementSummaryForPrompt(faction);
+            string summary = host.ContextAssembler.BuildFactionSettlementSummaryForPrompt(faction);
             variables["world.faction_settlement_summary"] = summary ?? string.Empty;
             variables["world.faction_settlement.settlement_count"] = ExtractSummaryLineValue(summary, "SettlementCount");
             variables["world.faction_settlement.nearest_to_player_home"] = ExtractSummaryLineValue(summary, "NearestToPlayerHome");
             variables["world.faction_settlement.all_settlements"] = ExtractSummaryLineValue(summary, "AllSettlements");
         }
 
-        private static string ExtractSummaryLineValue(string summary, string key)
+        internal string ExtractSummaryLineValue(string summary, string key)
         {
             if (string.IsNullOrWhiteSpace(summary) || string.IsNullOrWhiteSpace(key))
             {
@@ -1414,7 +1423,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return string.Empty;
         }
 
-        private string BuildSocialCircleActionRuleText(SystemPromptConfig config, DialogueScenarioContext context)
+        internal string BuildSocialCircleActionRuleText(SystemPromptConfig config, DialogueScenarioContext context)
         {
             if (RelationsMod.Settings?.EnableSocialCircle != true)
             {
@@ -1435,7 +1444,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string BuildRpgRoleSettingText(
+        internal string BuildRpgRoleSettingText(
             RelationsSettings settings,
             SystemPromptConfig config,
             DialogueScenarioContext context,
@@ -1465,7 +1474,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return ApplyPromptSourceTag(AppendRpgIdentityGuidance(roleText, context, target), true);
         }
 
-        private static string AppendRpgIdentityGuidance(string baseText, DialogueScenarioContext context, Pawn target)
+        internal string AppendRpgIdentityGuidance(string baseText, DialogueScenarioContext context, Pawn target)
         {
             string identityGuidance = BuildRpgIdentityGuidance(context, target);
             if (string.IsNullOrWhiteSpace(identityGuidance))
@@ -1481,7 +1490,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return baseText.TrimEnd() + "\n" + identityGuidance;
         }
 
-        private static string BuildRpgIdentityGuidance(DialogueScenarioContext context, Pawn target)
+        internal string BuildRpgIdentityGuidance(DialogueScenarioContext context, Pawn target)
         {
             if (context?.IsRpg != true || target == null)
             {
@@ -1523,7 +1532,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "\nKeep the dialogue aligned with this identity and attitude, but still react to the current scene instead of repeating labels mechanically.";
         }
 
-        private static string ResolveRpgPawnIdentityRole(Pawn pawn)
+        internal string ResolveRpgPawnIdentityRole(Pawn pawn)
         {
             if (pawn == null)
             {
@@ -1573,7 +1582,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PawnDialogueRoutingPolicy.IsRpgDialogueEligibleRace(pawn) ? "independent pawn" : "non-dialogue-eligible pawn";
         }
 
-        private static string ResolveRpgPawnSocialStatus(Pawn pawn)
+        internal string ResolveRpgPawnSocialStatus(Pawn pawn)
         {
             if (pawn == null)
             {
@@ -1605,7 +1614,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : string.Empty;
         }
 
-        private static string ResolveRpgPawnFactionStatus(Pawn pawn)
+        internal string ResolveRpgPawnFactionStatus(Pawn pawn)
         {
             if (pawn?.Faction == null)
             {
@@ -1622,7 +1631,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : "not hostile to player faction";
         }
 
-        private static string ResolveRpgAttitudeGuidance(DialogueScenarioContext context, Pawn target)
+        internal string ResolveRpgAttitudeGuidance(DialogueScenarioContext context, Pawn target)
         {
             Pawn initiator = context?.Initiator;
             string romanceState = initiator != null ? ResolvePairRomanceState(initiator, target) : string.Empty;
@@ -1670,7 +1679,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return "Match the pawn's concrete social position first, then let mood, opinion, and scene details shape the exact tone.";
         }
 
-        private string BuildRpgRelationshipProfileText(
+        internal string BuildRpgRelationshipProfileText(
             RelationsSettings settings,
             Pawn initiator,
             Pawn target,
@@ -1715,12 +1724,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return ApplyPromptSourceTag(profileText, true);
         }
 
-        private static bool HasAnyBloodRelationBetweenPair(Pawn first, Pawn second)
+        internal bool HasAnyBloodRelationBetweenPair(Pawn first, Pawn second)
         {
             return HasAnyBloodRelationOneWay(first, second) || HasAnyBloodRelationOneWay(second, first);
         }
 
-        private static bool HasAnyBloodRelationOneWay(Pawn fromPawn, Pawn toPawn)
+        internal bool HasAnyBloodRelationOneWay(Pawn fromPawn, Pawn toPawn)
         {
             if (fromPawn?.relations?.DirectRelations == null || toPawn == null)
             {
@@ -1744,7 +1753,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return false;
         }
 
-        private static string ResolvePairRomanceState(Pawn first, Pawn second)
+        internal string ResolvePairRomanceState(Pawn first, Pawn second)
         {
             if (HasPairRelationEitherDirection(first, second, PawnRelationDefOf.Spouse))
             {
@@ -1770,7 +1779,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return "none";
         }
 
-        private static bool HasPairRelationEitherDirection(Pawn first, Pawn second, PawnRelationDef relationDef)
+        internal bool HasPairRelationEitherDirection(Pawn first, Pawn second, PawnRelationDef relationDef)
         {
             if (relationDef == null || first == null || second == null)
             {
@@ -1781,7 +1790,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 second.relations?.DirectRelationExists(relationDef, first) == true;
         }
 
-        private string BuildRpgApiContractText(
+        internal string BuildRpgApiContractText(
             RelationsSettings settings,
             SystemPromptConfig config,
             DialogueScenarioContext context,
@@ -1794,7 +1803,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
             return BuildTextBlock(sb =>
             {
-                AppendStrictJsonFormatPreamble(sb);
+                host.DiplomacyBuilder.AppendStrictJsonFormatPreamble(sb);
                 RpgApiActionPromptConfig apiPrompt = settings?.RPGApiActionPromptConfig?.Clone() ?? RpgApiActionPromptConfig.CreateFallback();
                 if (preferCompact)
                 {
@@ -1828,7 +1837,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             });
         }
 
-        private string BuildRpgFormatConstraintText(
+        internal string BuildRpgFormatConstraintText(
             RelationsSettings settings,
             SystemPromptConfig config,
             DialogueScenarioContext context,
@@ -1843,7 +1852,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return AppendRpgActionReliabilityConstraint(baseConstraint, settings, config, context);
         }
 
-        private string AppendRpgActionReliabilityConstraint(
+        internal string AppendRpgActionReliabilityConstraint(
             string baseConstraint,
             RelationsSettings settings,
             SystemPromptConfig config,
@@ -1876,7 +1885,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString();
         }
 
-        private static string ResolveRpgRoleFallbackTemplate(RelationsSettings settings)
+        internal string ResolveRpgRoleFallbackTemplate(RelationsSettings settings)
         {
             string unified = settings?.ResolvePromptNodeText(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
@@ -1891,24 +1900,24 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "rpg_role_setting_fallback");
         }
 
-        private static string ResolveRpgFormatConstraintHeader(RelationsSettings settings)
+        internal string ResolveRpgFormatConstraintHeader(RelationsSettings settings)
         {
             return "=== FORMAT CONSTRAINT (REQUIRED) ===";
         }
 
-        private static string ResolveRpgCompactFormatFallback()
+        internal string ResolveRpgCompactFormatFallback()
         {
             RpgPromptDefaultsConfig defaults = RpgPromptDefaultsProvider.GetDefaults() ?? RpgPromptDefaultsConfig.CreateFallback();
             return defaults.RpgCompactFormatConstraintTemplate;
         }
 
-        private static string ResolveRpgFullFormatFallback()
+        internal string ResolveRpgFullFormatFallback()
         {
             RpgPromptDefaultsConfig defaults = RpgPromptDefaultsProvider.GetDefaults() ?? RpgPromptDefaultsConfig.CreateFallback();
             return defaults.FormatConstraint;
         }
 
-        private static string ResolveRpgActionReliabilityFallback(RelationsSettings settings)
+        internal string ResolveRpgActionReliabilityFallback(RelationsSettings settings)
         {
             string unified = settings?.ResolvePromptSectionText(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
@@ -1923,12 +1932,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "action_rules");
         }
 
-        private static string ResolveRpgActionReliabilityMarker(RelationsSettings settings)
+        internal string ResolveRpgActionReliabilityMarker(RelationsSettings settings)
         {
             return "Reliability rules:";
         }
 
-        private static string ResolveRpgOutputSpecificationReference(DialogueScenarioContext context)
+        internal string ResolveRpgOutputSpecificationReference(DialogueScenarioContext context)
         {
             string promptChannel = ResolvePromptChannelForContext(context);
             string configured = RelationsMod.Settings?.ResolvePromptSectionText(promptChannel, "output_specification")?.Trim();
@@ -1940,7 +1949,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return PromptUnifiedCatalog.CreateFallback().ResolveSection(promptChannel, "output_specification");
         }
 
-        private static string ResolveRpgRelationshipProfileTemplate(RelationsSettings settings)
+        internal string ResolveRpgRelationshipProfileTemplate(RelationsSettings settings)
         {
             string unified = settings?.ResolvePromptNodeText(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
@@ -1955,7 +1964,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "rpg_relationship_profile");
         }
 
-        private static string ResolveRpgKinshipBoundaryRuleTemplate(RelationsSettings settings)
+        internal string ResolveRpgKinshipBoundaryRuleTemplate(RelationsSettings settings)
         {
             string unified = settings?.ResolvePromptNodeText(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
@@ -1970,7 +1979,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "rpg_kinship_boundary");
         }
 
-        private static string ResolveRpgProactiveRomanceRuleTemplate(RelationsSettings settings)
+        internal string ResolveRpgProactiveRomanceRuleTemplate(RelationsSettings settings)
         {
             string unified = settings?.ResolvePromptNodeText(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
@@ -1985,7 +1994,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "rpg_proactive_romance");
         }
 
-        private static string ResolveRpgProactiveSocialActionRuleTemplate(RelationsSettings settings)
+        internal string ResolveRpgProactiveSocialActionRuleTemplate(RelationsSettings settings)
         {
             string unified = settings?.ResolvePromptNodeText(
                 RimTalkPromptEntryChannelCatalog.RpgDialogue,
@@ -2000,7 +2009,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 "rpg_proactive_social");
         }
 
-        private static string CompactRpgEnvironmentBlock(string environmentBlock)
+        internal string CompactRpgEnvironmentBlock(string environmentBlock)
         {
             if (string.IsNullOrWhiteSpace(environmentBlock))
             {
@@ -2036,7 +2045,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString().Trim();
         }
 
-        private string BuildOutputLanguageGuidance(
+        internal string BuildOutputLanguageGuidance(
             RelationsSettings settings,
             SystemPromptConfig config,
             DialogueScenarioContext context)
@@ -2062,7 +2071,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private static Dictionary<string, object> BuildSharedPromptTemplateVariables(
+        internal Dictionary<string, object> BuildSharedPromptTemplateVariables(
             DialogueScenarioContext context,
             string targetLanguage)
         {
@@ -2115,7 +2124,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return variables;
         }
 
-        private static Dictionary<string, object> CreatePromptVariableSeed()
+        internal Dictionary<string, object> CreatePromptVariableSeed()
         {
             var variables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             foreach (string path in PromptVariableCatalog.GetAll())
@@ -2131,13 +2140,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return variables;
         }
 
-        private static bool IsPreviewScenario(DialogueScenarioContext context)
+        internal bool IsPreviewScenario(DialogueScenarioContext context)
         {
             return context?.Tags != null &&
                    (context.Tags.Contains("mode:preview") || context.Tags.Contains("scene:preview"));
         }
 
-        private static Dictionary<string, object> CreatePreviewPawnPlaceholder(string name)
+        internal Dictionary<string, object> CreatePreviewPawnPlaceholder(string name)
         {
             string safeName = string.IsNullOrWhiteSpace(name) ? "PreviewPawn" : name.Trim();
             return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -2148,7 +2157,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             };
         }
 
-        private static Dictionary<string, object> CreatePreviewFactionPlaceholder(string name)
+        internal Dictionary<string, object> CreatePreviewFactionPlaceholder(string name)
         {
             string safeName = string.IsNullOrWhiteSpace(name) ? "PreviewFaction" : name.Trim();
             return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -2158,7 +2167,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             };
         }
 
-        private string RenderPromptNodeTemplate(
+        internal string RenderPromptNodeTemplate(
             SystemPromptConfig config,
             DialogueScenarioContext context,
             string template,
@@ -2193,7 +2202,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string ResolveQuestGuidanceNodeText(
+        internal string ResolveQuestGuidanceNodeText(
             DialogueScenarioContext context,
             string promptChannel,
             string questGuidanceBody)
@@ -2221,7 +2230,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return ApplyPromptSourceTag(resolved, true);
         }
 
-        private static string ReplaceLegacyQuestGuidanceVariableToken(string template, string body)
+        internal string ReplaceLegacyQuestGuidanceVariableToken(string template, string body)
         {
             string source = template ?? string.Empty;
             string replacement = body ?? string.Empty;
@@ -2231,24 +2240,24 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 .Replace("{{  dialogue.quest_guidance_body  }}", replacement);
         }
 
-        private static string ResolveRenderChannel(DialogueScenarioContext context)
+        internal string ResolveRenderChannel(DialogueScenarioContext context)
         {
             return context?.IsRpg == true ? "rpg" : "diplomacy";
         }
 
-        private string BuildDiplomacyStrategyDecisionPolicyText()
+        internal string BuildDiplomacyStrategyDecisionPolicyText()
         {
             const string fallback = "决策优先级顺序：1）格式与语言正确性；2）引用字段正确性；3）事实约束；4）行为安全性与关系限制；5）连贯性与人设风格。";
             return ResolveUnifiedNodeTemplate(RimTalkPromptEntryChannelCatalog.DiplomacyStrategy, "decision_policy", fallback);
         }
 
-        private string BuildDiplomacyStrategyTurnObjectiveText()
+        internal string BuildDiplomacyStrategyTurnObjectiveText()
         {
             const string fallback = "主目标：{{dialogue.primary_objective}}可选补充：{{ dialogue.optional_followup }}约束条件：优先完成主目标；最多只能切换一次话题。";
             return ResolveUnifiedNodeTemplate(RimTalkPromptEntryChannelCatalog.DiplomacyStrategy, "turn_objective", fallback);
         }
 
-        private string BuildDiplomacyStrategyOutputContractText()
+        internal string BuildDiplomacyStrategyOutputContractText()
         {
             string fallback =
                 "Return exactly one JSON object only.\n" +
@@ -2272,7 +2281,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 fallback);
         }
 
-        private string RenderStrategyNodeTemplate(
+        internal string RenderStrategyNodeTemplate(
             string promptChannel,
             string nodeId,
             string bodyVariableName,
@@ -2298,7 +2307,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 true);
         }
 
-        private string ResolveUnifiedNodeTemplate(string promptChannel, string nodeId, string fallback)
+        internal string ResolveUnifiedNodeTemplate(string promptChannel, string nodeId, string fallback)
         {
             string fromCatalog = RelationsMod.Settings?.ResolvePromptNodeText(promptChannel, nodeId);
             if (!string.IsNullOrWhiteSpace(fromCatalog))
@@ -2309,7 +2318,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return fallback?.Trim() ?? string.Empty;
         }
 
-        private static string ResolvePromptChannelForContext(DialogueScenarioContext context)
+        internal string ResolvePromptChannelForContext(DialogueScenarioContext context)
         {
             if (context?.IsRpg == true)
             {
@@ -2323,7 +2332,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 : RimTalkPromptEntryChannelCatalog.DiplomacyDialogue;
         }
 
-        private static string ResolveNodeBodyVariablePath(string bodyVariableName)
+        internal string ResolveNodeBodyVariablePath(string bodyVariableName)
         {
             if (string.IsNullOrWhiteSpace(bodyVariableName))
             {

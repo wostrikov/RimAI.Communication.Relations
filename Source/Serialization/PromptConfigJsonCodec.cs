@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 
 namespace Ustas.RimAI.Communication.Relations.Serialization
@@ -68,14 +69,12 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
             config.DynamicDataInjection ??= new DynamicDataInjectionConfig();
             config.PromptTemplates ??= new PromptTemplateTextConfig();
             config.PromptPolicy ??= PromptPolicyConfig.CreateDefault();
-            if (config.PromptSchemaVersion <= 0)
-            {
-                config.PromptSchemaVersion = SystemPromptConfig.CurrentPromptSchemaVersion;
-            }
-            if (config.PromptPolicySchemaVersion <= 0)
-            {
-                config.PromptPolicySchemaVersion = SystemPromptConfig.CurrentPromptPolicySchemaVersion;
-            }
+            config.PromptSchemaVersion = PromptConfigDocumentNormalizer.NormalizeSchemaVersion(
+                config.PromptSchemaVersion,
+                SystemPromptConfig.CurrentPromptSchemaVersion);
+            config.PromptPolicySchemaVersion = PromptConfigDocumentNormalizer.NormalizeSchemaVersion(
+                config.PromptPolicySchemaVersion,
+                SystemPromptConfig.CurrentPromptPolicySchemaVersion);
             config.EnvironmentPrompt.SceneEntries ??= new List<ScenePromptEntryConfig>();
             config.EnvironmentPrompt.Worldview ??= new WorldviewPromptConfig();
             config.EnvironmentPrompt.SceneSystem ??= new SceneSystemPromptConfig();

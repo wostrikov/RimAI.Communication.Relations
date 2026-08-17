@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
+using Ustas.RimAI.Communication.Relations.Persistence;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -507,8 +508,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         private const string DefaultSubFolderName = "Default";
         private const string DefaultConfigFileName = "PromptSectionCatalog_Default.json";
         private const string LegacyFallbackConfigFileName = "RimTalkPromptEntries_Default.json";
-        private const string FallbackRoot = "E:\\SteamLibrary\\steamapps\\common\\RimWorld\\Mods\\RimChat";
-
         private static readonly object SyncRoot = new object();
         private static string cachedPath = string.Empty;
         private static RimTalkPromptEntryDefaultsConfig cachedConfig;
@@ -599,7 +598,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 return Path.Combine(Path.GetDirectoryName(modPath) ?? string.Empty, fileName);
             }
 
-            return Path.Combine(FallbackRoot, PromptFolderName, DefaultSubFolderName, fileName);
+            return PromptDomainFileCatalog.GetDefaultPath(fileName);
         }
 
         private static string ResolveFromModPath()
