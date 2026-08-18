@@ -1,19 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using Ustas.RimAI.Communication.Relations.Comp;
 using Ustas.RimAI.Communication.Relations.Config;
-using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Core.Handshake;
 using Ustas.RimAI.Core.Modules;
-using Ustas.RimAI.Core.Relations;
 using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Module
@@ -31,70 +22,7 @@ namespace Ustas.RimAI.Communication.Relations.Module
             Settings = GetSettings<RelationsSettings>();
             RimAiHandshake.TryActivate(
                 RimAiHandshakeDescriptor.Current(RimAiModuleIds.Relations, HandshakeModuleVersion, isOptional: true),
-                Activate);
-        }
-
-        void Activate()
-        {
-            Settings?.EnsureRpgPromptTextsLoaded();
-            Settings?.EnsurePawnPersonalityTokenForRpgChannelsSafe();
-            RefreshDefaultPresetSnapshotOnStartup();
-
-            FactionPromptManager.Instance.Initialize();
-
-            var harmony = new Harmony("ustas.rimai.communication.relations");
-            Ustas.RimAI.Communication.Relations.Patches.HarmonyPatchStartupSelfCheck.Run();
-            harmony.PatchAll();
-
-            Ustas.RimAI.Communication.Relations.Patches.CommsConsolePatch.Initialize(harmony);
-            Ustas.RimAI.Communication.Relations.Patches.QuestGenPatch.Initialize(harmony);
-
-            LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
-
-            RelationsApplicationAccess.Register(new RelationsApplication());
-            RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor(
-                "relations",
-                "RimAI.Communication.Relations",
-                "RimAI.Communication.Relations",
-                "Communication",
-                "RimAI.Communication"));
-            RimAISettingsContributionRegistry.Current.Register(new DelegateSettingsContributor(
-                "relations",
-                "Relations",
-                RimAISettingsSection.Module,
-                20,
-                listing => DrawCoreRelationsSummary((Listing_Standard)listing),
-                "communication",
-                "relations"));
-            Log.Message("[RimAI.Relations] Mod initialized successfully.");
-        }
-
-        static void DrawCoreRelationsSummary(Listing_Standard listing)
-        {
-            listing.Label("RimAI.Settings.TextAiOwnedByCore".Translate());
-            listing.Label(AI.OpenAIProviderAdapter.CredentialDisplay);
-            listing.Gap(6f);
-            listing.Label("RimAI.Settings.RelationsModuleHint".Translate());
-        }
-
-        private static void RefreshDefaultPresetSnapshotOnStartup()
-        {
-            if (Settings == null)
-            {
-                return;
-            }
-
-            try
-            {
-                // Force-refresh immutable default preset payload from Prompt/Default files on every startup.
-                IPromptPresetService presetService = new PromptPresetService();
-                PromptPresetStoreConfig store = presetService.LoadAll(Settings);
-                presetService.SaveAll(store);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"[RimAI.Relations] Default preset refresh on startup failed: {ex.Message}");
-            }
+                RelationsComposition.Current.Start);
         }
 
         public override string SettingsCategory()
