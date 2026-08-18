@@ -26,8 +26,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
     /// </summary>
     public class AIChatServiceAsync : MonoBehaviour
     {
-        private static AIChatServiceAsync _instance;
-        private static readonly object _instanceLock = new object();
+        internal AIChatServiceAsyncParts Parts;
+
+        internal static AIChatServiceAsync _instance;
+        internal static readonly object _instanceLock = new object();
         public static AIChatServiceAsync Instance
         {
             get
@@ -48,29 +50,30 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        const int LocalRequestTimeoutSeconds = 60;
-        const int CloudRequestTimeoutSeconds = 60;
-        const float RequestCleanupIntervalSeconds = 10f;
+        internal const int LocalRequestTimeoutSeconds = 60;
+        internal const int CloudRequestTimeoutSeconds = 60;
+        internal const float RequestCleanupIntervalSeconds = 10f;
 
-        readonly RelationsAiRequestSession session = new RelationsAiRequestSession();
-        readonly Queue<Action> mainThreadActions = new Queue<Action>();
-        DialogueTokenUsageTracker usageTracker;
-        RelationsAiDebugTelemetry telemetry;
-        float nextCleanupAtRealtime;
-        int contextVersion = 1;
-        int lastObservedGameContextId = -1;
+        internal readonly RelationsAiRequestSession session = new RelationsAiRequestSession();
+        internal readonly Queue<Action> mainThreadActions = new Queue<Action>();
+        internal DialogueTokenUsageTracker usageTracker;
+        internal RelationsAiDebugTelemetry telemetry;
+        internal float nextCleanupAtRealtime;
+        internal int contextVersion = 1;
+        internal int lastObservedGameContextId = -1;
 
-        object Gate => session.Gate;
+        internal object Gate => session.Gate;
 
-        void Awake()
+        internal void Awake()
         {
+            Parts = new AIChatServiceAsyncParts(this);
             usageTracker = new DialogueTokenUsageTracker(Gate);
             telemetry = new RelationsAiDebugTelemetry(Gate);
             lastObservedGameContextId = GetCurrentGameContextId();
             nextCleanupAtRealtime = Time.realtimeSinceStartup + RequestCleanupIntervalSeconds;
         }
 
-        void Update()
+        internal void Update()
         {
             DetectGameContextChange();
             ProcessMainThreadActions();
@@ -83,232 +86,136 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        public string SendChatRequestAsync(
-            List<ChatMessageData> messages,
-            Action<string> onSuccess,
-            Action<string> onError,
-            Action<float> onProgress = null,
-            DialogueUsageChannel usageChannel = DialogueUsageChannel.Unknown,
-            AIRequestDebugSource debugSource = AIRequestDebugSource.Other,
-            int? requestTimeoutSecondsOverride = null,
-            float? queueTimeoutSecondsOverride = null)
-        {
-            EnsureCollaborators();
-            List<ChatMessageData> normalizedMessages = RelationsTextAiRequestBuilder.Normalize(messages, usageChannel);
-            string requestId = Guid.NewGuid().ToString("N");
-            int requestContextVersion;
-            int defaultTimeoutSeconds = RelationsMod.Instance == null ||
-                                        !(RelationsMod.Instance.InstanceSettings?.UseCloudProviders ?? false)
-                ? LocalRequestTimeoutSeconds
-                : CloudRequestTimeoutSeconds;
-            int requestTimeoutSeconds = Mathf.Clamp(
-                requestTimeoutSecondsOverride ?? defaultTimeoutSeconds,
-                5,
-                120);
-            float queueTimeoutSeconds = Mathf.Clamp(
-                queueTimeoutSecondsOverride ?? 60f,
-                5f,
-                120f);
+        
 
-            session.CleanupCompletedRequests();
+        
 
-            var result = new AIRequestResult
-            {
-                State = AIRequestState.Pending,
-                StartTime = DateTime.Now,
-                Progress = 0f,
-                Source = debugSource,
-                Priority = RelationsAiRequestPriority.Resolve(debugSource),
-                AllowCallbacks = true,
-                CancelReason = string.Empty,
-                FailureReason = string.Empty,
-                EnqueuedAtUtc = DateTime.MinValue,
-                QueueDeadlineUtc = DateTime.MinValue,
-                StartedProcessingAtUtc = DateTime.MinValue,
-                QueuePosition = 0,
-                RequestTimeoutSeconds = requestTimeoutSeconds,
-                QueueTimeoutSeconds = queueTimeoutSeconds,
-                LastRequestPayloadBytes = 0,
-                LastHttpStatusCode = 0,
-                AttemptCount = 0,
-                EndpointHostPort = string.Empty,
-                FirstResponseByteAtUtc = DateTime.MinValue
-            };
+        
 
-            lock (Gate)
-            {
-                requestContextVersion = contextVersion;
-                result.ContextVersion = requestContextVersion;
-                session.Add(requestId, result);
-            }
-
-            telemetry.BeginRequestDebugRecord(requestId, usageChannel, debugSource);
-
-            StartCoroutine(ProcessRequestCoroutine(
-                requestId,
-                normalizedMessages,
-                onSuccess,
-                onError,
-                onProgress,
-                usageChannel,
-                debugSource,
-                requestContextVersion,
-                requestTimeoutSeconds));
-
-            return requestId;
-        }
-
-        public DialogueTokenUsageSnapshot GetLatestDialogueTokenUsage()
-        {
-            EnsureCollaborators();
-            return usageTracker.LatestClone();
-        }
-
-        public static bool TryGetLatestDialogueTokenUsage(out DialogueTokenUsageSnapshot snapshot)
-        {
-            snapshot = null;
-            if (_instance == null)
-            {
-                return false;
-            }
-
-            snapshot = _instance.GetLatestDialogueTokenUsage();
-            return snapshot != null;
-        }
-
-        public int GetCurrentContextVersionSnapshot()
-        {
-            lock (Gate)
-            {
-                return contextVersion;
-            }
-        }
+        
 
         public static void NotifyGameContextChanged(string reason)
         {
             _instance?.HandleGameContextChanged(reason);
         }
 
-        public bool CancelRequest(
-            string requestId,
-            string cancelReason = "cancelled_by_user",
-            string error = "Request cancelled by user")
-        {
-            return session.TryCancelRequest(requestId, cancelReason, error);
-        }
+        
 
         public int CancelAllPendingRequests(string reason = "Request cancelled by context change")
         {
             return session.CancelAllPending(reason);
         }
 
-        public AIRequestResult GetRequestStatus(string requestId)
-        {
-            lock (Gate)
-            {
-                return session.Get(requestId);
-            }
-        }
+        
 
         public void CleanupCompletedRequests()
         {
             session.CleanupCompletedRequests();
         }
 
-        public AIRequestDebugSnapshot GetRequestDebugSnapshot()
-        {
-            EnsureCollaborators();
-            return telemetry.GetRequestDebugSnapshot();
-        }
+        
 
-        public static bool TryGetRequestDebugSnapshot(out AIRequestDebugSnapshot snapshot)
-        {
-            snapshot = null;
-            if (_instance == null)
-            {
-                return false;
-            }
+        
 
-            snapshot = _instance.GetRequestDebugSnapshot();
-            return snapshot != null;
-        }
+        
 
-        public static void RecordExternalDebugRecord(
-            AIRequestDebugSource source,
-            DialogueUsageChannel channel,
-            string model,
-            AIRequestDebugStatus status,
-            long durationMs,
-            long httpStatusCode,
-            string requestText,
-            string responseText,
-            string errorText,
-            DateTime? startedAtUtc = null)
-        {
-            if (_instance == null)
-            {
-                return;
-            }
+        
 
-            _instance.EnsureCollaborators();
-            _instance.telemetry.RecordExternal(
-                source, channel, model, status, durationMs, httpStatusCode,
-                requestText, responseText, errorText, startedAtUtc);
-        }
-
-        public static void RecordExternalDebugRecord(
-            AIRequestDebugSource source,
-            DialogueUsageChannel channel,
-            string model,
-            AIRequestDebugStatus status,
-            long durationMs,
-            long httpStatusCode,
-            int promptTokens,
-            int completionTokens,
-            int totalTokens,
-            bool isEstimatedTokens,
-            string requestText,
-            string responseText,
-            string errorText,
-            DateTime? startedAtUtc = null)
-        {
-            if (_instance == null)
-            {
-                return;
-            }
-
-            _instance.EnsureCollaborators();
-            _instance.telemetry.RecordExternal(
-                source, channel, model, status, durationMs, httpStatusCode,
-                promptTokens, completionTokens, totalTokens, isEstimatedTokens,
-                requestText, responseText, errorText, startedAtUtc);
-        }
-
-        public void ExecuteOnMainThread(Action action)
-        {
-            if (action == null)
-            {
-                return;
-            }
-
-            if (MainThreadSchedulerAccess.IsAvailable)
-            {
-                MainThreadSchedulerAccess.Enqueue(action);
-                return;
-            }
-
-            lock (Gate)
-            {
-                mainThreadActions.Enqueue(action);
-            }
-        }
+        
 
         public bool IsConfigured()
         {
             return GetFirstValidConfig() != null;
         }
 
-        System.Collections.IEnumerator ProcessRequestCoroutine(
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal void EnsureCollaborators()
+        {
+            if (usageTracker == null)
+            {
+                usageTracker = new DialogueTokenUsageTracker(Gate);
+            }
+
+            if (telemetry == null)
+            {
+                telemetry = new RelationsAiDebugTelemetry(Gate);
+            }
+        }
+
+        internal void OnDestroy()
+        {
+            session.Destroy();
+            lock (Gate)
+            {
+                mainThreadActions.Clear();
+            }
+        }
+    
+        #region Cluster forwards
+        internal System.Collections.IEnumerator ProcessRequestCoroutine(string requestId, List<ChatMessageData> messages, Action<string> onSuccess, Action<string> onError, Action<float> onProgress, DialogueUsageChannel usageChannel, AIRequestDebugSource debugSource, int requestContextVersion, int requestTimeoutSeconds) => Parts.RequestFlow.ProcessRequestCoroutine(requestId, messages, onSuccess, onError, onProgress, usageChannel, debugSource, requestContextVersion, requestTimeoutSeconds);
+        internal bool TryCompleteFromAssistantText(string requestId, int requestContextVersion, DialogueUsageChannel usageChannel, AIRequestDebugSource debugSource, AIProvider provider, string responseText, ref List<ChatMessageData> attemptMessages, ref int parseRetryCount, ref int immersionRetryCount, ref int textIntegrityRetryCount, ref int contractRetryCount, ref string contractValidationStatus, ref string contractFailureReason, Action<string> onSuccess, Action<string> onError, out bool shouldRetry, out AIRequestDebugStatus debugStatus, out string debugResponseText, out string debugParsedResponse, out string debugErrorText, out List<ChatMessageData> debugTokenMessages) => Parts.RequestFlow.TryCompleteFromAssistantText(requestId, requestContextVersion, usageChannel, debugSource, provider, responseText, ref attemptMessages, ref parseRetryCount, ref immersionRetryCount, ref textIntegrityRetryCount, ref contractRetryCount, ref contractValidationStatus, ref contractFailureReason, onSuccess, onError, out shouldRetry, out debugStatus, out debugResponseText, out debugParsedResponse, out debugErrorText, out debugTokenMessages);
+        internal void FailEarly(string requestId, int requestContextVersion, string error, Action<string> onError, ref AIRequestDebugStatus debugStatus, ref string debugErrorText, ref bool debugRecordFinalized, List<ChatMessageData> debugTokenMessages) => Parts.RequestFlow.FailEarly(requestId, requestContextVersion, error, onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
+        internal void FinalizeDropped(string requestId, ref AIRequestDebugStatus debugStatus, ref string debugErrorText, ref bool debugRecordFinalized, List<ChatMessageData> debugTokenMessages, string debugResponseText, string debugParsedResponse, long debugHttpCode) => Parts.RequestFlow.FinalizeDropped(requestId, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages, debugResponseText, debugParsedResponse, debugHttpCode);
+        internal static string FormatProtocolError(long responseCode, bool isLocalModel) => AIChatServiceAsyncRequestFlow.FormatProtocolError(responseCode, isLocalModel);
+        internal static void LogFingerprint(string requestId, int attempt, DialogueUsageChannel usageChannel, string model, string url, int messageCount, int jsonBytes, long elapsedMs, long httpCode, string result) => AIChatServiceAsyncRequestFlow.LogFingerprint(requestId, attempt, usageChannel, model, url, messageCount, jsonBytes, elapsedMs, httpCode, result);
+        internal static void LogLocalServerRetry(string requestId, int attempt, long responseCode, float retryDelaySeconds, string responseBody) => AIChatServiceAsyncRequestFlow.LogLocalServerRetry(requestId, attempt, responseCode, retryDelaySeconds, responseBody);
+        internal static void LogLocalConnRetry(string requestId, int attempt, string requestError, float retryDelaySeconds) => AIChatServiceAsyncRequestFlow.LogLocalConnRetry(requestId, attempt, requestError, retryDelaySeconds);
+        internal ApiConfig GetFirstValidConfig() => Parts.RequestFlow.GetFirstValidConfig();
+        internal bool IsContextVersionCurrent(int expectedContextVersion) => Parts.ContextOps.IsContextVersionCurrent(expectedContextVersion);
+        internal void ExecuteRequestActionOnMainThread(string requestId, int expectedContextVersion, Action action) => Parts.ContextOps.ExecuteRequestActionOnMainThread(requestId, expectedContextVersion, action);
+        internal void ProcessMainThreadActions() => Parts.ContextOps.ProcessMainThreadActions();
+        internal void DetectGameContextChange() => Parts.ContextOps.DetectGameContextChange();
+        internal void HandleGameContextChanged(string reason) => Parts.ContextOps.HandleGameContextChanged(reason);
+        internal static int GetCurrentGameContextId() => AIChatServiceAsyncContextOps.GetCurrentGameContextId();
+        public string SendChatRequestAsync(List<ChatMessageData> messages, Action<string> onSuccess, Action<string> onError, Action<float> onProgress = null, DialogueUsageChannel usageChannel = DialogueUsageChannel.Unknown, AIRequestDebugSource debugSource = AIRequestDebugSource.Other, int? requestTimeoutSecondsOverride = null, float? queueTimeoutSecondsOverride = null) => Parts.Slice1.SendChatRequestAsync(messages, onSuccess, onError, onProgress, usageChannel, debugSource, requestTimeoutSecondsOverride, queueTimeoutSecondsOverride);
+        public DialogueTokenUsageSnapshot GetLatestDialogueTokenUsage() => Parts.Slice1.GetLatestDialogueTokenUsage();
+        public static bool TryGetLatestDialogueTokenUsage(out DialogueTokenUsageSnapshot snapshot) => AIChatServiceAsyncSlice1.TryGetLatestDialogueTokenUsage(out snapshot);
+        public int GetCurrentContextVersionSnapshot() => Parts.Slice1.GetCurrentContextVersionSnapshot();
+        public bool CancelRequest(string requestId, string cancelReason = "cancelled_by_user", string error = "Request cancelled by user") => Parts.Slice1.CancelRequest(requestId, cancelReason, error);
+        public AIRequestResult GetRequestStatus(string requestId) => Parts.Slice1.GetRequestStatus(requestId);
+        public AIRequestDebugSnapshot GetRequestDebugSnapshot() => Parts.Slice1.GetRequestDebugSnapshot();
+        public static bool TryGetRequestDebugSnapshot(out AIRequestDebugSnapshot snapshot) => AIChatServiceAsyncSlice1.TryGetRequestDebugSnapshot(out snapshot);
+        public static void RecordExternalDebugRecord(AIRequestDebugSource source, DialogueUsageChannel channel, string model, AIRequestDebugStatus status, long durationMs, long httpStatusCode, string requestText, string responseText, string errorText, DateTime? startedAtUtc = null) => AIChatServiceAsyncSlice1.RecordExternalDebugRecord(source, channel, model, status, durationMs, httpStatusCode, requestText, responseText, errorText, startedAtUtc);
+        public static void RecordExternalDebugRecord(AIRequestDebugSource source, DialogueUsageChannel channel, string model, AIRequestDebugStatus status, long durationMs, long httpStatusCode, int promptTokens, int completionTokens, int totalTokens, bool isEstimatedTokens, string requestText, string responseText, string errorText, DateTime? startedAtUtc = null) => AIChatServiceAsyncSlice1.RecordExternalDebugRecord(source, channel, model, status, durationMs, httpStatusCode, promptTokens, completionTokens, totalTokens, isEstimatedTokens, requestText, responseText, errorText, startedAtUtc);
+        public void ExecuteOnMainThread(Action action) => Parts.Slice1.ExecuteOnMainThread(action);
+        #endregion
+}
+    internal sealed class AIChatServiceAsyncRequestFlow : AIChatServiceAsyncCollaborator
+    {
+        internal AIChatServiceAsyncRequestFlow(AIChatServiceAsync owner) : base(owner)
+        {
+        }
+
+internal System.Collections.IEnumerator ProcessRequestCoroutine(
             string requestId,
             List<ChatMessageData> messages,
             Action<string> onSuccess,
@@ -327,16 +234,16 @@ namespace Ustas.RimAI.Communication.Relations.AI
             List<ChatMessageData> debugTokenMessages = messages;
             bool debugRecordFinalized = false;
 
-            if (!IsContextVersionCurrent(requestContextVersion))
+            if (!Owner.IsContextVersionCurrent(requestContextVersion))
             {
-                FinalizeDropped(requestId, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages, debugResponseText, debugParsedResponse, debugHttpCode);
+                Owner.FinalizeDropped(requestId, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages, debugResponseText, debugParsedResponse, debugHttpCode);
                 yield break;
             }
 
-            var config = GetFirstValidConfig();
+            var config = Owner.GetFirstValidConfig();
             if (config == null)
             {
-                FailEarly(requestId, requestContextVersion, "RimChat_ErrorNoConfig".Translate(), onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
+                Owner.FailEarly(requestId, requestContextVersion, "RimChat_ErrorNoConfig".Translate(), onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
                 yield break;
             }
 
@@ -350,13 +257,13 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             if (!RelationsTextAiRequestBuilder.ValidateUrl(url, out string urlError))
             {
-                FailEarly(requestId, requestContextVersion, urlError, onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
+                Owner.FailEarly(requestId, requestContextVersion, urlError, onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
                 yield break;
             }
 
             if (messages == null || messages.Count == 0)
             {
-                FailEarly(requestId, requestContextVersion, "RimChat_ErrorEmptyMessage".Translate(), onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
+                Owner.FailEarly(requestId, requestContextVersion, "RimChat_ErrorEmptyMessage".Translate(), onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
                 yield break;
             }
 
@@ -366,9 +273,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 session.EnqueueLocalRequest(requestId);
                 while (!localSlotAcquired)
                 {
-                    if (!IsContextVersionCurrent(requestContextVersion))
+                    if (!Owner.IsContextVersionCurrent(requestContextVersion))
                     {
-                        FinalizeDropped(requestId, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages, debugResponseText, debugParsedResponse, debugHttpCode);
+                        Owner.FinalizeDropped(requestId, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages, debugResponseText, debugParsedResponse, debugHttpCode);
                         yield break;
                     }
 
@@ -381,7 +288,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     {
                         if (allowWaitingCallback)
                         {
-                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(waitingError));
+                            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(waitingError));
                         }
 
                         debugStatus = waitingState == AIRequestState.Cancelled
@@ -426,7 +333,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     }
                     catch (Exception)
                     {
-                        FailEarly(requestId, requestContextVersion, "RimChat_ErrorBuildRequest".Translate(), onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
+                        Owner.FailEarly(requestId, requestContextVersion, "RimChat_ErrorBuildRequest".Translate(), onError, ref debugStatus, ref debugErrorText, ref debugRecordFinalized, debugTokenMessages);
                         yield break;
                     }
 
@@ -487,7 +394,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 errorMsg = OpenAIProviderAdapter.ParseError(shared.StatusCode, shared.RawPayload).ToString();
                             }
                             session.SetFailure(requestId, errorMsg, shared?.ErrorKind ?? "shared_transport");
-                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
                             debugHttpCode = shared?.StatusCode ?? 0;
                             debugResponseText = shared?.RawPayload ?? string.Empty;
@@ -496,7 +403,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                         }
 
                         string sharedResponseText = string.IsNullOrEmpty(shared.RawPayload) ? shared.Text : shared.RawPayload;
-                        if (TryCompleteFromAssistantText(
+                        if (Owner.TryCompleteFromAssistantText(
                             requestId,
                             requestContextVersion,
                             usageChannel,
@@ -579,10 +486,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
                         {
                             progress = Mathf.Min(progress + 0.02f, 0.9f);
                             session.UpdateProgress(requestId, progress);
-                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onProgress?.Invoke(progress));
+                            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onProgress?.Invoke(progress));
                             yield return new WaitForSeconds(0.1f);
 
-                            if (!IsContextVersionCurrent(requestContextVersion))
+                            if (!Owner.IsContextVersionCurrent(requestContextVersion))
                             {
                                 transportCts.Cancel();
                                 session.TryCancelRequest(requestId, "context_changed", "Request dropped due to game context change");
@@ -600,7 +507,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 transportCts.Cancel();
                                 if (allowActiveCallback)
                                 {
-                                    ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(activeMessage));
+                                    Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(activeMessage));
                                 }
 
                                 debugStatus = activeState == AIRequestState.Cancelled
@@ -627,8 +534,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
                         stopwatch.Stop();
                         session.UpdateProgress(requestId, 1f);
-                        ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onProgress?.Invoke(1f));
-                        LogFingerprint(requestId, attempt, usageChannel, model, url, attemptMessages.Count, bodyRaw.Length, stopwatch.ElapsedMilliseconds, http.StatusCode, http.ErrorKind.ToString());
+                        Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onProgress?.Invoke(1f));
+                        AIChatServiceAsync.LogFingerprint(requestId, attempt, usageChannel, model, url, attemptMessages.Count, bodyRaw.Length, stopwatch.ElapsedMilliseconds, http.StatusCode, http.ErrorKind.ToString());
                         debugHttpCode = http.StatusCode;
                         session.RecordHttpStatus(requestId, http.StatusCode);
                         if (http.BytesReceived > 0)
@@ -644,7 +551,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                         {
                             if (allowCompletedCallback)
                             {
-                                ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(completedMessage));
+                                Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(completedMessage));
                             }
 
                             debugStatus = completedState == AIRequestState.Cancelled
@@ -662,7 +569,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 float retryDelaySeconds = RelationsLocalProviderRetry.GetLocalConnectionRetryDelaySeconds(
                                     localConnectionRetryCount,
                                     UnityEngine.Random.Range(0f, 0.25f));
-                                LogLocalConnRetry(requestId, attempt, http.ErrorMessage, retryDelaySeconds);
+                                AIChatServiceAsync.LogLocalConnRetry(requestId, attempt, http.ErrorMessage, retryDelaySeconds);
                                 yield return new WaitForSeconds(retryDelaySeconds);
                                 attempt++;
                                 continue;
@@ -676,7 +583,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 errorMsg = "RimChat_ErrorTimeout".Translate();
                             }
                             session.SetFailure(requestId, errorMsg, RelationsLocalProviderRetry.LooksLikeTimeoutError(http.ErrorMessage) ? "timeout" : "connection_error");
-                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
                             debugHttpCode = http.StatusCode;
                             debugResponseText = http.ErrorMessage ?? string.Empty;
@@ -693,7 +600,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                                 float retryDelaySeconds = RelationsLocalProviderRetry.GetLocalServerRetryDelaySeconds(
                                     local5xxRetryCount,
                                     UnityEngine.Random.Range(0f, 0.2f));
-                                LogLocalServerRetry(requestId, attempt, http.StatusCode, retryDelaySeconds, responseBody);
+                                AIChatServiceAsync.LogLocalServerRetry(requestId, attempt, http.StatusCode, retryDelaySeconds, responseBody);
                                 yield return new WaitForSeconds(retryDelaySeconds);
                                 attempt++;
                                 continue;
@@ -712,11 +619,11 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             else
                             {
                                 DebugLogger.Error($"AI API Error (HTTP {http.StatusCode}): {http.ErrorMessage}");
-                                errorMsg = FormatProtocolError(http.StatusCode, isLocalModel);
+                                errorMsg = AIChatServiceAsync.FormatProtocolError(http.StatusCode, isLocalModel);
                             }
 
                             session.SetFailure(requestId, errorMsg, failureTag);
-                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
                             debugHttpCode = http.StatusCode;
                             debugResponseText = responseBody;
@@ -728,7 +635,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                         {
                             string errorMsg = "RimChat_ErrorDataProcessing".Translate(http.ErrorMessage);
                             session.SetFailure(requestId, errorMsg, "data_processing_error");
-                            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                             debugStatus = AIRequestDebugStatus.Error;
                             debugHttpCode = http.StatusCode;
                             debugResponseText = http.ErrorMessage ?? string.Empty;
@@ -743,14 +650,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
                             {
                                 string errorMsg = "RimChat_ErrorEmptyResponse".Translate();
                                 session.SetFailure(requestId, errorMsg, "empty_response");
-                                ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                                Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                                 debugStatus = AIRequestDebugStatus.Error;
                                 debugResponseText = responseText ?? string.Empty;
                                 debugErrorText = errorMsg ?? string.Empty;
                                 yield break;
                             }
 
-                            if (TryCompleteFromAssistantText(
+                            if (Owner.TryCompleteFromAssistantText(
                                 requestId,
                                 requestContextVersion,
                                 usageChannel,
@@ -788,7 +695,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
                         string fallbackError = $"HTTP {http.StatusCode}: {http.ErrorMessage}";
                         session.SetFailure(requestId, fallbackError, "unexpected_http_error");
-                        ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(fallbackError));
+                        Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(fallbackError));
                         debugStatus = AIRequestDebugStatus.Error;
                         debugHttpCode = http.StatusCode;
                         debugResponseText = http.BodyText ?? http.ErrorMessage ?? string.Empty;
@@ -835,7 +742,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        bool TryCompleteFromAssistantText(
+internal bool TryCompleteFromAssistantText(
             string requestId,
             int requestContextVersion,
             DialogueUsageChannel usageChannel,
@@ -889,7 +796,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     ? "parse_error"
                     : $"parse_error_{parseResult.ReasonTag}";
                 session.SetFailure(requestId, errorMsg, failureTag);
-                ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
+                Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                 debugErrorText = errorMsg;
                 return true;
             }
@@ -920,7 +827,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
 
             session.UpdateState(requestId, AIRequestState.Completed, response: parsedResponse);
-            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onSuccess?.Invoke(parsedResponse));
+            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onSuccess?.Invoke(parsedResponse));
             debugStatus = AIRequestDebugStatus.Success;
             debugParsedResponse = parsedResponse;
             debugErrorText = string.Empty;
@@ -928,7 +835,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return true;
         }
 
-        void FailEarly(
+internal void FailEarly(
             string requestId,
             int requestContextVersion,
             string error,
@@ -939,14 +846,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             List<ChatMessageData> debugTokenMessages)
         {
             session.UpdateState(requestId, AIRequestState.Error, error: error);
-            ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(error));
+            Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(error));
             debugStatus = AIRequestDebugStatus.Error;
             debugErrorText = error ?? string.Empty;
             telemetry.FinalizeRequestDebugRecord(requestId, debugTokenMessages, string.Empty, string.Empty, debugStatus, 0, debugErrorText);
             debugRecordFinalized = true;
         }
 
-        void FinalizeDropped(
+internal void FinalizeDropped(
             string requestId,
             ref AIRequestDebugStatus debugStatus,
             ref string debugErrorText,
@@ -963,7 +870,101 @@ namespace Ustas.RimAI.Communication.Relations.AI
             debugRecordFinalized = true;
         }
 
-        bool IsContextVersionCurrent(int expectedContextVersion)
+internal static string FormatProtocolError(long responseCode, bool isLocalModel)
+        {
+            return responseCode switch
+            {
+                401 => isLocalModel
+                    ? "RimChat_Error401Local".Translate()
+                    : "RimChat_Error401Cloud".Translate(),
+                404 => "RimChat_Error404".Translate(),
+                429 => "RimChat_ErrorRateLimit".Translate(),
+                500 => "RimChat_ErrorServer500".Translate(),
+                502 => "RimChat_ErrorServer502".Translate(),
+                503 => "RimChat_ErrorServer503".Translate(),
+                _ => "RimChat_ErrorHTTP".Translate(responseCode)
+            };
+        }
+
+internal static void LogFingerprint(
+            string requestId,
+            int attempt,
+            DialogueUsageChannel usageChannel,
+            string model,
+            string url,
+            int messageCount,
+            int jsonBytes,
+            long elapsedMs,
+            long httpCode,
+            string result)
+        {
+            if (!DebugLogger.LogInternals)
+            {
+                return;
+            }
+
+            DebugLogger.LogInternal(
+                "AIChatServiceAsync",
+                $"fingerprint stage=completed requestId={requestId} attempt={attempt} channel={usageChannel} model={model} host={RelationsLocalProviderRetry.GetUrlHostPort(url)} messageCount={messageCount} jsonBytes={jsonBytes} elapsedMs={elapsedMs} httpCode={httpCode} result={result}");
+        }
+
+internal static void LogLocalServerRetry(string requestId, int attempt, long responseCode, float retryDelaySeconds, string responseBody)
+        {
+            if (!DebugLogger.LogInternals)
+            {
+                return;
+            }
+
+            DebugLogger.LogInternal(
+                "AIChatServiceAsync",
+                $"local_retry requestId={requestId} attempt={attempt} nextAttempt={attempt + 1} httpCode={responseCode} backoffMs={(int)(retryDelaySeconds * 1000f)} responseSummary=\"{RelationsLocalProviderRetry.BuildResponsePreviewForLog(responseBody, 160)}\"");
+        }
+
+internal static void LogLocalConnRetry(string requestId, int attempt, string requestError, float retryDelaySeconds)
+        {
+            if (!DebugLogger.LogInternals)
+            {
+                return;
+            }
+
+            DebugLogger.LogInternal(
+                "AIChatServiceAsync",
+                $"local_conn_retry requestId={requestId} attempt={attempt} nextAttempt={attempt + 1} backoffMs={(int)(retryDelaySeconds * 1000f)} error=\"{RelationsLocalProviderRetry.BuildResponsePreviewForLog(requestError, 120)}\"");
+        }
+
+internal ApiConfig GetFirstValidConfig()
+        {
+            if (RelationsSettings.TryGetSharedTextConfig(out ApiConfig shared))
+                return shared;
+
+            if (RelationsMod.Instance == null || RelationsMod.Instance.InstanceSettings == null)
+                return null;
+
+            var localConfig = RelationsMod.Instance.InstanceSettings.LocalConfig;
+            if (localConfig != null && localConfig.IsPlayer2Local())
+            {
+                string localBaseUrl = localConfig.GetNormalizedBaseUrl();
+                return new ApiConfig
+                {
+                    IsEnabled = true,
+                    Provider = AIProvider.Player2,
+                    BaseUrl = localBaseUrl.TrimEnd('/') + "/v1/chat/completions",
+                    ApiKey = "",
+                    SelectedModel = "Default"
+                };
+            }
+
+            return null;
+        }
+    }
+
+    internal sealed class AIChatServiceAsyncContextOps : AIChatServiceAsyncCollaborator
+    {
+        internal AIChatServiceAsyncContextOps(AIChatServiceAsync owner) : base(owner)
+        {
+        }
+
+internal bool IsContextVersionCurrent(int expectedContextVersion)
         {
             lock (Gate)
             {
@@ -971,11 +972,11 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        void ExecuteRequestActionOnMainThread(string requestId, int expectedContextVersion, Action action)
+internal void ExecuteRequestActionOnMainThread(string requestId, int expectedContextVersion, Action action)
         {
-            ExecuteOnMainThread(() =>
+            Owner.ExecuteOnMainThread(() =>
             {
-                if (!session.IsCallbackAllowed(requestId, expectedContextVersion, GetCurrentContextVersionSnapshot()))
+                if (!session.IsCallbackAllowed(requestId, expectedContextVersion, Owner.GetCurrentContextVersionSnapshot()))
                 {
                     return;
                 }
@@ -984,7 +985,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             });
         }
 
-        void ProcessMainThreadActions()
+internal void ProcessMainThreadActions()
         {
             while (true)
             {
@@ -1010,9 +1011,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        void DetectGameContextChange()
+internal void DetectGameContextChange()
         {
-            int currentContextId = GetCurrentGameContextId();
+            int currentContextId = AIChatServiceAsync.GetCurrentGameContextId();
             if (currentContextId == lastObservedGameContextId)
             {
                 return;
@@ -1024,16 +1025,16 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return;
             }
 
-            HandleGameContextChanged("Detected game context transition");
+            Owner.HandleGameContextChanged("Detected game context transition");
         }
 
-        void HandleGameContextChanged(string reason)
+internal void HandleGameContextChanged(string reason)
         {
             int cancelledCount;
             lock (Gate)
             {
                 contextVersion++;
-                lastObservedGameContextId = GetCurrentGameContextId();
+                lastObservedGameContextId = AIChatServiceAsync.GetCurrentGameContextId();
                 cancelledCount = session.CancelAllPendingLockless(
                     "Request cancelled due to save/game context change",
                     "save_context_changed");
@@ -1049,118 +1050,26 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        static int GetCurrentGameContextId()
+internal static int GetCurrentGameContextId()
         {
             return Current.Game == null ? 0 : Current.Game.GetHashCode();
         }
+    }
 
-        static string FormatProtocolError(long responseCode, bool isLocalModel)
+    internal sealed class AIChatServiceAsyncParts
+    {
+        internal readonly AIChatServiceAsync Owner;
+        internal readonly AIChatServiceAsyncSlice1 Slice1;
+        internal readonly AIChatServiceAsyncRequestFlow RequestFlow;
+        internal readonly AIChatServiceAsyncContextOps ContextOps;
+        internal AIChatServiceAsyncParts(AIChatServiceAsync owner)
         {
-            return responseCode switch
-            {
-                401 => isLocalModel
-                    ? "RimChat_Error401Local".Translate()
-                    : "RimChat_Error401Cloud".Translate(),
-                404 => "RimChat_Error404".Translate(),
-                429 => "RimChat_ErrorRateLimit".Translate(),
-                500 => "RimChat_ErrorServer500".Translate(),
-                502 => "RimChat_ErrorServer502".Translate(),
-                503 => "RimChat_ErrorServer503".Translate(),
-                _ => "RimChat_ErrorHTTP".Translate(responseCode)
-            };
-        }
-
-        static void LogFingerprint(
-            string requestId,
-            int attempt,
-            DialogueUsageChannel usageChannel,
-            string model,
-            string url,
-            int messageCount,
-            int jsonBytes,
-            long elapsedMs,
-            long httpCode,
-            string result)
-        {
-            if (!DebugLogger.LogInternals)
-            {
-                return;
-            }
-
-            DebugLogger.LogInternal(
-                "AIChatServiceAsync",
-                $"fingerprint stage=completed requestId={requestId} attempt={attempt} channel={usageChannel} model={model} host={RelationsLocalProviderRetry.GetUrlHostPort(url)} messageCount={messageCount} jsonBytes={jsonBytes} elapsedMs={elapsedMs} httpCode={httpCode} result={result}");
-        }
-
-        static void LogLocalServerRetry(string requestId, int attempt, long responseCode, float retryDelaySeconds, string responseBody)
-        {
-            if (!DebugLogger.LogInternals)
-            {
-                return;
-            }
-
-            DebugLogger.LogInternal(
-                "AIChatServiceAsync",
-                $"local_retry requestId={requestId} attempt={attempt} nextAttempt={attempt + 1} httpCode={responseCode} backoffMs={(int)(retryDelaySeconds * 1000f)} responseSummary=\"{RelationsLocalProviderRetry.BuildResponsePreviewForLog(responseBody, 160)}\"");
-        }
-
-        static void LogLocalConnRetry(string requestId, int attempt, string requestError, float retryDelaySeconds)
-        {
-            if (!DebugLogger.LogInternals)
-            {
-                return;
-            }
-
-            DebugLogger.LogInternal(
-                "AIChatServiceAsync",
-                $"local_conn_retry requestId={requestId} attempt={attempt} nextAttempt={attempt + 1} backoffMs={(int)(retryDelaySeconds * 1000f)} error=\"{RelationsLocalProviderRetry.BuildResponsePreviewForLog(requestError, 120)}\"");
-        }
-
-        ApiConfig GetFirstValidConfig()
-        {
-            if (RelationsSettings.TryGetSharedTextConfig(out ApiConfig shared))
-                return shared;
-
-            if (RelationsMod.Instance == null || RelationsMod.Instance.InstanceSettings == null)
-                return null;
-
-            var localConfig = RelationsMod.Instance.InstanceSettings.LocalConfig;
-            if (localConfig != null && localConfig.IsPlayer2Local())
-            {
-                string localBaseUrl = localConfig.GetNormalizedBaseUrl();
-                return new ApiConfig
-                {
-                    IsEnabled = true,
-                    Provider = AIProvider.Player2,
-                    BaseUrl = localBaseUrl.TrimEnd('/') + "/v1/chat/completions",
-                    ApiKey = "",
-                    SelectedModel = "Default"
-                };
-            }
-
-            return null;
-        }
-
-        void EnsureCollaborators()
-        {
-            if (usageTracker == null)
-            {
-                usageTracker = new DialogueTokenUsageTracker(Gate);
-            }
-
-            if (telemetry == null)
-            {
-                telemetry = new RelationsAiDebugTelemetry(Gate);
-            }
-        }
-
-        void OnDestroy()
-        {
-            session.Destroy();
-            lock (Gate)
-            {
-                mainThreadActions.Clear();
-            }
+            Owner = owner;
+            Slice1 = new AIChatServiceAsyncSlice1(owner);
+            RequestFlow = new AIChatServiceAsyncRequestFlow(owner);
+            ContextOps = new AIChatServiceAsyncContextOps(owner);
         }
     }
+
+
 }

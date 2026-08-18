@@ -15,18 +15,20 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
      ///</summary>
     public class WorldEventLedgerComponent : GameComponent
     {
-        private const int DefaultMaxStoredRecords = 50;
-        private const int LetterScanInterval = 250;
-        private const int RaidScanInterval = 250;
-        private const int LetterScanOffsetTicks = 0;
-        private const int RaidScanOffsetTicks = 40;
-        private const int MaxLettersPerScanPass = 24;
-        private const int OldEventAgeThresholdTicks = 60000 * 60 * 24;
-        private const int MaxCompressedSummaryLength = 100;
-        private const int MaxFullTextLength = 1500;
-        private const int MaxProcessedLetterIds = 512;
+        internal WorldEventLedgerComponentParts Parts;
 
-        private static int _globalEventRevision = 1;
+        internal const int DefaultMaxStoredRecords = 50;
+        internal const int LetterScanInterval = 250;
+        internal const int RaidScanInterval = 250;
+        internal const int LetterScanOffsetTicks = 0;
+        internal const int RaidScanOffsetTicks = 40;
+        internal const int MaxLettersPerScanPass = 24;
+        internal const int OldEventAgeThresholdTicks = 60000 * 60 * 24;
+        internal const int MaxCompressedSummaryLength = 100;
+        internal const int MaxFullTextLength = 1500;
+        internal const int MaxProcessedLetterIds = 512;
+
+        internal static int _globalEventRevision = 1;
         public static int GlobalEventRevision => _globalEventRevision;
 
         public class OngoingRaidBattleState : IExposable
@@ -70,22 +72,23 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
         public static WorldEventLedgerComponent Instance => Current.Game?.GetComponent<WorldEventLedgerComponent>();
 
-        private List<WorldEventRecord> worldEvents = new List<WorldEventRecord>();
-        private List<RaidBattleReportRecord> raidBattleReports = new List<RaidBattleReportRecord>();
-        private List<OngoingRaidBattleState> ongoingRaidBattles = new List<OngoingRaidBattleState>();
-        private List<int> processedLetterIds = new List<int>();
+        internal List<WorldEventRecord> worldEvents = new List<WorldEventRecord>();
+        internal List<RaidBattleReportRecord> raidBattleReports = new List<RaidBattleReportRecord>();
+        internal List<OngoingRaidBattleState> ongoingRaidBattles = new List<OngoingRaidBattleState>();
+        internal List<int> processedLetterIds = new List<int>();
 
-        private readonly HashSet<int> processedLetterIdSet = new HashSet<int>();
-        private readonly IRaidSnapshotProvider raidSnapshotProvider = RaidThreatSnapshotProvider.Instance;
-        private int lastLetterScanTick = -LetterScanInterval;
-        private int lastRaidScanTick = -RaidScanInterval;
-        private int letterScanCursor;
-        private const int CompressionPerTickBudget = 3;
-        private int compressionTickMarker = -1;
-        private int compressionThisTickCount = 0;
+        internal readonly HashSet<int> processedLetterIdSet = new HashSet<int>();
+        internal readonly IRaidSnapshotProvider raidSnapshotProvider = RaidThreatSnapshotProvider.Instance;
+        internal int lastLetterScanTick = -LetterScanInterval;
+        internal int lastRaidScanTick = -RaidScanInterval;
+        internal int letterScanCursor;
+        internal const int CompressionPerTickBudget = 3;
+        internal int compressionTickMarker = -1;
+        internal int compressionThisTickCount = 0;
 
         public WorldEventLedgerComponent(Game game) : base()
         {
+            Parts = new WorldEventLedgerComponentParts(this);
         }
 
         public override void StartedNewGame()
@@ -158,7 +161,145 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
         /// Immediately collect current world events and raid battle states.
         /// Used for manual force-generate to ensure latest events are available.
         /// </summary>
-        public void CollectNow()
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal void NotifyEventAdded()
+        {
+            Interlocked.Increment(ref _globalEventRevision);
+        }
+
+        
+
+        
+
+        
+
+        
+
+        internal string GetFactionId(Faction faction)
+        {
+            return faction?.GetUniqueLoadID() ?? string.Empty;
+        }
+
+        internal string GetBattleKey(int mapId, string attackerFactionId)
+        {
+            return $"{mapId}|{attackerFactionId ?? string.Empty}";
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    
+        #region Cluster forwards
+        public void CollectNow() => Parts.Slice1.CollectNow();
+        public List<WorldEventRecord> GetRecentWorldEvents(Faction observerFaction, int daysWindow, bool includePublic, bool includeDirect) => Parts.Slice1.GetRecentWorldEvents(observerFaction, daysWindow, includePublic, includeDirect);
+        public List<RaidBattleReportRecord> GetRecentRaidBattleReports(Faction observerFaction, int daysWindow, bool includeDirect) => Parts.Slice1.GetRecentRaidBattleReports(observerFaction, daysWindow, includeDirect);
+        public void NotifyPawnKilled(Pawn victim, DamageInfo? dinfo) => Parts.Slice1.NotifyPawnKilled(victim, dinfo);
+        public void RecordRaidIntent(Faction attackerFaction, bool delayed, string strategyDefName, string arrivalModeDefName) => Parts.Slice1.RecordRaidIntent(attackerFaction, delayed, strategyDefName, arrivalModeDefName);
+        public void RecordIncidentIntent(Faction sourceFaction, string incidentDefName, Map map) => Parts.Slice1.RecordIncidentIntent(sourceFaction, incidentDefName, map);
+        internal void PollLetterStackEvents(int tick) => Parts.Slice1.PollLetterStackEvents(tick);
+        internal void TryAddMapEventFromLetter(Letter letter, int tick) => Parts.Slice1.TryAddMapEventFromLetter(letter, tick);
+        internal void UpdateRaidBattleStates(int tick, bool forceRefresh = false) => Parts.Slice1.UpdateRaidBattleStates(tick, forceRefresh);
+        internal void FinalizeEndedBattles(HashSet<string> activeKeys, int tick) => Parts.Slice1.FinalizeEndedBattles(activeKeys, tick);
+        internal void AddRaidBattleReport(OngoingRaidBattleState state, int battleEndTick) => Parts.Slice1.AddRaidBattleReport(state, battleEndTick);
+        internal OngoingRaidBattleState ResolveBattleForKill(Map map, Faction victimFaction, Faction attackerFactionByDamage, int tick) => Parts.Slice1.ResolveBattleForKill(map, victimFaction, attackerFactionByDamage, tick);
+        internal OngoingRaidBattleState GetBattleState(int mapId, Faction attackerFaction) => Parts.Slice1.GetBattleState(mapId, attackerFaction);
+        internal OngoingRaidBattleState GetOrCreateBattleState(Map map, Faction attackerFaction, int tick) => Parts.Slice1.GetOrCreateBattleState(map, attackerFaction, tick);
+        internal Map ResolvePlayerHomeMapFromLetter(Letter letter) => Parts.Slice1.ResolvePlayerHomeMapFromLetter(letter);
+        internal Map TryResolveMapFromLetterTargets(Letter letter) => Parts.Slice1.TryResolveMapFromLetterTargets(letter);
+        internal string BuildLetterSummary(Letter letter) => Parts.Slice2.BuildLetterSummary(letter);
+        internal static string BuildLetterFullText(Letter letter) => WorldEventLedgerSlice2.BuildLetterFullText(letter);
+        internal string DetectEventType(string summary) => Parts.Slice2.DetectEventType(summary);
+        internal bool ContainsAny(string text, params string[] tokens) => Parts.Slice2.ContainsAny(text, tokens);
+        internal void RecordDirectEvent(string eventType, int tick, Map map, string summary, IEnumerable<string> knownFactionIds, string sourceKey) => Parts.Slice2.RecordDirectEvent(eventType, tick, map, summary, knownFactionIds, sourceKey);
+        internal bool HasRecentSourceKey(string sourceKey) => Parts.Slice2.HasRecentSourceKey(sourceKey);
+        internal void AddWorldEventRecord(WorldEventRecord record) => Parts.Slice2.AddWorldEventRecord(record);
+        internal bool CanObserverSeeEvent(string observerId, WorldEventRecord record, bool includePublic, bool includeDirect) => Parts.Slice2.CanObserverSeeEvent(observerId, record, includePublic, includeDirect);
+        internal bool IsKnownToFaction(string observerId, List<string> knownFactionIds) => Parts.Slice2.IsKnownToFaction(observerId, knownFactionIds);
+        internal static bool ShouldRunScheduledTask(int tick, int lastRunTick, int interval, int offset) => WorldEventLedgerSlice2.ShouldRunScheduledTask(tick, lastRunTick, interval, offset);
+        internal static bool IsOnScheduleSlot(int tick, int interval, int offset) => WorldEventLedgerSlice2.IsOnScheduleSlot(tick, interval, offset);
+        internal void RebuildRuntimeCaches() => Parts.Slice2.RebuildRuntimeCaches();
+        internal void CleanupLoadedData() => Parts.Slice2.CleanupLoadedData();
+        internal void TrimWorldEvents() => Parts.Slice2.TrimWorldEvents();
+        internal void TrimRaidBattleReports() => Parts.Slice2.TrimRaidBattleReports();
+        internal void TrimProcessedLetterIds() => Parts.Slice2.TrimProcessedLetterIds();
+        internal int ResolveMaxStoredRecords() => Parts.Slice2.ResolveMaxStoredRecords();
+        internal void TryCompressOldWorldEvents(int tick) => Parts.Slice2.TryCompressOldWorldEvents(tick);
+        internal void TryCompressRecordImmediate(WorldEventRecord record) => Parts.Slice2.TryCompressRecordImmediate(record);
+        internal string CompressWorldEventSummaryImmediate(WorldEventRecord record, int currentTick) => Parts.Slice2.CompressWorldEventSummaryImmediate(record, currentTick);
+        internal string StripRedundantPhrases(string text) => Parts.Slice2.StripRedundantPhrases(text);
+        internal string BuildRelativeTickText(int eventTick, int currentTick) => Parts.Slice2.BuildRelativeTickText(eventTick, currentTick);
+        #endregion
+}
+    internal sealed class WorldEventLedgerSlice1 : WorldEventLedgerComponentCollaborator
+    {
+        internal WorldEventLedgerSlice1(WorldEventLedgerComponent owner) : base(owner)
+        {
+        }
+
+public void CollectNow()
         {
             if (Current.ProgramState != ProgramState.Playing || Find.TickManager == null)
             {
@@ -166,39 +307,39 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             }
 
             int tick = Find.TickManager.TicksGame;
-            PollLetterStackEvents(tick);
-            UpdateRaidBattleStates(tick, forceRefresh: true);
+            Owner.PollLetterStackEvents(tick);
+            Owner.UpdateRaidBattleStates(tick, forceRefresh: true);
             lastLetterScanTick = tick;
             lastRaidScanTick = tick;
         }
 
-        public List<WorldEventRecord> GetRecentWorldEvents(Faction observerFaction, int daysWindow, bool includePublic, bool includeDirect)
+public List<WorldEventRecord> GetRecentWorldEvents(Faction observerFaction, int daysWindow, bool includePublic, bool includeDirect)
         {
             int now = Find.TickManager?.TicksGame ?? 0;
             int minTick = now - Math.Max(1, daysWindow) * GenDate.TicksPerDay;
-            string observerId = GetFactionId(observerFaction);
+            string observerId = Owner.GetFactionId(observerFaction);
 
             return worldEvents
                 .Where(record => record != null && record.OccurredTick >= minTick)
-                .Where(record => CanObserverSeeEvent(observerId, record, includePublic, includeDirect))
+                .Where(record => Owner.CanObserverSeeEvent(observerId, record, includePublic, includeDirect))
                 .OrderByDescending(record => record.OccurredTick)
                 .ToList();
         }
 
-        public List<RaidBattleReportRecord> GetRecentRaidBattleReports(Faction observerFaction, int daysWindow, bool includeDirect)
+public List<RaidBattleReportRecord> GetRecentRaidBattleReports(Faction observerFaction, int daysWindow, bool includeDirect)
         {
             int now = Find.TickManager?.TicksGame ?? 0;
             int minTick = now - Math.Max(1, daysWindow) * GenDate.TicksPerDay;
-            string observerId = GetFactionId(observerFaction);
+            string observerId = Owner.GetFactionId(observerFaction);
 
             return raidBattleReports
                 .Where(record => record != null && record.BattleEndTick >= minTick)
-                .Where(record => includeDirect && IsKnownToFaction(observerId, record.KnownFactionIds))
+                .Where(record => includeDirect && Owner.IsKnownToFaction(observerId, record.KnownFactionIds))
                 .OrderByDescending(record => record.BattleEndTick)
                 .ToList();
         }
 
-        public void NotifyPawnKilled(Pawn victim, DamageInfo? dinfo)
+public void NotifyPawnKilled(Pawn victim, DamageInfo? dinfo)
         {
             Map map = victim?.MapHeld;
             if (map == null || !map.IsPlayerHome || victim?.Faction == null)
@@ -208,7 +349,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
             int tick = Find.TickManager?.TicksGame ?? 0;
             Faction attackerByDamage = dinfo?.Instigator?.Faction;
-            OngoingRaidBattleState state = ResolveBattleForKill(map, victim.Faction, attackerByDamage, tick);
+            WorldEventLedgerComponent.OngoingRaidBattleState state = Owner.ResolveBattleForKill(map, victim.Faction, attackerByDamage, tick);
             if (state == null)
             {
                 return;
@@ -218,7 +359,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             {
                 state.DefenderDeaths++;
             }
-            else if (string.Equals(GetFactionId(victim.Faction), state.AttackerFactionId, StringComparison.Ordinal))
+            else if (string.Equals(Owner.GetFactionId(victim.Faction), state.AttackerFactionId, StringComparison.Ordinal))
             {
                 state.AttackerDeaths++;
             }
@@ -226,7 +367,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             state.LastUpdatedTick = tick;
         }
 
-        public void RecordRaidIntent(Faction attackerFaction, bool delayed, string strategyDefName, string arrivalModeDefName)
+public void RecordRaidIntent(Faction attackerFaction, bool delayed, string strategyDefName, string arrivalModeDefName)
         {
             if (attackerFaction == null)
             {
@@ -242,16 +383,16 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             string mapLabel = map?.Parent?.LabelCap ?? map?.Biome?.LabelCap ?? "an unknown settlement";
             string summary = $"{attackerFaction.Name} ({tech} tech level) initiated a raid on {mapLabel} ({mode}, strategy={strategy}, arrival={arrival}).";
 
-            RecordDirectEvent(
+            Owner.RecordDirectEvent(
                 "raid_intent",
                 tick,
                 map,
                 summary,
-                new[] { GetFactionId(attackerFaction), GetFactionId(Faction.OfPlayer) },
+                new[] { Owner.GetFactionId(attackerFaction), Owner.GetFactionId(Faction.OfPlayer) },
                 $"raid-intent:{attackerFaction.GetUniqueLoadID()}:{tick}:{strategy}:{arrival}:{mode}");
         }
 
-        public void RecordIncidentIntent(Faction sourceFaction, string incidentDefName, Map map)
+public void RecordIncidentIntent(Faction sourceFaction, string incidentDefName, Map map)
         {
             if (sourceFaction == null || string.IsNullOrWhiteSpace(incidentDefName))
             {
@@ -261,16 +402,16 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             int tick = Find.TickManager?.TicksGame ?? 0;
             string mapLabel = map?.Parent?.LabelCap ?? map?.Biome?.LabelCap ?? "unknown location";
             string summary = $"{sourceFaction.Name} launched incident {incidentDefName} on {mapLabel}.";
-            RecordDirectEvent(
+            Owner.RecordDirectEvent(
                 "incident_intent",
                 tick,
                 map,
                 summary,
-                new[] { GetFactionId(sourceFaction), GetFactionId(Faction.OfPlayer) },
+                new[] { Owner.GetFactionId(sourceFaction), Owner.GetFactionId(Faction.OfPlayer) },
                 $"incident-intent:{sourceFaction.GetUniqueLoadID()}:{incidentDefName}:{tick}");
         }
 
-        private void PollLetterStackEvents(int tick)
+internal void PollLetterStackEvents(int tick)
         {
             List<Letter> letters = Find.LetterStack?.LettersListForReading;
             if (letters == null || letters.Count == 0)
@@ -297,34 +438,34 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
                 processedLetterIds.Add(letter.ID);
                 processedLetterIdSet.Add(letter.ID);
-                TryAddMapEventFromLetter(letter, tick);
+                Owner.TryAddMapEventFromLetter(letter, tick);
             }
 
             if (letterScanCursor >= letters.Count)
             {
                 letterScanCursor = 0;
-                TrimProcessedLetterIds();
+                Owner.TrimProcessedLetterIds();
             }
         }
 
-        private void TryAddMapEventFromLetter(Letter letter, int tick)
+internal void TryAddMapEventFromLetter(Letter letter, int tick)
         {
-            Map map = ResolvePlayerHomeMapFromLetter(letter);
+            Map map = Owner.ResolvePlayerHomeMapFromLetter(letter);
             if (map == null)
             {
                 return;
             }
 
-            string summary = BuildLetterSummary(letter);
+            string summary = Owner.BuildLetterSummary(letter);
             if (string.IsNullOrWhiteSpace(summary))
             {
                 return;
             }
 
-            string fullText = BuildLetterFullText(letter);
-            string eventType = DetectEventType(summary);
+            string fullText = WorldEventLedgerComponent.BuildLetterFullText(letter);
+            string eventType = Owner.DetectEventType(summary);
             string key = $"letter:{letter.ID}:{eventType}";
-            if (HasRecentSourceKey(key))
+            if (Owner.HasRecentSourceKey(key))
             {
                 return;
             }
@@ -342,10 +483,10 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 KnownFactionIds = new List<string>()
             };
 
-            AddWorldEventRecord(record);
+            Owner.AddWorldEventRecord(record);
         }
 
-        private void UpdateRaidBattleStates(int tick, bool forceRefresh = false)
+internal void UpdateRaidBattleStates(int tick, bool forceRefresh = false)
         {
             bool available = forceRefresh
                 ? raidSnapshotProvider.TryForceRefreshNow(tick, out RaidThreatSnapshot snapshot)
@@ -369,17 +510,17 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 for (int j = 0; j < hostileFactions.Count; j++)
                 {
                     Faction attacker = hostileFactions[j];
-                    OngoingRaidBattleState state = GetOrCreateBattleState(map, attacker, tick);
+                    WorldEventLedgerComponent.OngoingRaidBattleState state = Owner.GetOrCreateBattleState(map, attacker, tick);
                     state.DefenderDownedPeak = Math.Max(state.DefenderDownedPeak, mapSnapshot.PlayerDownedCount);
                     state.LastUpdatedTick = tick;
-                    activeKeys.Add(GetBattleKey(map.uniqueID, state.AttackerFactionId));
+                    activeKeys.Add(Owner.GetBattleKey(map.uniqueID, state.AttackerFactionId));
                 }
             }
 
-            FinalizeEndedBattles(activeKeys, tick);
+            Owner.FinalizeEndedBattles(activeKeys, tick);
         }
 
-        private void FinalizeEndedBattles(HashSet<string> activeKeys, int tick)
+internal void FinalizeEndedBattles(HashSet<string> activeKeys, int tick)
         {
             if (ongoingRaidBattles == null || ongoingRaidBattles.Count == 0)
             {
@@ -388,25 +529,25 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
             for (int i = ongoingRaidBattles.Count - 1; i >= 0; i--)
             {
-                OngoingRaidBattleState state = ongoingRaidBattles[i];
+                WorldEventLedgerComponent.OngoingRaidBattleState state = ongoingRaidBattles[i];
                 if (state == null)
                 {
                     ongoingRaidBattles.RemoveAt(i);
                     continue;
                 }
 
-                string key = GetBattleKey(state.MapId, state.AttackerFactionId);
+                string key = Owner.GetBattleKey(state.MapId, state.AttackerFactionId);
                 if (activeKeys.Contains(key))
                 {
                     continue;
                 }
 
-                AddRaidBattleReport(state, tick);
+                Owner.AddRaidBattleReport(state, tick);
                 ongoingRaidBattles.RemoveAt(i);
             }
         }
 
-        private void AddRaidBattleReport(OngoingRaidBattleState state, int battleEndTick)
+internal void AddRaidBattleReport(WorldEventLedgerComponent.OngoingRaidBattleState state, int battleEndTick)
         {
             string summary =
                 $"{state.AttackerFactionName} raid on {state.MapLabel} ended. " +
@@ -435,7 +576,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             };
 
             raidBattleReports.Add(report);
-            TrimRaidBattleReports();
+            Owner.TrimRaidBattleReports();
 
             string eventSummary =
                 $"袭击结束：{state.AttackerFactionName}对{state.MapLabel}的袭击已被击退。" +
@@ -462,10 +603,10 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 }
             };
 
-            AddWorldEventRecord(eventRecord);
+            Owner.AddWorldEventRecord(eventRecord);
         }
 
-        private OngoingRaidBattleState ResolveBattleForKill(Map map, Faction victimFaction, Faction attackerFactionByDamage, int tick)
+internal WorldEventLedgerComponent.OngoingRaidBattleState ResolveBattleForKill(Map map, Faction victimFaction, Faction attackerFactionByDamage, int tick)
         {
             if (map == null || victimFaction == null)
             {
@@ -474,7 +615,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
             if (victimFaction == Faction.OfPlayer)
             {
-                OngoingRaidBattleState byAttacker = GetBattleState(map.uniqueID, attackerFactionByDamage);
+                WorldEventLedgerComponent.OngoingRaidBattleState byAttacker = Owner.GetBattleState(map.uniqueID, attackerFactionByDamage);
                 if (byAttacker != null)
                 {
                     return byAttacker;
@@ -486,7 +627,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                     .FirstOrDefault();
             }
 
-            OngoingRaidBattleState byVictimFaction = GetBattleState(map.uniqueID, victimFaction);
+            WorldEventLedgerComponent.OngoingRaidBattleState byVictimFaction = Owner.GetBattleState(map.uniqueID, victimFaction);
             if (byVictimFaction != null)
             {
                 return byVictimFaction;
@@ -494,42 +635,42 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
             if (victimFaction.HostileTo(Faction.OfPlayer))
             {
-                return GetOrCreateBattleState(map, victimFaction, tick);
+                return Owner.GetOrCreateBattleState(map, victimFaction, tick);
             }
 
             return null;
         }
 
-        private OngoingRaidBattleState GetBattleState(int mapId, Faction attackerFaction)
+internal WorldEventLedgerComponent.OngoingRaidBattleState GetBattleState(int mapId, Faction attackerFaction)
         {
             if (attackerFaction == null)
             {
                 return null;
             }
 
-            string attackerId = GetFactionId(attackerFaction);
+            string attackerId = Owner.GetFactionId(attackerFaction);
             return ongoingRaidBattles?.FirstOrDefault(
                 state => state != null && state.MapId == mapId &&
                          string.Equals(state.AttackerFactionId, attackerId, StringComparison.Ordinal));
         }
 
-        private OngoingRaidBattleState GetOrCreateBattleState(Map map, Faction attackerFaction, int tick)
+internal WorldEventLedgerComponent.OngoingRaidBattleState GetOrCreateBattleState(Map map, Faction attackerFaction, int tick)
         {
-            OngoingRaidBattleState state = GetBattleState(map.uniqueID, attackerFaction);
+            WorldEventLedgerComponent.OngoingRaidBattleState state = Owner.GetBattleState(map.uniqueID, attackerFaction);
             if (state != null)
             {
                 return state;
             }
 
-            state = new OngoingRaidBattleState
+            state = new WorldEventLedgerComponent.OngoingRaidBattleState
             {
                 StartTick = tick,
                 LastUpdatedTick = tick,
                 MapId = map.uniqueID,
                 MapLabel = map.Parent?.LabelCap ?? map.Biome?.LabelCap ?? $"Map#{map.uniqueID}",
-                AttackerFactionId = GetFactionId(attackerFaction),
+                AttackerFactionId = Owner.GetFactionId(attackerFaction),
                 AttackerFactionName = attackerFaction?.Name ?? "UnknownFaction",
-                DefenderFactionId = GetFactionId(Faction.OfPlayer),
+                DefenderFactionId = Owner.GetFactionId(Faction.OfPlayer),
                 DefenderFactionName = Faction.OfPlayer?.Name ?? "PlayerFaction",
                 AttackerDeaths = 0,
                 DefenderDeaths = 0,
@@ -540,9 +681,9 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return state;
         }
 
-        private Map ResolvePlayerHomeMapFromLetter(Letter letter)
+internal Map ResolvePlayerHomeMapFromLetter(Letter letter)
         {
-            Map letterMap = TryResolveMapFromLetterTargets(letter);
+            Map letterMap = Owner.TryResolveMapFromLetterTargets(letter);
             if (letterMap != null && letterMap.IsPlayerHome)
             {
                 return letterMap;
@@ -552,7 +693,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 ?? Find.Maps?.FirstOrDefault(map => map != null && map.IsPlayerHome);
         }
 
-        private Map TryResolveMapFromLetterTargets(Letter letter)
+internal Map TryResolveMapFromLetterTargets(Letter letter)
         {
             if (letter == null)
             {
@@ -576,8 +717,15 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 return null;
             }
         }
+    }
 
-        private string BuildLetterSummary(Letter letter)
+    internal sealed class WorldEventLedgerSlice2 : WorldEventLedgerComponentCollaborator
+    {
+        internal WorldEventLedgerSlice2(WorldEventLedgerComponent owner) : base(owner)
+        {
+        }
+
+internal string BuildLetterSummary(Letter letter)
         {
             if (letter == null)
             {
@@ -610,7 +758,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return $"{label}: {text}";
         }
 
-        private static string BuildLetterFullText(Letter letter)
+internal static string BuildLetterFullText(Letter letter)
         {
             if (letter == null)
             {
@@ -643,30 +791,30 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return $"{label}: {text}";
         }
 
-        private string DetectEventType(string summary)
+internal string DetectEventType(string summary)
         {
             string normalized = (summary ?? string.Empty).ToLowerInvariant();
-            if (ContainsAny(normalized, "cold snap", "寒潮"))
+            if (Owner.ContainsAny(normalized, "cold snap", "寒潮"))
             {
                 return "cold_snap";
             }
 
-            if (ContainsAny(normalized, "heat wave", "热浪"))
+            if (Owner.ContainsAny(normalized, "heat wave", "热浪"))
             {
                 return "heat_wave";
             }
 
-            if (ContainsAny(normalized, "blight", "枯萎"))
+            if (Owner.ContainsAny(normalized, "blight", "枯萎"))
             {
                 return "blight";
             }
 
-            if (ContainsAny(normalized, "raid", "袭击", "attacking"))
+            if (Owner.ContainsAny(normalized, "raid", "袭击", "attacking"))
             {
                 return "raid";
             }
 
-            if (ContainsAny(normalized, "died", "killed", "死亡"))
+            if (Owner.ContainsAny(normalized, "died", "killed", "死亡"))
             {
                 return "colonist_death";
             }
@@ -674,7 +822,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return "map_event";
         }
 
-        private bool ContainsAny(string text, params string[] tokens)
+internal bool ContainsAny(string text, params string[] tokens)
         {
             if (string.IsNullOrEmpty(text) || tokens == null)
             {
@@ -693,7 +841,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return false;
         }
 
-        private void RecordDirectEvent(
+internal void RecordDirectEvent(
             string eventType,
             int tick,
             Map map,
@@ -701,7 +849,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             IEnumerable<string> knownFactionIds,
             string sourceKey)
         {
-            if (HasRecentSourceKey(sourceKey))
+            if (Owner.HasRecentSourceKey(sourceKey))
             {
                 return;
             }
@@ -722,10 +870,10 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                     .ToList()
             };
 
-            AddWorldEventRecord(record);
+            Owner.AddWorldEventRecord(record);
         }
 
-        private bool HasRecentSourceKey(string sourceKey)
+internal bool HasRecentSourceKey(string sourceKey)
         {
             if (string.IsNullOrWhiteSpace(sourceKey))
             {
@@ -741,25 +889,20 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                        string.Equals(record.SourceKey, sourceKey, StringComparison.Ordinal));
         }
 
-        private void AddWorldEventRecord(WorldEventRecord record)
+internal void AddWorldEventRecord(WorldEventRecord record)
         {
             if (record == null)
             {
                 return;
             }
 
-            TryCompressRecordImmediate(record);
+            Owner.TryCompressRecordImmediate(record);
             worldEvents.Add(record);
-            TrimWorldEvents();
-            NotifyEventAdded();
+            Owner.TrimWorldEvents();
+            Owner.NotifyEventAdded();
         }
 
-        private void NotifyEventAdded()
-        {
-            Interlocked.Increment(ref _globalEventRevision);
-        }
-
-        private bool CanObserverSeeEvent(string observerId, WorldEventRecord record, bool includePublic, bool includeDirect)
+internal bool CanObserverSeeEvent(string observerId, WorldEventRecord record, bool includePublic, bool includeDirect)
         {
             if (record == null)
             {
@@ -771,10 +914,10 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 return true;
             }
 
-            return includeDirect && IsKnownToFaction(observerId, record.KnownFactionIds);
+            return includeDirect && Owner.IsKnownToFaction(observerId, record.KnownFactionIds);
         }
 
-        private bool IsKnownToFaction(string observerId, List<string> knownFactionIds)
+internal bool IsKnownToFaction(string observerId, List<string> knownFactionIds)
         {
             if (string.IsNullOrWhiteSpace(observerId) || knownFactionIds == null || knownFactionIds.Count == 0)
             {
@@ -784,14 +927,14 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return knownFactionIds.Any(id => string.Equals(id, observerId, StringComparison.Ordinal));
         }
 
-        private static bool ShouldRunScheduledTask(int tick, int lastRunTick, int interval, int offset)
+internal static bool ShouldRunScheduledTask(int tick, int lastRunTick, int interval, int offset)
         {
             if (tick <= 0 || interval <= 0)
             {
                 return false;
             }
 
-            if (!IsOnScheduleSlot(tick, interval, offset))
+            if (!WorldEventLedgerComponent.IsOnScheduleSlot(tick, interval, offset))
             {
                 return false;
             }
@@ -799,7 +942,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return lastRunTick <= 0 || tick - lastRunTick >= interval;
         }
 
-        private static bool IsOnScheduleSlot(int tick, int interval, int offset)
+internal static bool IsOnScheduleSlot(int tick, int interval, int offset)
         {
             int normalized = (tick - offset) % interval;
             if (normalized < 0)
@@ -810,17 +953,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return normalized == 0;
         }
 
-        private string GetFactionId(Faction faction)
-        {
-            return faction?.GetUniqueLoadID() ?? string.Empty;
-        }
-
-        private string GetBattleKey(int mapId, string attackerFactionId)
-        {
-            return $"{mapId}|{attackerFactionId ?? string.Empty}";
-        }
-
-        private void RebuildRuntimeCaches()
+internal void RebuildRuntimeCaches()
         {
             processedLetterIdSet.Clear();
             if (processedLetterIds == null)
@@ -834,7 +967,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             }
         }
 
-        private void CleanupLoadedData()
+internal void CleanupLoadedData()
         {
             worldEvents = (worldEvents ?? new List<WorldEventRecord>())
                 .Where(record => record != null)
@@ -842,18 +975,18 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             raidBattleReports = (raidBattleReports ?? new List<RaidBattleReportRecord>())
                 .Where(record => record != null)
                 .ToList();
-            ongoingRaidBattles = (ongoingRaidBattles ?? new List<OngoingRaidBattleState>())
+            ongoingRaidBattles = (ongoingRaidBattles ?? new List<WorldEventLedgerComponent.OngoingRaidBattleState>())
                 .Where(state => state != null && state.MapId >= 0 && !string.IsNullOrWhiteSpace(state.AttackerFactionId))
                 .ToList();
 
-            TrimWorldEvents();
-            TrimRaidBattleReports();
-            TrimProcessedLetterIds();
+            Owner.TrimWorldEvents();
+            Owner.TrimRaidBattleReports();
+            Owner.TrimProcessedLetterIds();
         }
 
-        private void TrimWorldEvents()
+internal void TrimWorldEvents()
         {
-            int maxRecords = ResolveMaxStoredRecords();
+            int maxRecords = Owner.ResolveMaxStoredRecords();
             if (worldEvents == null || worldEvents.Count <= maxRecords)
             {
                 return;
@@ -865,9 +998,9 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 .ToList();
         }
 
-        private void TrimRaidBattleReports()
+internal void TrimRaidBattleReports()
         {
-            int maxRecords = ResolveMaxStoredRecords();
+            int maxRecords = Owner.ResolveMaxStoredRecords();
             if (raidBattleReports == null || raidBattleReports.Count <= maxRecords)
             {
                 return;
@@ -879,7 +1012,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 .ToList();
         }
 
-        private void TrimProcessedLetterIds()
+internal void TrimProcessedLetterIds()
         {
             if (processedLetterIds == null || processedLetterIds.Count <= MaxProcessedLetterIds)
             {
@@ -888,10 +1021,10 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
             int removeCount = processedLetterIds.Count - MaxProcessedLetterIds;
             processedLetterIds.RemoveRange(0, removeCount);
-            RebuildRuntimeCaches();
+            Owner.RebuildRuntimeCaches();
         }
 
-        private int ResolveMaxStoredRecords()
+internal int ResolveMaxStoredRecords()
         {
             try
             {
@@ -912,7 +1045,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             }
         }
 
-        private void TryCompressOldWorldEvents(int tick)
+internal void TryCompressOldWorldEvents(int tick)
         {
             if (worldEvents == null || worldEvents.Count == 0)
             {
@@ -942,7 +1075,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 }
 
                 string original = record.Summary;
-                record.Summary = CompressWorldEventSummaryImmediate(record, currentTick);
+                record.Summary = Owner.CompressWorldEventSummaryImmediate(record, currentTick);
                 record.IsCompressed = true;
                 if (record.Summary != original)
                 {
@@ -956,7 +1089,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             }
         }
 
-        private void TryCompressRecordImmediate(WorldEventRecord record)
+internal void TryCompressRecordImmediate(WorldEventRecord record)
         {
             if (record == null || record.IsCompressed)
             {
@@ -981,11 +1114,11 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             }
 
             compressionThisTickCount++;
-            record.Summary = CompressWorldEventSummaryImmediate(record, currentTick);
+            record.Summary = Owner.CompressWorldEventSummaryImmediate(record, currentTick);
             record.IsCompressed = true;
         }
 
-        private string CompressWorldEventSummaryImmediate(WorldEventRecord record, int currentTick)
+internal string CompressWorldEventSummaryImmediate(WorldEventRecord record, int currentTick)
         {
             string text = record.Summary ?? string.Empty;
             if (text.Length <= MaxCompressedSummaryLength)
@@ -993,7 +1126,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 return text;
             }
 
-            string ageText = BuildRelativeTickText(record.OccurredTick, currentTick);
+            string ageText = Owner.BuildRelativeTickText(record.OccurredTick, currentTick);
             string type = string.IsNullOrWhiteSpace(record.EventType) ? "event" : record.EventType;
             string mapInfo = string.IsNullOrWhiteSpace(record.MapLabel) ? string.Empty : $" at {record.MapLabel}";
 
@@ -1002,7 +1135,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
 
             string trimmed = text.Trim();
             trimmed = trimmed.Replace("\n", " ").Replace("\r", " ").Trim();
-            trimmed = StripRedundantPhrases(trimmed);
+            trimmed = Owner.StripRedundantPhrases(trimmed);
 
             int maxContent = Math.Max(20, remaining);
             if (trimmed.Length <= maxContent)
@@ -1016,7 +1149,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
                 : result;
         }
 
-        private string StripRedundantPhrases(string text)
+internal string StripRedundantPhrases(string text)
         {
             string[] redundant = { "has been ", "was ", "is now ", "The colony ", "Your colony ", "The ", "Your " };
             string result = text;
@@ -1032,7 +1165,7 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return result.Trim();
         }
 
-        private string BuildRelativeTickText(int eventTick, int currentTick)
+internal string BuildRelativeTickText(int eventTick, int currentTick)
         {
             int diff = currentTick - eventTick;
             if (diff < 0)
@@ -1056,4 +1189,18 @@ namespace Ustas.RimAI.Communication.Relations.WorldState
             return days == 1 ? "1d ago" : $"{days}d ago";
         }
     }
+
+    internal sealed class WorldEventLedgerComponentParts
+    {
+        internal readonly WorldEventLedgerComponent Owner;
+        internal readonly WorldEventLedgerSlice1 Slice1;
+        internal readonly WorldEventLedgerSlice2 Slice2;
+        internal WorldEventLedgerComponentParts(WorldEventLedgerComponent owner)
+        {
+            Owner = owner;
+            Slice1 = new WorldEventLedgerSlice1(owner);
+            Slice2 = new WorldEventLedgerSlice2(owner);
+        }
+    }
+
 }

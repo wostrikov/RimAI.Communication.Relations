@@ -1,0 +1,30 @@
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
+
+namespace Ustas.RimAI.Communication.Relations.AI
+{
+    /// <summary>
+    /// Dependencies: GameAIInterface.
+    /// Responsibility: execute request_item_airdrop action in diplomacy dialogue pipeline.
+    /// </summary>
+        internal sealed class AIActionExecutorItemAirdrop : AIActionExecutorCollaborator
+    {
+        internal AIActionExecutorItemAirdrop(AIActionExecutor owner) : base(owner)
+        {
+        }
+
+
+        internal ActionResult ExecuteRequestItemAirdrop(AIAction action)
+        {
+            if (action?.Parameters == null)
+            {
+                return ActionResult.Failure("request_item_airdrop requires parameters.");
+            }
+
+            var result = gameInterface.RequestItemAirdrop(faction, action.Parameters);
+            return result.Success
+                ? ActionResult.Success(result.Message, result.Data)
+                : ActionResult.Failure(result.Message);
+        }
+        }
+
+}

@@ -22,61 +22,64 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
     /// <summary>/// Dependencies: AIChatServiceAsync, GameComponent_DiplomacyManager, Verse.GameComponent.
  /// Responsibility: End-to-end orchestration for NPC proactive dialogue triggers, queueing, generation and delivery.
  ///</summary>
-    public partial class GameComponent_NpcDialoguePushManager : GameComponent
+    public class GameComponent_NpcDialoguePushManager : GameComponent
     {
-        private sealed class PendingGenerationContext
+        internal GameComponent_NpcDialoguePushManagerParts Parts;
+
+        internal sealed class PendingGenerationContext
         {
             public NpcDialogueTriggerContext Context;
             public List<ChatMessageData> Messages;
             public int Attempt;
         }
 
-        private const int TickPerHour = 2500;
-        private const int TickPerDay = 60000;
-        private const int RegularEvaluationInterval = 36000;
-        private const int QueueProcessInterval = 600;
-        private const int IncomingDrainInterval = 120;
-        private const int ClickWindowTicks = 360;
-        private const int ClickBusyThreshold = 12;
-        private const int CausalMinDelayTicks = 250;
-        private const int CausalMaxDelayTicks = 1000;
-        private const int RecentInteractionWindowTicks = TickPerDay * 7;
-        private const int DefaultGlobalDeliveryCooldownTicks = TickPerHour * 3;
-        private const int DefaultFactionCooldownMinTicks = TickPerDay * 3;
-        private const int DefaultFactionCooldownMaxTicks = TickPerDay * 7;
-        private const int CandidateCacheMaintenanceIntervalTicks = 15000;
-        private const int CandidateSessionSyncIntervalTicks = 30000;
-        private const int MaxCandidateFactions = 20;
-        private const int SnapshotRetryDelayTicks = 250;
+        internal const int TickPerHour = 2500;
+        internal const int TickPerDay = 60000;
+        internal const int RegularEvaluationInterval = 36000;
+        internal const int QueueProcessInterval = 600;
+        internal const int IncomingDrainInterval = 120;
+        internal const int ClickWindowTicks = 360;
+        internal const int ClickBusyThreshold = 12;
+        internal const int CausalMinDelayTicks = 250;
+        internal const int CausalMaxDelayTicks = 1000;
+        internal const int RecentInteractionWindowTicks = TickPerDay * 7;
+        internal const int DefaultGlobalDeliveryCooldownTicks = TickPerHour * 3;
+        internal const int DefaultFactionCooldownMinTicks = TickPerDay * 3;
+        internal const int DefaultFactionCooldownMaxTicks = TickPerDay * 7;
+        internal const int CandidateCacheMaintenanceIntervalTicks = 15000;
+        internal const int CandidateSessionSyncIntervalTicks = 30000;
+        internal const int MaxCandidateFactions = 20;
+        internal const int SnapshotRetryDelayTicks = 250;
 
         public static GameComponent_NpcDialoguePushManager Instance;
 
-        private List<FactionNpcPushState> factionPushStates = new List<FactionNpcPushState>();
-        private Dictionary<Faction, FactionNpcPushState> factionPushStatesByFaction = new Dictionary<Faction, FactionNpcPushState>();
-        private List<QueuedNpcDialogueTrigger> queuedTriggers = new List<QueuedNpcDialogueTrigger>();
+        internal List<FactionNpcPushState> factionPushStates = new List<FactionNpcPushState>();
+        internal Dictionary<Faction, FactionNpcPushState> factionPushStatesByFaction = new Dictionary<Faction, FactionNpcPushState>();
+        internal List<QueuedNpcDialogueTrigger> queuedTriggers = new List<QueuedNpcDialogueTrigger>();
 
-        private readonly Queue<NpcDialogueTriggerContext> incomingTriggers = new Queue<NpcDialogueTriggerContext>();
-        private readonly Dictionary<string, PendingGenerationContext> pendingRequests = new Dictionary<string, PendingGenerationContext>();
-        private readonly HashSet<Faction> factionsWithPendingRequests = new HashSet<Faction>();
-        private readonly HashSet<Faction> factionsInQueue = new HashSet<Faction>();
-        private readonly Queue<int> clickTicks = new Queue<int>();
-        private readonly HashSet<Faction> activeCandidateFactions = new HashSet<Faction>();
-        private readonly List<Faction> _reusableCandidateResults = new List<Faction>();
-        private readonly Dictionary<Faction, int> candidateTouchTicks = new Dictionary<Faction, int>();
-        private readonly List<int> globalDeliveryTicks = new List<int>();
-        private readonly Dictionary<int, List<int>> factionDeliveryTicks = new Dictionary<int, List<int>>();
-        private int globalDeliveryOldestInWindow;
-        private int lastGlobalDeliveredTick = -DefaultGlobalDeliveryCooldownTicks;
-        private const int FactionWindowMaxMessages = 2;
-        private const int SystemPromptCacheTtlTicks = 3000;
-        private readonly Dictionary<string, (int builtTick, string prompt)> _systemPromptCache =
+        internal readonly Queue<NpcDialogueTriggerContext> incomingTriggers = new Queue<NpcDialogueTriggerContext>();
+        internal readonly Dictionary<string, PendingGenerationContext> pendingRequests = new Dictionary<string, PendingGenerationContext>();
+        internal readonly HashSet<Faction> factionsWithPendingRequests = new HashSet<Faction>();
+        internal readonly HashSet<Faction> factionsInQueue = new HashSet<Faction>();
+        internal readonly Queue<int> clickTicks = new Queue<int>();
+        internal readonly HashSet<Faction> activeCandidateFactions = new HashSet<Faction>();
+        internal readonly List<Faction> _reusableCandidateResults = new List<Faction>();
+        internal readonly Dictionary<Faction, int> candidateTouchTicks = new Dictionary<Faction, int>();
+        internal readonly List<int> globalDeliveryTicks = new List<int>();
+        internal readonly Dictionary<int, List<int>> factionDeliveryTicks = new Dictionary<int, List<int>>();
+        internal int globalDeliveryOldestInWindow;
+        internal int lastGlobalDeliveredTick = -DefaultGlobalDeliveryCooldownTicks;
+        internal const int FactionWindowMaxMessages = 2;
+        internal const int SystemPromptCacheTtlTicks = 3000;
+        internal readonly Dictionary<string, (int builtTick, string prompt)> _systemPromptCache =
             new Dictionary<string, (int builtTick, string prompt)>();
-        private const int FactionWindowTicks = 60000;
-        private int lastCandidateCacheMaintenanceTick;
-        private int lastCandidateSessionSyncTick;
+        internal const int FactionWindowTicks = 60000;
+        internal int lastCandidateCacheMaintenanceTick;
+        internal int lastCandidateSessionSyncTick;
 
         public GameComponent_NpcDialoguePushManager(Game game) : base()
         {
+            Parts = new GameComponent_NpcDialoguePushManagerParts(this);
             Instance = this;
         }
 
@@ -173,1426 +176,226 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
             }
         }
 
-        public void RegisterLowQualityTradeTrigger(Faction faction, int lowQualityCount, QualityCategory worstQuality)
-        {
-            if (!IsValidTargetFaction(faction) || lowQualityCount <= 0)
-            {
-                return;
-            }
+        
 
-            int severity = worstQuality <= QualityCategory.Awful ? 3 : 2;
-            string reason = $"low_quality_trade:{lowQualityCount}:{worstQuality}";
-            EnqueueIncoming(new NpcDialogueTriggerContext
-            {
-                Faction = faction,
-                TriggerType = NpcDialogueTriggerType.Causal,
-                Category = NpcDialogueCategory.WarningThreat,
-                SourceTag = "trade_quality",
-                Severity = severity,
-                Reason = reason,
-                CreatedTick = Find.TickManager?.TicksGame ?? 0
-            });
-        }
-
-        public void RegisterGoodwillShiftTrigger(Faction faction, int goodwillDelta, string reason, bool likelyHostile)
-        {
-            if (!IsValidTargetFaction(faction) || Math.Abs(goodwillDelta) < 10)
-            {
-                return;
-            }
-
-            NpcDialogueCategory category = goodwillDelta < 0
-                ? NpcDialogueCategory.WarningThreat
-                : NpcDialogueCategory.DiplomacyTask;
-            int severity = likelyHostile ? 3 : (goodwillDelta < 0 ? 2 : 1);
-
-            EnqueueIncoming(new NpcDialogueTriggerContext
-            {
-                Faction = faction,
-                TriggerType = NpcDialogueTriggerType.Causal,
-                Category = category,
-                SourceTag = "goodwill_shift",
-                Severity = severity,
-                Reason = reason ?? string.Empty,
-                CreatedTick = Find.TickManager?.TicksGame ?? 0,
-                GoodwillDelta = goodwillDelta
-            });
-
-            if (goodwillDelta < 0)
-            {
-                AccumulateGoodwillLoss(faction, goodwillDelta);
-            }
-        }
+        
 
         /// <summary>/// 注册自定义触发器（用于袭击消息等场景）
         ///</summary>
-        public void RegisterCustomTrigger(NpcDialogueTriggerContext context)
-        {
-            if (context == null || context.Faction == null)
-            {
-                return;
-            }
-            EnqueueIncoming(context);
-        }
+        
 
-        private void AccumulateGoodwillLoss(Faction faction, int goodwillDelta)
-        {
-            if (faction == null)
-            {
-                return;
-            }
+        
 
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            FactionNpcPushState state = GetOrCreateState(faction);
+        
 
-            if (currentTick - state.lastGoodwillLossRecordTick > TickPerDay)
-            {
-                state.accumulatedGoodwillLossLastDay = 0;
-            }
+        
 
-            state.accumulatedGoodwillLossLastDay += Math.Abs(goodwillDelta);
-            state.lastGoodwillLossRecordTick = currentTick;
-        }
+        
 
-        public bool DebugForceRandomProactiveDialogue()
-        {
-            if (Current.ProgramState != ProgramState.Playing || Find.FactionManager == null || Find.TickManager == null)
-            {
-                return false;
-            }
-            if (!AIChatServiceAsync.Instance.IsConfigured())
-            {
-                return false;
-            }
+        
 
-            List<Faction> candidates = Find.FactionManager.AllFactions
-                .Where(IsValidTargetFaction)
-                .ToList();
-            if (candidates.Count == 0)
-            {
-                return false;
-            }
+        
 
-            Faction faction = candidates.RandomElement();
-            var category = (NpcDialogueCategory)Rand.RangeInclusive(0, 1);
-            int severity = category == NpcDialogueCategory.WarningThreat ? Rand.RangeInclusive(1, 3) : 1;
-            var context = new NpcDialogueTriggerContext
-            {
-                Faction = faction,
-                TriggerType = NpcDialogueTriggerType.Causal,
-                Category = category,
-                SourceTag = "debug_force",
-                Reason = "manual_debug_trigger",
-                Severity = severity,
-                CreatedTick = Find.TickManager.TicksGame,
-                BypassRateLimit = true,
-                BypassCategoryGate = true,
-                BypassPlayerBusyGate = true
-            };
+        
 
-            GetOrCreateState(faction).lastInteractionTick = context.CreatedTick;
-            HandleTriggerContext(context, context.CreatedTick);
-            return true;
-        }
+        
 
-        private void EnqueueIncoming(NpcDialogueTriggerContext context)
-        {
-            if (context == null || context.Faction == null)
-            {
-                return;
-            }
+        
 
-            incomingTriggers.Enqueue(context);
-        }
+        
 
-        private void DrainIncomingTriggers(int currentTick)
-        {
-            int safeguard = 0;
-            while (incomingTriggers.Count > 0 && safeguard++ < 200)
-            {
-                NpcDialogueTriggerContext context = incomingTriggers.Dequeue();
-                HandleTriggerContext(context, currentTick);
-            }
-        }
+        
 
-        private void HandleTriggerContext(NpcDialogueTriggerContext context, int currentTick)
-        {
-            if (context == null || !IsValidTargetFaction(context.Faction))
-            {
-                return;
-            }
-            if (context.Category == NpcDialogueCategory.WarningThreat && !context.BypassCategoryGate)
-            {
-                return;
-            }
+        
 
-            FactionNpcPushState state = GetOrCreateState(context.Faction);
-            state.lastInteractionTick = currentTick;
-            MarkFactionCandidate(context.Faction, currentTick);
-            if (context.GoodwillDelta <= -10f)
-            {
-                state.lastNegativeSpikeTick = currentTick;
-            }
+        
 
-            int dueTick = currentTick;
-            if (context.TriggerType == NpcDialogueTriggerType.Causal)
-            {
-                dueTick += Rand.RangeInclusive(CausalMinDelayTicks, CausalMaxDelayTicks);
-            }
+        
 
-            if (IsFactionPending(context.Faction))
-            {
-                dueTick = Math.Max(dueTick, currentTick + 300);
-            }
+        
 
-            if (ShouldRespectCooldown(context, currentTick))
-            {
-                dueTick = Math.Max(dueTick, state.nextAllowedTick);
-                LogThrottleDebug($"faction_cooldown gate: faction={context.Faction?.Name}, due={dueTick}, now={currentTick}");
-            }
+        
 
-            if (!context.BypassRateLimit)
-            {
-                int globalNextAllowedTick = GetGlobalNextAllowedTick(currentTick);
-                dueTick = Math.Max(dueTick, globalNextAllowedTick);
-                if (globalNextAllowedTick > currentTick)
-                {
-                    LogThrottleDebug($"global_cooldown gate: faction={context.Faction?.Name}, due={globalNextAllowedTick}, now={currentTick}");
-                }
+        
 
-                if (IsGlobalWindowLimitReached(currentTick))
-                {
-                    int windowNextTick = GetGlobalWindowNextAvailableTick(currentTick);
-                    dueTick = Math.Max(dueTick, windowNextTick);
-                    LogThrottleDebug($"global_window gate: faction={context.Faction?.Name}, due={windowNextTick}, now={currentTick}");
-                }
-            }
+        
 
-            if (IsFactionWindowFull(context.Faction, currentTick))
-            {
-                dueTick = Math.Max(dueTick, currentTick + FactionWindowTicks / FactionWindowMaxMessages);
-                LogThrottleDebug($"faction_window gate: faction={context.Faction?.Name}");
-            }
+        
 
-            int reinitiateRemainingTicks = context.BypassRateLimit
-                ? 0
-                : GetReinitiateCooldownRemainingTicks(context.Faction, currentTick);
-            if (reinitiateRemainingTicks > 0)
-            {
-                dueTick = Math.Max(dueTick, currentTick + reinitiateRemainingTicks);
-            }
+        
 
-            bool bypassBusyGate = context.BypassRateLimit || context.BypassPlayerBusyGate;
-            if ((!bypassBusyGate && IsPlayerBusy()) || IsFactionUnavailable(context.Faction))
-            {
-                dueTick = Math.Max(dueTick, currentTick + 300);
-            }
-
-            if (dueTick <= currentTick)
-            {
-                StartGeneration(context);
-                return;
-            }
-
-            QueueTrigger(context, dueTick, currentTick);
-        }
-
-        private void ProcessQueuedTriggers(int currentTick)
-        {
-            CleanupExpiredQueue(currentTick);
-
-            int dueCount = 0;
-            for (int i = 0; i < queuedTriggers.Count; i++)
-            {
-                if (queuedTriggers[i]?.dueTick <= currentTick) dueCount++;
-            }
-
-            if (dueCount > 1)
-            {
-                queuedTriggers.Sort((a, b) => (a?.dueTick ?? 0).CompareTo(b?.dueTick ?? 0));
-            }
-
-            int processed = 0;
-            for (int i = queuedTriggers.Count - 1; i >= 0; i--)
-            {
-                if (processed >= 3) break;
-                var item = queuedTriggers[i];
-                if (item == null || item.dueTick > currentTick) continue;
-
-                if (!IsValidTargetFaction(item.faction))
-                {
-                    queuedTriggers.RemoveAt(i);
-                    factionsInQueue.Remove(item.faction);
-                    continue;
-                }
-
-                NpcDialogueTriggerContext context = item.ToContext();
-                if (IsFactionPending(context.Faction))
-                {
-                    continue;
-                }
-
-                bool bypassBusyGate = context.BypassRateLimit || context.BypassPlayerBusyGate;
-                if ((!bypassBusyGate && IsPlayerBusy()) || IsFactionUnavailable(context.Faction))
-                {
-                    int busyDelayTicks = 600;
-                    item.dueTick = currentTick + busyDelayTicks;
-                    int extendBy = busyDelayTicks + TickPerHour;
-                    item.expireTick = Math.Max(item.expireTick, currentTick + extendBy);
-                    LogThrottleDebug($"queue busy defer: faction={context.Faction?.Name}, newDue={item.dueTick}, newExpire={item.expireTick}");
-                    continue;
-                }
-
-                if (ShouldRespectCooldown(context, currentTick))
-                {
-                    FactionNpcPushState state = GetOrCreateState(context.Faction);
-                    item.dueTick = Math.Max(item.dueTick, state.nextAllowedTick);
-                    LogThrottleDebug($"queue faction_cooldown gate: faction={context.Faction?.Name}, due={item.dueTick}, now={currentTick}");
-                    continue;
-                }
-
-                if (!context.BypassRateLimit)
-                {
-                    int globalNextAllowedTick = GetGlobalNextAllowedTick(currentTick);
-                    if (globalNextAllowedTick > currentTick)
-                    {
-                        item.dueTick = Math.Max(item.dueTick, globalNextAllowedTick);
-                        LogThrottleDebug($"queue global_cooldown gate: faction={context.Faction?.Name}, due={item.dueTick}, now={currentTick}");
-                        continue;
-                    }
-
-                    if (IsGlobalWindowLimitReached(currentTick))
-                    {
-                        int windowNextTick = GetGlobalWindowNextAvailableTick(currentTick);
-                        item.dueTick = Math.Max(item.dueTick, windowNextTick);
-                        LogThrottleDebug($"queue global_window gate: faction={context.Faction?.Name}, due={item.dueTick}, now={currentTick}");
-                        continue;
-                    }
-                }
-
-                int reinitiateRemainingTicks = context.BypassRateLimit
-                    ? 0
-                    : GetReinitiateCooldownRemainingTicks(context.Faction, currentTick);
-                if (reinitiateRemainingTicks > 0)
-                {
-                    item.dueTick = Math.Max(item.dueTick, currentTick + reinitiateRemainingTicks);
-                    continue;
-                }
-
-                queuedTriggers.RemoveAt(i);
-                factionsInQueue.Remove(item.faction);
-                StartGeneration(context);
-                processed++;
-            }
-        }
-
-        private void EvaluateRegularTriggers(int currentTick)
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings == null || !settings.EnableNpcInitiatedDialogue)
-            {
-                return;
-            }
-
-            float chance = GetRegularTriggerChance(settings.NpcPushFrequencyMode);
-            List<Faction> candidates = GetActiveCandidateFactions(currentTick);
-            foreach (Faction faction in candidates)
-            {
-                if (Rand.Value > chance || IsFactionPending(faction))
-                {
-                    continue;
-                }
-
-                var context = BuildRegularTrigger(faction, currentTick);
-                if (context == null || ShouldRespectCooldown(context, currentTick))
-                {
-                    continue;
-                }
-
-                HandleTriggerContext(context, currentTick);
-            }
-        }
-
-        private NpcDialogueTriggerContext BuildRegularTrigger(Faction faction, int currentTick)
-        {
-            if (!IsValidTargetFaction(faction))
-            {
-                return null;
-            }
-
-            int goodwill = faction.PlayerGoodwill;
-            NpcDialogueCategory category;
-            NpcDialogueTriggerType triggerType;
-            int severity = 1;
-            string reason = "regular_check";
-
-            if (goodwill <= -40)
-            {
-                return null;
-            }
-            else if (goodwill >= 40)
-            {
-                category = NpcDialogueCategory.DiplomacyTask;
-                triggerType = NpcDialogueTriggerType.Conditional;
-                reason = "friendly_relationship";
-            }
-            else
-            {
-                category = NpcDialogueCategory.Social;
-                triggerType = NpcDialogueTriggerType.Ambient;
-                reason = "ambient_social";
-            }
-
-            return new NpcDialogueTriggerContext
-            {
-                Faction = faction,
-                TriggerType = triggerType,
-                Category = category,
-                Severity = severity,
-                Reason = reason,
-                SourceTag = "regular",
-                CreatedTick = currentTick
-            };
-        }
-
-        private void StartGeneration(NpcDialogueTriggerContext context)
-        {
-            if (context == null || !IsValidTargetFaction(context.Faction))
-            {
-                return;
-            }
-
-            if (!AIChatServiceAsync.Instance.IsConfigured())
-            {
-                Log.Warning($"[RimAI.Relations] Proactive push dropped (AI not configured): {context.Faction.Name}");
-                return;
-            }
-
-            if (!TryGetPromptRuntimeSnapshotOrDefer(context, out DiplomacyPromptRuntimeSnapshot runtimeSnapshot))
-            {
-                return;
-            }
-
-            // Defer prompt building to a coroutine to avoid blocking GameComponentTick
-            AIChatServiceAsync.Instance.StartCoroutine(BuildAndSendRoutine(context, runtimeSnapshot));
-        }
-
-        private IEnumerator BuildAndSendRoutine(NpcDialogueTriggerContext context, DiplomacyPromptRuntimeSnapshot runtimeSnapshot)
-        {
-            yield return null; // Defer to next frame
-
-            if (context == null || !IsValidTargetFaction(context.Faction))
-                yield break;
-
-            if (!AIChatServiceAsync.Instance.IsConfigured())
-                yield break;
-
-            // Use cached system prompt when available; snapshot revisions ensure freshness
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            List<string> sceneTags = BuildProactiveSceneTags(context?.Category ?? NpcDialogueCategory.Social);
-            string cacheKey = $"{context.Faction.loadID}:{string.Join(",", sceneTags)}:r{currentTick / 1500}";
-            string basePrompt;
-
-            if (_systemPromptCache.TryGetValue(cacheKey, out var entry) &&
-                currentTick - entry.builtTick < SystemPromptCacheTtlTicks)
-            {
-                basePrompt = entry.prompt;
-            }
-            else
-            {
-                PromptPersistenceService.Instance.Initialize();
-                basePrompt = PromptPersistenceService.Instance.BuildFullSystemPrompt(
-                    context.Faction,
-                    PromptPersistenceService.Instance.LoadConfig(),
-                    true,
-                    sceneTags,
-                    runtimeSnapshot);
-                _systemPromptCache[cacheKey] = (currentTick, basePrompt);
-            }
-
-            List<ChatMessageData> messages = BuildGenerationMessagesWithPrompt(context, runtimeSnapshot, basePrompt, sceneTags);
-
-            string requestId = string.Empty;
-            requestId = AIChatServiceAsync.Instance.SendChatRequestAsync(
-                messages,
-                onSuccess: response => OnGenerationSuccess(requestId, response),
-                onError: error => OnGenerationError(requestId, error),
-                usageChannel: DialogueUsageChannel.Diplomacy,
-                debugSource: AIRequestDebugSource.NpcPush);
-
-            if (string.IsNullOrEmpty(requestId))
-                yield break;
-
-            pendingRequests[requestId] = new PendingGenerationContext
-            {
-                Context = context,
-                Messages = messages,
-                Attempt = 1
-            };
-            factionsWithPendingRequests.Add(context.Faction);
-        }
-
-        private void OnGenerationSuccess(string requestId, string response)
-        {
-            if (string.IsNullOrEmpty(requestId) || !pendingRequests.TryGetValue(requestId, out PendingGenerationContext pending))
-            {
-                return;
-            }
-
-            pendingRequests.Remove(requestId);
-            UpdatePendingFactionIndex(pending.Context?.Faction);
-            string message = SanitizeModelOutput(response);
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                if (TryDeliverFallbackMessage(pending.Context))
-                {
-                    return;
-                }
-
-                Log.Warning("[RimAI.Relations] Proactive push generation empty after sanitize.");
-                return;
-            }
-
-            DeliverMessage(pending.Context, message);
-        }
-
-        private void OnGenerationError(string requestId, string error)
-        {
-            if (string.IsNullOrEmpty(requestId) || !pendingRequests.TryGetValue(requestId, out PendingGenerationContext pending))
-            {
-                return;
-            }
-
-            pendingRequests.Remove(requestId);
-            UpdatePendingFactionIndex(pending.Context?.Faction);
-            if (pending.Attempt < 2 && AIChatServiceAsync.Instance.IsConfigured())
-            {
-                RetryGeneration(pending);
-                return;
-            }
-
-            if (TryDeliverFallbackMessage(pending.Context))
-            {
-                return;
-            }
-
-            Log.Warning($"[RimAI.Relations] Proactive push dropped after retry: {error}");
-        }
-
-        private void RetryGeneration(PendingGenerationContext pending)
-        {
-            string retryId = string.Empty;
-            retryId = AIChatServiceAsync.Instance.SendChatRequestAsync(
-                pending.Messages,
-                onSuccess: response => OnGenerationSuccess(retryId, response),
-                onError: error => OnGenerationError(retryId, error),
-                usageChannel: DialogueUsageChannel.Diplomacy,
-                debugSource: AIRequestDebugSource.NpcPush);
-
-            if (string.IsNullOrEmpty(retryId))
-            {
-                return;
-            }
-
-            pendingRequests[retryId] = new PendingGenerationContext
-            {
-                Context = pending.Context,
-                Messages = pending.Messages,
-                Attempt = pending.Attempt + 1
-            };
-            factionsWithPendingRequests.Add(pending.Context.Faction);
-        }
-
-        private void UpdatePendingFactionIndex(Faction faction)
-        {
-            if (faction == null)
-            {
-                return;
-            }
-
-            foreach (var pair in pendingRequests)
-            {
-                if (pair.Value?.Context?.Faction == faction)
-                {
-                    return;
-                }
-            }
-
-            factionsWithPendingRequests.Remove(faction);
-        }
-
-        private bool TryGetPromptRuntimeSnapshotOrDefer(
-            NpcDialogueTriggerContext context,
-            out DiplomacyPromptRuntimeSnapshot snapshot)
-        {
-            snapshot = null;
-            Faction faction = context?.Faction;
-            if (!IsValidTargetFaction(faction))
-            {
-                return false;
-            }
-
-            IDiplomacyPromptSnapshotCache cache = DiplomacyPromptSnapshotCache.Instance;
-            cache.RequestWarmup(faction, "npc_push_generation");
-            if (cache.TryGetSnapshot(faction, out snapshot))
-            {
-                return true;
-            }
-
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            if (currentTick > 0)
-            {
-                QueueTrigger(context, currentTick + SnapshotRetryDelayTicks, currentTick);
-            }
-            return false;
-        }
-
-        private void DeliverMessage(NpcDialogueTriggerContext context, string text)
-        {
-            if (context == null || !IsValidTargetFaction(context.Faction))
-            {
-                return;
-            }
-
-            GameComponent_DiplomacyManager.Instance?.ForcePresenceOnlineForNpcInitiated(context.Faction);
-
-            AddMessageToSession(context.Faction, text);
-            if (!ChoiceLetter_NpcInitiatedDialogue.IsDialogueAlreadyOpen(context.Faction))
-            {
-                SendProactiveLetter(context, text);
-            }
-
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            FactionNpcPushState state = GetOrCreateState(context.Faction);
-            state.lastPushTick = currentTick;
-            state.lastInteractionTick = currentTick;
-            MarkFactionCandidate(context.Faction, currentTick);
-            RecordFactionDelivery(context.Faction, currentTick);
-            if (!context.BypassRateLimit)
-            {
-                state.nextAllowedTick = currentTick + Rand.RangeInclusive(GetFactionCooldownMinTicks(), GetFactionCooldownMaxTicks());
-                lastGlobalDeliveredTick = currentTick;
-                globalDeliveryTicks.Add(currentTick);
-                if (currentTick < globalDeliveryOldestInWindow)
-                    globalDeliveryOldestInWindow = currentTick;
-            }
-        }
-
-        private void AddMessageToSession(Faction faction, string text)
-        {
-            var diplomacyManager = GameComponent_DiplomacyManager.Instance;
-            if (diplomacyManager == null || faction == null || string.IsNullOrWhiteSpace(text))
-            {
-                return;
-            }
-
-            string sender = faction.leader?.Name?.ToStringShort ?? faction.Name ?? "Unknown";
-            diplomacyManager.HandleInboundFactionMessage(
-                faction,
-                sender,
-                text,
-                DialogueMessageType.Normal,
-                faction.leader,
-                markUnread: true,
-                forcePresenceOnline: true);
-        }
-
-        private void SendProactiveLetter(NpcDialogueTriggerContext context, string text)
-        {
-            TaggedString title = GetLetterTitle(context);
-            LetterDef def = GetLetterDef(context);
-            var letter = new ChoiceLetter_NpcInitiatedDialogue();
-            letter.AssignLoadID();
-            letter.Setup(context.Faction, title, text, def);
-            Find.LetterStack.ReceiveLetter(letter, string.Empty, 0, true);
-        }
-
-        private TaggedString GetLetterTitle(NpcDialogueTriggerContext context)
-        {
-            string key = context.Category switch
-            {
-                NpcDialogueCategory.DiplomacyTask => "RimChat_NpcPush_TitleTask",
-                NpcDialogueCategory.WarningThreat => "RimChat_NpcPush_TitleWarning",
-                _ => "RimChat_NpcPush_TitleSocial"
-            };
-            return key.Translate(context.Faction?.Name ?? "Unknown");
-        }
-
-        private LetterDef GetLetterDef(NpcDialogueTriggerContext context)
-        {
-            if (context.Category == NpcDialogueCategory.WarningThreat)
-            {
-                return context.Severity >= 3 ? LetterDefOf.ThreatBig : LetterDefOf.ThreatSmall;
-            }
-
-            return context.Category == NpcDialogueCategory.DiplomacyTask
-                ? LetterDefOf.PositiveEvent
-                : LetterDefOf.NeutralEvent;
-        }
-
-        private List<ChatMessageData> BuildGenerationMessages(
-            NpcDialogueTriggerContext context,
-            DiplomacyPromptRuntimeSnapshot runtimeSnapshot)
-        {
-            var messages = new List<ChatMessageData>();
-            PromptPersistenceService.Instance.Initialize();
-            List<string> sceneTags = BuildProactiveSceneTags(context?.Category ?? NpcDialogueCategory.Social);
-            string basePrompt = PromptPersistenceService.Instance.BuildFullSystemPrompt(
-                context.Faction,
-                PromptPersistenceService.Instance.LoadConfig(),
-                true,
-                sceneTags,
-                runtimeSnapshot);
-            messages.Add(new ChatMessageData { role = "system", content = basePrompt });
-            AppendRecentSessionContext(messages, context.Faction);
-
-            string categoryText = context.Category switch
-            {
-                NpcDialogueCategory.DiplomacyTask => "diplomacy_or_task",
-                NpcDialogueCategory.WarningThreat => "warning_or_threat",
-                _ => "casual_social"
-            };
-
-            string userPrompt =
-                $"Generate one proactive diplomacy message now.\n" +
-                $"Category: {categoryText}\n" +
-                $"TriggerType: {context.TriggerType}\n" +
-                $"Reason: {context.Reason}\n" +
-                $"Severity: {context.Severity}\n";
-
-            int rapidDeclineLoss = GetAccumulatedGoodwillLoss(context.Faction);
-            if (rapidDeclineLoss > 30)
-            {
-                userPrompt += $"\n[DynamicOverride] {rapidDeclineLoss} points of goodwill lost in recent days. The faction's attitude toward the player has deteriorated significantly, making them more inclined to initiate hostile actions or even raids.\n";
-            }
-
-            messages.Add(new ChatMessageData { role = "user", content = userPrompt });
-            AppendManualSocialPostPrompt(messages, context);
-            return messages;
-        }
+        
 
         // Overload that uses a pre-built (potentially cached) system prompt
-        private List<ChatMessageData> BuildGenerationMessagesWithPrompt(
-            NpcDialogueTriggerContext context,
-            DiplomacyPromptRuntimeSnapshot runtimeSnapshot,
-            string basePrompt,
-            List<string> sceneTags)
-        {
-            var messages = new List<ChatMessageData>();
-            messages.Add(new ChatMessageData { role = "system", content = basePrompt });
-            AppendRecentSessionContext(messages, context.Faction);
+        
 
-            string categoryText = context.Category switch
-            {
-                NpcDialogueCategory.DiplomacyTask => "diplomacy_or_task",
-                NpcDialogueCategory.WarningThreat => "warning_or_threat",
-                _ => "casual_social"
-            };
+        
 
-            string userPrompt =
-                $"Generate one proactive diplomacy message now.\n" +
-                $"Category: {categoryText}\n" +
-                $"TriggerType: {context.TriggerType}\n" +
-                $"Reason: {context.Reason}\n" +
-                $"Severity: {context.Severity}\n";
+        
 
-            int rapidDeclineLoss = GetAccumulatedGoodwillLoss(context.Faction);
-            if (rapidDeclineLoss > 30)
-            {
-                userPrompt += $"\n[DynamicOverride] {rapidDeclineLoss} points of goodwill lost in recent days. The faction's attitude toward the player has deteriorated significantly, making them more inclined to initiate hostile actions or even raids.\n";
-            }
+        
 
-            messages.Add(new ChatMessageData { role = "user", content = userPrompt });
-            AppendManualSocialPostPrompt(messages, context);
-            return messages;
-        }
+        
 
-        private int GetAccumulatedGoodwillLoss(Faction faction)
-        {
-            if (faction == null)
-            {
-                return 0;
-            }
+        
 
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            FactionNpcPushState state = GetOrCreateState(faction);
+        
 
-            if (currentTick - state.lastGoodwillLossRecordTick > TickPerDay)
-            {
-                return 0;
-            }
+        
 
-            return state.accumulatedGoodwillLossLastDay;
-        }
+        
 
-        private List<string> BuildProactiveSceneTags(NpcDialogueCategory category)
-        {
-            var tags = new List<string>();
-            switch (category)
-            {
-                case NpcDialogueCategory.DiplomacyTask:
-                    tags.Add("scene:task");
-                    break;
-                case NpcDialogueCategory.WarningThreat:
-                    tags.Add("scene:threat");
-                    break;
-                default:
-                    tags.Add("scene:social");
-                    break;
-            }
+        
 
-            return tags;
-        }
+        
 
-        private void AppendRecentSessionContext(List<ChatMessageData> messages, Faction faction)
-        {
-            if (messages == null || faction == null)
-            {
-                return;
-            }
+        
 
-            FactionDialogueSession session = GameComponent_DiplomacyManager.Instance?.GetSession(faction);
-            if (session?.messages == null || session.messages.Count == 0)
-            {
-                return;
-            }
+        
 
-            int start = Math.Max(0, session.messages.Count - 4);
-            for (int i = start; i < session.messages.Count; i++)
-            {
-                DialogueMessageData msg = session.messages[i];
-                messages.Add(new ChatMessageData
-                {
-                    role = msg.isPlayer ? "user" : "assistant",
-                    content = msg.message ?? string.Empty
-                });
-            }
-        }
+        
 
-        private string SanitizeModelOutput(string output)
-        {
-            if (string.IsNullOrWhiteSpace(output))
-            {
-                return string.Empty;
-            }
+        
 
-            DialogueResponseEnvelope envelope = DialogueResponseEnvelopeParser.Parse(output, DialogueUsageChannel.Diplomacy);
-            if (!envelope.IsValid)
-            {
-                Log.Warning($"[RimAI.Relations] NPC push envelope parse failed: reason={envelope.FailureReason}. Dropping raw output.");
-                return string.Empty;
-            }
-            string cleaned = envelope.VisibleDialogue;
-            string merged = string.Join(" ", (cleaned ?? string.Empty)
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrEmpty(s)));
-            if (string.IsNullOrWhiteSpace(merged))
-            {
-                return string.Empty;
-            }
+        
 
-            int hardLimit = RelationsMod.Settings?.ProactiveMessageHardLimit ?? 0;
-            if (hardLimit > 0 && merged.Length > hardLimit)
-            {
-                merged = merged.Substring(0, hardLimit).TrimEnd();
-            }
+        
 
-            ImmersionGuardResult guardResult = ImmersionOutputGuard.ValidateVisibleDialogueParts(merged);
-            if (!guardResult.IsValid)
-            {
-                Log.Warning($"[RimAI.Relations] Immersion guard blocked NPC push text: reason={ImmersionOutputGuard.BuildViolationTag(guardResult.ViolationReason)}, snippet={guardResult.ViolationSnippet}");
-                return guardResult.VisibleDialogue;
-            }
+        
 
-            return guardResult.VisibleDialogue;
-        }
+        
 
-        private void QueueTrigger(NpcDialogueTriggerContext context, int dueTick, int nowTick)
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            int maxPerFaction = Mathf.Clamp(settings?.NpcQueueMaxPerFaction ?? 3, 1, 10);
-            int expireTicks = Mathf.RoundToInt((settings?.NpcQueueExpireHours ?? 12f) * TickPerHour);
-            expireTicks = Mathf.Max(expireTicks, TickPerHour);
+        
 
-            int sameFactionCount = 0;
-            QueuedNpcDialogueTrigger lowestPriority = null;
-            int lowestScore = int.MaxValue;
-            for (int i = 0; i < queuedTriggers.Count; i++)
-            {
-                var q = queuedTriggers[i];
-                if (q?.faction != context.Faction) continue;
-                sameFactionCount++;
-                int score = GetQueueItemPriority(q);
-                if (score < lowestScore)
-                {
-                    lowestScore = score;
-                    lowestPriority = q;
-                }
-            }
-
-            if (sameFactionCount >= maxPerFaction && lowestPriority != null)
-            {
-                queuedTriggers.Remove(lowestPriority);
-                if (!queuedTriggers.Exists(q => q != null && q.faction == lowestPriority.faction))
-                {
-                    factionsInQueue.Remove(lowestPriority.faction);
-                }
-                LogThrottleDebug($"queue evict lowest priority: faction={context.Faction?.Name}, evicted={lowestPriority.sourceTag}");
-            }
-
-            var item = QueuedNpcDialogueTrigger.FromContext(
-                context,
-                nowTick,
-                dueTick,
-                nowTick + expireTicks);
-            queuedTriggers.Add(item);
-            factionsInQueue.Add(context.Faction);
-            MarkFactionCandidate(context.Faction, nowTick);
-            LogThrottleDebug($"queue add: faction={context.Faction?.Name}, due={dueTick}, expire={nowTick + expireTicks}, reason={context.SourceTag}");
-        }
-
-        private static int GetQueueItemPriority(QueuedNpcDialogueTrigger item)
-        {
-            if (item == null) return 0;
-
-            int categoryScore = item.category switch
-            {
-                NpcDialogueCategory.WarningThreat => 100,
-                NpcDialogueCategory.DiplomacyTask => 50,
-                _ => 10
-            };
-
-            int severityScore = item.severity * 5;
-
-            return categoryScore + severityScore;
-        }
-
-        private void CleanupExpiredQueue(int currentTick)
-        {
-            var removedFactions = new HashSet<Faction>();
-            queuedTriggers.RemoveAll(q =>
-            {
-                if (q == null || q.faction == null || q.faction.defeated || q.expireTick <= currentTick)
-                {
-                    if (q?.faction != null) removedFactions.Add(q.faction);
-                    return true;
-                }
-                return false;
-            });
-
-            foreach (Faction f in removedFactions)
-            {
-                if (!queuedTriggers.Exists(q => q != null && q.faction == f))
-                {
-                    factionsInQueue.Remove(f);
-                }
-            }
-        }
-
-        public int CancelQueuedTriggersForFaction(Faction faction, string reason = "manual")
-        {
-            if (faction == null)
-            {
-                return 0;
-            }
-
-            int removed = queuedTriggers.RemoveAll(q => q != null && q.faction == faction);
-            if (removed > 0)
-            {
-                factionsInQueue.Remove(faction);
-                LogThrottleDebug($"queue clear: faction={faction.Name}, removed={removed}, reason={reason}");
-            }
-            return removed;
-        }
-
-        private bool ShouldRespectCooldown(NpcDialogueTriggerContext context, int currentTick)
-        {
-            if (context == null || context.Faction == null || CanBypassCooldown(context))
-            {
-                return false;
-            }
-
-            return GetOrCreateState(context.Faction).nextAllowedTick > currentTick;
-        }
-
-        private int GetReinitiateCooldownRemainingTicks(Faction faction, int currentTick)
-        {
-            if (faction == null)
-            {
-                return 0;
-            }
-
-            FactionDialogueSession session = GameComponent_DiplomacyManager.Instance?.GetSession(faction);
-            if (session == null || !session.isConversationEndedByNpc)
-            {
-                return 0;
-            }
-
-            return Math.Max(0, session.GetReinitiateRemainingTicks(currentTick));
-        }
-
-        private int GetGlobalNextAllowedTick(int currentTick)
-        {
-            if (lastGlobalDeliveredTick <= 0)
-            {
-                return currentTick;
-            }
-
-            return lastGlobalDeliveredTick + GetGlobalDeliveryCooldownTicks();
-        }
-
-        private bool IsGlobalWindowLimitReached(int currentTick)
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            int maxMessages = settings?.NpcGlobalMaxMessagesPerWindow ?? 3;
-            float windowHours = settings?.NpcGlobalWindowHours ?? 24f;
-            int windowTicks = Mathf.RoundToInt(windowHours * TickPerHour);
-
-            globalDeliveryOldestInWindow = int.MaxValue;
-            for (int i = globalDeliveryTicks.Count - 1; i >= 0; i--)
-            {
-                if (currentTick - globalDeliveryTicks[i] > windowTicks)
-                {
-                    globalDeliveryTicks.RemoveAt(i);
-                }
-                else if (globalDeliveryTicks[i] < globalDeliveryOldestInWindow)
-                {
-                    globalDeliveryOldestInWindow = globalDeliveryTicks[i];
-                }
-            }
-
-            return globalDeliveryTicks.Count >= maxMessages;
-        }
-
-        private int GetGlobalWindowNextAvailableTick(int currentTick)
-        {
-            if (globalDeliveryTicks.Count == 0)
-            {
-                return currentTick;
-            }
-
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            float windowHours = settings?.NpcGlobalWindowHours ?? 24f;
-            int windowTicks = Mathf.RoundToInt(windowHours * TickPerHour);
-
-            return globalDeliveryOldestInWindow + windowTicks;
-        }
-
-        private bool IsFactionWindowFull(Faction faction, int currentTick)
-        {
-            if (faction == null) return false;
-            int key = faction.loadID;
-            if (!factionDeliveryTicks.TryGetValue(key, out var ticks))
-            {
-                ticks = new List<int>();
-                factionDeliveryTicks[key] = ticks;
-            }
-            for (int i = ticks.Count - 1; i >= 0; i--)
-            {
-                if (currentTick - ticks[i] > FactionWindowTicks)
-                    ticks.RemoveAt(i);
-            }
-            return ticks.Count >= FactionWindowMaxMessages;
-        }
-
-        private void RecordFactionDelivery(Faction faction, int currentTick)
-        {
-            if (faction == null) return;
-            int key = faction.loadID;
-            if (!factionDeliveryTicks.TryGetValue(key, out var ticks))
-            {
-                ticks = new List<int>();
-                factionDeliveryTicks[key] = ticks;
-            }
-            ticks.Add(currentTick);
-        }
-
-        private bool CanBypassCooldown(NpcDialogueTriggerContext context)
-        {
-            if (context == null)
-            {
-                return false;
-            }
-
-            if (context.BypassRateLimit)
-            {
-                return true;
-            }
-
-            if (context.TriggerType == NpcDialogueTriggerType.Causal &&
-                context.Category == NpcDialogueCategory.WarningThreat &&
-                context.Severity >= 3)
-            {
-                int currentTick = Find.TickManager?.TicksGame ?? 0;
-                if (!IsBypassHardLimitReached(currentTick))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool IsBypassHardLimitReached(int currentTick)
-        {
-            const int bypassWindowHours = 6;
-            const int maxBypassPerWindow = 2;
-            int windowTicks = bypassWindowHours * TickPerHour;
-
-            int recentBypassCount = globalDeliveryTicks.Count(t => currentTick - t <= windowTicks);
-            return recentBypassCount >= maxBypassPerWindow;
-        }
-
-        private bool IsFactionUnavailable(Faction faction)
-        {
-            if (!IsValidTargetFaction(faction))
-            {
-                return true;
-            }
-
-            FactionPresenceStatus status = GameComponent_DiplomacyManager.Instance?.GetPresenceStatus(faction)
-                ?? FactionPresenceStatus.Online;
-            return status != FactionPresenceStatus.Online;
-        }
-
-        private bool IsValidTargetFaction(Faction faction)
-        {
-            if (faction == null) return false;
-            return !GameComponent_DiplomacyManager.ShouldExcludeFactionFromAI(faction);
-        }
-
-        private bool IsFactionPending(Faction faction)
+        internal bool IsFactionPending(Faction faction)
         {
             return faction != null && factionsWithPendingRequests.Contains(faction);
         }
 
-        private bool IsPlayerBusy()
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        #region Facade forwards
+        internal void AppendManualSocialPostPrompt(List<ChatMessageData> messages, NpcDialogueTriggerContext context) => Parts.ManualSocialPost.AppendManualSocialPostPrompt(messages, context);
+        internal static bool TryParseManualSocialPostReason(string reason, out string title, out string body) => NpcDialoguePushManagerManualSocialPost.TryParseManualSocialPostReason(reason, out title, out body);
+        #endregion
+    
+        #region Cluster forwards
+        public void RegisterLowQualityTradeTrigger(Faction faction, int lowQualityCount, QualityCategory worstQuality) => Parts.Slice1.RegisterLowQualityTradeTrigger(faction, lowQualityCount, worstQuality);
+        public void RegisterGoodwillShiftTrigger(Faction faction, int goodwillDelta, string reason, bool likelyHostile) => Parts.Slice1.RegisterGoodwillShiftTrigger(faction, goodwillDelta, reason, likelyHostile);
+        public void RegisterCustomTrigger(NpcDialogueTriggerContext context) => Parts.Slice1.RegisterCustomTrigger(context);
+        internal void AccumulateGoodwillLoss(Faction faction, int goodwillDelta) => Parts.Slice1.AccumulateGoodwillLoss(faction, goodwillDelta);
+        public bool DebugForceRandomProactiveDialogue() => Parts.Slice1.DebugForceRandomProactiveDialogue();
+        internal void EnqueueIncoming(NpcDialogueTriggerContext context) => Parts.Slice1.EnqueueIncoming(context);
+        internal void DrainIncomingTriggers(int currentTick) => Parts.Slice1.DrainIncomingTriggers(currentTick);
+        internal void HandleTriggerContext(NpcDialogueTriggerContext context, int currentTick) => Parts.Slice1.HandleTriggerContext(context, currentTick);
+        internal void ProcessQueuedTriggers(int currentTick) => Parts.Slice1.ProcessQueuedTriggers(currentTick);
+        internal void EvaluateRegularTriggers(int currentTick) => Parts.Slice1.EvaluateRegularTriggers(currentTick);
+        internal NpcDialogueTriggerContext BuildRegularTrigger(Faction faction, int currentTick) => Parts.Slice1.BuildRegularTrigger(faction, currentTick);
+        internal void StartGeneration(NpcDialogueTriggerContext context) => Parts.Slice1.StartGeneration(context);
+        internal IEnumerator BuildAndSendRoutine(NpcDialogueTriggerContext context, DiplomacyPromptRuntimeSnapshot runtimeSnapshot) => Parts.Slice2.BuildAndSendRoutine(context, runtimeSnapshot);
+        internal void OnGenerationSuccess(string requestId, string response) => Parts.Slice2.OnGenerationSuccess(requestId, response);
+        internal void OnGenerationError(string requestId, string error) => Parts.Slice2.OnGenerationError(requestId, error);
+        internal void RetryGeneration(PendingGenerationContext pending) => Parts.Slice2.RetryGeneration(pending);
+        internal void UpdatePendingFactionIndex(Faction faction) => Parts.Slice2.UpdatePendingFactionIndex(faction);
+        internal bool TryGetPromptRuntimeSnapshotOrDefer(NpcDialogueTriggerContext context, out DiplomacyPromptRuntimeSnapshot snapshot) => Parts.Slice2.TryGetPromptRuntimeSnapshotOrDefer(context, out snapshot);
+        internal void DeliverMessage(NpcDialogueTriggerContext context, string text) => Parts.Slice2.DeliverMessage(context, text);
+        internal void AddMessageToSession(Faction faction, string text) => Parts.Slice2.AddMessageToSession(faction, text);
+        internal void SendProactiveLetter(NpcDialogueTriggerContext context, string text) => Parts.Slice2.SendProactiveLetter(context, text);
+        internal TaggedString GetLetterTitle(NpcDialogueTriggerContext context) => Parts.Slice2.GetLetterTitle(context);
+        internal LetterDef GetLetterDef(NpcDialogueTriggerContext context) => Parts.Slice2.GetLetterDef(context);
+        internal List<ChatMessageData> BuildGenerationMessages(NpcDialogueTriggerContext context, DiplomacyPromptRuntimeSnapshot runtimeSnapshot) => Parts.Slice2.BuildGenerationMessages(context, runtimeSnapshot);
+        internal List<ChatMessageData> BuildGenerationMessagesWithPrompt(NpcDialogueTriggerContext context, DiplomacyPromptRuntimeSnapshot runtimeSnapshot, string basePrompt, List<string> sceneTags) => Parts.Slice2.BuildGenerationMessagesWithPrompt(context, runtimeSnapshot, basePrompt, sceneTags);
+        internal int GetAccumulatedGoodwillLoss(Faction faction) => Parts.Slice2.GetAccumulatedGoodwillLoss(faction);
+        internal List<string> BuildProactiveSceneTags(NpcDialogueCategory category) => Parts.Slice2.BuildProactiveSceneTags(category);
+        internal void AppendRecentSessionContext(List<ChatMessageData> messages, Faction faction) => Parts.Slice2.AppendRecentSessionContext(messages, faction);
+        internal string SanitizeModelOutput(string output) => Parts.Slice2.SanitizeModelOutput(output);
+        internal void QueueTrigger(NpcDialogueTriggerContext context, int dueTick, int nowTick) => Parts.Slice3.QueueTrigger(context, dueTick, nowTick);
+        internal static int GetQueueItemPriority(QueuedNpcDialogueTrigger item) => NpcDialoguePushSlice3.GetQueueItemPriority(item);
+        internal void CleanupExpiredQueue(int currentTick) => Parts.Slice3.CleanupExpiredQueue(currentTick);
+        public int CancelQueuedTriggersForFaction(Faction faction, string reason = "manual") => Parts.Slice3.CancelQueuedTriggersForFaction(faction, reason);
+        internal bool ShouldRespectCooldown(NpcDialogueTriggerContext context, int currentTick) => Parts.Slice3.ShouldRespectCooldown(context, currentTick);
+        internal int GetReinitiateCooldownRemainingTicks(Faction faction, int currentTick) => Parts.Slice3.GetReinitiateCooldownRemainingTicks(faction, currentTick);
+        internal int GetGlobalNextAllowedTick(int currentTick) => Parts.Slice3.GetGlobalNextAllowedTick(currentTick);
+        internal bool IsGlobalWindowLimitReached(int currentTick) => Parts.Slice3.IsGlobalWindowLimitReached(currentTick);
+        internal int GetGlobalWindowNextAvailableTick(int currentTick) => Parts.Slice3.GetGlobalWindowNextAvailableTick(currentTick);
+        internal bool IsFactionWindowFull(Faction faction, int currentTick) => Parts.Slice3.IsFactionWindowFull(faction, currentTick);
+        internal void RecordFactionDelivery(Faction faction, int currentTick) => Parts.Slice3.RecordFactionDelivery(faction, currentTick);
+        internal bool CanBypassCooldown(NpcDialogueTriggerContext context) => Parts.Slice3.CanBypassCooldown(context);
+        internal bool IsBypassHardLimitReached(int currentTick) => Parts.Slice3.IsBypassHardLimitReached(currentTick);
+        internal bool IsFactionUnavailable(Faction faction) => Parts.Slice3.IsFactionUnavailable(faction);
+        internal bool IsValidTargetFaction(Faction faction) => Parts.Slice3.IsValidTargetFaction(faction);
+        internal bool IsPlayerBusy() => Parts.Slice3.IsPlayerBusy();
+        internal void TrackClickSignal(int currentTick) => Parts.Slice3.TrackClickSignal(currentTick);
+        public void RegisterPlayerLeftClick() => Parts.Slice3.RegisterPlayerLeftClick();
+        internal List<Faction> GetActiveCandidateFactions(int currentTick) => Parts.Slice3.GetActiveCandidateFactions(currentTick);
+        internal FactionNpcPushState GetOrCreateState(Faction faction) => Parts.Slice3.GetOrCreateState(faction);
+        internal void CleanupInvalidState() => Parts.Slice3.CleanupInvalidState();
+        internal void RebuildAllRuntimeIndexes() => Parts.Slice3.RebuildAllRuntimeIndexes();
+        internal void MaintainCandidateCache(int currentTick) => Parts.Slice3.MaintainCandidateCache(currentTick);
+        internal void SyncCandidateCacheFromRecentSessions(int currentTick) => Parts.Slice4.SyncCandidateCacheFromRecentSessions(currentTick);
+        internal bool IsCandidateStillActive(Faction faction, int currentTick) => Parts.Slice4.IsCandidateStillActive(faction, currentTick);
+        internal void MarkFactionCandidate(Faction faction, int tick) => Parts.Slice4.MarkFactionCandidate(faction, tick);
+        internal void RebuildCandidateCache() => Parts.Slice4.RebuildCandidateCache();
+        internal int GetGlobalDeliveryCooldownTicks() => Parts.Slice4.GetGlobalDeliveryCooldownTicks();
+        internal int GetFactionCooldownMinTicks() => Parts.Slice4.GetFactionCooldownMinTicks();
+        internal int GetFactionCooldownMaxTicks() => Parts.Slice4.GetFactionCooldownMaxTicks();
+        internal void LogThrottleDebug(string message) => Parts.Slice4.LogThrottleDebug(message);
+        internal bool TryDeliverFallbackMessage(NpcDialogueTriggerContext context) => Parts.Slice4.TryDeliverFallbackMessage(context);
+        internal float GetRegularTriggerChance(NpcPushFrequencyMode mode) => Parts.Slice4.GetRegularTriggerChance(mode);
+        #endregion
+}
+    internal sealed class GameComponent_NpcDialoguePushManagerParts
+    {
+        internal readonly GameComponent_NpcDialoguePushManager Owner;
+        internal readonly NpcDialoguePushManagerManualSocialPost ManualSocialPost;
+        internal readonly NpcDialoguePushSlice1 Slice1;
+        internal readonly NpcDialoguePushSlice2 Slice2;
+        internal readonly NpcDialoguePushSlice3 Slice3;
+        internal readonly NpcDialoguePushSlice4 Slice4;
+        internal GameComponent_NpcDialoguePushManagerParts(GameComponent_NpcDialoguePushManager owner)
         {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings == null)
-            {
-                return false;
-            }
-
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            PlayerGameStateCache.Instance.EnsureFresh(currentTick);
-
-            if (settings.EnableBusyByDrafted && PlayerGameStateCache.Instance.HasDrafted)
-            {
-                return true;
-            }
-
-            if (settings.EnableBusyByHostiles && PlayerGameStateCache.Instance.HasHostiles)
-            {
-                return true;
-            }
-
-            return settings.EnableBusyByClickRate && clickTicks.Count >= ClickBusyThreshold;
-        }
-
-        private void TrackClickSignal(int currentTick)
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings?.EnableBusyByClickRate != true)
-            {
-                clickTicks.Clear();
-                return;
-            }
-
-            while (clickTicks.Count > 0 && currentTick - clickTicks.Peek() > ClickWindowTicks)
-            {
-                clickTicks.Dequeue();
-            }
-        }
-
-        public void RegisterPlayerLeftClick()
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings?.EnableBusyByClickRate != true || Find.TickManager == null)
-            {
-                return;
-            }
-
-            clickTicks.Enqueue(Find.TickManager.TicksGame);
-        }
-
-        private List<Faction> GetActiveCandidateFactions(int currentTick)
-        {
-            MaintainCandidateCache(currentTick);
-            _reusableCandidateResults.Clear();
-            foreach (Faction faction in activeCandidateFactions)
-            {
-                if (!IsValidTargetFaction(faction))
-                {
-                    continue;
-                }
-
-                if (IsCandidateStillActive(faction, currentTick))
-                {
-                    _reusableCandidateResults.Add(faction);
-                }
-            }
-
-            if (_reusableCandidateResults.Count > MaxCandidateFactions)
-            {
-                _reusableCandidateResults.Sort((a, b) =>
-                {
-                    int ta = candidateTouchTicks.TryGetValue(a, out int va) ? va : 0;
-                    int tb = candidateTouchTicks.TryGetValue(b, out int vb) ? vb : 0;
-                    return tb.CompareTo(ta);
-                });
-                _reusableCandidateResults.RemoveRange(MaxCandidateFactions, _reusableCandidateResults.Count - MaxCandidateFactions);
-            }
-
-            return _reusableCandidateResults;
-        }
-
-        private FactionNpcPushState GetOrCreateState(Faction faction)
-        {
-            if (factionPushStatesByFaction.TryGetValue(faction, out FactionNpcPushState state))
-            {
-                return state;
-            }
-
-            state = new FactionNpcPushState
-            {
-                faction = faction,
-                lastInteractionTick = Find.TickManager?.TicksGame ?? 0
-            };
-            factionPushStates.Add(state);
-            factionPushStatesByFaction[faction] = state;
-            return state;
-        }
-
-        private void CleanupInvalidState()
-        {
-            factionPushStates.RemoveAll(s =>
-                s == null ||
-                s.faction == null ||
-                s.faction.defeated ||
-                GameComponent_DiplomacyManager.ShouldExcludeFactionFromAI(s.faction));
-            queuedTriggers.RemoveAll(q =>
-                q == null ||
-                q.faction == null ||
-                q.faction.defeated ||
-                (q.category == NpcDialogueCategory.WarningThreat && !q.bypassCategoryGate) ||
-                GameComponent_DiplomacyManager.ShouldExcludeFactionFromAI(q.faction));
-        }
-
-        private void RebuildAllRuntimeIndexes()
-        {
-            factionPushStatesByFaction.Clear();
-            for (int i = 0; i < factionPushStates.Count; i++)
-            {
-                var s = factionPushStates[i];
-                if (s?.faction != null)
-                    factionPushStatesByFaction[s.faction] = s;
-            }
-
-            factionsInQueue.Clear();
-            for (int i = 0; i < queuedTriggers.Count; i++)
-            {
-                var q = queuedTriggers[i];
-                if (q?.faction != null)
-                    factionsInQueue.Add(q.faction);
-            }
-
-            factionsWithPendingRequests.Clear();
-            foreach (var pair in pendingRequests)
-            {
-                var f = pair.Value?.Context?.Faction;
-                if (f != null)
-                    factionsWithPendingRequests.Add(f);
-            }
-        }
-
-        private void MaintainCandidateCache(int currentTick)
-        {
-            if (currentTick - lastCandidateSessionSyncTick >= CandidateSessionSyncIntervalTicks)
-            {
-                SyncCandidateCacheFromRecentSessions(currentTick);
-                lastCandidateSessionSyncTick = currentTick;
-            }
-
-            if (currentTick - lastCandidateCacheMaintenanceTick < CandidateCacheMaintenanceIntervalTicks)
-            {
-                return;
-            }
-
-            lastCandidateCacheMaintenanceTick = currentTick;
-            if (activeCandidateFactions.Count == 0)
-            {
-                return;
-            }
-
-            var stale = new List<Faction>();
-            foreach (Faction faction in activeCandidateFactions)
-            {
-                if (!IsCandidateStillActive(faction, currentTick))
-                {
-                    stale.Add(faction);
-                }
-            }
-
-            foreach (Faction faction in stale)
-            {
-                activeCandidateFactions.Remove(faction);
-                candidateTouchTicks.Remove(faction);
-            }
-        }
-
-        private void SyncCandidateCacheFromRecentSessions(int currentTick)
-        {
-            GameComponent_DiplomacyManager manager = GameComponent_DiplomacyManager.Instance;
-            if (manager == null)
-            {
-                return;
-            }
-
-            foreach (Faction faction in manager.GetFactionsWithDialogue())
-            {
-                FactionDialogueSession session = manager.GetSession(faction);
-                if (session == null || currentTick - session.lastInteractionTick > RecentInteractionWindowTicks)
-                {
-                    continue;
-                }
-
-                MarkFactionCandidate(faction, session.lastInteractionTick);
-            }
-        }
-
-        private bool IsCandidateStillActive(Faction faction, int currentTick)
-        {
-            if (!IsValidTargetFaction(faction))
-            {
-                return false;
-            }
-
-            if (IsFactionPending(faction) || factionsInQueue.Contains(faction))
-            {
-                return true;
-            }
-
-            if (candidateTouchTicks.TryGetValue(faction, out int touchedTick) &&
-                currentTick - touchedTick <= RecentInteractionWindowTicks)
-            {
-                return true;
-            }
-
-            if (factionPushStatesByFaction.TryGetValue(faction, out FactionNpcPushState state) &&
-                currentTick - state.lastInteractionTick <= RecentInteractionWindowTicks)
-            {
-                MarkFactionCandidate(faction, state.lastInteractionTick);
-                return true;
-            }
-
-            FactionDialogueSession session = GameComponent_DiplomacyManager.Instance?.GetSession(faction);
-            if (session != null && currentTick - session.lastInteractionTick <= RecentInteractionWindowTicks)
-            {
-                MarkFactionCandidate(faction, session.lastInteractionTick);
-                return true;
-            }
-
-            return false;
-        }
-
-        private void MarkFactionCandidate(Faction faction, int tick)
-        {
-            if (!IsValidTargetFaction(faction))
-            {
-                return;
-            }
-
-            activeCandidateFactions.Add(faction);
-            if (!candidateTouchTicks.TryGetValue(faction, out int existing) || tick > existing)
-            {
-                candidateTouchTicks[faction] = tick;
-            }
-        }
-
-        private void RebuildCandidateCache()
-        {
-            activeCandidateFactions.Clear();
-            candidateTouchTicks.Clear();
-
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            foreach (FactionNpcPushState state in factionPushStates)
-            {
-                if (state?.faction == null)
-                {
-                    continue;
-                }
-
-                MarkFactionCandidate(state.faction, state.lastInteractionTick);
-            }
-
-            foreach (QueuedNpcDialogueTrigger queued in queuedTriggers)
-            {
-                if (queued?.faction == null)
-                {
-                    continue;
-                }
-
-                MarkFactionCandidate(queued.faction, currentTick);
-            }
-
-            SyncCandidateCacheFromRecentSessions(currentTick);
-        }
-
-        private int GetGlobalDeliveryCooldownTicks()
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            float hours = settings?.NpcGlobalDeliveryCooldownHours ?? 6f;
-            return Mathf.Max(TickPerHour, Mathf.RoundToInt(hours * TickPerHour));
-        }
-
-        private int GetFactionCooldownMinTicks()
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            int days = settings?.NpcFactionCooldownMinDays ?? 3;
-            return Mathf.Max(TickPerDay, days * TickPerDay);
-        }
-
-        private int GetFactionCooldownMaxTicks()
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            int minDays = settings?.NpcFactionCooldownMinDays ?? 3;
-            int maxDays = settings?.NpcFactionCooldownMaxDays ?? 7;
-            int resolved = Math.Max(minDays, maxDays);
-            return Mathf.Max(TickPerDay, resolved * TickPerDay);
-        }
-
-        private void LogThrottleDebug(string message)
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings?.EnableNpcPushThrottleDebugLog != true)
-            {
-                return;
-            }
-
-            Log.Message($"[RimAI.Relations][NpcPushThrottle] {message}");
-        }
-
-        private bool TryDeliverFallbackMessage(NpcDialogueTriggerContext context)
-        {
-            if (context == null || !context.BypassRateLimit || string.IsNullOrWhiteSpace(context.Reason))
-            {
-                return false;
-            }
-
-            DeliverMessage(context, context.Reason.Trim());
-            return true;
-        }
-
-        private float GetRegularTriggerChance(NpcPushFrequencyMode mode)
-        {
-            return mode switch
-            {
-                NpcPushFrequencyMode.High => 0.10f,
-                NpcPushFrequencyMode.Medium => 0.05f,
-                _ => 0f
-            };
+            Owner = owner;
+            ManualSocialPost = new NpcDialoguePushManagerManualSocialPost(owner);
+            Slice1 = new NpcDialoguePushSlice1(owner);
+            Slice2 = new NpcDialoguePushSlice2(owner);
+            Slice3 = new NpcDialoguePushSlice3(owner);
+            Slice4 = new NpcDialoguePushSlice4(owner);
         }
     }
+
+
 }

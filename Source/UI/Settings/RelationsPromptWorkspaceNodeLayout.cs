@@ -11,14 +11,16 @@ namespace Ustas.RimAI.Communication.Relations.UI;
 
 internal sealed class RelationsPromptWorkspaceNodeLayout
 {
-    readonly RelationsSettingsPages Pages;
+    readonly RelationsPromptWorkspaceModuleLayout Modules;
+    internal readonly RelationsSettingsPages Pages;
 
     internal RelationsPromptWorkspaceNodeLayout(RelationsSettingsPages pages)
     {
         Pages = pages;
+        Modules = new RelationsPromptWorkspaceModuleLayout(this);
     }
 
-    RelationsSettings Settings => Pages.Settings;
+    internal RelationsSettings Settings => Pages.Settings;
 
         internal void DrawPromptWorkspaceSectionList(Rect rect)
         {
@@ -146,38 +148,13 @@ internal sealed class RelationsPromptWorkspaceNodeLayout
             List<PromptUnifiedNodeLayoutConfig> layouts,
             PromptUnifiedNodeLayoutConfig item,
             Rect rowRect)
+
         {
-            Event evt = Event.current;
-            if (evt == null)
-            {
-                return;
-            }
 
-            if (evt.type == EventType.MouseDown && evt.button == 0 && rowRect.Contains(evt.mousePosition))
-            {
-                Pages.PromptWorkspace._promptWorkspaceDraggingNodeId = item.NodeId;
-            }
+            Modules.HandleNodeLayoutDrag(layouts, item, rowRect);
 
-            if (evt.type == EventType.MouseDrag &&
-                !string.IsNullOrWhiteSpace(Pages.PromptWorkspace._promptWorkspaceDraggingNodeId) &&
-                rowRect.Contains(evt.mousePosition))
-            {
-                Pages.PromptWorkspace._promptWorkspaceDropTargetNodeId = item.NodeId;
-            }
-
-            if (evt.type == EventType.MouseUp && evt.button == 0)
-            {
-                if (!string.IsNullOrWhiteSpace(Pages.PromptWorkspace._promptWorkspaceDraggingNodeId) &&
-                    !string.IsNullOrWhiteSpace(Pages.PromptWorkspace._promptWorkspaceDropTargetNodeId) &&
-                    !string.Equals(Pages.PromptWorkspace._promptWorkspaceDraggingNodeId, Pages.PromptWorkspace._promptWorkspaceDropTargetNodeId, StringComparison.OrdinalIgnoreCase))
-                {
-                    MovePromptNodeLayoutToTarget(layouts, Pages.PromptWorkspace._promptWorkspaceDraggingNodeId, Pages.PromptWorkspace._promptWorkspaceDropTargetNodeId);
-                }
-
-                Pages.PromptWorkspace._promptWorkspaceDraggingNodeId = string.Empty;
-                Pages.PromptWorkspace._promptWorkspaceDropTargetNodeId = string.Empty;
-            }
         }
+
 
         internal List<PromptUnifiedNodeLayoutConfig> GetPromptWorkspaceNodeLayouts()
         {
@@ -206,51 +183,13 @@ internal sealed class RelationsPromptWorkspaceNodeLayout
         }
 
         internal List<PromptUnifiedNodeSchemaItem> GetPromptWorkspaceEditableNodes()
+
         {
-            string channel = string.IsNullOrWhiteSpace(Pages.PromptWorkbench._workbenchPromptChannel)
-                ? Pages.PromptWorkspaceBuffers.EnsurePromptWorkspaceSelection()
-                : Pages.PromptWorkbench._workbenchPromptChannel;
-            if (string.IsNullOrWhiteSpace(channel))
-            {
-                return new List<PromptUnifiedNodeSchemaItem>();
-            }
 
-            if (string.Equals(Pages.PromptWorkspace._promptWorkspaceNodeListCacheChannel, channel, StringComparison.Ordinal) &&
-                Pages.PromptWorkspace._promptWorkspaceNodeListCache != null &&
-                Pages.PromptWorkspace._promptWorkspaceNodeListCache.Count > 0)
-            {
-                return Pages.PromptWorkspace._promptWorkspaceNodeListCache;
-            }
+            return Modules.GetPromptWorkspaceEditableNodes();
 
-            List<PromptUnifiedNodeSchemaItem> allowedNodes = PromptUnifiedNodeSchemaCatalog.GetAllowedNodes(channel).ToList();
-            List<PromptUnifiedNodeLayoutConfig> layouts = GetPromptWorkspaceNodeLayouts();
-            if (layouts.Count > 0)
-            {
-                var byId = allowedNodes.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
-                var ordered = new List<PromptUnifiedNodeSchemaItem>();
-                foreach (PromptUnifiedNodeLayoutConfig layout in layouts)
-                {
-                    if (layout == null || string.IsNullOrWhiteSpace(layout.NodeId))
-                    {
-                        continue;
-                    }
-
-                    if (byId.TryGetValue(layout.NodeId, out PromptUnifiedNodeSchemaItem matched))
-                    {
-                        ordered.Add(matched);
-                    }
-                }
-
-                if (ordered.Count > 0)
-                {
-                    allowedNodes = ordered;
-                }
-            }
-
-            Pages.PromptWorkspace._promptWorkspaceNodeListCacheChannel = channel;
-            Pages.PromptWorkspace._promptWorkspaceNodeListCache = allowedNodes;
-            return Pages.PromptWorkspace._promptWorkspaceNodeListCache;
         }
+
 
         internal void SavePromptWorkspaceNodeLayouts(List<PromptUnifiedNodeLayoutConfig> layouts)
         {
@@ -392,114 +331,22 @@ internal sealed class RelationsPromptWorkspaceNodeLayout
         }
 
         internal List<PromptWorkbenchModuleItem> GetCachedPromptWorkspaceModules()
+
         {
-            string channel = string.IsNullOrWhiteSpace(Pages.PromptWorkbench._workbenchPromptChannel)
-                ? Pages.PromptWorkspaceBuffers.EnsurePromptWorkspaceSelection()
-                : Pages.PromptWorkbench._workbenchPromptChannel;
 
-            if (string.Equals(Pages.PromptWorkspace._promptWorkspaceModuleCacheChannel, channel, StringComparison.Ordinal) &&
-                Pages.PromptWorkspace._promptWorkspaceModuleCache != null &&
-                Pages.PromptWorkspace._promptWorkspaceModuleCache.Count >= 0)
-            {
-                return Pages.PromptWorkspace._promptWorkspaceModuleCache;
-            }
+            return Modules.GetCachedPromptWorkspaceModules();
 
-            List<PromptSectionLayoutConfig> sectionLayouts = GetPromptWorkspaceSectionLayouts();
-            List<PromptUnifiedNodeLayoutConfig> nodeLayouts = GetPromptWorkspaceNodeLayouts();
-            Pages.PromptWorkspace._promptWorkspaceModuleCacheChannel = channel;
-            Pages.PromptWorkspace._promptWorkspaceModuleCache = PromptWorkbenchModuleProjection.BuildModules(channel, sectionLayouts, nodeLayouts);
-            return Pages.PromptWorkspace._promptWorkspaceModuleCache;
         }
+
 
         internal void DrawPromptWorkspaceModuleList(Rect rect)
+
         {
-            Widgets.DrawBoxSolid(rect, RelationsPromptSectionWorkspace.ModuleListBg);
-            Rect inner = rect.ContractedBy(6f);
 
-            List<PromptWorkbenchModuleItem> modules = GetCachedPromptWorkspaceModules();
-            List<PromptSectionLayoutConfig> sectionLayouts = GetPromptWorkspaceSectionLayouts();
-            List<PromptUnifiedNodeLayoutConfig> nodeLayouts = GetPromptWorkspaceNodeLayouts();
+            Modules.DrawPromptWorkspaceModuleList(rect);
 
-            const float rowHeight = 25f;
-            const float rowStep = 26f;
-            const float toolbarH = 22f;
-
-            // Toolbar above the scroll view — reorder buttons for selected module
-            if (modules.Count > 0)
-            {
-                int selIdx = -1;
-                for (int i = 0; i < modules.Count; i++)
-                {
-                    bool s = modules[i].Kind == ModuleKind.Section
-                        ? (!Pages.PromptWorkspace._promptWorkspaceEditNodeMode && string.Equals(Pages.PromptWorkspace._promptWorkspaceSelectedSectionId, modules[i].Id, StringComparison.OrdinalIgnoreCase))
-                        : (Pages.PromptWorkspace._promptWorkspaceEditNodeMode && string.Equals(Pages.PromptWorkspace._promptWorkspaceSelectedNodeId, modules[i].Id, StringComparison.OrdinalIgnoreCase));
-                    if (s) { selIdx = i; break; }
-                }
-
-                Rect toolbarRect = new Rect(inner.x, inner.y, inner.width, toolbarH);
-                DrawPromptWorkspaceModuleReorderButtons(toolbarRect, selIdx, modules, sectionLayouts, nodeLayouts);
-            }
-
-            // Scroll view — render all modules (no virtual scrolling; avoids index math bugs)
-            float totalHeight = modules.Count * rowStep;
-            Rect scrollRect = new Rect(inner.x, inner.y + toolbarH + 2f, inner.width, Mathf.Max(1f, inner.height - toolbarH - 2f));
-            Rect viewRect = new Rect(0f, 0f, inner.width - 16f, Mathf.Max(scrollRect.height, totalHeight));
-            Widgets.BeginScrollView(scrollRect, ref Pages.PromptWorkspace._promptWorkspaceModuleScroll, viewRect);
-
-            string sectionTag = "RimChat_PromptWorkspaceKind_Section".Translate().ToString();
-            string nodeTag = "RimChat_PromptWorkspaceKind_Node".Translate().ToString();
-
-            for (int i = 0; i < modules.Count; i++)
-            {
-                PromptWorkbenchModuleItem module = modules[i];
-                float rowY = i * rowStep;
-                float rowWidth = viewRect.width;
-
-                bool selected = module.Kind == ModuleKind.Section
-                    ? (!Pages.PromptWorkspace._promptWorkspaceEditNodeMode && string.Equals(Pages.PromptWorkspace._promptWorkspaceSelectedSectionId, module.Id, StringComparison.OrdinalIgnoreCase))
-                    : (Pages.PromptWorkspace._promptWorkspaceEditNodeMode && string.Equals(Pages.PromptWorkspace._promptWorkspaceSelectedNodeId, module.Id, StringComparison.OrdinalIgnoreCase));
-
-                // Selection highlight
-                if (selected)
-                {
-                    Widgets.DrawBoxSolid(new Rect(0f, rowY, rowWidth, rowHeight), RelationsPromptSectionWorkspace.RowSelectedBg);
-                }
-
-                // Row layout: [checkbox] [label]
-                float checkW = 24f;
-                float gap = 3f;
-                float labelW = rowWidth - checkW - gap;
-                Rect checkRect = new Rect(0f, rowY + 2f, checkW, checkW);
-                Rect labelRect = new Rect(checkRect.xMax + gap, rowY, labelW, rowHeight);
-
-                // Enable checkbox
-                bool enabled = module.Enabled;
-                Widgets.Checkbox(checkRect.position, ref enabled);
-                if (enabled != module.Enabled)
-                {
-                    TogglePromptWorkspaceModuleEnabled(module, enabled, sectionLayouts, nodeLayouts);
-                }
-
-                string kindTag = module.Kind == ModuleKind.Section ? sectionTag : nodeTag;
-                string displayText = $"{module.Label} [{kindTag}]";
-                if (Widgets.ButtonText(labelRect, displayText.Truncate(labelRect.width), false))
-                {
-                    if (module.Kind == ModuleKind.Section)
-                        Pages.PromptWorkspace.SchedulePromptWorkspaceNavigation(() => Pages.PromptWorkspaceBuffers.SelectPromptWorkspaceSection(module.Id));
-                    else
-                        Pages.PromptWorkspace.SchedulePromptWorkspaceNavigation(() =>
-                        {
-                            if (!Pages.PromptWorkspaceBuffers.PersistPromptWorkspaceBufferNow(force: true)) return;
-                            Pages.PromptWorkspace._promptWorkspaceEditNodeMode = true;
-                            Pages.PromptWorkspace._promptWorkspaceSelectedNodeId = module.Id;
-                            Pages.PromptWorkspaceBuffers.EnsurePromptWorkspaceBuffer();
-                            Pages.PromptWorkspace.InvalidatePromptWorkspacePreviewCache();
-                        });
-                }
-            }
-
-            Widgets.EndScrollView();
         }
+
 
         internal void MovePromptWorkspaceModule(
             List<PromptWorkbenchModuleItem> modules,
@@ -507,35 +354,13 @@ internal sealed class RelationsPromptWorkspaceNodeLayout
             int direction,
             List<PromptSectionLayoutConfig> sectionLayouts,
             List<PromptUnifiedNodeLayoutConfig> nodeLayouts)
+
         {
-            if (!Pages.PromptPresetsUi.EnsurePromptWorkspaceEditablePresetForMutation("workspace.module_order"))
-            {
-                return;
-            }
 
-            PromptWorkbenchModuleItem current = modules[selectedIndex];
+            Modules.MovePromptWorkspaceModule(modules, selectedIndex, direction, sectionLayouts, nodeLayouts);
 
-            // Scan for the nearest same-kind neighbor in the desired direction
-            int targetIdx = selectedIndex + direction;
-            while (targetIdx >= 0 && targetIdx < modules.Count)
-            {
-                PromptWorkbenchModuleItem neighbor = modules[targetIdx];
-                if (current.Kind == ModuleKind.Section && neighbor.Kind == ModuleKind.Section)
-                {
-                    // Swap section orders
-                    SwapSectionOrder(sectionLayouts, current.Id, neighbor.Id);
-                    return;
-                }
-                if (current.Kind == ModuleKind.Node && neighbor.Kind == ModuleKind.Node)
-                {
-                    // Swap node orders
-                    SwapNodeOrder(nodeLayouts, current.Id, neighbor.Id, current.Slot == neighbor.Slot);
-                    return;
-                }
-                targetIdx += direction;
-            }
-            // No same-kind neighbor in that direction — nothing to do
         }
+
 
         internal void SwapSectionOrder(List<PromptSectionLayoutConfig> layouts, string idA, string idB)
         {
@@ -551,62 +376,26 @@ internal sealed class RelationsPromptWorkspaceNodeLayout
         }
 
         internal void SwapNodeOrder(List<PromptUnifiedNodeLayoutConfig> layouts, string idA, string idB, bool sameSlot)
-        {
-            var a = layouts.FirstOrDefault(n => string.Equals(n.NodeId, idA, StringComparison.OrdinalIgnoreCase));
-            var b = layouts.FirstOrDefault(n => string.Equals(n.NodeId, idB, StringComparison.OrdinalIgnoreCase));
-            if (a == null || b == null) return;
 
-            if (sameSlot)
-            {
-                int tmp = a.Order;
-                a.Order = b.Order;
-                b.Order = tmp;
-            }
-            else
-            {
-                string tmpSlot = a.Slot;
-                a.Slot = b.Slot;
-                b.Slot = tmpSlot;
-                int tmpOrder = a.Order;
-                a.Order = b.Order;
-                b.Order = tmpOrder;
-            }
-            SavePromptWorkspaceNodeLayouts(layouts);
-            Pages.PromptWorkspace.InvalidatePromptWorkspaceNodeUiCaches();
-            Pages.PromptWorkspace.InvalidatePromptWorkspacePreviewCache();
+        {
+
+            Modules.SwapNodeOrder(layouts, idA, idB, sameSlot);
+
         }
+
 
         internal void TogglePromptWorkspaceModuleEnabled(
             PromptWorkbenchModuleItem module,
             bool enabled,
             List<PromptSectionLayoutConfig> sectionLayouts,
             List<PromptUnifiedNodeLayoutConfig> nodeLayouts)
+
         {
-            if (!Pages.PromptPresetsUi.EnsurePromptWorkspaceEditablePresetForMutation("workspace.module_toggle"))
-            {
-                return;
-            }
 
-            if (module.Kind == ModuleKind.Section)
-            {
-                PromptSectionLayoutConfig target = sectionLayouts.FirstOrDefault(s =>
-                    string.Equals(s.SectionId, module.Id, StringComparison.OrdinalIgnoreCase));
-                if (target == null) return;
-                target.Enabled = enabled;
-                SavePromptWorkspaceSectionLayouts(sectionLayouts);
-            }
-            else
-            {
-                PromptUnifiedNodeLayoutConfig target = nodeLayouts.FirstOrDefault(n =>
-                    string.Equals(n.NodeId, module.Id, StringComparison.OrdinalIgnoreCase));
-                if (target == null) return;
-                target.Enabled = enabled;
-                SavePromptWorkspaceNodeLayouts(nodeLayouts);
-            }
+            Modules.TogglePromptWorkspaceModuleEnabled(module, enabled, sectionLayouts, nodeLayouts);
 
-            Pages.PromptWorkbench.InvalidateWorkbenchEditingChannelConfig();
-            Pages.PromptWorkspace.InvalidatePromptWorkspacePreviewCache();
         }
+
 
         internal void DrawPromptWorkspaceModuleReorderButtons(
             Rect rowRect,
@@ -614,63 +403,13 @@ internal sealed class RelationsPromptWorkspaceNodeLayout
             List<PromptWorkbenchModuleItem> modules,
             List<PromptSectionLayoutConfig> sectionLayouts,
             List<PromptUnifiedNodeLayoutConfig> nodeLayouts)
+
         {
-            if (selectedIndex < 0 || selectedIndex >= modules.Count) return;
 
-            float btnW = 22f;
-            float btnH = 22f;
-            PromptWorkbenchModuleItem selected = modules[selectedIndex];
-            bool isCustom = selected.Kind == ModuleKind.Node &&
-                PromptUnifiedNodeSchemaCatalog.IsCustomNode(selected.Id);
-            float deleteW = isCustom ? btnW + 4f : 0f;
-            float x = rowRect.xMax - btnW * 2f - deleteW - 8f;
-            float y = rowRect.y + 2f;
+            Modules.DrawPromptWorkspaceModuleReorderButtons(rowRect, selectedIndex, modules, sectionLayouts, nodeLayouts);
 
-            // Delete button for custom/imported nodes
-            if (isCustom)
-            {
-                Rect deleteRect = new Rect(rowRect.xMax - btnW - 4f, y, btnW, btnH);
-                GUI.color = new Color(0.9f, 0.4f, 0.4f);
-                if (Widgets.ButtonText(deleteRect, "×"))
-                {
-                    Pages.PromptModuleTransfer.DeleteCustomModule(selected.Id);
-                    return;
-                }
-                GUI.color = Color.white;
-                TooltipHandler.TipRegion(deleteRect, "RimChat_ModuleDeleteTip".Translate());
-            }
-
-            Rect upRect = new Rect(x, y, btnW, btnH);
-            Rect downRect = new Rect(x + btnW + 4f, y, btnW, btnH);
-
-            // Label hint
-            GUI.color = Color.gray;
-            Text.Font = GameFont.Tiny;
-            Widgets.Label(new Rect(rowRect.x + 4f, rowRect.y + 4f, x - rowRect.x - 12f, rowRect.height - 4f),
-                "RimChat_PromptWorkspace_ModuleReorderHint".Translate());
-            Text.Font = GameFont.Small;
-            GUI.color = Color.white;
-
-            bool canMoveUp = selectedIndex > 0;
-            bool canMoveDown = selectedIndex < modules.Count - 1;
-
-            if (!canMoveUp) GUI.enabled = false;
-            if (Widgets.ButtonText(upRect, "▲"))
-            {
-                MovePromptWorkspaceModule(modules, selectedIndex, -1, sectionLayouts, nodeLayouts);
-            }
-            GUI.enabled = true;
-
-            if (!canMoveDown) GUI.enabled = false;
-            if (Widgets.ButtonText(downRect, "▼"))
-            {
-                MovePromptWorkspaceModule(modules, selectedIndex, 1, sectionLayouts, nodeLayouts);
-            }
-            GUI.enabled = true;
-
-            TooltipHandler.TipRegion(upRect, "RimChat_PromptWorkspace_ModuleReorderUpTip".Translate());
-            TooltipHandler.TipRegion(downRect, "RimChat_PromptWorkspace_ModuleReorderDownTip".Translate());
         }
+
 
         internal List<PromptSectionLayoutConfig> GetPromptWorkspaceSectionLayouts()
         {

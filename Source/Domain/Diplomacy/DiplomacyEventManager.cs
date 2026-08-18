@@ -10,6 +10,8 @@ using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Guards;
 using UnityEngine;
 
+using static Ustas.RimAI.Communication.Relations.DiplomacySystem.DiplomacyEventManager;
+
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
     public enum CaravanType
@@ -28,15 +30,218 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         Resources
     }
 
-    public static partial class DiplomacyEventManager
+    public static class DiplomacyEventManager
     {
-        private static readonly string[] MilitaryAidIncidentCandidates =
+        internal static readonly string[] MilitaryAidIncidentCandidates =
         {
             "FriendlyRaid",
             "RaidFriendly"
         };
 
-        public static bool TriggerCaravanEvent(Faction faction, CaravanType caravanType)
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal static bool DefNameContains(string source, string value)
+        {
+            return source?.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        
+
+        /// <summary>/// 触发军事支援事件（公共接口，用于 CallEveryone 友好派系支援）
+        ///</summary>
+        
+
+        /// <summary>
+        /// CallEveryone 专用军事支援：不依赖 RaidFriendly/FriendlyRaid，可用于中立派系援军。
+        /// </summary>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        /// <summary>/// 调度"呼叫所有人"袭击：敌友统一 16-30 小时窗口；当敌对数量不足时优先剔除最低好感友中立
+        ///</summary>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        /// <summary>/// 调度袭击波次：n 次袭击，每次间隔 12-20 小时
+        ///</summary>
+        
+
+        #region Facade forwards
+        internal static bool EnsureRaidTemplates(Faction faction, out string reason) => DiplomacyEventManagerRaidFallback.EnsureRaidTemplates(faction, out reason);
+        internal static bool TryInjectDefaultCombatPawnGroupMaker(Faction faction, out string reason) => DiplomacyEventManagerRaidFallback.TryInjectDefaultCombatPawnGroupMaker(faction, out reason);
+        internal static List<PawnGenOption> BuildDefaultCombatOptions(Faction faction, List<PawnGroupMaker> makers) => DiplomacyEventManagerRaidFallback.BuildDefaultCombatOptions(faction, makers);
+        internal static PawnGenOption ClonePawnGenOption(PawnGenOption source) => DiplomacyEventManagerRaidFallback.ClonePawnGenOption(source);
+        internal static PawnKindDef ResolveFallbackRaidPawnKind(Faction faction, List<PawnGroupMaker> makers) => DiplomacyEventManagerRaidFallback.ResolveFallbackRaidPawnKind(faction, makers);
+        internal static IncidentParms BuildRaidIncidentParmsWithDefaults(IncidentDef incidentDef, Map map, Faction faction, float raidPoints, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode) => DiplomacyEventManagerRaidFallback.BuildRaidIncidentParmsWithDefaults(incidentDef, map, faction, raidPoints, strategy, arrivalMode);
+        internal static bool EnsureUsableCombatPawnGroupMakerForParms(Faction faction, IncidentParms raidParms, out string reason) => DiplomacyEventManagerRaidFallback.EnsureUsableCombatPawnGroupMakerForParms(faction, raidParms, out reason);
+        internal static bool HasUsableCombatPawnGroupMakerForParms(Faction faction, IncidentParms raidParms, out string reason) => DiplomacyEventManagerRaidFallback.HasUsableCombatPawnGroupMakerForParms(faction, raidParms, out reason);
+        internal static PawnGroupMakerParms BuildRaidGroupMakerParms(IncidentParms raidParms, out string reason) => DiplomacyEventManagerRaidFallback.BuildRaidGroupMakerParms(raidParms, out reason);
+        internal static bool SafeCanGenerateFrom(PawnGroupMaker maker, PawnGroupMakerParms parms) => DiplomacyEventManagerRaidFallback.SafeCanGenerateFrom(maker, parms);
+        internal static bool SafeHasPreviewKinds(PawnGroupMaker maker, PawnGroupMakerParms parms) => DiplomacyEventManagerRaidFallback.SafeHasPreviewKinds(maker, parms);
+        internal static bool SafeHasAnyPreviewKinds(PawnGroupMakerParms parms) => DiplomacyEventManagerRaidFallback.SafeHasAnyPreviewKinds(parms);
+        internal static bool TryRaiseRaidPointsToMeetCombatMinimum(Faction faction, IncidentParms raidParms, out string reason) => DiplomacyEventManagerRaidFallback.TryRaiseRaidPointsToMeetCombatMinimum(faction, raidParms, out reason);
+        internal static float SafeMinPointsToGenerateAnything(PawnGroupMaker maker, FactionDef factionDef, PawnGroupMakerParms parms) => DiplomacyEventManagerRaidFallback.SafeMinPointsToGenerateAnything(maker, factionDef, parms);
+        internal static float SafeMinPointsToGeneratePawnGroup(FactionDef factionDef, PawnGroupMakerParms parms) => DiplomacyEventManagerRaidFallback.SafeMinPointsToGeneratePawnGroup(factionDef, parms);
+        internal static bool TryInjectEmergencyCombatPawnGroupMakerForParms(Faction faction, IncidentParms raidParms, out string reason) => DiplomacyEventManagerRaidFallback.TryInjectEmergencyCombatPawnGroupMakerForParms(faction, raidParms, out reason);
+        internal static List<PawnGenOption> BuildEmergencyCombatOptions(Faction faction, PawnGroupMakerParms groupParms) => DiplomacyEventManagerRaidFallback.BuildEmergencyCombatOptions(faction, groupParms);
+        internal static List<PawnKindDef> BuildEmergencyCombatKinds(Faction faction) => DiplomacyEventManagerRaidFallback.BuildEmergencyCombatKinds(faction);
+        internal static bool CanKindGenerateForParms(PawnKindDef kind, PawnGroupMakerParms groupParms) => DiplomacyEventManagerRaidFallback.CanKindGenerateForParms(kind, groupParms);
+        internal static bool IsEmergencyRaidKindCandidate(PawnKindDef kind) => DiplomacyEventManagerRaidFallback.IsEmergencyRaidKindCandidate(kind);
+        internal static bool TryExecuteMiliraRaidFallback(Map map, Faction faction, float raidPoints, out string reason) => DiplomacyEventManagerRaidFallback.TryExecuteMiliraRaidFallback(map, faction, raidPoints, out reason);
+        internal static List<float> BuildMiliraFallbackPointCandidates(float requestedPoints, float minRequiredPoints) => DiplomacyEventManagerRaidFallback.BuildMiliraFallbackPointCandidates(requestedPoints, minRequiredPoints);
+        internal static IncidentDef GetMiliraRaidIncidentDef(out string reason) => DiplomacyEventManagerRaidFallback.GetMiliraRaidIncidentDef(out reason);
+        internal static bool IsMiliraFaction(Faction faction) => DiplomacyEventManagerRaidFallback.IsMiliraFaction(faction);
+        internal static bool ContainsIgnoreCase(string source, string token) => DiplomacyEventManagerRaidFallback.ContainsIgnoreCase(source, token);
+        #endregion
+    
+        #region Cluster forwards
+        public static bool TriggerCaravanEvent(Faction faction, CaravanType caravanType) => DiplomacyEventSlice1.TriggerCaravanEvent(faction, caravanType);
+        public static bool TriggerVisitorEvent(Faction faction) => DiplomacyEventSlice1.TriggerVisitorEvent(faction);
+        internal static TraderKindDef GetTraderKindForType(Faction faction, CaravanType caravanType) => DiplomacyEventSlice1.GetTraderKindForType(faction, caravanType);
+        internal static List<TraderKindDef> GetFactionGroundTraderKinds(Faction faction) => DiplomacyEventSlice1.GetFactionGroundTraderKinds(faction);
+        internal static bool MatchesCaravanType(TraderKindDef trader, CaravanType caravanType) => DiplomacyEventSlice1.MatchesCaravanType(trader, caravanType);
+        public static bool TriggerAidEvent(Faction faction, AidType aidType) => DiplomacyEventSlice1.TriggerAidEvent(faction, aidType);
+        public static bool TriggerMilitaryAidEvent(Faction faction) => DiplomacyEventSlice1.TriggerMilitaryAidEvent(faction);
+        public static bool TriggerMilitaryAidCallEveryoneEvent(Faction faction) => DiplomacyEventSlice1.TriggerMilitaryAidCallEveryoneEvent(faction);
+        internal static bool TriggerMilitaryAid(Faction faction, Map map) => DiplomacyEventSlice1.TriggerMilitaryAid(faction, map);
+        internal static bool TriggerMilitaryAidCustomFallback(Faction faction) => DiplomacyEventSlice1.TriggerMilitaryAidCustomFallback(faction);
+        internal static bool TryResolveExecutableMilitaryAidIncident(IncidentParms parms, out IncidentDef incidentDef, out string reason) => DiplomacyEventSlice1.TryResolveExecutableMilitaryAidIncident(parms, out incidentDef, out reason);
+        internal static bool TriggerMedicalAid(Faction faction, Map map) => DiplomacyEventSlice1.TriggerMedicalAid(faction, map);
+        internal static bool TriggerResourceAid(Faction faction, Map map) => DiplomacyEventSlice1.TriggerResourceAid(faction, map);
+        internal static List<Thing> GenerateMedicalSupplies() => DiplomacyEventSlice1.GenerateMedicalSupplies();
+        internal static List<Thing> GenerateResourceSupplies() => DiplomacyEventSlice1.GenerateResourceSupplies();
+        internal static void SendAidLetter(Faction faction, string title, string message) => DiplomacyEventSlice2.SendAidLetter(faction, title, message);
+        public static string GetCaravanTypeLabel(CaravanType type) => DiplomacyEventSlice2.GetCaravanTypeLabel(type);
+        public static string GetAidTypeLabel(AidType type) => DiplomacyEventSlice2.GetAidTypeLabel(type);
+        public static CaravanType ParseCaravanType(string typeStr) => DiplomacyEventSlice2.ParseCaravanType(typeStr);
+        public static AidType ParseAidType(string typeStr) => DiplomacyEventSlice2.ParseAidType(typeStr);
+        internal static bool TryFindNearestFactionSettlement(Faction faction, int fromTile, out int distanceTiles) => DiplomacyEventSlice2.TryFindNearestFactionSettlement(faction, fromTile, out distanceTiles);
+        public static int CalculateDelayTicks(Faction faction, bool isAid = false) => DiplomacyEventSlice2.CalculateDelayTicks(faction, isAid);
+        public static bool ScheduleDelayedCaravan(Faction faction, CaravanType caravanType) => DiplomacyEventSlice2.ScheduleDelayedCaravan(faction, caravanType);
+        public static bool ScheduleDelayedAid(Faction faction, AidType aidType) => DiplomacyEventSlice2.ScheduleDelayedAid(faction, aidType);
+        public static bool ScheduleDelayedVisitor(Faction faction) => DiplomacyEventSlice2.ScheduleDelayedVisitor(faction);
+        public static bool TriggerRaidEvent(Faction faction, float points, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode) => DiplomacyEventSlice2.TriggerRaidEvent(faction, points, strategy, arrivalMode);
+        public static bool TryValidateRaidFaction(Faction faction, out string reason) => DiplomacyEventSlice2.TryValidateRaidFaction(faction, out reason);
+        internal static bool HasUsableCombatPawnGroupMaker(Faction faction, out string reason) => DiplomacyEventSlice2.HasUsableCombatPawnGroupMaker(faction, out reason);
+        internal static string DescribeRaidGroupMakerState(Faction faction) => DiplomacyEventSlice2.DescribeRaidGroupMakerState(faction);
+        internal static bool IsStrategyExecutable(RaidStrategyDef strategy, Faction faction, Map map) => DiplomacyEventSlice2.IsStrategyExecutable(strategy, faction, map);
+        internal static bool TryExecuteRaidWithVanillaAutoFallback(IncidentDef incidentDef, Map map, Faction faction, float raidPoints, out string reason) => DiplomacyEventSlice3.TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out reason);
+        internal static float ResolveRaidPoints(Map map, Faction faction, float requestedPoints) => DiplomacyEventSlice3.ResolveRaidPoints(map, faction, requestedPoints);
+        internal static float ResolveBaseRaidPointsFromStoryteller(Map map) => DiplomacyEventSlice3.ResolveBaseRaidPointsFromStoryteller(map);
+        internal static float ApplyRaidPointTuning(Faction faction, float basePoints) => DiplomacyEventSlice3.ApplyRaidPointTuning(faction, basePoints);
+        internal static bool IsArrivalModeCompatible(PawnsArrivalModeDef arrivalMode, RaidStrategyDef strategy) => DiplomacyEventSlice3.IsArrivalModeCompatible(arrivalMode, strategy);
+        internal static RaidStrategyDef GetFallbackStrategy(Faction faction, Map map) => DiplomacyEventSlice3.GetFallbackStrategy(faction, map);
+        internal static PawnsArrivalModeDef GetFallbackArrivalMode(RaidStrategyDef strategy) => DiplomacyEventSlice3.GetFallbackArrivalMode(strategy);
+        public static int CalculateRaidDelayTicks(RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode) => DiplomacyEventSlice3.CalculateRaidDelayTicks(strategy, arrivalMode);
+        public static bool ScheduleDelayedRaid(Faction faction, float points, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode) => DiplomacyEventSlice3.ScheduleDelayedRaid(faction, points, strategy, arrivalMode);
+        public static bool ScheduleRaidCallEveryone(Faction sourceFaction, System.Collections.Generic.List<Faction> targetFactions) => DiplomacyEventSlice3.ScheduleRaidCallEveryone(sourceFaction, targetFactions);
+        internal static List<Faction> BalanceCallEveryoneParticipants(List<Faction> targetFactions) => DiplomacyEventSlice3.BalanceCallEveryoneParticipants(targetFactions);
+        internal static float GetPlayerMapWealth() => DiplomacyEventSlice3.GetPlayerMapWealth();
+        internal static int ResolveMaxHostileFactionsForCallEveryone(List<Faction> allFactions, float playerWealth) => DiplomacyEventSlice3.ResolveMaxHostileFactionsForCallEveryone(allFactions, playerWealth);
+        internal static bool TryEnqueueRaidCallEveryoneSocialPost(Faction sourceFaction, bool isFollowup) => DiplomacyEventSlice3.TryEnqueueRaidCallEveryoneSocialPost(sourceFaction, isFollowup);
+        internal static bool TryEnqueueRaidWavesFirstArrivalSocialPost(Faction sourceFaction, int totalWaves) => DiplomacyEventSlice3.TryEnqueueRaidWavesFirstArrivalSocialPost(sourceFaction, totalWaves);
+        internal static void ScheduleRaidCallEveryoneFollowupSocialPost(Faction sourceFaction, int currentTick) => DiplomacyEventSlice4.ScheduleRaidCallEveryoneFollowupSocialPost(sourceFaction, currentTick);
+        internal static bool TryBuildCallEveryoneAidParms(Faction faction, out Map map, out IncidentParms aidParms, out string reason) => DiplomacyEventSlice4.TryBuildCallEveryoneAidParms(faction, out map, out aidParms, out reason);
+        internal static bool TryGenerateCallEveryoneAidPawns(IncidentParms aidParms, out List<Pawn> pawns, out string reason) => DiplomacyEventSlice4.TryGenerateCallEveryoneAidPawns(aidParms, out pawns, out reason);
+        internal static bool TryArriveCallEveryoneAidPawns(Map map, IncidentParms aidParms, List<Pawn> pawns, out string reason) => DiplomacyEventSlice4.TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out reason);
+        internal static bool TryFindCallEveryoneAidEntryCell(Map map, out IntVec3 entryCell, out string reason) => DiplomacyEventSlice4.TryFindCallEveryoneAidEntryCell(map, out entryCell, out reason);
+        internal static bool TrySpawnAidPawnNearEntry(Map map, IntVec3 entryCell, Pawn pawn) => DiplomacyEventSlice4.TrySpawnAidPawnNearEntry(map, entryCell, pawn);
+        public static bool ScheduleRaidWaves(Faction faction, int waves) => DiplomacyEventSlice4.ScheduleRaidWaves(faction, waves);
+        #endregion
+}
+    internal static class DiplomacyEventSlice1
+    {
+public static bool TriggerCaravanEvent(Faction faction, CaravanType caravanType)
         {
             try
             {
@@ -47,7 +252,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return false;
                 }
 
-                if (!TryFindNearestFactionSettlement(faction, map.Tile, out _))
+                if (!DiplomacyEventManager.TryFindNearestFactionSettlement(faction, map.Tile, out _))
                 {
                     DebugLogger.WarningGated($"Caravan trigger: {faction.Name} has no reachable settlement near tile {map.Tile}; attempting without settlement check.");
                 }
@@ -56,7 +261,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 parms.target = map;
                 parms.faction = faction;
 
-                TraderKindDef traderKind = GetTraderKindForType(faction, caravanType);
+                TraderKindDef traderKind = DiplomacyEventManager.GetTraderKindForType(faction, caravanType);
                 if (traderKind != null)
                 {
                     parms.traderKind = traderKind;
@@ -90,7 +295,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public static bool TriggerVisitorEvent(Faction faction)
+public static bool TriggerVisitorEvent(Faction faction)
         {
             try
             {
@@ -131,9 +336,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static TraderKindDef GetTraderKindForType(Faction faction, CaravanType caravanType)
+internal static TraderKindDef GetTraderKindForType(Faction faction, CaravanType caravanType)
         {
-            List<TraderKindDef> factionTraders = GetFactionGroundTraderKinds(faction);
+            List<TraderKindDef> factionTraders = DiplomacyEventManager.GetFactionGroundTraderKinds(faction);
             if (factionTraders.Count == 0)
             {
                 DebugLogger.WarningGated($"Faction {faction?.Name ?? "null"} has no ground caravan traders; leave traderKind null.");
@@ -141,7 +346,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             List<TraderKindDef> matchingTraders = factionTraders
-                .Where(trader => MatchesCaravanType(trader, caravanType))
+                .Where(trader => DiplomacyEventManager.MatchesCaravanType(trader, caravanType))
                 .ToList();
 
             DebugLogger.Debug($"Faction trader pool for {faction?.Name ?? "null"}: total={factionTraders.Count}, typeMatched={matchingTraders.Count}, requestedType={caravanType}");
@@ -163,7 +368,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return factionFallback;
         }
 
-        private static List<TraderKindDef> GetFactionGroundTraderKinds(Faction faction)
+internal static List<TraderKindDef> GetFactionGroundTraderKinds(Faction faction)
         {
             List<TraderKindDef> source = faction?.def?.caravanTraderKinds;
             if (source == null || source.Count == 0)
@@ -185,32 +390,27 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return result;
         }
 
-        private static bool MatchesCaravanType(TraderKindDef trader, CaravanType caravanType)
+internal static bool MatchesCaravanType(TraderKindDef trader, CaravanType caravanType)
         {
             string defName = trader?.defName ?? string.Empty;
             switch (caravanType)
             {
                 case CaravanType.General:
-                    return DefNameContains(defName, "standard") || DefNameContains(defName, "general");
+                    return DiplomacyEventManager.DefNameContains(defName, "standard") || DiplomacyEventManager.DefNameContains(defName, "general");
                 case CaravanType.BulkGoods:
-                    return DefNameContains(defName, "bulk");
+                    return DiplomacyEventManager.DefNameContains(defName, "bulk");
                 case CaravanType.CombatSupplier:
-                    return DefNameContains(defName, "combat") || DefNameContains(defName, "weapon");
+                    return DiplomacyEventManager.DefNameContains(defName, "combat") || DiplomacyEventManager.DefNameContains(defName, "weapon");
                 case CaravanType.Exotic:
-                    return DefNameContains(defName, "exotic");
+                    return DiplomacyEventManager.DefNameContains(defName, "exotic");
                 case CaravanType.Slaver:
-                    return DefNameContains(defName, "slave");
+                    return DiplomacyEventManager.DefNameContains(defName, "slave");
                 default:
                     return false;
             }
         }
 
-        private static bool DefNameContains(string source, string value)
-        {
-            return source?.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        public static bool TriggerAidEvent(Faction faction, AidType aidType)
+public static bool TriggerAidEvent(Faction faction, AidType aidType)
         {
             try
             {
@@ -224,11 +424,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 switch (aidType)
                 {
                     case AidType.Military:
-                        return TriggerMilitaryAid(faction, map);
+                        return DiplomacyEventManager.TriggerMilitaryAid(faction, map);
                     case AidType.Medical:
-                        return TriggerMedicalAid(faction, map);
+                        return DiplomacyEventManager.TriggerMedicalAid(faction, map);
                     case AidType.Resources:
-                        return TriggerResourceAid(faction, map);
+                        return DiplomacyEventManager.TriggerResourceAid(faction, map);
                     default:
                         return false;
                 }
@@ -240,9 +440,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>/// 触发军事支援事件（公共接口，用于 CallEveryone 友好派系支援）
-        ///</summary>
-        public static bool TriggerMilitaryAidEvent(Faction faction)
+public static bool TriggerMilitaryAidEvent(Faction faction)
         {
             try
             {
@@ -259,7 +457,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return false;
                 }
 
-                return TriggerMilitaryAid(faction, map);
+                return DiplomacyEventManager.TriggerMilitaryAid(faction, map);
             }
             catch (Exception ex)
             {
@@ -268,36 +466,33 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>
-        /// CallEveryone 专用军事支援：不依赖 RaidFriendly/FriendlyRaid，可用于中立派系援军。
-        /// </summary>
-        public static bool TriggerMilitaryAidCallEveryoneEvent(Faction faction)
+public static bool TriggerMilitaryAidCallEveryoneEvent(Faction faction)
         {
-            if (!TryBuildCallEveryoneAidParms(faction, out Map map, out IncidentParms aidParms, out string parmReason))
+            if (!DiplomacyEventManager.TryBuildCallEveryoneAidParms(faction, out Map map, out IncidentParms aidParms, out string parmReason))
             {
                 DebugLogger.Error($"CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=BuildParms, reason={parmReason}");
                 return false;
             }
 
-            if (!TryGenerateCallEveryoneAidPawns(aidParms, out List<Pawn> pawns, out string pawnReason))
+            if (!DiplomacyEventManager.TryGenerateCallEveryoneAidPawns(aidParms, out List<Pawn> pawns, out string pawnReason))
             {
                 DebugLogger.Error($"CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=GeneratePawns, reason={pawnReason}");
                 return false;
             }
 
-            if (!TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out string arriveReason))
+            if (!DiplomacyEventManager.TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out string arriveReason))
             {
                 DebugLogger.Error($"CallEveryoneCustomAidFailFast] faction={faction?.Name ?? "null"}, stage=Arrive, reason={arriveReason}");
                 return false;
             }
 
             DebugLogger.Debug($"Triggered custom military aid from {faction.Name}, pawns={pawns.Count}");
-            SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
+            DiplomacyEventManager.SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
                 "RimChat_MilitaryAidLetterBody".Translate(faction.Name));
             return true;
         }
 
-        private static bool TriggerMilitaryAid(Faction faction, Map map)
+internal static bool TriggerMilitaryAid(Faction faction, Map map)
         {
             DebugLogger.Debug($"Military aid pre-check: faction={faction.Name}, defeated={faction.defeated}, def={faction.def?.defName}, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
 
@@ -309,14 +504,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 forced = true
             };
 
-            if (TryResolveExecutableMilitaryAidIncident(parms, out IncidentDef militaryAidDef, out string resolveReason))
+            if (DiplomacyEventManager.TryResolveExecutableMilitaryAidIncident(parms, out IncidentDef militaryAidDef, out string resolveReason))
             {
                 bool success = militaryAidDef.Worker.TryExecute(parms);
                 if (success)
                 {
                     DebugLogger.Debug($"AidIncidentResolve] faction={faction.Name}, incident={militaryAidDef.defName}, result=success");
                     DebugLogger.Debug($"Triggered military aid from {faction.Name}");
-                    SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
+                    DiplomacyEventManager.SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
                         "RimChat_MilitaryAidLetterBody".Translate(faction.Name));
                     return true;
                 }
@@ -329,36 +524,36 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             // Fallback: custom pawn generation (same approach as CallEveryone military aid)
-            return TriggerMilitaryAidCustomFallback(faction);
+            return DiplomacyEventManager.TriggerMilitaryAidCustomFallback(faction);
         }
 
-        private static bool TriggerMilitaryAidCustomFallback(Faction faction)
+internal static bool TriggerMilitaryAidCustomFallback(Faction faction)
         {
-            if (!TryBuildCallEveryoneAidParms(faction, out Map map, out IncidentParms aidParms, out string buildReason))
+            if (!DiplomacyEventManager.TryBuildCallEveryoneAidParms(faction, out Map map, out IncidentParms aidParms, out string buildReason))
             {
                 DebugLogger.Error($"AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=BuildParms, reason={buildReason}");
                 return false;
             }
 
-            if (!TryGenerateCallEveryoneAidPawns(aidParms, out List<Pawn> pawns, out string pawnReason))
+            if (!DiplomacyEventManager.TryGenerateCallEveryoneAidPawns(aidParms, out List<Pawn> pawns, out string pawnReason))
             {
                 DebugLogger.Error($"AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=GeneratePawns, reason={pawnReason}");
                 return false;
             }
 
-            if (!TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out string arriveReason))
+            if (!DiplomacyEventManager.TryArriveCallEveryoneAidPawns(map, aidParms, pawns, out string arriveReason))
             {
                 DebugLogger.Error($"AidCustomFallbackFailFast] faction={faction?.Name ?? "null"}, stage=Arrive, reason={arriveReason}");
                 return false;
             }
 
             DebugLogger.Debug($"Triggered military aid (custom fallback) from {faction.Name}, pawns={pawns.Count}");
-            SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
+            DiplomacyEventManager.SendAidLetter(faction, "RimChat_MilitaryAidArrivedTitle".Translate(),
                 "RimChat_MilitaryAidLetterBody".Translate(faction.Name));
             return true;
         }
 
-        private static bool TryResolveExecutableMilitaryAidIncident(
+internal static bool TryResolveExecutableMilitaryAidIncident(
             IncidentParms parms,
             out IncidentDef incidentDef,
             out string reason)
@@ -399,9 +594,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return false;
         }
 
-        private static bool TriggerMedicalAid(Faction faction, Map map)
+internal static bool TriggerMedicalAid(Faction faction, Map map)
         {
-            List<Thing> medicalSupplies = GenerateMedicalSupplies();
+            List<Thing> medicalSupplies = DiplomacyEventManager.GenerateMedicalSupplies();
             DropPodUtility.DropThingsNear(
                 DropCellFinder.TradeDropSpot(map),
                 map,
@@ -412,16 +607,16 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 canRoofPunch: false
             );
 
-            SendAidLetter(faction, "RimChat_MedicalAidArrivedTitle".Translate(), 
+            DiplomacyEventManager.SendAidLetter(faction, "RimChat_MedicalAidArrivedTitle".Translate(), 
                 "RimChat_MedicalAidLetterBody".Translate(faction.Name));
             
             DebugLogger.Debug($"Triggered medical aid from {faction.Name}");
             return true;
         }
 
-        private static bool TriggerResourceAid(Faction faction, Map map)
+internal static bool TriggerResourceAid(Faction faction, Map map)
         {
-            List<Thing> resources = GenerateResourceSupplies();
+            List<Thing> resources = DiplomacyEventManager.GenerateResourceSupplies();
             DropPodUtility.DropThingsNear(
                 DropCellFinder.TradeDropSpot(map),
                 map,
@@ -432,14 +627,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 canRoofPunch: false
             );
 
-            SendAidLetter(faction, "RimChat_ResourceAidArrivedTitle".Translate(), 
+            DiplomacyEventManager.SendAidLetter(faction, "RimChat_ResourceAidArrivedTitle".Translate(), 
                 "RimChat_ResourceAidLetterBody".Translate(faction.Name));
             
             DebugLogger.Debug($"Triggered resource aid from {faction.Name}");
             return true;
         }
 
-        private static List<Thing> GenerateMedicalSupplies()
+internal static List<Thing> GenerateMedicalSupplies()
         {
             List<Thing> supplies = new List<Thing>();
             
@@ -464,7 +659,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return supplies;
         }
 
-        private static List<Thing> GenerateResourceSupplies()
+internal static List<Thing> GenerateResourceSupplies()
         {
             List<Thing> supplies = new List<Thing>();
             
@@ -485,8 +680,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             
             return supplies;
         }
+    }
 
-        private static void SendAidLetter(Faction faction, string title, string message)
+    internal static class DiplomacyEventSlice2
+    {
+internal static void SendAidLetter(Faction faction, string title, string message)
         {
             Map map = Find.AnyPlayerHomeMap;
             LookTargets lookTargets = map != null
@@ -501,7 +699,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             );
         }
 
-        public static string GetCaravanTypeLabel(CaravanType type)
+public static string GetCaravanTypeLabel(CaravanType type)
         {
             return type switch
             {
@@ -514,7 +712,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             };
         }
 
-        public static string GetAidTypeLabel(AidType type)
+public static string GetAidTypeLabel(AidType type)
         {
             return type switch
             {
@@ -525,7 +723,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             };
         }
 
-        public static CaravanType ParseCaravanType(string typeStr)
+public static CaravanType ParseCaravanType(string typeStr)
         {
             if (Enum.TryParse(typeStr, true, out CaravanType type))
             {
@@ -535,7 +733,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             throw new ArgumentException($"Invalid CaravanType: {typeStr}", nameof(typeStr));
         }
 
-        public static AidType ParseAidType(string typeStr)
+public static AidType ParseAidType(string typeStr)
         {
             if (Enum.TryParse(typeStr, true, out AidType type))
             {
@@ -544,7 +742,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return AidType.Military;
         }
 
-        private static bool TryFindNearestFactionSettlement(Faction faction, int fromTile, out int distanceTiles)
+internal static bool TryFindNearestFactionSettlement(Faction faction, int fromTile, out int distanceTiles)
         {
             distanceTiles = 0;
             if (faction == null || !WorldTileGuard.IsValidTile(fromTile)) return false;
@@ -560,7 +758,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        public static int CalculateDelayTicks(Faction faction, bool isAid = false)
+public static int CalculateDelayTicks(Faction faction, bool isAid = false)
         {
             int baseTicks = isAid
                 ? (RelationsMod.Instance?.InstanceSettings?.AidDelayBaseTicks ?? 90000)
@@ -570,7 +768,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             int distanceTiles = 0;
             if (!isAid && WorldTileGuard.IsValidTile(homeTile))
             {
-                if (TryFindNearestFactionSettlement(faction, homeTile, out int dist))
+                if (DiplomacyEventManager.TryFindNearestFactionSettlement(faction, homeTile, out int dist))
                     distanceTiles = dist;
             }
             int distanceTicks = Math.Max(0, distanceTiles - 5) * 3000;
@@ -597,18 +795,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return delayTicks;
         }
 
-        public static bool ScheduleDelayedCaravan(Faction faction, CaravanType caravanType)
+public static bool ScheduleDelayedCaravan(Faction faction, CaravanType caravanType)
         {
             try
             {
                 int homeTile = Find.AnyPlayerHomeMap?.Tile ?? -1;
-                if (!TryFindNearestFactionSettlement(faction, homeTile, out int distanceTiles))
+                if (!DiplomacyEventManager.TryFindNearestFactionSettlement(faction, homeTile, out int distanceTiles))
                 {
                     DebugLogger.WarningGated($"Cannot schedule caravan from {faction.Name}: no valid settlement found.");
                     return false;
                 }
 
-                int delayTicks = CalculateDelayTicks(faction, false);
+                int delayTicks = DiplomacyEventManager.CalculateDelayTicks(faction, false);
                 int executeTick = Find.TickManager.TicksGame + delayTicks;
 
                 var evt = new DelayedDiplomacyEvent(DelayedEventType.Caravan, faction, executeTick)
@@ -619,7 +817,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 GameComponent_DiplomacyManager.Instance?.AddDelayedEvent(evt);
 
                 float delayDays = delayTicks / 60000f;
-                string caravanTypeLabel = GetCaravanTypeLabel(caravanType);
+                string caravanTypeLabel = DiplomacyEventManager.GetCaravanTypeLabel(caravanType);
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Caravan, caravanTypeLabel, delayDays);
 
                 DebugLogger.Debug($"Scheduled delayed caravan from {faction.Name}, type={caravanType}, delay={delayDays:F1} days, distance={distanceTiles} tiles, goodwill={faction.PlayerGoodwill}, relation={faction.RelationKindWith(Faction.OfPlayer)}");
@@ -632,11 +830,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public static bool ScheduleDelayedAid(Faction faction, AidType aidType)
+public static bool ScheduleDelayedAid(Faction faction, AidType aidType)
         {
             try
             {
-                int delayTicks = CalculateDelayTicks(faction, true);
+                int delayTicks = DiplomacyEventManager.CalculateDelayTicks(faction, true);
                 int executeTick = Find.TickManager.TicksGame + delayTicks;
 
                 var evt = new DelayedDiplomacyEvent(DelayedEventType.Aid, faction, executeTick)
@@ -647,7 +845,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 GameComponent_DiplomacyManager.Instance?.AddDelayedEvent(evt);
 
                 float delayDays = delayTicks / 60000f;
-                string aidTypeLabel = GetAidTypeLabel(aidType);
+                string aidTypeLabel = DiplomacyEventManager.GetAidTypeLabel(aidType);
                 DiplomacyNotificationManager.SendDelayedEventScheduledNotification(faction, DelayedEventType.Aid, aidTypeLabel, delayDays);
 
                 DebugLogger.Debug($"Scheduled delayed aid from {faction.Name}, type={aidType}, delay={delayDays:F1} days");
@@ -660,11 +858,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public static bool ScheduleDelayedVisitor(Faction faction)
+public static bool ScheduleDelayedVisitor(Faction faction)
         {
             try
             {
-                int delayTicks = CalculateDelayTicks(faction, false);
+                int delayTicks = DiplomacyEventManager.CalculateDelayTicks(faction, false);
                 int executeTick = Find.TickManager.TicksGame + delayTicks;
 
                 var evt = new DelayedDiplomacyEvent(DelayedEventType.Visitor, faction, executeTick);
@@ -684,11 +882,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public static bool TriggerRaidEvent(Faction faction, float points, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode)
+public static bool TriggerRaidEvent(Faction faction, float points, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode)
         {
             try
             {
-                if (!TryValidateRaidFaction(faction, out string factionValidationReason))
+                if (!DiplomacyEventManager.TryValidateRaidFaction(faction, out string factionValidationReason))
                 {
                     DebugLogger.WarningGated($"Raid blocked: {factionValidationReason}");
                     return false;
@@ -701,11 +899,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return false;
                 }
 
-                float raidPoints = ResolveRaidPoints(map, faction, points);
+                float raidPoints = DiplomacyEventManager.ResolveRaidPoints(map, faction, points);
 
-                if (IsMiliraFaction(faction))
+                if (DiplomacyEventManager.IsMiliraFaction(faction))
                 {
-                    if (TryExecuteMiliraRaidFallback(map, faction, raidPoints, out string miliraDirectReason))
+                    if (DiplomacyEventManager.TryExecuteMiliraRaidFallback(map, faction, raidPoints, out string miliraDirectReason))
                     {
                         return true;
                     }
@@ -716,9 +914,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
                 // Normalize strategy: ensure it's valid and executable
                 RaidStrategyDef normalizedStrategy = strategy;
-                if (normalizedStrategy == null || !IsStrategyExecutable(normalizedStrategy, faction, map))
+                if (normalizedStrategy == null || !DiplomacyEventManager.IsStrategyExecutable(normalizedStrategy, faction, map))
                 {
-                    normalizedStrategy = GetFallbackStrategy(faction, map);
+                    normalizedStrategy = DiplomacyEventManager.GetFallbackStrategy(faction, map);
                     if (normalizedStrategy == null)
                     {
                         DebugLogger.WarningGated($"Cannot find executable raid strategy for {faction?.Name}; falling back to vanilla raid strategy resolution.");
@@ -735,9 +933,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 {
                     normalizedArrivalMode = null;
                 }
-                else if (normalizedArrivalMode == null || !IsArrivalModeCompatible(normalizedArrivalMode, normalizedStrategy))
+                else if (normalizedArrivalMode == null || !DiplomacyEventManager.IsArrivalModeCompatible(normalizedArrivalMode, normalizedStrategy))
                 {
-                    normalizedArrivalMode = GetFallbackArrivalMode(normalizedStrategy);
+                    normalizedArrivalMode = DiplomacyEventManager.GetFallbackArrivalMode(normalizedStrategy);
                     if (normalizedArrivalMode == null)
                     {
                         DebugLogger.Error($"Cannot find compatible arrival mode for strategy {normalizedStrategy?.defName}");
@@ -753,32 +951,32 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return false;
                 }
 
-                IncidentParms parms = BuildRaidIncidentParmsWithDefaults(
+                IncidentParms parms = DiplomacyEventManager.BuildRaidIncidentParmsWithDefaults(
                     incidentDef,
                     map,
                     faction,
                     raidPoints,
                     normalizedStrategy,
                     normalizedArrivalMode);
-                if (!EnsureUsableCombatPawnGroupMakerForParms(faction, parms, out string groupPreflightReason))
+                if (!DiplomacyEventManager.EnsureUsableCombatPawnGroupMakerForParms(faction, parms, out string groupPreflightReason))
                 {
                     DebugLogger.WarningGated($"Raid group preflight could not ensure usable combat maker: {groupPreflightReason}");
                 }
 
                 if (!incidentDef.Worker.CanFireNow(parms))
                 {
-                    if (TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out string vanillaAutoReason))
+                    if (DiplomacyEventManager.TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out string vanillaAutoReason))
                     {
                         DebugLogger.WarningGated($"Raid precheck blocked for strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}; forced vanilla auto fallback succeeded.");
                         return true;
                     }
 
-                    if (TryExecuteMiliraRaidFallback(map, faction, raidPoints, out string miliraFallbackReason))
+                    if (DiplomacyEventManager.TryExecuteMiliraRaidFallback(map, faction, raidPoints, out string miliraFallbackReason))
                     {
                         return true;
                     }
 
-                    DebugLogger.WarningGated($"Raid precheck blocked for faction={faction.Name}, def={faction.def?.defName}, relation={faction.RelationKindWith(Faction.OfPlayer)}, points={raidPoints:F1}, strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DescribeRaidGroupMakerState(faction)}");
+                    DebugLogger.WarningGated($"Raid precheck blocked for faction={faction.Name}, def={faction.def?.defName}, relation={faction.RelationKindWith(Faction.OfPlayer)}, points={raidPoints:F1}, strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DiplomacyEventManager.DescribeRaidGroupMakerState(faction)}");
                     return false;
                 }
 
@@ -790,18 +988,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 }
                 else
                 {
-                    if (TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out string vanillaAutoReason))
+                    if (DiplomacyEventManager.TryExecuteRaidWithVanillaAutoFallback(incidentDef, map, faction, raidPoints, out string vanillaAutoReason))
                     {
                         DebugLogger.WarningGated($"Raid execution failed for strategy={normalizedStrategy?.defName ?? "auto"}, arrival={normalizedArrivalMode?.defName ?? "auto"}; forced vanilla auto fallback succeeded.");
                         return true;
                     }
 
-                    if (TryExecuteMiliraRaidFallback(map, faction, raidPoints, out string miliraFallbackReason))
+                    if (DiplomacyEventManager.TryExecuteMiliraRaidFallback(map, faction, raidPoints, out string miliraFallbackReason))
                     {
                         return true;
                     }
 
-                    DebugLogger.WarningGated($"Failed to trigger raid from {faction.Name}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DescribeRaidGroupMakerState(faction)}");
+                    DebugLogger.WarningGated($"Failed to trigger raid from {faction.Name}, vanillaAuto={vanillaAutoReason}, miliraFallback={miliraFallbackReason}. {DiplomacyEventManager.DescribeRaidGroupMakerState(faction)}");
                 }
 
                 return success;
@@ -813,7 +1011,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public static bool TryValidateRaidFaction(Faction faction, out string reason)
+public static bool TryValidateRaidFaction(Faction faction, out string reason)
         {
             reason = string.Empty;
             if (faction == null)
@@ -834,7 +1032,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            if (!EnsureRaidTemplates(faction, out reason))
+            if (!DiplomacyEventManager.EnsureRaidTemplates(faction, out reason))
             {
                 reason = $"Faction {faction.Name} cannot launch raids: {reason}";
                 return false;
@@ -843,7 +1041,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool HasUsableCombatPawnGroupMaker(Faction faction, out string reason)
+internal static bool HasUsableCombatPawnGroupMaker(Faction faction, out string reason)
         {
             reason = string.Empty;
             List<PawnGroupMaker> makers = faction?.def?.pawnGroupMakers;
@@ -877,7 +1075,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static string DescribeRaidGroupMakerState(Faction faction)
+internal static string DescribeRaidGroupMakerState(Faction faction)
         {
             if (faction?.def?.pawnGroupMakers == null || faction.def.pawnGroupMakers.Count == 0)
             {
@@ -893,7 +1091,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return $"PawnGroupMakers total={total}, combat={combat}, combatWithOptions={combatWithOptions}.";
         }
 
-        private static bool IsStrategyExecutable(RaidStrategyDef strategy, Faction faction, Map map)
+internal static bool IsStrategyExecutable(RaidStrategyDef strategy, Faction faction, Map map)
         {
             if (strategy == null || faction == null || map == null)
             {
@@ -909,8 +1107,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
         }
+    }
 
-        private static bool TryExecuteRaidWithVanillaAutoFallback(
+    internal static class DiplomacyEventSlice3
+    {
+internal static bool TryExecuteRaidWithVanillaAutoFallback(
             IncidentDef incidentDef,
             Map map,
             Faction faction,
@@ -924,14 +1125,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            IncidentParms autoParms = BuildRaidIncidentParmsWithDefaults(
+            IncidentParms autoParms = DiplomacyEventManager.BuildRaidIncidentParmsWithDefaults(
                 incidentDef,
                 map,
                 faction,
                 raidPoints,
                 strategy: null,
                 arrivalMode: null);
-            if (!EnsureUsableCombatPawnGroupMakerForParms(faction, autoParms, out string groupReason))
+            if (!DiplomacyEventManager.EnsureUsableCombatPawnGroupMakerForParms(faction, autoParms, out string groupReason))
             {
                 DebugLogger.WarningGated($"Vanilla auto fallback preflight warning: {groupReason}");
             }
@@ -953,18 +1154,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static float ResolveRaidPoints(Map map, Faction faction, float requestedPoints)
+internal static float ResolveRaidPoints(Map map, Faction faction, float requestedPoints)
         {
             float basePoints = requestedPoints;
             if (basePoints <= 0f)
             {
-                basePoints = ResolveBaseRaidPointsFromStoryteller(map);
+                basePoints = DiplomacyEventManager.ResolveBaseRaidPointsFromStoryteller(map);
             }
 
-            return ApplyRaidPointTuning(faction, basePoints);
+            return DiplomacyEventManager.ApplyRaidPointTuning(faction, basePoints);
         }
 
-        private static float ResolveBaseRaidPointsFromStoryteller(Map map)
+internal static float ResolveBaseRaidPointsFromStoryteller(Map map)
         {
             try
             {
@@ -988,7 +1189,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return 35f;
         }
 
-        private static float ApplyRaidPointTuning(Faction faction, float basePoints)
+internal static float ApplyRaidPointTuning(Faction faction, float basePoints)
         {
             var settings = RelationsMod.Instance?.InstanceSettings;
             if (settings == null)
@@ -1001,7 +1202,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return tunedPoints < minRaidPoints ? minRaidPoints : tunedPoints;
         }
 
-        private static bool IsArrivalModeCompatible(PawnsArrivalModeDef arrivalMode, RaidStrategyDef strategy)
+internal static bool IsArrivalModeCompatible(PawnsArrivalModeDef arrivalMode, RaidStrategyDef strategy)
         {
             if (arrivalMode == null || strategy == null)
             {
@@ -1023,13 +1224,13 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static RaidStrategyDef GetFallbackStrategy(Faction faction, Map map)
+internal static RaidStrategyDef GetFallbackStrategy(Faction faction, Map map)
         {
             try
             {
                 var allStrategies = DefDatabase<RaidStrategyDef>.AllDefsListForReading;
                 var executableStrategies = allStrategies
-                    .Where(s => s != null && IsStrategyExecutable(s, faction, map))
+                    .Where(s => s != null && DiplomacyEventManager.IsStrategyExecutable(s, faction, map))
                     .ToList();
 
                 if (executableStrategies.Count == 0)
@@ -1048,7 +1249,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static PawnsArrivalModeDef GetFallbackArrivalMode(RaidStrategyDef strategy)
+internal static PawnsArrivalModeDef GetFallbackArrivalMode(RaidStrategyDef strategy)
         {
             try
             {
@@ -1068,7 +1269,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public static int CalculateRaidDelayTicks(RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode)
+public static int CalculateRaidDelayTicks(RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode)
         {
             // Siege strategy usually implies long preparation
             if (strategy != null && strategy.defName.ToLower().Contains("siege"))
@@ -1092,11 +1293,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return Rand.Range(10000, 15000);
         }
 
-        public static bool ScheduleDelayedRaid(Faction faction, float points, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode)
+public static bool ScheduleDelayedRaid(Faction faction, float points, RaidStrategyDef strategy, PawnsArrivalModeDef arrivalMode)
         {
             try
             {
-                int delayTicks = CalculateRaidDelayTicks(strategy, arrivalMode);
+                int delayTicks = DiplomacyEventManager.CalculateRaidDelayTicks(strategy, arrivalMode);
                 int executeTick = Find.TickManager.TicksGame + delayTicks;
 
                 var evt = new DelayedDiplomacyEvent(DelayedEventType.Raid, faction, executeTick)
@@ -1122,9 +1323,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>/// 调度"呼叫所有人"袭击：敌友统一 16-30 小时窗口；当敌对数量不足时优先剔除最低好感友中立
-        ///</summary>
-        public static bool ScheduleRaidCallEveryone(Faction sourceFaction, System.Collections.Generic.List<Faction> targetFactions)
+public static bool ScheduleRaidCallEveryone(Faction sourceFaction, System.Collections.Generic.List<Faction> targetFactions)
         {
             try
             {
@@ -1137,7 +1336,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 int currentTick = Find.TickManager.TicksGame;
                 int windowStartTick = currentTick + (8 * 2500);
                 int windowTicks = 4 * 2500; // 8-12 hours
-                List<Faction> effectiveFactions = BalanceCallEveryoneParticipants(targetFactions);
+                List<Faction> effectiveFactions = DiplomacyEventManager.BalanceCallEveryoneParticipants(targetFactions);
                 if (effectiveFactions.Count == 0)
                 {
                     DebugLogger.WarningGated("ScheduleRaidCallEveryone: No effective factions after balancing.");
@@ -1207,8 +1406,8 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 Faction socialPostFaction = sourceFaction ?? notifyFaction;
                 if (socialPostFaction != null)
                 {
-                    TryEnqueueRaidCallEveryoneSocialPost(socialPostFaction, isFollowup: false);
-                    ScheduleRaidCallEveryoneFollowupSocialPost(socialPostFaction, currentTick);
+                    DiplomacyEventManager.TryEnqueueRaidCallEveryoneSocialPost(socialPostFaction, isFollowup: false);
+                    DiplomacyEventManager.ScheduleRaidCallEveryoneFollowupSocialPost(socialPostFaction, currentTick);
                 }
                 
                 return true;
@@ -1220,14 +1419,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static List<Faction> BalanceCallEveryoneParticipants(List<Faction> targetFactions)
+internal static List<Faction> BalanceCallEveryoneParticipants(List<Faction> targetFactions)
         {
             List<Faction> effective = targetFactions
                 .Where(f => f != null && !f.defeated && f.def != null)
                 .ToList();
 
-            float playerWealth = GetPlayerMapWealth();
-            int maxHostile = ResolveMaxHostileFactionsForCallEveryone(effective, playerWealth);
+            float playerWealth = DiplomacyEventManager.GetPlayerMapWealth();
+            int maxHostile = DiplomacyEventManager.ResolveMaxHostileFactionsForCallEveryone(effective, playerWealth);
             int maxFriendly = maxHostile / 2;
 
             List<Faction> hostileFactions = effective
@@ -1252,7 +1451,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return result;
         }
 
-        private static float GetPlayerMapWealth()
+internal static float GetPlayerMapWealth()
         {
             Map playerMap = Find.AnyPlayerHomeMap;
             if (playerMap == null)
@@ -1263,7 +1462,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return playerMap.wealthWatcher?.WealthTotal ?? 0f;
         }
 
-        private static int ResolveMaxHostileFactionsForCallEveryone(List<Faction> allFactions, float playerWealth)
+internal static int ResolveMaxHostileFactionsForCallEveryone(List<Faction> allFactions, float playerWealth)
         {
             if (playerWealth <= 0f)
             {
@@ -1283,7 +1482,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return Math.Min(maxHostile, actualHostileCount);
         }
 
-        internal static bool TryEnqueueRaidCallEveryoneSocialPost(Faction sourceFaction, bool isFollowup)
+internal static bool TryEnqueueRaidCallEveryoneSocialPost(Faction sourceFaction, bool isFollowup)
         {
             if (sourceFaction == null || sourceFaction.defeated)
             {
@@ -1314,7 +1513,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return queued;
         }
 
-        internal static bool TryEnqueueRaidWavesFirstArrivalSocialPost(Faction sourceFaction, int totalWaves)
+internal static bool TryEnqueueRaidWavesFirstArrivalSocialPost(Faction sourceFaction, int totalWaves)
         {
             if (sourceFaction == null || sourceFaction.defeated)
             {
@@ -1342,8 +1541,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             DebugLogger.Debug($"RaidWavesSocialPost] faction={sourceFaction.Name}, totalWaves={safeTotalWaves}, queued={queued}");
             return queued;
         }
+    }
 
-        private static void ScheduleRaidCallEveryoneFollowupSocialPost(Faction sourceFaction, int currentTick)
+    internal static class DiplomacyEventSlice4
+    {
+internal static void ScheduleRaidCallEveryoneFollowupSocialPost(Faction sourceFaction, int currentTick)
         {
             if (sourceFaction == null || sourceFaction.defeated)
             {
@@ -1359,7 +1561,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             DebugLogger.Debug($"CallEveryoneSocialPost] Scheduled follow-up social post for {sourceFaction.Name} at tick {executeTick}");
         }
 
-        private static bool TryBuildCallEveryoneAidParms(
+internal static bool TryBuildCallEveryoneAidParms(
             Faction faction,
             out Map map,
             out IncidentParms aidParms,
@@ -1387,7 +1589,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             float aidPoints = Math.Max(35f, StorytellerUtility.DefaultThreatPointsNow(map) * 0.5f);
-            aidParms = BuildRaidIncidentParmsWithDefaults(
+            aidParms = DiplomacyEventManager.BuildRaidIncidentParmsWithDefaults(
                 IncidentDefOf.RaidEnemy,
                 map,
                 faction,
@@ -1401,7 +1603,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            if (!EnsureUsableCombatPawnGroupMakerForParms(faction, aidParms, out string groupReason))
+            if (!DiplomacyEventManager.EnsureUsableCombatPawnGroupMakerForParms(faction, aidParms, out string groupReason))
             {
                 reason = $"NoUsableCombatMaker:{groupReason}";
                 return false;
@@ -1411,7 +1613,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool TryGenerateCallEveryoneAidPawns(
+internal static bool TryGenerateCallEveryoneAidPawns(
             IncidentParms aidParms,
             out List<Pawn> pawns,
             out string reason)
@@ -1423,7 +1625,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            PawnGroupMakerParms groupParms = BuildRaidGroupMakerParms(aidParms, out string groupReason);
+            PawnGroupMakerParms groupParms = DiplomacyEventManager.BuildRaidGroupMakerParms(aidParms, out string groupReason);
             if (groupParms == null)
             {
                 reason = $"BuildGroupParmsFailed:{groupReason}";
@@ -1452,7 +1654,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool TryArriveCallEveryoneAidPawns(
+internal static bool TryArriveCallEveryoneAidPawns(
             Map map,
             IncidentParms aidParms,
             List<Pawn> pawns,
@@ -1464,7 +1666,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            if (!TryFindCallEveryoneAidEntryCell(map, out IntVec3 entryCell, out string entryReason))
+            if (!DiplomacyEventManager.TryFindCallEveryoneAidEntryCell(map, out IntVec3 entryCell, out string entryReason))
             {
                 reason = $"NoValidEntryCell:{entryReason}";
                 return false;
@@ -1493,7 +1695,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                         continue;
                     }
 
-                    if (!TrySpawnAidPawnNearEntry(map, entryCell, pawn))
+                    if (!DiplomacyEventManager.TrySpawnAidPawnNearEntry(map, entryCell, pawn))
                     {
                         spawnFailed++;
                         continue;
@@ -1525,7 +1727,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool TryFindCallEveryoneAidEntryCell(Map map, out IntVec3 entryCell, out string reason)
+internal static bool TryFindCallEveryoneAidEntryCell(Map map, out IntVec3 entryCell, out string reason)
         {
             entryCell = IntVec3.Invalid;
             reason = "NoCandidate";
@@ -1559,7 +1761,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return false;
         }
 
-        private static bool TrySpawnAidPawnNearEntry(Map map, IntVec3 entryCell, Pawn pawn)
+internal static bool TrySpawnAidPawnNearEntry(Map map, IntVec3 entryCell, Pawn pawn)
         {
             if (map == null || pawn == null || !entryCell.IsValid || !entryCell.InBounds(map))
             {
@@ -1593,9 +1795,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>/// 调度袭击波次：n 次袭击，每次间隔 12-20 小时
-        ///</summary>
-        public static bool ScheduleRaidWaves(Faction faction, int waves)
+public static bool ScheduleRaidWaves(Faction faction, int waves)
         {
             try
             {
@@ -1654,4 +1854,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
     }
+
+
 }

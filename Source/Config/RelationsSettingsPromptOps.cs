@@ -162,316 +162,95 @@ internal static void ApplyRpgPromptEditorSectionToUnifiedCatalog(this RelationsS
             catalog.SetSection(channel, "action_rules", settings.RPGFormatConstraint ?? string.Empty);
         }
 
-internal static void EnsurePromptEntrySeedFromLegacyData(this RelationsSettings settings, RpgPromptCustomConfig rpgConfig)
+        internal static void EnsurePromptEntrySeedFromLegacyData(this RelationsSettings settings, RpgPromptCustomConfig rpgConfig)
         {
-            settings.EnsurePromptEntrySeedForChannel(RimTalkPromptChannel.Diplomacy);
-            settings.EnsurePromptEntrySeedForChannel(RimTalkPromptChannel.Rpg);
+            RelationsSettingsPromptSeedOps.EnsurePromptEntrySeedFromLegacyData(settings, rpgConfig);
         }
 
-internal static void EnsurePromptEntrySeedForChannel(this RelationsSettings settings, RimTalkPromptChannel channel)
+        internal static void EnsurePromptEntrySeedForChannel(this RelationsSettings settings, RimTalkPromptChannel channel)
         {
-            RimTalkChannelCompatConfig current = settings.GetRimTalkChannelConfigClone(channel);
-            bool dirty = false;
-            if (!HasMeaningfulPromptEntries(current))
-            {
-                SystemPromptConfig systemConfig = RelationsSettingsPages.For(settings).PromptLegacy._systemPromptConfig ?? PromptPersistenceService.Instance?.LoadConfig();
-                RpgPromptCustomConfig rpgConfig = RpgPromptCustomStore.LoadOrDefault();
-                dirty |= EnsurePromptEntrySeedForChannel(channel, systemConfig, rpgConfig, current);
-            }
-
-            dirty |= EnsurePromptEntryChannelCoverage(channel, current);
-            if (dirty)
-            {
-                current.CompatTemplate = RelationsSettingsPromptLanguage.ComposePromptEntryTextByRole(
-                    current.PromptEntries,
-                    includeSystemRole: true,
-                    includeNonSystemRole: true);
-                settings.SetRimTalkChannelConfig(channel, current);
-            }
+            RelationsSettingsPromptSeedOps.EnsurePromptEntrySeedForChannel(settings, channel);
         }
 
-        internal static bool EnsurePromptEntrySeedForChannel(
-            RimTalkPromptChannel channel,
+        internal static bool EnsurePromptEntrySeedForChannel(RimTalkPromptChannel channel,
             SystemPromptConfig systemConfig,
             RpgPromptCustomConfig rpgConfig,
             RimTalkChannelCompatConfig current)
         {
-            if (current == null || HasMeaningfulPromptEntries(current))
-            {
-                return false;
-            }
-
-            List<RimTalkPromptEntryConfig> legacyEntries = BuildLegacyPromptEntries(channel, systemConfig, rpgConfig);
-            if (legacyEntries.Count == 0)
-            {
-                return false;
-            }
-
-            current.PromptEntries = legacyEntries;
-            current.EnablePromptCompat = true;
-            return true;
+            return RelationsSettingsPromptSeedOps.EnsurePromptEntrySeedForChannel(channel, systemConfig, rpgConfig, current);
         }
 
-        internal static bool EnsurePromptEntryChannelCoverage(
-            RimTalkPromptChannel channel,
+        internal static bool EnsurePromptEntryChannelCoverage(RimTalkPromptChannel channel,
             RimTalkChannelCompatConfig config)
         {
-            bool changed = RimTalkPromptEntrySeedSynchronizer.EnsureCoverage(channel, config);
-            changed |= EnforcePromptWorkbenchSectionLayout(channel, config);
-            return changed;
+            return RelationsSettingsPromptSeedOps.EnsurePromptEntryChannelCoverage(channel, config);
         }
 
-        internal static bool EnforcePromptWorkbenchSectionLayout(
-            RimTalkPromptChannel rootChannel,
+        internal static bool EnforcePromptWorkbenchSectionLayout(RimTalkPromptChannel rootChannel,
             RimTalkChannelCompatConfig config)
         {
-            if (config == null)
-            {
-                return false;
-            }
-
-            config.PromptEntries ??= new List<RimTalkPromptEntryConfig>();
-            bool changed = false;
-            IReadOnlyList<string> channels = RimTalkPromptEntryChannelCatalog.GetSelectableChannels(rootChannel);
-            for (int i = 0; i < channels.Count; i++)
-            {
-                changed |= NormalizePromptChannelEntries(config.PromptEntries, channels[i]);
-            }
-
-            return changed;
+            return RelationsSettingsPromptSeedOps.EnforcePromptWorkbenchSectionLayout(rootChannel, config);
         }
 
-        internal static bool NormalizePromptChannelEntries(
-            List<RimTalkPromptEntryConfig> allEntries,
+        internal static bool NormalizePromptChannelEntries(List<RimTalkPromptEntryConfig> allEntries,
             string promptChannel)
         {
-            string normalizedChannel = RimTalkPromptEntryChannelCatalog.NormalizeLoose(promptChannel);
-            List<RimTalkPromptEntryConfig> current = allEntries
-                .Where(entry => entry != null &&
-                                string.Equals(
-                                    RimTalkPromptEntryChannelCatalog.NormalizeLoose(entry.PromptChannel),
-                                    normalizedChannel,
-                                    StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            List<RimTalkPromptEntryConfig> rebuilt = BuildCanonicalPromptEntriesForChannel(current, normalizedChannel);
-            if (ArePromptEntryListsEquivalent(current, rebuilt))
-            {
-                return false;
-            }
-
-            ReplacePromptChannelEntries(allEntries, normalizedChannel, rebuilt);
-            return true;
+            return RelationsSettingsPromptSeedOps.NormalizePromptChannelEntries(allEntries, promptChannel);
         }
 
-        internal static List<RimTalkPromptEntryConfig> BuildCanonicalPromptEntriesForChannel(
-            List<RimTalkPromptEntryConfig> sourceEntries,
+        internal static List<RimTalkPromptEntryConfig> BuildCanonicalPromptEntriesForChannel(List<RimTalkPromptEntryConfig> sourceEntries,
             string promptChannel)
         {
-            if (sourceEntries == null || sourceEntries.Count == 0)
-            {
-                return BuildLegacyOrderedSectionEntries(new List<RimTalkPromptEntryConfig>(), promptChannel);
-            }
-
-            bool hasSectionIdentity = sourceEntries.Any(entry => !string.IsNullOrWhiteSpace(entry?.SectionId));
-            if (!hasSectionIdentity)
-            {
-                return BuildLegacyOrderedSectionEntries(sourceEntries, promptChannel);
-            }
-
-            bool hasKnownSection = sourceEntries.Any(entry => TryResolvePromptSectionIndex(entry, out _));
-            return hasKnownSection
-                ? BuildCoverageSectionEntries(sourceEntries, promptChannel)
-                : BuildLegacyOrderedSectionEntries(sourceEntries, promptChannel);
+            return RelationsSettingsPromptSeedOps.BuildCanonicalPromptEntriesForChannel(sourceEntries, promptChannel);
         }
 
         internal static List<RimTalkPromptEntryConfig> BuildDefaultSectionEntriesForChannel(string promptChannel)
         {
-            return BuildLegacyOrderedSectionEntries(new List<RimTalkPromptEntryConfig>(), promptChannel);
+            return RelationsSettingsPromptSeedOps.BuildDefaultSectionEntriesForChannel(promptChannel);
         }
 
         internal static RimTalkChannelCompatConfig CreateCanonicalDefaultRimTalkChannelConfig(RimTalkPromptChannel rootChannel)
         {
-            return PromptLegacyCompatMigration.CreateLegacyAdapterFromPromptSections(
-                RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot(),
-                rootChannel);
+            return RelationsSettingsPromptSeedOps.CreateCanonicalDefaultRimTalkChannelConfig(rootChannel);
         }
 
-        internal static List<RimTalkPromptEntryConfig> BuildLegacyOrderedSectionEntries(
-            IReadOnlyList<RimTalkPromptEntryConfig> sourceEntries,
+        internal static List<RimTalkPromptEntryConfig> BuildLegacyOrderedSectionEntries(IReadOnlyList<RimTalkPromptEntryConfig> sourceEntries,
             string promptChannel)
         {
-            var result = new List<RimTalkPromptEntryConfig>(PromptWorkbenchSections.Length);
-            for (int i = 0; i < PromptWorkbenchSections.Length; i++)
-            {
-                RimTalkPromptEntryConfig source = sourceEntries != null && i < sourceEntries.Count ? sourceEntries[i] : null;
-                result.Add(BuildCanonicalSectionEntry(source, promptChannel, i));
-            }
-
-            return result;
+            return RelationsSettingsPromptSeedOps.BuildLegacyOrderedSectionEntries(sourceEntries, promptChannel);
         }
 
-        internal static List<RimTalkPromptEntryConfig> BuildCoverageSectionEntries(
-            IReadOnlyList<RimTalkPromptEntryConfig> sourceEntries,
+        internal static List<RimTalkPromptEntryConfig> BuildCoverageSectionEntries(IReadOnlyList<RimTalkPromptEntryConfig> sourceEntries,
             string promptChannel)
         {
-            var used = new Dictionary<int, RimTalkPromptEntryConfig>();
-            var orderedIndexes = new List<int>();
-            for (int i = 0; i < sourceEntries.Count; i++)
-            {
-                RimTalkPromptEntryConfig entry = sourceEntries[i];
-                if (!TryResolvePromptSectionIndex(entry, out int index) || used.ContainsKey(index))
-                {
-                    continue;
-                }
-
-                used[index] = entry;
-                orderedIndexes.Add(index);
-            }
-
-            for (int i = 0; i < PromptWorkbenchSections.Length; i++)
-            {
-                if (!used.ContainsKey(i))
-                {
-                    orderedIndexes.Add(i);
-                }
-            }
-
-            var result = new List<RimTalkPromptEntryConfig>(PromptWorkbenchSections.Length);
-            for (int i = 0; i < orderedIndexes.Count; i++)
-            {
-                int index = orderedIndexes[i];
-                used.TryGetValue(index, out RimTalkPromptEntryConfig source);
-                result.Add(BuildCanonicalSectionEntry(source, promptChannel, index));
-            }
-
-            return result;
+            return RelationsSettingsPromptSeedOps.BuildCoverageSectionEntries(sourceEntries, promptChannel);
         }
 
-        internal static RimTalkPromptEntryConfig BuildCanonicalSectionEntry(
-            RimTalkPromptEntryConfig source,
+        internal static RimTalkPromptEntryConfig BuildCanonicalSectionEntry(RimTalkPromptEntryConfig source,
             string promptChannel,
             int sectionIndex)
         {
-            PromptWorkbenchSectionDefinition section = PromptWorkbenchSections[sectionIndex];
-            RimTalkPromptEntryConfig target = source?.Clone() ?? new RimTalkPromptEntryConfig
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                Role = "System",
-                CustomRole = string.Empty,
-                Position = "Relative",
-                InChatDepth = 0,
-                Enabled = true,
-                Content = string.Empty
-            };
-
-            target.SectionId = section.Id;
-            target.Name = section.EnglishName;
-            target.PromptChannel = promptChannel;
-            if (ShouldResetPromptEntryContent(target.Content))
-            {
-                target.Content = string.Empty;
-            }
-
-            if (string.IsNullOrWhiteSpace(target.Content))
-            {
-                target.Content = ResolveDefaultPromptEntryContent(promptChannel, section.Id);
-            }
-
-            return target;
+            return RelationsSettingsPromptSeedOps.BuildCanonicalSectionEntry(source, promptChannel, sectionIndex);
         }
 
         internal static bool ShouldResetPromptEntryContent(string content)
         {
-            string value = content?.Trim();
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return false;
-            }
-
-            return LooksLikeRenderedStructuredPrompt(value) || LooksLikeCompiledPromptPreview(value);
+            return RelationsSettingsPromptDetectOps.ShouldResetPromptEntryContent(content);
         }
 
         internal static bool LooksLikeRenderedStructuredPrompt(string content)
         {
-            string value = content?.Trim();
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return false;
-            }
-
-            if (value.IndexOf("<prompt_context>", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                value.IndexOf("</prompt_context>", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                value.IndexOf("=== PREVIEW DIAGNOSTICS ===", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return true;
-            }
-
-            string[] xmlMarkers =
-            {
-                "<channel>",
-                "<mode>",
-                "<environment>",
-                "<fact_grounding>",
-                "<instruction_stack>",
-                "<response_contract>",
-                "<dynamic_npc_personal_memory>",
-                "<actor_state>"
-            };
-            int xmlHits = CountMarkerHits(value, xmlMarkers);
-            if (xmlHits >= 3 && value.Length >= 300)
-            {
-                return true;
-            }
-
-            string[] blockMarkers =
-            {
-                "=== ENVIRONMENT PARAMETERS ===",
-                "=== RECENT WORLD EVENTS & BATTLE INTEL ===",
-                "=== SCENE PROMPT LAYERS ===",
-                "=== FACT GROUNDING RULES ===",
-                "=== CHARACTER STATUS (YOU) ==="
-            };
-            return CountMarkerHits(value, blockMarkers) >= 3 && value.Length >= 500;
+            return RelationsSettingsPromptDetectOps.LooksLikeRenderedStructuredPrompt(content);
         }
 
         internal static bool LooksLikeCompiledPromptPreview(string content)
         {
-            string value = content?.Trim();
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return false;
-            }
-
-            if (value.IndexOf("========== FULL MESSAGE LOG ==========", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return true;
-            }
-
-            return value.IndexOf("[FILE]", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                   value.IndexOf("[CODE]", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                   value.IndexOf("{{", StringComparison.OrdinalIgnoreCase) < 0 &&
-                   value.Length >= 500;
+            return RelationsSettingsPromptDetectOps.LooksLikeCompiledPromptPreview(content);
         }
 
         internal static int CountMarkerHits(string value, IEnumerable<string> markers)
         {
-            if (string.IsNullOrWhiteSpace(value) || markers == null)
-            {
-                return 0;
-            }
-
-            int hits = 0;
-            foreach (string marker in markers)
-            {
-                if (!string.IsNullOrWhiteSpace(marker) &&
-                    value.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    hits++;
-                }
-            }
-
-            return hits;
+            return RelationsSettingsPromptDetectOps.CountMarkerHits(value, markers);
         }
 
         internal static string ResolveDefaultPromptEntryContent(string promptChannel, string sectionId)

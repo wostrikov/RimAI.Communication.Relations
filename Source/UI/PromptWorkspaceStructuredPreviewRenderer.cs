@@ -53,15 +53,15 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private static readonly Color ProgressError = new Color(0.72f, 0.20f, 0.20f);
         private static readonly Color ProgressSuccess = new Color(0.28f, 0.62f, 0.35f);
         private static readonly Color SubtitleBg = new Color(0.16f, 0.18f, 0.13f);
-        private static readonly Color SnapshotLiveBg = new Color(0.12f, 0.18f, 0.12f);
-        private static readonly Color SnapshotLiveText = new Color(0.45f, 0.80f, 0.45f);
-        private static readonly Color SnapshotPlaceholderBg = new Color(0.14f, 0.14f, 0.16f);
-        private static readonly Color SnapshotPlaceholderText = new Color(0.55f, 0.55f, 0.55f);
-        private static readonly Color BlockBgSystemRules = new Color(0.22f, 0.30f, 0.40f);
-        private static readonly Color BlockBgCharacter = new Color(0.25f, 0.28f, 0.18f);
-        private static readonly Color BlockBgGeneric = new Color(0.22f, 0.22f, 0.22f);
-        private static readonly Color BlockBgActionRules = new Color(0.40f, 0.18f, 0.18f);
-        private static readonly Color BlockBgOutputSpec = new Color(0.20f, 0.24f, 0.30f);
+        internal static readonly Color SnapshotLiveBg = new Color(0.12f, 0.18f, 0.12f);
+        internal static readonly Color SnapshotLiveText = new Color(0.45f, 0.80f, 0.45f);
+        internal static readonly Color SnapshotPlaceholderBg = new Color(0.14f, 0.14f, 0.16f);
+        internal static readonly Color SnapshotPlaceholderText = new Color(0.55f, 0.55f, 0.55f);
+        internal static readonly Color BlockBgSystemRules = new Color(0.22f, 0.30f, 0.40f);
+        internal static readonly Color BlockBgCharacter = new Color(0.25f, 0.28f, 0.18f);
+        internal static readonly Color BlockBgGeneric = new Color(0.22f, 0.22f, 0.22f);
+        internal static readonly Color BlockBgActionRules = new Color(0.40f, 0.18f, 0.18f);
+        internal static readonly Color BlockBgOutputSpec = new Color(0.20f, 0.24f, 0.30f);
 
         /// <summary>
         /// Mark the RenderTexture cache as dirty so it will be redrawn on next frame.
@@ -188,80 +188,10 @@ namespace Ustas.RimAI.Communication.Relations.UI
             return new Rect(rect.x, statusRect.yMax + StatusGap, rect.width, Mathf.Max(1f, rect.height - StatusHeight - StatusGap));
         }
 
-        private static bool ShouldDrawStatus(PromptWorkspaceStructuredPreview preview)
-        {
-            return preview != null &&
-                (preview.IsBuilding || preview.IsFailed || preview.Total > 0 || preview.Stage == PromptWorkspacePreviewBuildStage.Completed);
-        }
-
-        private static float ResolveProgress(PromptWorkspaceStructuredPreview preview)
-        {
-            if (preview == null)
-            {
-                return 0f;
-            }
-
-            if (preview.Total <= 0)
-            {
-                return preview.IsBuilding ? 0f : 1f;
-            }
-
-            return Mathf.Clamp01((float)preview.Completed / preview.Total);
-        }
-
-        private static string ResolveStatusText(PromptWorkspaceStructuredPreview preview)
-        {
-            if (preview == null)
-            {
-                return string.Empty;
-            }
-
-            string stage = ResolveStageLabel(preview.Stage);
-            if (preview.IsFailed)
-            {
-                return "RimChat_PromptWorkspacePreviewBuild_StatusFailed"
-                    .Translate(stage, preview.Completed, preview.Total)
-                    .ToString();
-            }
-
-            if (preview.IsBuilding)
-            {
-                return "RimChat_PromptWorkspacePreviewBuild_StatusBuilding"
-                    .Translate(
-                        stage,
-                        preview.Completed,
-                        preview.Total,
-                        preview.CompletedSections,
-                        preview.TotalSections,
-                        preview.CompletedNodes,
-                        preview.TotalNodes)
-                    .ToString();
-            }
-
-            return "RimChat_PromptWorkspacePreviewBuild_StatusCompleted"
-                .Translate(preview.Completed, preview.Total)
-                .ToString();
-        }
-
-        private static string ResolveStageLabel(PromptWorkspacePreviewBuildStage stage)
-        {
-            switch (stage)
-            {
-                case PromptWorkspacePreviewBuildStage.Init:
-                    return "RimChat_PromptWorkspacePreviewBuild_StageInit".Translate().ToString();
-                case PromptWorkspacePreviewBuildStage.Sections:
-                    return "RimChat_PromptWorkspacePreviewBuild_StageSections".Translate().ToString();
-                case PromptWorkspacePreviewBuildStage.Nodes:
-                    return "RimChat_PromptWorkspacePreviewBuild_StageNodes".Translate().ToString();
-                case PromptWorkspacePreviewBuildStage.Finalize:
-                    return "RimChat_PromptWorkspacePreviewBuild_StageFinalize".Translate().ToString();
-                case PromptWorkspacePreviewBuildStage.Failed:
-                    return "RimChat_PromptWorkspacePreviewBuild_StageFailed".Translate().ToString();
-                default:
-                    return "RimChat_PromptWorkspacePreviewBuild_StageCompleted".Translate().ToString();
-            }
-        }
-
+        internal static bool ShouldDrawStatus(PromptWorkspaceStructuredPreview preview) => PromptWorkspacePreviewStatusOps.ShouldDrawStatus(preview);
+        internal static float ResolveProgress(PromptWorkspaceStructuredPreview preview) => PromptWorkspacePreviewStatusOps.ResolveProgress(preview);
+        internal static string ResolveStatusText(PromptWorkspaceStructuredPreview preview) => PromptWorkspacePreviewStatusOps.ResolveStatusText(preview);
+        internal static string ResolveStageLabel(PromptWorkspacePreviewBuildStage stage) => PromptWorkspacePreviewStatusOps.ResolveStageLabel(stage);
         private void EnsureLayoutCache(
             string signature,
             IReadOnlyList<PromptWorkspacePreviewBlock> blocks,
@@ -488,14 +418,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             return "RimChat_PromptWorkspacePreviewBlock_SubSection".Translate(fallbackId, fallbackId).ToString();
         }
 
-        private static bool HasSubsections(PromptWorkspacePreviewBlock block)
-        {
-            return block != null &&
-                   block.Kind == PromptWorkspacePreviewBlockKind.SectionAggregate &&
-                   block.Subsections != null &&
-                   block.Subsections.Count > 0;
-        }
-
+        internal static bool HasSubsections(PromptWorkspacePreviewBlock block) => PromptWorkspacePreviewBlockOps.HasSubsections(block);
         private void EnsureStyles()
         {
             _instance = this;
@@ -558,24 +481,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }
         }
 
-        private static Color ResolveHeaderColor(PromptWorkspacePreviewBlock block)
-        {
-            PromptWorkspacePreviewBlockKind kind = block?.Kind ?? PromptWorkspacePreviewBlockKind.Node;
-            switch (kind)
-            {
-                case PromptWorkspacePreviewBlockKind.Context:
-                    return BlockBgSystemRules;
-                case PromptWorkspacePreviewBlockKind.SectionAggregate:
-                    return BlockBgCharacter;
-                case PromptWorkspacePreviewBlockKind.Footer:
-                    return BlockBgGeneric;
-                case PromptWorkspacePreviewBlockKind.Error:
-                    return BlockBgActionRules;
-                default:
-                    return BlockBgOutputSpec;
-            }
-        }
-
+        internal static Color ResolveHeaderColor(PromptWorkspacePreviewBlock block) => PromptWorkspacePreviewBlockOps.ResolveHeaderColor(block);
         private static void DrawSnapshotIndicator(Rect rect, bool usesSnapshot)
         {
             Color oldColor = GUI.color;

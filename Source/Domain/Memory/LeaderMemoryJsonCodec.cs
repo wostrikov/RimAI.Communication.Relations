@@ -192,204 +192,39 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             sb.Append("  ]");
         }
 
-        private static void ParseFactionMemories(string json, FactionLeaderMemory memory)
+        internal static void ParseFactionMemories(string json, FactionLeaderMemory memory)
         {
-            memory.FactionMemories = new List<FactionMemoryEntry>();
-            if (!TryExtractJsonArray(json, "factionMemories", out string content))
-            {
-                return;
-            }
-
-            foreach (string obj in SplitJsonObjects(content))
-            {
-                string factionId = ExtractJsonString(obj, "factionId");
-                if (string.IsNullOrWhiteSpace(factionId))
-                {
-                    continue;
-                }
-
-                memory.FactionMemories.Add(new FactionMemoryEntry
-                {
-                    FactionId = factionId,
-                    FactionName = ExtractJsonString(obj, "factionName"),
-                    FirstContactTick = ExtractJsonInt(obj, "firstContactTick"),
-                    LastMentionedTick = ExtractJsonInt(obj, "lastMentionedTick"),
-                    MentionCount = ExtractJsonInt(obj, "mentionCount"),
-                    PositiveInteractions = ExtractJsonInt(obj, "positiveInteractions"),
-                    NegativeInteractions = ExtractJsonInt(obj, "negativeInteractions"),
-                    RelationHistory = ParseRelationHistory(obj)
-                });
-            }
+            LeaderMemoryJsonParseOps.ParseFactionMemories(json, memory);
         }
 
-        private static void ParseSignificantEvents(string json, FactionLeaderMemory memory)
+        internal static void ParseSignificantEvents(string json, FactionLeaderMemory memory)
         {
-            memory.SignificantEvents = new List<SignificantEventMemory>();
-            if (!TryExtractJsonArray(json, "significantEvents", out string content))
-            {
-                return;
-            }
-
-            foreach (string obj in SplitJsonObjects(content))
-            {
-                string eventTypeRaw = ExtractJsonString(obj, "eventType");
-                if (!Enum.TryParse(eventTypeRaw, true, out SignificantEventType eventType))
-                {
-                    continue;
-                }
-
-                memory.SignificantEvents.Add(new SignificantEventMemory
-                {
-                    EventType = eventType,
-                    InvolvedFactionId = ExtractJsonString(obj, "involvedFactionId"),
-                    InvolvedFactionName = ExtractJsonString(obj, "involvedFactionName"),
-                    Description = ExtractJsonString(obj, "description"),
-                    OccurredTick = ExtractJsonInt(obj, "occurredTick"),
-                    Timestamp = ExtractJsonLong(obj, "timestamp")
-                });
-            }
+            LeaderMemoryJsonParseOps.ParseSignificantEvents(json, memory);
         }
 
-        private static void ParseDialogueHistory(string json, FactionLeaderMemory memory)
+        internal static void ParseDialogueHistory(string json, FactionLeaderMemory memory)
         {
-            memory.DialogueHistory = new List<DialogueRecord>();
-            if (!TryExtractJsonArray(json, "dialogueHistory", out string content))
-            {
-                return;
-            }
-
-            foreach (string obj in SplitJsonObjects(content))
-            {
-                bool isPlayer = ExtractJsonBool(obj, "isPlayer");
-                string message = ExtractJsonString(obj, "message");
-                int tick = ExtractJsonInt(obj, "gameTick");
-                if (string.IsNullOrWhiteSpace(message))
-                {
-                    continue;
-                }
-
-                memory.DialogueHistory.Add(new DialogueRecord
-                {
-                    IsPlayer = isPlayer,
-                    Message = message,
-                    GameTick = tick
-                });
-            }
+            LeaderMemoryJsonParseOps.ParseDialogueHistory(json, memory);
         }
 
-        private static void ParseCrossChannelSummaries(string json, FactionLeaderMemory memory)
+        internal static void ParseCrossChannelSummaries(string json, FactionLeaderMemory memory)
         {
-            memory.RpgDepartSummaries = ParseSummaryArray(json, "rpgDepartSummaries");
-            memory.DiplomacySessionSummaries = ParseSummaryArray(json, "diplomacySessionSummaries");
+            LeaderMemoryJsonParseOps.ParseCrossChannelSummaries(json, memory);
         }
 
-        private static List<CrossChannelSummaryRecord> ParseSummaryArray(string json, string key)
+        internal static List<CrossChannelSummaryRecord> ParseSummaryArray(string json, string key)
         {
-            var result = new List<CrossChannelSummaryRecord>();
-            if (!TryExtractJsonArray(json, key, out string content))
-            {
-                return result;
-            }
-
-            foreach (string obj in SplitJsonObjects(content))
-            {
-                string summary = ExtractJsonString(obj, "summaryText");
-                if (string.IsNullOrWhiteSpace(summary))
-                {
-                    continue;
-                }
-
-                string sourceRaw = ExtractJsonString(obj, "source");
-                if (!Enum.TryParse(sourceRaw, true, out CrossChannelSummarySource source))
-                {
-                    source = CrossChannelSummarySource.Unknown;
-                }
-
-                result.Add(new CrossChannelSummaryRecord
-                {
-                    Source = source,
-                    FactionId = ExtractJsonString(obj, "factionId"),
-                    PawnLoadId = ExtractJsonInt(obj, "pawnLoadId"),
-                    PawnName = ExtractJsonString(obj, "pawnName"),
-                    SummaryText = summary,
-                    GameTick = ExtractJsonInt(obj, "gameTick"),
-                    Confidence = ExtractJsonFloat(obj, "confidence"),
-                    ContentHash = ExtractJsonString(obj, "contentHash"),
-                    IsLlmFallback = ExtractJsonBool(obj, "isLlmFallback"),
-                    CreatedTimestamp = ExtractJsonLong(obj, "createdTimestamp"),
-                    KeyFacts = ParseStringArrayField(obj, "keyFacts")
-                });
-            }
-
-            return result;
+            return LeaderMemoryJsonParseOps.ParseSummaryArray(json, key);
         }
 
-        private static List<string> ParseStringArrayField(string json, string key)
+        internal static List<string> ParseStringArrayField(string json, string key)
         {
-            if (!TryExtractJsonArray(json, key, out string content))
-            {
-                return new List<string>();
-            }
-
-            var list = new List<string>();
-            MatchCollection matches = Regex.Matches(content, "\"((?:\\\\.|[^\"])*)\"");
-            foreach (Match match in matches)
-            {
-                if (!match.Success || match.Groups.Count < 2)
-                {
-                    continue;
-                }
-
-                string value = match.Groups[1].Value
-                    .Replace("\\\\", "\\")
-                    .Replace("\\\"", "\"")
-                    .Replace("\\n", "\n")
-                    .Replace("\\r", "\r")
-                    .Replace("\\t", "\t")
-                    .Replace("\\b", "\b")
-                    .Replace("\\f", "\f");
-
-                value = Regex.Replace(value, @"\\u([0-9a-fA-F]{4})", m =>
-                {
-                    int code = int.Parse(m.Groups[1].Value, NumberStyles.HexNumber);
-                    return ((char)code).ToString();
-                });
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    list.Add(value.Trim());
-                }
-            }
-
-            return list;
+            return LeaderMemoryJsonParseOps.ParseStringArrayField(json, key);
         }
 
-        private static List<RelationSnapshot> ParseRelationHistory(string json)
+        internal static List<RelationSnapshot> ParseRelationHistory(string json)
         {
-            var result = new List<RelationSnapshot>();
-            if (!TryExtractJsonArray(json, "relationHistory", out string content))
-            {
-                return result;
-            }
-
-            foreach (string obj in SplitJsonObjects(content))
-            {
-                int tick = ExtractJsonInt(obj, "tick");
-                string relation = ExtractJsonString(obj, "relation");
-                int goodwill = ExtractJsonInt(obj, "goodwill");
-                if (tick == 0 && string.IsNullOrWhiteSpace(relation) && goodwill == 0)
-                {
-                    continue;
-                }
-
-                result.Add(new RelationSnapshot
-                {
-                    Tick = tick,
-                    Relation = relation,
-                    Goodwill = goodwill
-                });
-            }
-
-            return result;
+            return LeaderMemoryJsonParseOps.ParseRelationHistory(json);
         }
 
         private static void AppendRelationHistoryArray(StringBuilder sb, List<RelationSnapshot> relationHistory)
@@ -420,303 +255,76 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             sb.Append("      ]");
         }
 
-        private static bool TryExtractJsonArray(string json, string key, out string arrayContent)
+        internal static bool TryExtractJsonArray(string json, string key, out string arrayContent)
         {
-            arrayContent = string.Empty;
-            if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(key))
-            {
-                return false;
-            }
-
-            string pattern = $"\"{key}\"\\s*:\\s*\\[";
-            Match match = Regex.Match(json, pattern);
-            if (!match.Success)
-            {
-                return false;
-            }
-
-            int start = json.IndexOf('[', match.Index);
-            if (start < 0 || !TryFindJsonBlockEnd(json, start, '[', ']', out int end))
-            {
-                return false;
-            }
-
-            arrayContent = json.Substring(start, end - start + 1);
-            return true;
+            return LeaderMemoryJsonUtil.TryExtractJsonArray(json, key, out arrayContent);
         }
 
-        private static bool TryExtractJsonObject(string json, string key, out string objectContent)
+        internal static bool TryExtractJsonObject(string json, string key, out string objectContent)
         {
-            objectContent = string.Empty;
-            if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(key))
-            {
-                return false;
-            }
-
-            string pattern = $"\"{key}\"\\s*:\\s*\\{{";
-            Match match = Regex.Match(json, pattern);
-            if (!match.Success)
-            {
-                return false;
-            }
-
-            int start = json.IndexOf('{', match.Index);
-            if (start < 0 || !TryFindJsonBlockEnd(json, start, '{', '}', out int end))
-            {
-                return false;
-            }
-
-            objectContent = json.Substring(start, end - start + 1);
-            return true;
+            return LeaderMemoryJsonUtil.TryExtractJsonObject(json, key, out objectContent);
         }
 
-        private static bool TryFindJsonBlockEnd(string json, int blockStart, char openChar, char closeChar, out int endIndex)
+        internal static bool TryFindJsonBlockEnd(string json, int blockStart, char openChar, char closeChar, out int endIndex)
         {
-            endIndex = -1;
-            if (string.IsNullOrEmpty(json) || blockStart < 0 || blockStart >= json.Length || json[blockStart] != openChar)
-            {
-                return false;
-            }
-
-            int depth = 0;
-            bool inString = false;
-            bool escape = false;
-            for (int i = blockStart; i < json.Length; i++)
-            {
-                char c = json[i];
-                if (inString)
-                {
-                    if (escape)
-                    {
-                        escape = false;
-                        continue;
-                    }
-
-                    if (c == '\\')
-                    {
-                        escape = true;
-                        continue;
-                    }
-
-                    if (c == '"')
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (c == '"')
-                {
-                    inString = true;
-                    continue;
-                }
-
-                if (c == openChar) depth++;
-                if (c == closeChar) depth--;
-                if (depth == 0)
-                {
-                    endIndex = i;
-                    return true;
-                }
-            }
-
-            return false;
+            return LeaderMemoryJsonUtil.TryFindJsonBlockEnd(json, blockStart, openChar, closeChar, out endIndex);
         }
 
-        private static List<string> SplitJsonObjects(string arrayJson)
+        internal static List<string> SplitJsonObjects(string arrayJson)
         {
-            var result = new List<string>();
-            if (string.IsNullOrWhiteSpace(arrayJson))
-            {
-                return result;
-            }
-
-            string content = arrayJson.Trim();
-            if (content.StartsWith("["))
-            {
-                content = content.Substring(1);
-            }
-            if (content.EndsWith("]"))
-            {
-                content = content.Substring(0, content.Length - 1);
-            }
-
-            int depth = 0;
-            int objectStart = -1;
-            bool inString = false;
-            bool escape = false;
-            for (int i = 0; i < content.Length; i++)
-            {
-                char c = content[i];
-                if (inString)
-                {
-                    if (escape)
-                    {
-                        escape = false;
-                        continue;
-                    }
-
-                    if (c == '\\')
-                    {
-                        escape = true;
-                        continue;
-                    }
-
-                    if (c == '"')
-                    {
-                        inString = false;
-                    }
-                    continue;
-                }
-
-                if (c == '"')
-                {
-                    inString = true;
-                    continue;
-                }
-
-                if (c == '{')
-                {
-                    if (depth == 0)
-                    {
-                        objectStart = i;
-                    }
-                    depth++;
-                    continue;
-                }
-
-                if (c == '}')
-                {
-                    depth--;
-                    if (depth == 0 && objectStart >= 0)
-                    {
-                        result.Add(content.Substring(objectStart, i - objectStart + 1));
-                        objectStart = -1;
-                    }
-                }
-            }
-
-            return result;
+            return LeaderMemoryJsonUtil.SplitJsonObjects(arrayJson);
         }
 
-        private static string EscapeJson(string value)
+        internal static string EscapeJson(string value)
         {
-            return Ustas.RimAI.Core.AI.JsonStringCodec.Escape(value);
+            return LeaderMemoryJsonUtil.EscapeJson(value);
         }
 
-        private static string ExtractJsonString(string json, string key)
+        internal static string ExtractJsonString(string json, string key)
         {
-            string pattern = $"\"{key}\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"";
-            Match match = Regex.Match(json ?? string.Empty, pattern);
-            if (!match.Success || match.Groups.Count < 2)
-            {
-                return string.Empty;
-            }
-
-            string value = match.Groups[1].Value
-                .Replace("\\\\", "\\")
-                .Replace("\\\"", "\"")
-                .Replace("\\n", "\n")
-                .Replace("\\r", "\r")
-                .Replace("\\t", "\t")
-                .Replace("\\b", "\b")
-                .Replace("\\f", "\f");
-
-            value = Regex.Replace(value, @"\\u([0-9a-fA-F]{4})", m =>
-            {
-                int code = int.Parse(m.Groups[1].Value, NumberStyles.HexNumber);
-                return ((char)code).ToString();
-            });
-
-            return value;
+            return LeaderMemoryJsonUtil.ExtractJsonString(json, key);
         }
 
-        private static int ExtractJsonInt(string json, string key)
+        internal static int ExtractJsonInt(string json, string key)
         {
-            string pattern = $"\"{key}\"\\s*:\\s*(-?\\d+)";
-            Match match = Regex.Match(json ?? string.Empty, pattern);
-            return match.Success && int.TryParse(match.Groups[1].Value, out int result) ? result : 0;
+            return LeaderMemoryJsonUtil.ExtractJsonInt(json, key);
         }
 
-        private static long ExtractJsonLong(string json, string key)
+        internal static long ExtractJsonLong(string json, string key)
         {
-            string pattern = $"\"{key}\"\\s*:\\s*(-?\\d+)";
-            Match match = Regex.Match(json ?? string.Empty, pattern);
-            return match.Success && long.TryParse(match.Groups[1].Value, out long result) ? result : 0L;
+            return LeaderMemoryJsonUtil.ExtractJsonLong(json, key);
         }
 
-        private static float ExtractJsonFloat(string json, string key)
+        internal static float ExtractJsonFloat(string json, string key)
         {
-            string pattern = $"\"{key}\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)";
-            Match match = Regex.Match(json ?? string.Empty, pattern);
-            if (!match.Success)
-            {
-                return 0f;
-            }
-
-            return float.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result)
-                ? result
-                : 0f;
+            return LeaderMemoryJsonUtil.ExtractJsonFloat(json, key);
         }
 
-        private static bool ExtractJsonBool(string json, string key)
+        internal static bool ExtractJsonBool(string json, string key)
         {
-            string pattern = $"\"{key}\"\\s*:\\s*(true|false)";
-            Match match = Regex.Match(json ?? string.Empty, pattern, RegexOptions.IgnoreCase);
-            return match.Success && string.Equals(match.Groups[1].Value, "true", StringComparison.OrdinalIgnoreCase);
+            return LeaderMemoryJsonUtil.ExtractJsonBool(json, key);
         }
 
-        private static string FirstNonEmpty(params string[] values)
+        internal static string FirstNonEmpty(params string[] values)
         {
-            for (int i = 0; i < values.Length; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(values[i]))
-                {
-                    return values[i].Trim();
-                }
-            }
-
-            return string.Empty;
+            return LeaderMemoryJsonUtil.FirstNonEmpty(values);
         }
 
-        private static int FirstNonZero(params int[] values)
+        internal static int FirstNonZero(params int[] values)
         {
-            for (int i = 0; i < values.Length; i++)
-            {
-                if (values[i] != 0)
-                {
-                    return values[i];
-                }
-            }
-
-            return 0;
+            return LeaderMemoryJsonUtil.FirstNonZero(values);
         }
 
-        private static long FirstNonZeroLong(params long[] values)
+        internal static long FirstNonZeroLong(params long[] values)
         {
-            for (int i = 0; i < values.Length; i++)
-            {
-                if (values[i] != 0L)
-                {
-                    return values[i];
-                }
-            }
-
-            return 0L;
+            return LeaderMemoryJsonUtil.FirstNonZeroLong(values);
         }
 
-        private static float FirstNonZeroFloat(params float[] values)
+        internal static float FirstNonZeroFloat(params float[] values)
         {
-            for (int i = 0; i < values.Length; i++)
-            {
-                if (Math.Abs(values[i]) > 0.0001f)
-                {
-                    return values[i];
-                }
-            }
-
-            return 0f;
+            return LeaderMemoryJsonUtil.FirstNonZeroFloat(values);
         }
+
+
     }
 }

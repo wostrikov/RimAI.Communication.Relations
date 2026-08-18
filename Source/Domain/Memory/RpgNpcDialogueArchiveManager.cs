@@ -19,373 +19,71 @@ namespace Ustas.RimAI.Communication.Relations.Memory
     /// <summary>/// Dependencies: GameComponent_RPGManager, RimWorld save path, NPC dialogue turn feed.
  /// Responsibility: persist RPG dialogue archives per NPC into independent JSON files.
  ///</summary>
-    public sealed partial class RpgNpcDialogueArchiveManager
+    public sealed class RpgNpcDialogueArchiveManager
     {
-        private const string SaveRootDir = "Ustas.RimAI.Communication.Relations";
-        private const string SaveSubDir = "save_data";
-        private const string NpcArchiveSubDir = "rpg_npc_dialogues";
-        private const string PromptFolderName = "Prompt";
-        private const string NpcPromptSubDir = "NPC";
-        private const string DefaultSaveName = "Default";
-        private const string LegacyMigrationBackupDirName = "_migration_backup";
-        private const string LegacyDefaultBucketClaimMarker = ".legacy_default_bucket_claimed";
-        private const BindingFlags InstanceStringMemberBinding =
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase;
-        private const BindingFlags StaticStringMemberBinding =
-            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase;
-        private const string DiplomacySummaryPrefix = "[DiplomacySummary] ";
-        private const int MaxTurnsPerNpc = 300;
-        private const int MaxSessionsPerNpc = 96;
-        private const int CompressionRetryCooldownTicks = 2500;
-        private const int MaxCompressionRequestsPerPass = 2;
-        private const int CompressedSummaryMaxChars = 220;
-        private const int MaxInjectedCompressedSessionSummaries = 4;
-        private const int MaxInjectedCompressedSessionSummaryChars = 900;
+        internal RpgNpcDialogueArchiveManagerParts Parts;
 
-        private static RpgNpcDialogueArchiveManager _instance;
+        internal RpgNpcDialogueArchiveManager()
+        {
+            Parts = new RpgNpcDialogueArchiveManagerParts(this);
+        }
+
+        internal const string SaveRootDir = "Ustas.RimAI.Communication.Relations";
+        internal const string SaveSubDir = "save_data";
+        internal const string NpcArchiveSubDir = "rpg_npc_dialogues";
+        internal const string PromptFolderName = "Prompt";
+        internal const string NpcPromptSubDir = "NPC";
+        internal const string DefaultSaveName = "Default";
+        internal const string LegacyMigrationBackupDirName = "_migration_backup";
+        internal const string LegacyDefaultBucketClaimMarker = ".legacy_default_bucket_claimed";
+        internal const BindingFlags InstanceStringMemberBinding =
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase;
+        internal const BindingFlags StaticStringMemberBinding =
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase;
+        internal const string DiplomacySummaryPrefix = "[DiplomacySummary] ";
+        internal const int MaxTurnsPerNpc = 300;
+        internal const int MaxSessionsPerNpc = 96;
+        internal const int CompressionRetryCooldownTicks = 2500;
+        internal const int MaxCompressionRequestsPerPass = 2;
+        internal const int CompressedSummaryMaxChars = 220;
+        internal const int MaxInjectedCompressedSessionSummaries = 4;
+        internal const int MaxInjectedCompressedSessionSummaryChars = 900;
+
+        internal static RpgNpcDialogueArchiveManager _instance;
         public static RpgNpcDialogueArchiveManager Instance => _instance ?? (_instance = new RpgNpcDialogueArchiveManager());
 
-        private readonly Dictionary<int, RpgNpcDialogueArchive> _archiveCache = new Dictionary<int, RpgNpcDialogueArchive>();
-        private readonly HashSet<string> _compressionInFlight = new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> _warmupInFlightSaveKeys = new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<int> _pendingWarmupCompressionTargets = new HashSet<int>();
-        private readonly object _syncRoot = new object();
-        private bool _cacheLoaded;
-        private bool _diplomacyMemorySubscribed;
-        private string _loadedSaveKey = string.Empty;
-        private string _resolvedSaveKey = string.Empty;
-        private string _lastResolvedSaveName = string.Empty;
+        internal readonly Dictionary<int, RpgNpcDialogueArchive> _archiveCache = new Dictionary<int, RpgNpcDialogueArchive>();
+        internal readonly HashSet<string> _compressionInFlight = new HashSet<string>(StringComparer.Ordinal);
+        internal readonly HashSet<string> _warmupInFlightSaveKeys = new HashSet<string>(StringComparer.Ordinal);
+        internal readonly HashSet<int> _pendingWarmupCompressionTargets = new HashSet<int>();
+        internal readonly object _syncRoot = new object();
+        internal bool _cacheLoaded;
+        internal bool _diplomacyMemorySubscribed;
+        internal string _loadedSaveKey = string.Empty;
+        internal string _resolvedSaveKey = string.Empty;
+        internal string _lastResolvedSaveName = string.Empty;
 
-        public void OnNewGame()
-        {
-            lock (_syncRoot)
-            {
-                _archiveCache.Clear();
-                _compressionInFlight.Clear();
-                ResetPromptMemoryCacheLockless();
-                _cacheLoaded = false;
-                _loadedSaveKey = string.Empty;
-                _resolvedSaveKey = string.Empty;
-                EnsureCacheLoaded();
-                SubscribeToDiplomacyMemoryEvents();
-            }
-        }
+        
 
-        public void OnLoadedGame()
-        {
-            lock (_syncRoot)
-            {
-                _archiveCache.Clear();
-                _compressionInFlight.Clear();
-                _warmupInFlightSaveKeys.Clear();
-                _pendingWarmupCompressionTargets.Clear();
-                ResetPromptMemoryCacheLockless();
-                _cacheLoaded = false;
-                _loadedSaveKey = string.Empty;
-                _resolvedSaveKey = string.Empty;
-            }
-        }
+        
 
-        public void OnAfterGameLoad()
-        {
-            lock (_syncRoot)
-            {
-                EnsureCacheLoaded();
-                ApplyArchivesToRuntime();
-                SubscribeToDiplomacyMemoryEvents();
-            }
-        }
+        
 
-        private void SubscribeToDiplomacyMemoryEvents()
-        {
-            if (_diplomacyMemorySubscribed || LeaderMemoryManager.Instance == null)
-                return;
+        
 
-            LeaderMemoryManager.Instance.DiplomacyMemoryChanged += OnDiplomacyMemoryChanged;
-            _diplomacyMemorySubscribed = true;
-        }
+        
 
-        private void OnDiplomacyMemoryChanged(DiplomacyMemoryChangedEventArgs args)
-        {
-            if (args == null || !args.AffectsAiPrompt)
-                return;
+        
 
-            string affectedFactionId = args.FactionId ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(affectedFactionId))
-                return;
+        
 
-            lock (_syncRoot)
-            {
-                EnsureCacheLoaded();
-                bool anyMutated = false;
+        
 
-                foreach (int pawnId in new List<int>(_archiveCache.Keys))
-                {
-                    if (!_archiveCache.TryGetValue(pawnId, out RpgNpcDialogueArchive archive)
-                        || archive == null)
-                        continue;
+        
 
-                    if (!string.Equals(archive.FactionId, affectedFactionId, StringComparison.Ordinal))
-                        continue;
+        
 
-                    if (RemoveDiplomacySummaryTurnsFromArchive(archive))
-                    {
-                        NormalizeArchiveTurns(archive);
-                        SaveArchiveToFile(archive);
-                        anyMutated = true;
-                    }
-                }
-
-                if (anyMutated)
-                    InvalidatePromptMemoryCacheLockless();
-            }
-        }
-
-        private static bool RemoveDiplomacySummaryTurnsFromArchive(RpgNpcDialogueArchive archive)
-        {
-            if (archive?.Sessions == null || archive.Sessions.Count == 0)
-                return false;
-
-            bool anyRemoved = false;
-            for (int i = archive.Sessions.Count - 1; i >= 0; i--)
-            {
-                RpgNpcDialogueSessionArchive session = archive.Sessions[i];
-                if (session?.Turns == null || session.Turns.Count == 0)
-                    continue;
-
-                int removedCount = session.Turns.RemoveAll(
-                    turn => turn != null && IsDiplomacySummaryTurn(turn.Text));
-                if (removedCount <= 0)
-                    continue;
-
-                session.TurnCount = CountDialogueTurns(session.Turns);
-                anyRemoved = true;
-
-                if (session.Turns.Count == 0
-                    && !string.Equals(session.SummaryState, "Compressed", StringComparison.OrdinalIgnoreCase))
-                {
-                    archive.Sessions.RemoveAt(i);
-                }
-            }
-
-            return anyRemoved;
-        }
-
-        public void OnBeforeGameSave()
-        {
-            if (!TryValidatePersistenceContext(nameof(OnBeforeGameSave)))
-            {
-                return;
-            }
-
-            lock (_syncRoot)
-            {
-                EnsureCacheLoaded();
-                InvalidatePromptMemoryCacheLockless();
-                foreach (RpgNpcDialogueArchive archive in _archiveCache.Values)
-                {
-                    TryScheduleSessionCompression(archive, triggerTick: Find.TickManager?.TicksGame ?? 0);
-                    SaveArchiveToFile(archive);
-                }
-            }
-        }
-
-        public void RecordTurn(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker, string text, int tick, string sessionId = null)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return;
-            }
-            if (!TryValidatePersistenceContext(nameof(RecordTurn)))
-            {
-                return;
-            }
-
-            lock (_syncRoot)
-            {
-                EnsureCacheLoaded();
-                bool archiveMutated = false;
-                List<Pawn> participants = CollectArchiveParticipants(initiator, targetNpc);
-                for (int i = 0; i < participants.Count; i++)
-                {
-                    Pawn participant = participants[i];
-                    RpgNpcDialogueArchive archive = GetOrCreateArchive(participant, tick);
-                    if (archive == null)
-                    {
-                        continue;
-                    }
-
-                    archive.LastInteractionTick = tick;
-                    archive.PawnName = ResolvePawnName(participant);
-                    archive.FactionId = BuildFactionId(participant.Faction);
-                    archive.FactionName = participant.Faction?.Name ?? string.Empty;
-                    Pawn counterpart = ResolveCounterpartPawn(participant, initiator, targetNpc);
-                    archive.LastInterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1;
-                    archive.LastInterlocutorName = ResolvePawnName(counterpart);
-                    long sequence = AllocateTurnSequence(archive);
-                    RpgNpcDialogueSessionArchive session = GetOrCreateSession(archive, sessionId, counterpart, tick);
-                    PrepareSessionForTurnAppend(session);
-                    session.Turns.Add(BuildTurnArchive(initiator, targetNpc, isPlayerSpeaker, text, tick, sequence));
-                    session.EndedTick = Math.Max(session.EndedTick, tick);
-                    session.TurnCount = CountDialogueTurns(session.Turns);
-                    NormalizeArchiveTurns(archive);
-                    CaptureRuntimeRpgState(participant, archive);
-                    SaveArchiveToFile(archive);
-                    archiveMutated = true;
-                }
-
-                if (archiveMutated)
-                {
-                    InvalidatePromptMemoryCacheLockless();
-                }
-            }
-        }
-
-        public void FinalizeSession(Pawn initiator, Pawn targetNpc, string sessionId, List<ChatMessageData> chatHistory)
-        {
-            if (string.IsNullOrWhiteSpace(sessionId))
-            {
-                return;
-            }
-            if (!TryValidatePersistenceContext(nameof(FinalizeSession)))
-            {
-                return;
-            }
-
-            int tick = Find.TickManager?.TicksGame ?? 0;
-            int historyTurnCount = CountDialogueTurnsFromChatHistory(chatHistory);
-
-            lock (_syncRoot)
-            {
-                EnsureCacheLoaded();
-                bool archiveMutated = false;
-                List<Pawn> participants = CollectArchiveParticipants(initiator, targetNpc);
-                for (int i = 0; i < participants.Count; i++)
-                {
-                    Pawn participant = participants[i];
-                    if (participant == null || !_archiveCache.TryGetValue(participant.thingIDNumber, out RpgNpcDialogueArchive archive))
-                    {
-                        continue;
-                    }
-
-                    RpgNpcDialogueSessionArchive session = FindSession(archive, sessionId);
-                    if (session == null)
-                    {
-                        continue;
-                    }
-
-                    session.EndedTick = Math.Max(session.EndedTick, tick);
-                    if (session.StartedTick <= 0)
-                    {
-                        session.StartedTick = tick;
-                    }
-
-                    if (historyTurnCount > 0)
-                    {
-                        session.TurnCount = Math.Max(session.TurnCount, historyTurnCount);
-                    }
-                    else
-                    {
-                        session.TurnCount = CountDialogueTurns(session.Turns);
-                    }
-
-                    session.IsFinalized = true;
-                    NormalizeArchiveTurns(archive);
-                    TryScheduleSessionCompression(archive, tick);
-                    SaveArchiveToFile(archive);
-                    archiveMutated = true;
-                }
-
-                if (archiveMutated)
-                {
-                    InvalidatePromptMemoryCacheLockless();
-                }
-            }
-
-            PublishRpgSessionFinalized(initiator, targetNpc, chatHistory);
-        }
-
-        public void RecordDiplomacySummary(
-            Pawn negotiator,
-            Faction faction,
-            List<DialogueMessageData> allMessages,
-            int baselineMessageCount)
-        {
-            string summary = BuildDiplomacySummaryText(faction, allMessages, baselineMessageCount);
-            if (string.IsNullOrWhiteSpace(summary))
-            {
-                return;
-            }
-            if (!TryValidatePersistenceContext(nameof(RecordDiplomacySummary)))
-            {
-                return;
-            }
-
-            int tick = Find.TickManager?.TicksGame ?? 0;
-            Pawn factionLeader = ResolveFactionLeaderPawn(faction);
-            var participants = new List<Pawn>(2);
-            TryAddParticipant(participants, negotiator, includePlayerFaction: true);
-            TryAddParticipant(participants, factionLeader, includePlayerFaction: true);
-
-            if (participants.Count == 0)
-            {
-                return;
-            }
-
-            lock (_syncRoot)
-            {
-                EnsureCacheLoaded();
-                bool archiveMutated = false;
-                for (int i = 0; i < participants.Count; i++)
-                {
-                    Pawn participant = participants[i];
-                    RpgNpcDialogueArchive archive = GetOrCreateArchive(participant, tick);
-                    if (archive == null)
-                    {
-                        continue;
-                    }
-
-                    Pawn counterpart = ResolveCounterpartForDiplomacySummary(participant, negotiator, factionLeader);
-                    string counterpartName = ResolveFallbackCounterpartName(counterpart, faction);
-                    archive.LastInteractionTick = Math.Max(archive.LastInteractionTick, tick);
-                    archive.PawnName = ResolvePawnName(participant);
-                    archive.FactionId = BuildFactionId(participant.Faction);
-                    archive.FactionName = participant.Faction?.Name ?? string.Empty;
-                    archive.LastInterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1;
-                    archive.LastInterlocutorName = counterpartName;
-                    long sequence = AllocateTurnSequence(archive);
-                    string sessionId = BuildSystemSessionId("diplomacy", participant, tick);
-                    RpgNpcDialogueSessionArchive session = GetOrCreateSession(archive, sessionId, counterpart, tick);
-                    session.Turns.Add(new RpgNpcDialogueTurnArchive
-                    {
-                        IsPlayer = false,
-                        TurnSequence = sequence,
-                        SpeakerPawnLoadId = participant.thingIDNumber,
-                        SpeakerName = ResolvePawnName(participant),
-                        InterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1,
-                        InterlocutorName = counterpartName,
-                        Text = DiplomacySummaryPrefix + summary,
-                        GameTick = tick
-                    });
-                    session.EndedTick = Math.Max(session.EndedTick, tick);
-                    session.TurnCount = CountDialogueTurns(session.Turns);
-                    session.IsFinalized = true;
-                    NormalizeArchiveTurns(archive);
-                    TryScheduleSessionCompression(archive, tick);
-                    SaveArchiveToFile(archive);
-                    archiveMutated = true;
-                }
-
-                if (archiveMutated)
-                {
-                    InvalidatePromptMemoryCacheLockless();
-                }
-            }
-
-            PublishDiplomacySummaryRecorded(negotiator, faction, allMessages);
-        }
-
-        static void PublishRpgSessionFinalized(Pawn initiator, Pawn targetNpc, List<ChatMessageData> chatHistory)
+        internal static void PublishRpgSessionFinalized(Pawn initiator, Pawn targetNpc, List<ChatMessageData> chatHistory)
         {
             string transcript = BuildRpgTranscript(initiator, targetNpc, chatHistory);
             if (string.IsNullOrWhiteSpace(transcript))
@@ -399,7 +97,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             });
         }
 
-        static void PublishDiplomacySummaryRecorded(Pawn negotiator, Faction faction, List<DialogueMessageData> allMessages)
+        internal static void PublishDiplomacySummaryRecorded(Pawn negotiator, Faction faction, List<DialogueMessageData> allMessages)
         {
             string transcript = BuildDiplomacyRoundMemoryTranscript(negotiator, faction, allMessages);
             if (string.IsNullOrWhiteSpace(transcript))
@@ -450,7 +148,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return sb.ToString().TrimEnd();
         }
 
-        private string CurrentSaveKey
+        internal string CurrentSaveKey
         {
             get
             {
@@ -463,10 +161,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private string CurrentArchiveDirPath =>
+        internal string CurrentArchiveDirPath =>
             Path.Combine(CurrentPromptNpcRootPath, CurrentSaveKey, NpcArchiveSubDir);
 
-        private string CurrentPromptNpcRootPath
+        internal string CurrentPromptNpcRootPath
         {
             get
             {
@@ -497,7 +195,654 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private void EnsureCacheLoaded()
+        
+
+        
+
+        
+
+        internal string ResolveArchiveSourceDirectory()
+        {
+            return CurrentArchiveDirPath;
+        }
+
+        internal static bool DirectoryHasJsonFiles(string dir)
+        {
+            return Directory.Exists(dir) && Directory.GetFiles(dir, "*.json").Length > 0;
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal static Pawn GetPlayerPawn(Pawn pawn)
+        {
+            return pawn != null && pawn.Faction != null && pawn.Faction.IsPlayer ? pawn : null;
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal string ResolveCurrentSaveKey()
+        {
+            return SaveScopeKeyResolver.ResolveOrThrow();
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal string GetHashSaveKey(string saveName)
+        {
+            return $"Save_{ComputeStableHash(saveName).ToString(CultureInfo.InvariantCulture)}".SanitizeFileName();
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        #region Facade forwards
+        internal void ResetPromptMemoryCacheLockless() => Parts.PromptCache.ResetPromptMemoryCacheLockless();
+        internal void InvalidatePromptMemoryCacheLockless() => Parts.PromptCache.InvalidatePromptMemoryCacheLockless();
+        internal bool TryGetPromptMemoryCacheLockless(string cacheKey, out string memoryBlock) => Parts.PromptCache.TryGetPromptMemoryCacheLockless(cacheKey, out memoryBlock);
+        internal void SetPromptMemoryCacheLockless(string cacheKey, string memoryBlock) => Parts.PromptCache.SetPromptMemoryCacheLockless(cacheKey, memoryBlock);
+        internal static string BuildPromptMemoryCacheKey(int targetPawnLoadId, int interlocutorPawnLoadId, int summaryTurnLimit, int summaryCharBudget, int dayStamp) => RpgNpcDialogueArchiveManagerPromptCache.BuildPromptMemoryCacheKey(targetPawnLoadId, interlocutorPawnLoadId, summaryTurnLimit, summaryCharBudget, dayStamp);
+        internal void TryScheduleSessionCompression(RpgNpcDialogueArchive archive, int triggerTick) => Parts.Sessions.TryScheduleSessionCompression(archive, triggerTick);
+        internal bool ShouldScheduleCompressionForSession(RpgNpcDialogueSessionArchive session, string retainedSessionId, int pawnLoadId, string saveKey, int triggerTick) => Parts.Sessions.ShouldScheduleCompressionForSession(session, retainedSessionId, pawnLoadId, saveKey, triggerTick);
+        internal void RequestSessionCompression(RpgNpcDialogueArchive archive, RpgNpcDialogueSessionArchive session, string requestSaveKey, int triggerTick) => Parts.Sessions.RequestSessionCompression(archive, session, requestSaveKey, triggerTick);
+        internal void MarkSummaryCompressionFailed(RpgNpcDialogueArchive archive, RpgNpcDialogueSessionArchive session) => Parts.Sessions.MarkSummaryCompressionFailed(archive, session);
+        internal static List<ChatMessageData> BuildSessionSummaryRequestMessages(RpgNpcDialogueArchive archive, RpgNpcDialogueSessionArchive session) => RpgNpcDialogueArchiveManagerSessions.BuildSessionSummaryRequestMessages(archive, session);
+        internal static Pawn ResolveArchiveNpcPawn(RpgNpcDialogueArchive archive) => RpgNpcDialogueArchiveManagerSessions.ResolveArchiveNpcPawn(archive);
+        internal static Pawn ResolveArchiveInterlocutorPawn(RpgNpcDialogueArchive archive, RpgNpcDialogueSessionArchive session, Pawn npcPawn) => RpgNpcDialogueArchiveManagerSessions.ResolveArchiveInterlocutorPawn(archive, session, npcPawn);
+        internal static string ResolvePromptPawnName(Pawn pawn, string fallback, string defaultName) => RpgNpcDialogueArchiveManagerSessions.ResolvePromptPawnName(pawn, fallback, defaultName);
+        internal static string BuildSessionTranscript(List<RpgNpcDialogueTurnArchive> turns) => RpgNpcDialogueArchiveManagerSessions.BuildSessionTranscript(turns);
+        internal static string NormalizeToSingleSentenceSummary(string raw) => RpgNpcDialogueArchiveManagerSessions.NormalizeToSingleSentenceSummary(raw);
+        internal static int FindFirstSentenceEnd(string text) => RpgNpcDialogueArchiveManagerSessions.FindFirstSentenceEnd(text);
+        internal static string BuildCompressionKey(string saveKey, int pawnLoadId, string sessionId) => RpgNpcDialogueArchiveManagerSessions.BuildCompressionKey(saveKey, pawnLoadId, sessionId);
+        internal bool TryResolveCompressionSaveKey(string operationName, out string saveKey) => Parts.Sessions.TryResolveCompressionSaveKey(operationName, out saveKey);
+        internal static RpgNpcDialogueSessionArchive SelectLatestRetainedFullSession(RpgNpcDialogueArchive archive) => RpgNpcDialogueArchiveManagerSessions.SelectLatestRetainedFullSession(archive);
+        internal static List<RpgNpcDialogueTurnArchive> GetSessionTurns(RpgNpcDialogueSessionArchive session) => RpgNpcDialogueArchiveManagerSessions.GetSessionTurns(session);
+        internal static List<RpgNpcDialogueSessionArchive> GetCompressedSessionsForInjection(RpgNpcDialogueArchive archive) => RpgNpcDialogueArchiveManagerSessions.GetCompressedSessionsForInjection(archive);
+        internal static void AppendCompressedSessionSummaries(StringBuilder sb, List<RpgNpcDialogueSessionArchive> compressedSessions, int maxItems, int maxChars) => RpgNpcDialogueArchiveManagerSessions.AppendCompressedSessionSummaries(sb, compressedSessions, maxItems, maxChars);
+        public void BeginPromptMemoryWarmup(Pawn targetNpc, Pawn currentInterlocutor = null) => Parts.Warmup.BeginPromptMemoryWarmup(targetNpc, currentInterlocutor);
+        internal void WarmupCacheInBackground(string saveKey, string sourceDir, int targetPawnLoadId) => Parts.Warmup.WarmupCacheInBackground(saveKey, sourceDir, targetPawnLoadId);
+        internal static Dictionary<int, RpgNpcDialogueArchive> LoadArchiveSnapshot(string sourceDir, string saveKey) => RpgNpcDialogueArchiveManagerWarmup.LoadArchiveSnapshot(sourceDir, saveKey);
+        internal static bool IsArchiveOwnedBySaveKey(RpgNpcDialogueArchive archive, string saveKey) => RpgNpcDialogueArchiveManagerWarmup.IsArchiveOwnedBySaveKey(archive, saveKey);
+        internal static void MergeArchiveSnapshot(RpgNpcDialogueArchive target, RpgNpcDialogueArchive incoming) => RpgNpcDialogueArchiveManagerWarmup.MergeArchiveSnapshot(target, incoming);
+        internal void FlushPendingWarmupCompressionLockless(int tick) => Parts.Warmup.FlushPendingWarmupCompressionLockless(tick);
+        #endregion
+    
+        #region Cluster forwards
+        public void OnNewGame() => Parts.Slice1.OnNewGame();
+        public void OnLoadedGame() => Parts.Slice1.OnLoadedGame();
+        public void OnAfterGameLoad() => Parts.Slice1.OnAfterGameLoad();
+        internal void SubscribeToDiplomacyMemoryEvents() => Parts.Slice1.SubscribeToDiplomacyMemoryEvents();
+        internal void OnDiplomacyMemoryChanged(DiplomacyMemoryChangedEventArgs args) => Parts.Slice1.OnDiplomacyMemoryChanged(args);
+        internal static bool RemoveDiplomacySummaryTurnsFromArchive(RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice1.RemoveDiplomacySummaryTurnsFromArchive(archive);
+        public void OnBeforeGameSave() => Parts.Slice1.OnBeforeGameSave();
+        public void RecordTurn(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker, string text, int tick, string sessionId = null) => Parts.Slice1.RecordTurn(initiator, targetNpc, isPlayerSpeaker, text, tick, sessionId);
+        public void FinalizeSession(Pawn initiator, Pawn targetNpc, string sessionId, List<ChatMessageData> chatHistory) => Parts.Slice1.FinalizeSession(initiator, targetNpc, sessionId, chatHistory);
+        public void RecordDiplomacySummary(Pawn negotiator, Faction faction, List<DialogueMessageData> allMessages, int baselineMessageCount) => Parts.Slice1.RecordDiplomacySummary(negotiator, faction, allMessages, baselineMessageCount);
+        internal void EnsureCacheLoaded() => Parts.Slice1.EnsureCacheLoaded();
+        internal void EnsureDataDirectoryExists() => Parts.Slice1.EnsureDataDirectoryExists();
+        internal void LoadAllArchivesFromFiles() => Parts.Slice1.LoadAllArchivesFromFiles();
+        internal bool IsArchiveOwnedByCurrentSave(RpgNpcDialogueArchive archive) => Parts.Slice1.IsArchiveOwnedByCurrentSave(archive);
+        internal bool TryValidatePersistenceContext(string operationName) => Parts.Slice2.TryValidatePersistenceContext(operationName);
+        internal void TryMigrateLegacyArchives(string currentSaveKey) => Parts.Slice2.TryMigrateLegacyArchives(currentSaveKey);
+        internal List<string> CollectLegacyArchiveSourceDirectories(string targetDir) => Parts.Slice2.CollectLegacyArchiveSourceDirectories(targetDir);
+        internal static void TryAddLegacySourceDir(List<string> dirs, string sourceDir, string targetDir) => RpgNpcArchiveSlice2.TryAddLegacySourceDir(dirs, sourceDir, targetDir);
+        internal static int CopyJsonFiles(string sourceDir, string targetDir, bool overwrite) => RpgNpcArchiveSlice2.CopyJsonFiles(sourceDir, targetDir, overwrite);
+        internal bool HasClaimedDefaultBucketForAnotherSave(string currentSaveKey, List<string> legacyDirs) => Parts.Slice2.HasClaimedDefaultBucketForAnotherSave(currentSaveKey, legacyDirs);
+        internal void TryClaimDefaultBucket(string currentSaveKey, List<string> legacyDirs) => Parts.Slice2.TryClaimDefaultBucket(currentSaveKey, legacyDirs);
+        internal static bool IsDefaultBucketPath(string path) => RpgNpcArchiveSlice2.IsDefaultBucketPath(path);
+        internal RpgNpcDialogueArchive GetOrCreateArchive(Pawn pawn, int tick) => Parts.Slice2.GetOrCreateArchive(pawn, tick);
+        internal void CaptureRuntimeRpgState(Pawn pawn, RpgNpcDialogueArchive archive) => Parts.Slice2.CaptureRuntimeRpgState(pawn, archive);
+        internal static long AllocateTurnSequence(RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice2.AllocateTurnSequence(archive);
+        internal static RpgNpcDialogueTurnArchive BuildTurnArchive(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker, string text, int tick, long turnSequence) => RpgNpcArchiveSlice2.BuildTurnArchive(initiator, targetNpc, isPlayerSpeaker, text, tick, turnSequence);
+        internal static Pawn ResolveDialogueSpeakerPawn(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker) => RpgNpcArchiveSlice2.ResolveDialogueSpeakerPawn(initiator, targetNpc, isPlayerSpeaker);
+        internal static Pawn ResolveCounterpartPawn(Pawn self, Pawn initiator, Pawn targetNpc) => RpgNpcArchiveSlice2.ResolveCounterpartPawn(self, initiator, targetNpc);
+        internal static RpgNpcDialogueSessionArchive GetOrCreateSession(RpgNpcDialogueArchive archive, string sessionId, Pawn counterpart, int tick) => RpgNpcArchiveSlice2.GetOrCreateSession(archive, sessionId, counterpart, tick);
+        internal static RpgNpcDialogueSessionArchive FindSession(RpgNpcDialogueArchive archive, string sessionId) => RpgNpcArchiveSlice2.FindSession(archive, sessionId);
+        internal static string BuildSystemSessionId(string source, Pawn participant, int tick) => RpgNpcArchiveSlice2.BuildSystemSessionId(source, participant, tick);
+        internal static int CountDialogueTurns(List<RpgNpcDialogueTurnArchive> turns) => RpgNpcArchiveSlice2.CountDialogueTurns(turns);
+        internal static void PrepareSessionForTurnAppend(RpgNpcDialogueSessionArchive session) => RpgNpcArchiveSlice2.PrepareSessionForTurnAppend(session);
+        internal static int CountDialogueTurnsFromChatHistory(List<ChatMessageData> chatHistory) => RpgNpcArchiveSlice2.CountDialogueTurnsFromChatHistory(chatHistory);
+        internal void SaveArchiveToFile(RpgNpcDialogueArchive archive) => Parts.Slice3.SaveArchiveToFile(archive);
+        public bool HasPromptMemory(Pawn targetNpc, Pawn currentInterlocutor = null, bool allowCacheLoad = true) => Parts.Slice3.HasPromptMemory(targetNpc, currentInterlocutor, allowCacheLoad);
+        public string BuildPromptMemoryBlock(Pawn targetNpc, Pawn currentInterlocutor = null, int summaryTurnLimit = 8, int summaryCharBudget = 1200, bool allowCompressionScheduling = true, bool allowCacheLoad = true) => Parts.Slice3.BuildPromptMemoryBlock(targetNpc, currentInterlocutor, summaryTurnLimit, summaryCharBudget, allowCompressionScheduling, allowCacheLoad);
+        public string BuildUnresolvedIntentSummary(Pawn targetNpc, Pawn currentInterlocutor = null) => Parts.Slice3.BuildUnresolvedIntentSummary(targetNpc, currentInterlocutor);
+        internal static bool ShouldForgetLatestUnresolvedIntent(RpgNpcDialogueArchive archive, Pawn targetNpc, int currentTick) => RpgNpcArchiveSlice3.ShouldForgetLatestUnresolvedIntent(archive, targetNpc, currentTick);
+        internal static int ResolveAbsoluteDayStamp(int tick, Pawn targetNpc) => RpgNpcArchiveSlice3.ResolveAbsoluteDayStamp(tick, targetNpc);
+        internal static float ResolveLongitude(Pawn pawn) => RpgNpcArchiveSlice3.ResolveLongitude(pawn);
+        internal static string ExtractLatestUnresolvedIntent(List<RpgNpcDialogueTurnArchive> interlocutorTurns, List<RpgNpcDialogueTurnArchive> timelineTurns) => RpgNpcArchiveSlice3.ExtractLatestUnresolvedIntent(interlocutorTurns, timelineTurns);
+        internal static string BuildRecentDialogueSummaryText(List<RpgNpcDialogueTurnArchive> timelineTurns, Pawn targetNpc, Pawn currentInterlocutor, string npcName, string interlocutorName, int turnLimit, int charBudget) => RpgNpcArchiveSlice3.BuildRecentDialogueSummaryText(timelineTurns, targetNpc, currentInterlocutor, npcName, interlocutorName, turnLimit, charBudget);
+        internal static void AppendRecentRawQuotes(StringBuilder sb, List<RpgNpcDialogueTurnArchive> timelineTurns, Pawn targetNpc, Pawn currentInterlocutor, string npcName, string interlocutorName) => RpgNpcArchiveSlice3.AppendRecentRawQuotes(sb, timelineTurns, targetNpc, currentInterlocutor, npcName, interlocutorName);
+        internal void ApplyArchivesToRuntime() => Parts.Slice3.ApplyArchivesToRuntime();
+        internal static Pawn FindPawnByLoadId(int pawnLoadId) => RpgNpcArchiveSlice4.FindPawnByLoadId(pawnLoadId);
+        internal static string ResolvePawnName(Pawn pawn) => RpgNpcArchiveSlice4.ResolvePawnName(pawn);
+        internal static string BuildFactionId(Faction faction) => RpgNpcArchiveSlice4.BuildFactionId(faction);
+        internal static List<Pawn> CollectArchiveParticipants(Pawn initiator, Pawn targetNpc) => RpgNpcArchiveSlice4.CollectArchiveParticipants(initiator, targetNpc);
+        internal static void TryAddParticipant(List<Pawn> participants, Pawn pawn, bool includePlayerFaction) => RpgNpcArchiveSlice4.TryAddParticipant(participants, pawn, includePlayerFaction);
+        internal string GetCurrentSaveName() => Parts.Slice4.GetCurrentSaveName();
+        internal static string ReadStringMember(object target, string memberName) => RpgNpcArchiveSlice4.ReadStringMember(target, memberName);
+        internal static string TryResolveNameFromAnyStringMember(object target) => RpgNpcArchiveSlice4.TryResolveNameFromAnyStringMember(target);
+        internal static bool IsLikelySaveNameMember(string memberName) => RpgNpcArchiveSlice4.IsLikelySaveNameMember(memberName);
+        internal static string TryResolveLoadedGameNameFromMetaHeader() => RpgNpcArchiveSlice4.TryResolveLoadedGameNameFromMetaHeader();
+        internal static string TryResolveLoadedGameNameFromKnownVerseStatics() => RpgNpcArchiveSlice4.TryResolveLoadedGameNameFromKnownVerseStatics();
+        internal static string ReadStaticStringMember(Type targetType, string memberName) => RpgNpcArchiveSlice4.ReadStaticStringMember(targetType, memberName);
+        internal string BuildSaveNameResolutionDiagnostic() => Parts.Slice4.BuildSaveNameResolutionDiagnostic();
+        internal static Type FindTypeInLoadedAssemblies(string fullName) => RpgNpcArchiveSlice4.FindTypeInLoadedAssemblies(fullName);
+        internal static string ResolvePersistentRpgSaveSlotId() => RpgNpcArchiveSlice4.ResolvePersistentRpgSaveSlotId();
+        internal static string BuildArchiveFileName(RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice4.BuildArchiveFileName(archive);
+        internal void CleanupLegacyArchiveFiles(int pawnLoadId, string keepFileName) => Parts.Slice5.CleanupLegacyArchiveFiles(pawnLoadId, keepFileName);
+        internal static void NormalizeArchiveTurns(RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice5.NormalizeArchiveTurns(archive);
+        internal static void EnsureTurnSequenceState(RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice5.EnsureTurnSequenceState(archive);
+        internal static void TrimArchiveSessions(RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice5.TrimArchiveSessions(archive);
+        internal static void MergeArchiveData(RpgNpcDialogueArchive existing, RpgNpcDialogueArchive incoming) => RpgNpcArchiveSlice5.MergeArchiveData(existing, incoming);
+        internal static RpgNpcDialogueSessionArchive CloneSession(RpgNpcDialogueSessionArchive session) => RpgNpcArchiveSlice5.CloneSession(session);
+        internal static RpgNpcDialogueTurnArchive CloneTurn(RpgNpcDialogueTurnArchive turn) => RpgNpcArchiveSlice5.CloneTurn(turn);
+        internal static uint ComputeStableHash(string text) => RpgNpcArchiveSlice5.ComputeStableHash(text);
+        internal static List<RpgNpcDialogueTurnArchive> BuildRelevantSummaryTurns(List<RpgNpcDialogueTurnArchive> sourceTurns, Pawn currentInterlocutor, string interlocutorName) => RpgNpcArchiveSlice5.BuildRelevantSummaryTurns(sourceTurns, currentInterlocutor, interlocutorName);
+        internal static void AppendDiplomacySummaryMemoryLines(StringBuilder sb, List<RpgNpcDialogueTurnArchive> summaryTurns) => RpgNpcArchiveSlice5.AppendDiplomacySummaryMemoryLines(sb, summaryTurns);
+        internal static bool IsDiplomacySummaryTurn(string text) => RpgNpcArchiveSlice6.IsDiplomacySummaryTurn(text);
+        internal static string StripDiplomacySummaryPrefix(string text) => RpgNpcArchiveSlice6.StripDiplomacySummaryPrefix(text);
+        internal static Pawn ResolveFactionLeaderPawn(Faction faction) => RpgNpcArchiveSlice6.ResolveFactionLeaderPawn(faction);
+        internal static Pawn ResolveCounterpartForDiplomacySummary(Pawn participant, Pawn negotiator, Pawn factionLeader) => RpgNpcArchiveSlice6.ResolveCounterpartForDiplomacySummary(participant, negotiator, factionLeader);
+        internal static string ResolveFallbackCounterpartName(Pawn counterpart, Faction faction) => RpgNpcArchiveSlice6.ResolveFallbackCounterpartName(counterpart, faction);
+        internal static string BuildDiplomacySummaryText(Faction faction, List<DialogueMessageData> allMessages, int baselineMessageCount) => RpgNpcArchiveSlice6.BuildDiplomacySummaryText(faction, allMessages, baselineMessageCount);
+        internal static string DetectDiplomacyTopic(IEnumerable<string> lines) => RpgNpcArchiveSlice6.DetectDiplomacyTopic(lines);
+        internal static List<RpgNpcDialogueTurnArchive> BuildRelevantSelfTurns(List<RpgNpcDialogueTurnArchive> sourceTurns, RpgNpcDialogueArchive archive, Pawn targetNpc, Pawn currentInterlocutor, string interlocutorName) => RpgNpcArchiveSlice6.BuildRelevantSelfTurns(sourceTurns, archive, targetNpc, currentInterlocutor, interlocutorName);
+        internal static List<RpgNpcDialogueTurnArchive> BuildChronologicalDialogueTurns(List<RpgNpcDialogueTurnArchive> selfTurns, List<RpgNpcDialogueTurnArchive> interlocutorTurns) => RpgNpcArchiveSlice6.BuildChronologicalDialogueTurns(selfTurns, interlocutorTurns);
+        internal static List<RpgNpcDialogueTurnArchive> BuildRelevantInterlocutorTurns(List<RpgNpcDialogueTurnArchive> sourceTurns, RpgNpcDialogueArchive archive, Pawn currentInterlocutor, string interlocutorName) => RpgNpcArchiveSlice6.BuildRelevantInterlocutorTurns(sourceTurns, archive, currentInterlocutor, interlocutorName);
+        internal static string ResolvePromptSpeakerName(RpgNpcDialogueTurnArchive turn, Pawn selfPawn, string selfName, Pawn currentInterlocutor, string interlocutorName) => RpgNpcArchiveSlice6.ResolvePromptSpeakerName(turn, selfPawn, selfName, currentInterlocutor, interlocutorName);
+        internal static bool IsInterlocutorTurnFallback(RpgNpcDialogueTurnArchive turn, RpgNpcDialogueArchive archive) => RpgNpcArchiveSlice6.IsInterlocutorTurnFallback(turn, archive);
+        internal static string ResolveInterlocutorName(RpgNpcDialogueArchive archive, Pawn currentInterlocutor, List<RpgNpcDialogueTurnArchive> sourceTurns) => RpgNpcArchiveSlice6.ResolveInterlocutorName(archive, currentInterlocutor, sourceTurns);
+        internal static string ResolveTurnSpeakerName(RpgNpcDialogueTurnArchive turn, string fallbackName) => RpgNpcArchiveSlice6.ResolveTurnSpeakerName(turn, fallbackName);
+        internal static string ResolveOptionalPawnName(Pawn pawn) => RpgNpcArchiveSlice6.ResolveOptionalPawnName(pawn);
+        internal static bool IsPlaceholderInterlocutorName(string value) => RpgNpcArchiveSlice6.IsPlaceholderInterlocutorName(value);
+        internal static bool IsHostileIntent(string text) => RpgNpcArchiveSlice6.IsHostileIntent(text);
+        internal static string TrimForPrompt(string text, int maxLen) => RpgNpcArchiveSlice6.TrimForPrompt(text, maxLen);
+        internal void LogDebugMissingArchive(Pawn targetNpc, Pawn currentInterlocutor) => Parts.Slice6.LogDebugMissingArchive(targetNpc, currentInterlocutor);
+        internal bool TryResolveArchiveDebugContext(out string saveKey, out string archiveDir) => Parts.Slice6.TryResolveArchiveDebugContext(out saveKey, out archiveDir);
+        #endregion
+}
+    internal sealed class RpgNpcArchiveSlice1 : RpgNpcDialogueArchiveManagerCollaborator
+    {
+        internal RpgNpcArchiveSlice1(RpgNpcDialogueArchiveManager owner) : base(owner)
+        {
+        }
+
+public void OnNewGame()
+        {
+            lock (_syncRoot)
+            {
+                _archiveCache.Clear();
+                _compressionInFlight.Clear();
+                Owner.ResetPromptMemoryCacheLockless();
+                _cacheLoaded = false;
+                _loadedSaveKey = string.Empty;
+                _resolvedSaveKey = string.Empty;
+                Owner.EnsureCacheLoaded();
+                Owner.SubscribeToDiplomacyMemoryEvents();
+            }
+        }
+
+public void OnLoadedGame()
+        {
+            lock (_syncRoot)
+            {
+                _archiveCache.Clear();
+                _compressionInFlight.Clear();
+                _warmupInFlightSaveKeys.Clear();
+                _pendingWarmupCompressionTargets.Clear();
+                Owner.ResetPromptMemoryCacheLockless();
+                _cacheLoaded = false;
+                _loadedSaveKey = string.Empty;
+                _resolvedSaveKey = string.Empty;
+            }
+        }
+
+public void OnAfterGameLoad()
+        {
+            lock (_syncRoot)
+            {
+                Owner.EnsureCacheLoaded();
+                Owner.ApplyArchivesToRuntime();
+                Owner.SubscribeToDiplomacyMemoryEvents();
+            }
+        }
+
+internal void SubscribeToDiplomacyMemoryEvents()
+        {
+            if (_diplomacyMemorySubscribed || LeaderMemoryManager.Instance == null)
+                return;
+
+            LeaderMemoryManager.Instance.DiplomacyMemoryChanged += OnDiplomacyMemoryChanged;
+            _diplomacyMemorySubscribed = true;
+        }
+
+internal void OnDiplomacyMemoryChanged(DiplomacyMemoryChangedEventArgs args)
+        {
+            if (args == null || !args.AffectsAiPrompt)
+                return;
+
+            string affectedFactionId = args.FactionId ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(affectedFactionId))
+                return;
+
+            lock (_syncRoot)
+            {
+                Owner.EnsureCacheLoaded();
+                bool anyMutated = false;
+
+                foreach (int pawnId in new List<int>(_archiveCache.Keys))
+                {
+                    if (!_archiveCache.TryGetValue(pawnId, out RpgNpcDialogueArchive archive)
+                        || archive == null)
+                        continue;
+
+                    if (!string.Equals(archive.FactionId, affectedFactionId, StringComparison.Ordinal))
+                        continue;
+
+                    if (RpgNpcDialogueArchiveManager.RemoveDiplomacySummaryTurnsFromArchive(archive))
+                    {
+                        RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
+                        Owner.SaveArchiveToFile(archive);
+                        anyMutated = true;
+                    }
+                }
+
+                if (anyMutated)
+                    Owner.InvalidatePromptMemoryCacheLockless();
+            }
+        }
+
+internal static bool RemoveDiplomacySummaryTurnsFromArchive(RpgNpcDialogueArchive archive)
+        {
+            if (archive?.Sessions == null || archive.Sessions.Count == 0)
+                return false;
+
+            bool anyRemoved = false;
+            for (int i = archive.Sessions.Count - 1; i >= 0; i--)
+            {
+                RpgNpcDialogueSessionArchive session = archive.Sessions[i];
+                if (session?.Turns == null || session.Turns.Count == 0)
+                    continue;
+
+                int removedCount = session.Turns.RemoveAll(
+                    turn => turn != null && RpgNpcDialogueArchiveManager.IsDiplomacySummaryTurn(turn.Text));
+                if (removedCount <= 0)
+                    continue;
+
+                session.TurnCount = RpgNpcDialogueArchiveManager.CountDialogueTurns(session.Turns);
+                anyRemoved = true;
+
+                if (session.Turns.Count == 0
+                    && !string.Equals(session.SummaryState, "Compressed", StringComparison.OrdinalIgnoreCase))
+                {
+                    archive.Sessions.RemoveAt(i);
+                }
+            }
+
+            return anyRemoved;
+        }
+
+public void OnBeforeGameSave()
+        {
+            if (!Owner.TryValidatePersistenceContext(nameof(OnBeforeGameSave)))
+            {
+                return;
+            }
+
+            lock (_syncRoot)
+            {
+                Owner.EnsureCacheLoaded();
+                Owner.InvalidatePromptMemoryCacheLockless();
+                foreach (RpgNpcDialogueArchive archive in _archiveCache.Values)
+                {
+                    Owner.TryScheduleSessionCompression(archive, triggerTick: Find.TickManager?.TicksGame ?? 0);
+                    Owner.SaveArchiveToFile(archive);
+                }
+            }
+        }
+
+public void RecordTurn(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker, string text, int tick, string sessionId = null)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+            if (!Owner.TryValidatePersistenceContext(nameof(RecordTurn)))
+            {
+                return;
+            }
+
+            lock (_syncRoot)
+            {
+                Owner.EnsureCacheLoaded();
+                bool archiveMutated = false;
+                List<Pawn> participants = RpgNpcDialogueArchiveManager.CollectArchiveParticipants(initiator, targetNpc);
+                for (int i = 0; i < participants.Count; i++)
+                {
+                    Pawn participant = participants[i];
+                    RpgNpcDialogueArchive archive = Owner.GetOrCreateArchive(participant, tick);
+                    if (archive == null)
+                    {
+                        continue;
+                    }
+
+                    archive.LastInteractionTick = tick;
+                    archive.PawnName = RpgNpcDialogueArchiveManager.ResolvePawnName(participant);
+                    archive.FactionId = RpgNpcDialogueArchiveManager.BuildFactionId(participant.Faction);
+                    archive.FactionName = participant.Faction?.Name ?? string.Empty;
+                    Pawn counterpart = RpgNpcDialogueArchiveManager.ResolveCounterpartPawn(participant, initiator, targetNpc);
+                    archive.LastInterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1;
+                    archive.LastInterlocutorName = RpgNpcDialogueArchiveManager.ResolvePawnName(counterpart);
+                    long sequence = RpgNpcDialogueArchiveManager.AllocateTurnSequence(archive);
+                    RpgNpcDialogueSessionArchive session = RpgNpcDialogueArchiveManager.GetOrCreateSession(archive, sessionId, counterpart, tick);
+                    RpgNpcDialogueArchiveManager.PrepareSessionForTurnAppend(session);
+                    session.Turns.Add(RpgNpcDialogueArchiveManager.BuildTurnArchive(initiator, targetNpc, isPlayerSpeaker, text, tick, sequence));
+                    session.EndedTick = Math.Max(session.EndedTick, tick);
+                    session.TurnCount = RpgNpcDialogueArchiveManager.CountDialogueTurns(session.Turns);
+                    RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
+                    Owner.CaptureRuntimeRpgState(participant, archive);
+                    Owner.SaveArchiveToFile(archive);
+                    archiveMutated = true;
+                }
+
+                if (archiveMutated)
+                {
+                    Owner.InvalidatePromptMemoryCacheLockless();
+                }
+            }
+        }
+
+public void FinalizeSession(Pawn initiator, Pawn targetNpc, string sessionId, List<ChatMessageData> chatHistory)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                return;
+            }
+            if (!Owner.TryValidatePersistenceContext(nameof(FinalizeSession)))
+            {
+                return;
+            }
+
+            int tick = Find.TickManager?.TicksGame ?? 0;
+            int historyTurnCount = RpgNpcDialogueArchiveManager.CountDialogueTurnsFromChatHistory(chatHistory);
+
+            lock (_syncRoot)
+            {
+                Owner.EnsureCacheLoaded();
+                bool archiveMutated = false;
+                List<Pawn> participants = RpgNpcDialogueArchiveManager.CollectArchiveParticipants(initiator, targetNpc);
+                for (int i = 0; i < participants.Count; i++)
+                {
+                    Pawn participant = participants[i];
+                    if (participant == null || !_archiveCache.TryGetValue(participant.thingIDNumber, out RpgNpcDialogueArchive archive))
+                    {
+                        continue;
+                    }
+
+                    RpgNpcDialogueSessionArchive session = RpgNpcDialogueArchiveManager.FindSession(archive, sessionId);
+                    if (session == null)
+                    {
+                        continue;
+                    }
+
+                    session.EndedTick = Math.Max(session.EndedTick, tick);
+                    if (session.StartedTick <= 0)
+                    {
+                        session.StartedTick = tick;
+                    }
+
+                    if (historyTurnCount > 0)
+                    {
+                        session.TurnCount = Math.Max(session.TurnCount, historyTurnCount);
+                    }
+                    else
+                    {
+                        session.TurnCount = RpgNpcDialogueArchiveManager.CountDialogueTurns(session.Turns);
+                    }
+
+                    session.IsFinalized = true;
+                    RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
+                    Owner.TryScheduleSessionCompression(archive, tick);
+                    Owner.SaveArchiveToFile(archive);
+                    archiveMutated = true;
+                }
+
+                if (archiveMutated)
+                {
+                    Owner.InvalidatePromptMemoryCacheLockless();
+                }
+            }
+
+            RpgNpcDialogueArchiveManager.PublishRpgSessionFinalized(initiator, targetNpc, chatHistory);
+        }
+
+public void RecordDiplomacySummary(
+            Pawn negotiator,
+            Faction faction,
+            List<DialogueMessageData> allMessages,
+            int baselineMessageCount)
+        {
+            string summary = RpgNpcDialogueArchiveManager.BuildDiplomacySummaryText(faction, allMessages, baselineMessageCount);
+            if (string.IsNullOrWhiteSpace(summary))
+            {
+                return;
+            }
+            if (!Owner.TryValidatePersistenceContext(nameof(RecordDiplomacySummary)))
+            {
+                return;
+            }
+
+            int tick = Find.TickManager?.TicksGame ?? 0;
+            Pawn factionLeader = RpgNpcDialogueArchiveManager.ResolveFactionLeaderPawn(faction);
+            var participants = new List<Pawn>(2);
+            RpgNpcDialogueArchiveManager.TryAddParticipant(participants, negotiator, includePlayerFaction: true);
+            RpgNpcDialogueArchiveManager.TryAddParticipant(participants, factionLeader, includePlayerFaction: true);
+
+            if (participants.Count == 0)
+            {
+                return;
+            }
+
+            lock (_syncRoot)
+            {
+                Owner.EnsureCacheLoaded();
+                bool archiveMutated = false;
+                for (int i = 0; i < participants.Count; i++)
+                {
+                    Pawn participant = participants[i];
+                    RpgNpcDialogueArchive archive = Owner.GetOrCreateArchive(participant, tick);
+                    if (archive == null)
+                    {
+                        continue;
+                    }
+
+                    Pawn counterpart = RpgNpcDialogueArchiveManager.ResolveCounterpartForDiplomacySummary(participant, negotiator, factionLeader);
+                    string counterpartName = RpgNpcDialogueArchiveManager.ResolveFallbackCounterpartName(counterpart, faction);
+                    archive.LastInteractionTick = Math.Max(archive.LastInteractionTick, tick);
+                    archive.PawnName = RpgNpcDialogueArchiveManager.ResolvePawnName(participant);
+                    archive.FactionId = RpgNpcDialogueArchiveManager.BuildFactionId(participant.Faction);
+                    archive.FactionName = participant.Faction?.Name ?? string.Empty;
+                    archive.LastInterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1;
+                    archive.LastInterlocutorName = counterpartName;
+                    long sequence = RpgNpcDialogueArchiveManager.AllocateTurnSequence(archive);
+                    string sessionId = RpgNpcDialogueArchiveManager.BuildSystemSessionId("diplomacy", participant, tick);
+                    RpgNpcDialogueSessionArchive session = RpgNpcDialogueArchiveManager.GetOrCreateSession(archive, sessionId, counterpart, tick);
+                    session.Turns.Add(new RpgNpcDialogueTurnArchive
+                    {
+                        IsPlayer = false,
+                        TurnSequence = sequence,
+                        SpeakerPawnLoadId = participant.thingIDNumber,
+                        SpeakerName = RpgNpcDialogueArchiveManager.ResolvePawnName(participant),
+                        InterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1,
+                        InterlocutorName = counterpartName,
+                        Text = DiplomacySummaryPrefix + summary,
+                        GameTick = tick
+                    });
+                    session.EndedTick = Math.Max(session.EndedTick, tick);
+                    session.TurnCount = RpgNpcDialogueArchiveManager.CountDialogueTurns(session.Turns);
+                    session.IsFinalized = true;
+                    RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
+                    Owner.TryScheduleSessionCompression(archive, tick);
+                    Owner.SaveArchiveToFile(archive);
+                    archiveMutated = true;
+                }
+
+                if (archiveMutated)
+                {
+                    Owner.InvalidatePromptMemoryCacheLockless();
+                }
+            }
+
+            RpgNpcDialogueArchiveManager.PublishDiplomacySummaryRecorded(negotiator, faction, allMessages);
+        }
+
+internal void EnsureCacheLoaded()
         {
             string currentSaveKey;
             try
@@ -509,7 +854,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 _archiveCache.Clear();
                 _cacheLoaded = false;
                 _loadedSaveKey = string.Empty;
-                InvalidatePromptMemoryCacheLockless();
+                Owner.InvalidatePromptMemoryCacheLockless();
                 Log.Error($"[RimAI.Relations] RPG NPC archive cache load blocked: {ex.Message}");
                 return;
             }
@@ -520,15 +865,15 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
 
             _archiveCache.Clear();
-            InvalidatePromptMemoryCacheLockless();
-            TryMigrateLegacyArchives(currentSaveKey);
-            EnsureDataDirectoryExists();
-            LoadAllArchivesFromFiles();
+            Owner.InvalidatePromptMemoryCacheLockless();
+            Owner.TryMigrateLegacyArchives(currentSaveKey);
+            Owner.EnsureDataDirectoryExists();
+            Owner.LoadAllArchivesFromFiles();
             _loadedSaveKey = currentSaveKey;
             _cacheLoaded = true;
         }
 
-        private void EnsureDataDirectoryExists()
+internal void EnsureDataDirectoryExists()
         {
             if (!Directory.Exists(CurrentArchiveDirPath))
             {
@@ -536,12 +881,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private void LoadAllArchivesFromFiles()
+internal void LoadAllArchivesFromFiles()
         {
-            string sourceDir = ResolveArchiveSourceDirectory();
+            string sourceDir = Owner.ResolveArchiveSourceDirectory();
             if (!Directory.Exists(sourceDir))
             {
-                InvalidatePromptMemoryCacheLockless();
+                Owner.InvalidatePromptMemoryCacheLockless();
                 return;
             }
 
@@ -552,12 +897,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 {
                     string json = File.ReadAllText(files[i]);
                     RpgNpcDialogueArchive archive = RpgNpcDialogueArchiveJsonCodec.ParseJson(json);
-                    if (archive != null && archive.PawnLoadId > 0 && IsArchiveOwnedByCurrentSave(archive))
+                    if (archive != null && archive.PawnLoadId > 0 && Owner.IsArchiveOwnedByCurrentSave(archive))
                     {
-                        NormalizeArchiveTurns(archive);
+                        RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
                         if (_archiveCache.TryGetValue(archive.PawnLoadId, out RpgNpcDialogueArchive existing))
                         {
-                            MergeArchiveData(existing, archive);
+                            RpgNpcDialogueArchiveManager.MergeArchiveData(existing, archive);
                         }
                         else
                         {
@@ -571,20 +916,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
             }
 
-            InvalidatePromptMemoryCacheLockless();
+            Owner.InvalidatePromptMemoryCacheLockless();
         }
 
-        private string ResolveArchiveSourceDirectory()
-        {
-            return CurrentArchiveDirPath;
-        }
-
-        private static bool DirectoryHasJsonFiles(string dir)
-        {
-            return Directory.Exists(dir) && Directory.GetFiles(dir, "*.json").Length > 0;
-        }
-
-        private bool IsArchiveOwnedByCurrentSave(RpgNpcDialogueArchive archive)
+internal bool IsArchiveOwnedByCurrentSave(RpgNpcDialogueArchive archive)
         {
             if (archive == null)
             {
@@ -598,8 +933,15 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             return string.Equals(archive.SaveKey, CurrentSaveKey, StringComparison.Ordinal);
         }
+    }
 
-        private bool TryValidatePersistenceContext(string operationName)
+    internal sealed class RpgNpcArchiveSlice2 : RpgNpcDialogueArchiveManagerCollaborator
+    {
+        internal RpgNpcArchiveSlice2(RpgNpcDialogueArchiveManager owner) : base(owner)
+        {
+        }
+
+internal bool TryValidatePersistenceContext(string operationName)
         {
             try
             {
@@ -613,7 +955,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private void TryMigrateLegacyArchives(string currentSaveKey)
+internal void TryMigrateLegacyArchives(string currentSaveKey)
         {
             if (string.IsNullOrWhiteSpace(currentSaveKey))
             {
@@ -628,13 +970,13 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
 
             Directory.CreateDirectory(targetDir);
-            List<string> legacyDirs = CollectLegacyArchiveSourceDirectories(targetDir);
+            List<string> legacyDirs = Owner.CollectLegacyArchiveSourceDirectories(targetDir);
             if (legacyDirs.Count == 0)
             {
                 return;
             }
 
-            if (HasClaimedDefaultBucketForAnotherSave(currentSaveKey, legacyDirs))
+            if (Owner.HasClaimedDefaultBucketForAnotherSave(currentSaveKey, legacyDirs))
             {
                 return;
             }
@@ -650,23 +992,23 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 string sourceDir = legacyDirs[i];
                 string backupDir = Path.Combine(backupRoot, $"source_{i}");
                 Directory.CreateDirectory(backupDir);
-                CopyJsonFiles(sourceDir, backupDir, overwrite: true);
-                migratedCount += CopyJsonFiles(sourceDir, targetDir, overwrite: false);
+                RpgNpcDialogueArchiveManager.CopyJsonFiles(sourceDir, backupDir, overwrite: true);
+                migratedCount += RpgNpcDialogueArchiveManager.CopyJsonFiles(sourceDir, targetDir, overwrite: false);
             }
 
             if (migratedCount > 0)
             {
                 File.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
-                TryClaimDefaultBucket(currentSaveKey, legacyDirs);
+                Owner.TryClaimDefaultBucket(currentSaveKey, legacyDirs);
                 Log.Message($"[RimAI.Relations] Migrated {migratedCount} legacy NPC archive file(s) to {currentSaveKey}.");
             }
         }
 
-        private List<string> CollectLegacyArchiveSourceDirectories(string targetDir)
+internal List<string> CollectLegacyArchiveSourceDirectories(string targetDir)
         {
             var dirs = new List<string>();
             string rootLevelLegacyDir = Path.Combine(CurrentPromptNpcRootPath, NpcArchiveSubDir);
-            TryAddLegacySourceDir(dirs, rootLevelLegacyDir, targetDir);
+            RpgNpcDialogueArchiveManager.TryAddLegacySourceDir(dirs, rootLevelLegacyDir, targetDir);
 
             string[] saveDirs = Directory.Exists(CurrentPromptNpcRootPath)
                 ? Directory.GetDirectories(CurrentPromptNpcRootPath, "Save_*")
@@ -680,15 +1022,15 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
 
                 string legacyArchiveDir = Path.Combine(saveDirs[i], NpcArchiveSubDir);
-                TryAddLegacySourceDir(dirs, legacyArchiveDir, targetDir);
+                RpgNpcDialogueArchiveManager.TryAddLegacySourceDir(dirs, legacyArchiveDir, targetDir);
             }
 
             return dirs;
         }
 
-        private static void TryAddLegacySourceDir(List<string> dirs, string sourceDir, string targetDir)
+internal static void TryAddLegacySourceDir(List<string> dirs, string sourceDir, string targetDir)
         {
-            if (string.IsNullOrWhiteSpace(sourceDir) || !DirectoryHasJsonFiles(sourceDir))
+            if (string.IsNullOrWhiteSpace(sourceDir) || !RpgNpcDialogueArchiveManager.DirectoryHasJsonFiles(sourceDir))
             {
                 return;
             }
@@ -706,9 +1048,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             dirs.Add(sourceDir);
         }
 
-        private static int CopyJsonFiles(string sourceDir, string targetDir, bool overwrite)
+internal static int CopyJsonFiles(string sourceDir, string targetDir, bool overwrite)
         {
-            if (!DirectoryHasJsonFiles(sourceDir))
+            if (!RpgNpcDialogueArchiveManager.DirectoryHasJsonFiles(sourceDir))
             {
                 return 0;
             }
@@ -732,7 +1074,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return copied;
         }
 
-        private bool HasClaimedDefaultBucketForAnotherSave(string currentSaveKey, List<string> legacyDirs)
+internal bool HasClaimedDefaultBucketForAnotherSave(string currentSaveKey, List<string> legacyDirs)
         {
             if (legacyDirs == null || legacyDirs.Count == 0 || !legacyDirs.Any(IsDefaultBucketPath))
             {
@@ -754,7 +1096,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return !string.Equals(claimedSaveKey, currentSaveKey, StringComparison.Ordinal);
         }
 
-        private void TryClaimDefaultBucket(string currentSaveKey, List<string> legacyDirs)
+internal void TryClaimDefaultBucket(string currentSaveKey, List<string> legacyDirs)
         {
             if (legacyDirs == null || legacyDirs.Count == 0 || !legacyDirs.Any(IsDefaultBucketPath))
             {
@@ -768,7 +1110,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private static bool IsDefaultBucketPath(string path)
+internal static bool IsDefaultBucketPath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -781,7 +1123,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 normalized.Contains($"_{DefaultSaveName}/");
         }
 
-        private RpgNpcDialogueArchive GetOrCreateArchive(Pawn pawn, int tick)
+internal RpgNpcDialogueArchive GetOrCreateArchive(Pawn pawn, int tick)
         {
             int pawnId = pawn?.thingIDNumber ?? -1;
             if (pawnId <= 0)
@@ -798,8 +1140,8 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             {
                 SaveKey = CurrentSaveKey,
                 PawnLoadId = pawnId,
-                PawnName = ResolvePawnName(pawn),
-                FactionId = BuildFactionId(pawn?.Faction),
+                PawnName = RpgNpcDialogueArchiveManager.ResolvePawnName(pawn),
+                FactionId = RpgNpcDialogueArchiveManager.BuildFactionId(pawn?.Faction),
                 FactionName = pawn?.Faction?.Name ?? string.Empty,
                 CreatedTimestamp = DateTime.UtcNow.Ticks,
                 LastInteractionTick = tick
@@ -808,7 +1150,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return archive;
         }
 
-        private void CaptureRuntimeRpgState(Pawn pawn, RpgNpcDialogueArchive archive)
+internal void CaptureRuntimeRpgState(Pawn pawn, RpgNpcDialogueArchive archive)
         {
             GameComponent_RPGManager rpgManager = GameComponent_RPGManager.Instance;
             if (rpgManager == null || pawn == null || archive == null)
@@ -820,7 +1162,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             archive.CooldownUntilTick = rpgManager.GetDialogueCooldownUntilTick(pawn);
         }
 
-        private static long AllocateTurnSequence(RpgNpcDialogueArchive archive)
+internal static long AllocateTurnSequence(RpgNpcDialogueArchive archive)
         {
             if (archive == null)
             {
@@ -832,7 +1174,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return next;
         }
 
-        private static RpgNpcDialogueTurnArchive BuildTurnArchive(
+internal static RpgNpcDialogueTurnArchive BuildTurnArchive(
             Pawn initiator,
             Pawn targetNpc,
             bool isPlayerSpeaker,
@@ -840,22 +1182,22 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             int tick,
             long turnSequence)
         {
-            Pawn speaker = ResolveDialogueSpeakerPawn(initiator, targetNpc, isPlayerSpeaker);
-            Pawn interlocutor = ResolveCounterpartPawn(speaker, initiator, targetNpc);
+            Pawn speaker = RpgNpcDialogueArchiveManager.ResolveDialogueSpeakerPawn(initiator, targetNpc, isPlayerSpeaker);
+            Pawn interlocutor = RpgNpcDialogueArchiveManager.ResolveCounterpartPawn(speaker, initiator, targetNpc);
             return new RpgNpcDialogueTurnArchive
             {
                 IsPlayer = isPlayerSpeaker,
                 TurnSequence = turnSequence,
                 SpeakerPawnLoadId = speaker?.thingIDNumber ?? -1,
-                SpeakerName = ResolvePawnName(speaker),
+                SpeakerName = RpgNpcDialogueArchiveManager.ResolvePawnName(speaker),
                 InterlocutorPawnLoadId = interlocutor?.thingIDNumber ?? -1,
-                InterlocutorName = ResolvePawnName(interlocutor),
+                InterlocutorName = RpgNpcDialogueArchiveManager.ResolvePawnName(interlocutor),
                 Text = text.Trim(),
                 GameTick = tick
             };
         }
 
-        private static Pawn ResolveDialogueSpeakerPawn(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker)
+internal static Pawn ResolveDialogueSpeakerPawn(Pawn initiator, Pawn targetNpc, bool isPlayerSpeaker)
         {
             if (isPlayerSpeaker)
             {
@@ -865,7 +1207,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return targetNpc ?? initiator;
         }
 
-        private static Pawn ResolveCounterpartPawn(Pawn self, Pawn initiator, Pawn targetNpc)
+internal static Pawn ResolveCounterpartPawn(Pawn self, Pawn initiator, Pawn targetNpc)
         {
             if (self != null && initiator != null && self.thingIDNumber == initiator.thingIDNumber)
             {
@@ -877,7 +1219,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 return initiator;
             }
 
-            Pawn playerPawn = GetPlayerPawn(initiator) ?? GetPlayerPawn(targetNpc);
+            Pawn playerPawn = RpgNpcDialogueArchiveManager.GetPlayerPawn(initiator) ?? RpgNpcDialogueArchiveManager.GetPlayerPawn(targetNpc);
             if (playerPawn != null && (self == null || playerPawn.thingIDNumber != self.thingIDNumber))
             {
                 return playerPawn;
@@ -896,12 +1238,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return null;
         }
 
-        private static Pawn GetPlayerPawn(Pawn pawn)
-        {
-            return pawn != null && pawn.Faction != null && pawn.Faction.IsPlayer ? pawn : null;
-        }
-
-        private static RpgNpcDialogueSessionArchive GetOrCreateSession(
+internal static RpgNpcDialogueSessionArchive GetOrCreateSession(
             RpgNpcDialogueArchive archive,
             string sessionId,
             Pawn counterpart,
@@ -916,7 +1253,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 ? $"session_{tick}_{Guid.NewGuid():N}"
                 : sessionId.Trim();
 
-            RpgNpcDialogueSessionArchive existing = FindSession(archive, normalizedSessionId);
+            RpgNpcDialogueSessionArchive existing = RpgNpcDialogueArchiveManager.FindSession(archive, normalizedSessionId);
             if (existing != null)
             {
                 if (existing.StartedTick <= 0)
@@ -927,7 +1264,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 if (counterpart != null)
                 {
                     existing.InterlocutorPawnLoadId = counterpart.thingIDNumber;
-                    existing.InterlocutorName = ResolvePawnName(counterpart);
+                    existing.InterlocutorName = RpgNpcDialogueArchiveManager.ResolvePawnName(counterpart);
                 }
 
                 if (string.IsNullOrWhiteSpace(existing.SummaryState))
@@ -947,7 +1284,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 TurnCount = 0,
                 IsFinalized = false,
                 InterlocutorPawnLoadId = counterpart?.thingIDNumber ?? -1,
-                InterlocutorName = ResolvePawnName(counterpart),
+                InterlocutorName = RpgNpcDialogueArchiveManager.ResolvePawnName(counterpart),
                 SummaryText = string.Empty,
                 SummaryState = RpgNpcDialogueSessionSummaryState.Pending,
                 LastSummaryAttemptTick = 0,
@@ -963,7 +1300,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return session;
         }
 
-        private static RpgNpcDialogueSessionArchive FindSession(RpgNpcDialogueArchive archive, string sessionId)
+internal static RpgNpcDialogueSessionArchive FindSession(RpgNpcDialogueArchive archive, string sessionId)
         {
             if (archive?.Sessions == null || string.IsNullOrWhiteSpace(sessionId))
             {
@@ -975,20 +1312,20 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 string.Equals(session.SessionId, sessionId, StringComparison.Ordinal));
         }
 
-        private static string BuildSystemSessionId(string source, Pawn participant, int tick)
+internal static string BuildSystemSessionId(string source, Pawn participant, int tick)
         {
             int participantId = participant?.thingIDNumber ?? -1;
             return $"sys_{source}_{participantId}_{tick}_{Guid.NewGuid():N}";
         }
 
-        private static int CountDialogueTurns(List<RpgNpcDialogueTurnArchive> turns)
+internal static int CountDialogueTurns(List<RpgNpcDialogueTurnArchive> turns)
         {
             return turns?
                 .Count(turn => turn != null && !string.IsNullOrWhiteSpace(turn.Text))
                 ?? 0;
         }
 
-        private static void PrepareSessionForTurnAppend(RpgNpcDialogueSessionArchive session)
+internal static void PrepareSessionForTurnAppend(RpgNpcDialogueSessionArchive session)
         {
             if (session == null)
             {
@@ -1013,7 +1350,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private static int CountDialogueTurnsFromChatHistory(List<ChatMessageData> chatHistory)
+internal static int CountDialogueTurnsFromChatHistory(List<ChatMessageData> chatHistory)
         {
             if (chatHistory == null || chatHistory.Count == 0)
             {
@@ -1025,8 +1362,15 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 !string.IsNullOrWhiteSpace(message.content) &&
                 !string.Equals(message.role, "system", StringComparison.OrdinalIgnoreCase));
         }
+    }
 
-        private void SaveArchiveToFile(RpgNpcDialogueArchive archive)
+    internal sealed class RpgNpcArchiveSlice3 : RpgNpcDialogueArchiveManagerCollaborator
+    {
+        internal RpgNpcArchiveSlice3(RpgNpcDialogueArchiveManager owner) : base(owner)
+        {
+        }
+
+internal void SaveArchiveToFile(RpgNpcDialogueArchive archive)
         {
             if (archive == null || archive.PawnLoadId <= 0)
             {
@@ -1035,12 +1379,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             try
             {
-                EnsureDataDirectoryExists();
+                Owner.EnsureDataDirectoryExists();
                 archive.SaveKey = CurrentSaveKey;
                 archive.LastSavedTimestamp = DateTime.UtcNow.Ticks;
-                string fileName = BuildArchiveFileName(archive);
+                string fileName = RpgNpcDialogueArchiveManager.BuildArchiveFileName(archive);
                 string filePath = Path.Combine(CurrentArchiveDirPath, fileName);
-                CleanupLegacyArchiveFiles(archive.PawnLoadId, fileName);
+                Owner.CleanupLegacyArchiveFiles(archive.PawnLoadId, fileName);
                 string json = RpgNpcDialogueArchiveJsonCodec.ConvertToJson(archive);
                 AtomicFileWriter.WriteAllText(filePath, json);
             }
@@ -1050,7 +1394,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        public bool HasPromptMemory(Pawn targetNpc, Pawn currentInterlocutor = null, bool allowCacheLoad = true)
+public bool HasPromptMemory(Pawn targetNpc, Pawn currentInterlocutor = null, bool allowCacheLoad = true)
         {
             if (targetNpc == null || targetNpc.Destroyed || targetNpc.Dead)
             {
@@ -1061,33 +1405,33 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             {
                 if (allowCacheLoad)
                 {
-                    EnsureCacheLoaded();
+                    Owner.EnsureCacheLoaded();
                 }
                 else if (!_cacheLoaded)
                 {
                     return false;
                 }
 
-                FlushPendingWarmupCompressionLockless(Find.TickManager?.TicksGame ?? 0);
+                Owner.FlushPendingWarmupCompressionLockless(Find.TickManager?.TicksGame ?? 0);
                 if (!_archiveCache.TryGetValue(targetNpc.thingIDNumber, out RpgNpcDialogueArchive archive) ||
                     archive == null)
                 {
                     return false;
                 }
 
-                NormalizeArchiveTurns(archive);
-                List<RpgNpcDialogueTurnArchive> retainedTurns = GetSessionTurns(SelectLatestRetainedFullSession(archive));
+                RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
+                List<RpgNpcDialogueTurnArchive> retainedTurns = RpgNpcDialogueArchiveManager.GetSessionTurns(RpgNpcDialogueArchiveManager.SelectLatestRetainedFullSession(archive));
                 if (retainedTurns.Count > 0)
                 {
                     return true;
                 }
 
-                List<RpgNpcDialogueSessionArchive> compressedSessions = GetCompressedSessionsForInjection(archive);
+                List<RpgNpcDialogueSessionArchive> compressedSessions = RpgNpcDialogueArchiveManager.GetCompressedSessionsForInjection(archive);
                 return compressedSessions.Count > 0;
             }
         }
 
-        public string BuildPromptMemoryBlock(
+public string BuildPromptMemoryBlock(
             Pawn targetNpc,
             Pawn currentInterlocutor = null,
             int summaryTurnLimit = 8,
@@ -1104,7 +1448,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             {
                 if (allowCacheLoad)
                 {
-                    EnsureCacheLoaded();
+                    Owner.EnsureCacheLoaded();
                 }
                 else if (!_cacheLoaded)
                 {
@@ -1114,16 +1458,16 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 int clampedSummaryTurnLimit = Math.Max(3, Math.Min(16, summaryTurnLimit));
                 int clampedSummaryBudget = Math.Max(500, Math.Min(4000, summaryCharBudget));
                 int tick = Find.TickManager?.TicksGame ?? 0;
-                FlushPendingWarmupCompressionLockless(tick);
-                int dayStamp = ResolveAbsoluteDayStamp(tick, targetNpc);
+                Owner.FlushPendingWarmupCompressionLockless(tick);
+                int dayStamp = RpgNpcDialogueArchiveManager.ResolveAbsoluteDayStamp(tick, targetNpc);
                 int interlocutorId = currentInterlocutor?.thingIDNumber ?? -1;
-                string cacheKey = BuildPromptMemoryCacheKey(
+                string cacheKey = RpgNpcDialogueArchiveManager.BuildPromptMemoryCacheKey(
                     targetNpc.thingIDNumber,
                     interlocutorId,
                     clampedSummaryTurnLimit,
                     clampedSummaryBudget,
                     dayStamp);
-                if (TryGetPromptMemoryCacheLockless(cacheKey, out string cachedMemoryBlock))
+                if (Owner.TryGetPromptMemoryCacheLockless(cacheKey, out string cachedMemoryBlock))
                 {
                     return cachedMemoryBlock;
                 }
@@ -1131,30 +1475,30 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 if (!_archiveCache.TryGetValue(targetNpc.thingIDNumber, out RpgNpcDialogueArchive archive) ||
                     archive == null)
                 {
-                    LogDebugMissingArchive(targetNpc, currentInterlocutor);
-                    SetPromptMemoryCacheLockless(cacheKey, string.Empty);
+                    Owner.LogDebugMissingArchive(targetNpc, currentInterlocutor);
+                    Owner.SetPromptMemoryCacheLockless(cacheKey, string.Empty);
                     return string.Empty;
                 }
 
-                NormalizeArchiveTurns(archive);
+                RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
                 if (allowCompressionScheduling)
                 {
-                    TryScheduleSessionCompression(archive, tick);
+                    Owner.TryScheduleSessionCompression(archive, tick);
                 }
 
-                RpgNpcDialogueSessionArchive retainedSession = SelectLatestRetainedFullSession(archive);
-                List<RpgNpcDialogueTurnArchive> retainedTurns = GetSessionTurns(retainedSession);
-                List<RpgNpcDialogueSessionArchive> compressedSessions = GetCompressedSessionsForInjection(archive);
+                RpgNpcDialogueSessionArchive retainedSession = RpgNpcDialogueArchiveManager.SelectLatestRetainedFullSession(archive);
+                List<RpgNpcDialogueTurnArchive> retainedTurns = RpgNpcDialogueArchiveManager.GetSessionTurns(retainedSession);
+                List<RpgNpcDialogueSessionArchive> compressedSessions = RpgNpcDialogueArchiveManager.GetCompressedSessionsForInjection(archive);
                 if ((retainedTurns == null || retainedTurns.Count == 0) &&
                     (compressedSessions == null || compressedSessions.Count == 0))
                 {
-                    LogDebugMissingArchive(targetNpc, currentInterlocutor);
-                    SetPromptMemoryCacheLockless(cacheKey, string.Empty);
+                    Owner.LogDebugMissingArchive(targetNpc, currentInterlocutor);
+                    Owner.SetPromptMemoryCacheLockless(cacheKey, string.Empty);
                     return string.Empty;
                 }
 
-                string npcName = ResolvePawnName(targetNpc);
-                string interlocutorName = ResolveInterlocutorName(archive, currentInterlocutor, retainedTurns);
+                string npcName = RpgNpcDialogueArchiveManager.ResolvePawnName(targetNpc);
+                string interlocutorName = RpgNpcDialogueArchiveManager.ResolveInterlocutorName(archive, currentInterlocutor, retainedTurns);
                 var sb = new StringBuilder();
                 sb.AppendLine("=== NPC PERSONAL MEMORY (RPG DIALOGUE) ===");
                 sb.AppendLine($"You are {npcName}. Keep continuity with your own previous conversations.");
@@ -1164,7 +1508,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 sb.AppendLine("- Keep relationship tone continuous; do not reset to neutral.");
                 sb.AppendLine("- Never reuse previous wording verbatim; paraphrase.");
 
-                AppendCompressedSessionSummaries(
+                RpgNpcDialogueArchiveManager.AppendCompressedSessionSummaries(
                     sb,
                     compressedSessions,
                     MaxInjectedCompressedSessionSummaries,
@@ -1172,34 +1516,34 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
                 if (retainedTurns != null && retainedTurns.Count > 0)
                 {
-                    List<RpgNpcDialogueTurnArchive> summaryTurns = BuildRelevantSummaryTurns(retainedTurns, currentInterlocutor, interlocutorName);
-                    AppendDiplomacySummaryMemoryLines(sb, summaryTurns);
+                    List<RpgNpcDialogueTurnArchive> summaryTurns = RpgNpcDialogueArchiveManager.BuildRelevantSummaryTurns(retainedTurns, currentInterlocutor, interlocutorName);
+                    RpgNpcDialogueArchiveManager.AppendDiplomacySummaryMemoryLines(sb, summaryTurns);
 
-                    List<RpgNpcDialogueTurnArchive> interlocutorTurns = BuildRelevantInterlocutorTurns(
+                    List<RpgNpcDialogueTurnArchive> interlocutorTurns = RpgNpcDialogueArchiveManager.BuildRelevantInterlocutorTurns(
                         retainedTurns,
                         archive,
                         currentInterlocutor,
                         interlocutorName);
-                    List<RpgNpcDialogueTurnArchive> selfTurns = BuildRelevantSelfTurns(
+                    List<RpgNpcDialogueTurnArchive> selfTurns = RpgNpcDialogueArchiveManager.BuildRelevantSelfTurns(
                         retainedTurns,
                         archive,
                         targetNpc,
                         currentInterlocutor,
                         interlocutorName);
-                    List<RpgNpcDialogueTurnArchive> timelineTurns = BuildChronologicalDialogueTurns(selfTurns, interlocutorTurns);
-                    bool shouldInjectUnresolvedIntent = !ShouldForgetLatestUnresolvedIntent(archive, targetNpc, tick);
+                    List<RpgNpcDialogueTurnArchive> timelineTurns = RpgNpcDialogueArchiveManager.BuildChronologicalDialogueTurns(selfTurns, interlocutorTurns);
+                    bool shouldInjectUnresolvedIntent = !RpgNpcDialogueArchiveManager.ShouldForgetLatestUnresolvedIntent(archive, targetNpc, tick);
                     if (shouldInjectUnresolvedIntent)
                     {
-                        string unresolvedIntent = ExtractLatestUnresolvedIntent(interlocutorTurns, timelineTurns);
-                        bool hostileIntent = IsHostileIntent(unresolvedIntent);
+                        string unresolvedIntent = RpgNpcDialogueArchiveManager.ExtractLatestUnresolvedIntent(interlocutorTurns, timelineTurns);
+                        bool hostileIntent = RpgNpcDialogueArchiveManager.IsHostileIntent(unresolvedIntent);
                         if (!string.IsNullOrWhiteSpace(unresolvedIntent))
                         {
-                            sb.AppendLine($"Latest unresolved player intent: {TrimForPrompt(unresolvedIntent, 150)}");
+                            sb.AppendLine($"Latest unresolved player intent: {RpgNpcDialogueArchiveManager.TrimForPrompt(unresolvedIntent, 150)}");
                             sb.AppendLine($"Latest intent tone (hostile={hostileIntent.ToString().ToLowerInvariant()}).");
                         }
                     }
 
-                    string recentSummary = BuildRecentDialogueSummaryText(
+                    string recentSummary = RpgNpcDialogueArchiveManager.BuildRecentDialogueSummaryText(
                         timelineTurns,
                         targetNpc,
                         currentInterlocutor,
@@ -1213,16 +1557,16 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                         sb.AppendLine(recentSummary);
                     }
 
-                    AppendRecentRawQuotes(sb, timelineTurns, targetNpc, currentInterlocutor, npcName, interlocutorName);
+                    RpgNpcDialogueArchiveManager.AppendRecentRawQuotes(sb, timelineTurns, targetNpc, currentInterlocutor, npcName, interlocutorName);
                 }
 
                 string memoryBlock = sb.ToString().Trim();
-                SetPromptMemoryCacheLockless(cacheKey, memoryBlock);
+                Owner.SetPromptMemoryCacheLockless(cacheKey, memoryBlock);
                 return memoryBlock;
             }
         }
 
-        public string BuildUnresolvedIntentSummary(Pawn targetNpc, Pawn currentInterlocutor = null)
+public string BuildUnresolvedIntentSummary(Pawn targetNpc, Pawn currentInterlocutor = null)
         {
             if (targetNpc == null || targetNpc.Destroyed || targetNpc.Dead)
             {
@@ -1231,47 +1575,47 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             lock (_syncRoot)
             {
-                EnsureCacheLoaded();
-                FlushPendingWarmupCompressionLockless(Find.TickManager?.TicksGame ?? 0);
+                Owner.EnsureCacheLoaded();
+                Owner.FlushPendingWarmupCompressionLockless(Find.TickManager?.TicksGame ?? 0);
                 if (!_archiveCache.TryGetValue(targetNpc.thingIDNumber, out RpgNpcDialogueArchive archive) ||
                     archive == null)
                 {
                     return string.Empty;
                 }
 
-                NormalizeArchiveTurns(archive);
+                RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(archive);
                 int tick = Find.TickManager?.TicksGame ?? 0;
-                TryScheduleSessionCompression(archive, tick);
-                if (ShouldForgetLatestUnresolvedIntent(archive, targetNpc, tick))
+                Owner.TryScheduleSessionCompression(archive, tick);
+                if (RpgNpcDialogueArchiveManager.ShouldForgetLatestUnresolvedIntent(archive, targetNpc, tick))
                 {
                     return string.Empty;
                 }
 
-                RpgNpcDialogueSessionArchive retainedSession = SelectLatestRetainedFullSession(archive);
-                List<RpgNpcDialogueTurnArchive> retainedTurns = GetSessionTurns(retainedSession);
+                RpgNpcDialogueSessionArchive retainedSession = RpgNpcDialogueArchiveManager.SelectLatestRetainedFullSession(archive);
+                List<RpgNpcDialogueTurnArchive> retainedTurns = RpgNpcDialogueArchiveManager.GetSessionTurns(retainedSession);
                 if (retainedTurns == null || retainedTurns.Count == 0)
                 {
                     return string.Empty;
                 }
 
-                string interlocutorName = ResolveInterlocutorName(archive, currentInterlocutor, retainedTurns);
-                List<RpgNpcDialogueTurnArchive> interlocutorTurns = BuildRelevantInterlocutorTurns(
+                string interlocutorName = RpgNpcDialogueArchiveManager.ResolveInterlocutorName(archive, currentInterlocutor, retainedTurns);
+                List<RpgNpcDialogueTurnArchive> interlocutorTurns = RpgNpcDialogueArchiveManager.BuildRelevantInterlocutorTurns(
                     retainedTurns,
                     archive,
                     currentInterlocutor,
                     interlocutorName);
-                List<RpgNpcDialogueTurnArchive> selfTurns = BuildRelevantSelfTurns(
+                List<RpgNpcDialogueTurnArchive> selfTurns = RpgNpcDialogueArchiveManager.BuildRelevantSelfTurns(
                     retainedTurns,
                     archive,
                     targetNpc,
                     currentInterlocutor,
                     interlocutorName);
-                List<RpgNpcDialogueTurnArchive> timelineTurns = BuildChronologicalDialogueTurns(selfTurns, interlocutorTurns);
-                return TrimForPrompt(ExtractLatestUnresolvedIntent(interlocutorTurns, timelineTurns), 160);
+                List<RpgNpcDialogueTurnArchive> timelineTurns = RpgNpcDialogueArchiveManager.BuildChronologicalDialogueTurns(selfTurns, interlocutorTurns);
+                return RpgNpcDialogueArchiveManager.TrimForPrompt(RpgNpcDialogueArchiveManager.ExtractLatestUnresolvedIntent(interlocutorTurns, timelineTurns), 160);
             }
         }
 
-        private static bool ShouldForgetLatestUnresolvedIntent(
+internal static bool ShouldForgetLatestUnresolvedIntent(
             RpgNpcDialogueArchive archive,
             Pawn targetNpc,
             int currentTick)
@@ -1281,20 +1625,20 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 return false;
             }
 
-            int previousDayStamp = ResolveAbsoluteDayStamp(archive.LastInteractionTick, targetNpc);
-            int currentDayStamp = ResolveAbsoluteDayStamp(currentTick, targetNpc);
+            int previousDayStamp = RpgNpcDialogueArchiveManager.ResolveAbsoluteDayStamp(archive.LastInteractionTick, targetNpc);
+            int currentDayStamp = RpgNpcDialogueArchiveManager.ResolveAbsoluteDayStamp(currentTick, targetNpc);
             return currentDayStamp > previousDayStamp;
         }
 
-        private static int ResolveAbsoluteDayStamp(int tick, Pawn targetNpc)
+internal static int ResolveAbsoluteDayStamp(int tick, Pawn targetNpc)
         {
-            float longitude = ResolveLongitude(targetNpc);
+            float longitude = RpgNpcDialogueArchiveManager.ResolveLongitude(targetNpc);
             int year = GenDate.Year(tick, longitude);
             int dayOfYear = GenDate.DayOfYear(tick, longitude);
             return checked((year * 60) + dayOfYear);
         }
 
-        private static float ResolveLongitude(Pawn pawn)
+internal static float ResolveLongitude(Pawn pawn)
         {
             Map map = pawn?.MapHeld ?? Find.CurrentMap;
             if (map != null && WorldTileGuard.IsValidTile(map.Tile))
@@ -1305,7 +1649,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return 0f;
         }
 
-        private static string ExtractLatestUnresolvedIntent(
+internal static string ExtractLatestUnresolvedIntent(
             List<RpgNpcDialogueTurnArchive> interlocutorTurns,
             List<RpgNpcDialogueTurnArchive> timelineTurns)
         {
@@ -1337,7 +1681,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return lastInterlocutorTurn.Text.Trim();
         }
 
-        private static string BuildRecentDialogueSummaryText(
+internal static string BuildRecentDialogueSummaryText(
             List<RpgNpcDialogueTurnArchive> timelineTurns,
             Pawn targetNpc,
             Pawn currentInterlocutor,
@@ -1357,8 +1701,8 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             for (int i = start; i < timelineTurns.Count; i++)
             {
                 RpgNpcDialogueTurnArchive turn = timelineTurns[i];
-                string speaker = ResolvePromptSpeakerName(turn, targetNpc, npcName, currentInterlocutor, interlocutorName);
-                string gist = TrimForPrompt(turn?.Text, 90);
+                string speaker = RpgNpcDialogueArchiveManager.ResolvePromptSpeakerName(turn, targetNpc, npcName, currentInterlocutor, interlocutorName);
+                string gist = RpgNpcDialogueArchiveManager.TrimForPrompt(turn?.Text, 90);
                 if (string.IsNullOrWhiteSpace(gist))
                 {
                     continue;
@@ -1377,7 +1721,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.Join("\n", summaryLines);
         }
 
-        private static void AppendRecentRawQuotes(
+internal static void AppendRecentRawQuotes(
             StringBuilder sb,
             List<RpgNpcDialogueTurnArchive> timelineTurns,
             Pawn targetNpc,
@@ -1396,12 +1740,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             for (int i = start; i < timelineTurns.Count; i++)
             {
                 RpgNpcDialogueTurnArchive turn = timelineTurns[i];
-                string speaker = ResolvePromptSpeakerName(turn, targetNpc, npcName, currentInterlocutor, interlocutorName);
-                sb.AppendLine($"- {speaker}: {TrimForPrompt(turn?.Text, 80)}");
+                string speaker = RpgNpcDialogueArchiveManager.ResolvePromptSpeakerName(turn, targetNpc, npcName, currentInterlocutor, interlocutorName);
+                sb.AppendLine($"- {speaker}: {RpgNpcDialogueArchiveManager.TrimForPrompt(turn?.Text, 80)}");
             }
         }
 
-        private void ApplyArchivesToRuntime()
+internal void ApplyArchivesToRuntime()
         {
             GameComponent_RPGManager rpgManager = GameComponent_RPGManager.Instance;
             if (rpgManager == null || _archiveCache.Count == 0)
@@ -1416,7 +1760,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     continue;
                 }
 
-                Pawn pawn = FindPawnByLoadId(archive.PawnLoadId);
+                Pawn pawn = RpgNpcDialogueArchiveManager.FindPawnByLoadId(archive.PawnLoadId);
                 if (pawn == null || pawn.Destroyed || pawn.Dead)
                 {
                     continue;
@@ -1430,8 +1774,15 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 rpgManager.SetDialogueCooldownUntilTick(pawn, archive.CooldownUntilTick);
             }
         }
+    }
 
-        private static Pawn FindPawnByLoadId(int pawnLoadId)
+    internal sealed class RpgNpcArchiveSlice4 : RpgNpcDialogueArchiveManagerCollaborator
+    {
+        internal RpgNpcArchiveSlice4(RpgNpcDialogueArchiveManager owner) : base(owner)
+        {
+        }
+
+internal static Pawn FindPawnByLoadId(int pawnLoadId)
         {
             if (pawnLoadId <= 0)
             {
@@ -1465,7 +1816,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return null;
         }
 
-        private static string ResolvePawnName(Pawn pawn)
+internal static string ResolvePawnName(Pawn pawn)
         {
             if (pawn == null)
             {
@@ -1475,7 +1826,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return pawn.LabelShort ?? pawn.Name?.ToStringShort ?? pawn.Name?.ToStringFull ?? "UnknownPawn";
         }
 
-        private static string BuildFactionId(Faction faction)
+internal static string BuildFactionId(Faction faction)
         {
             if (faction == null)
             {
@@ -1490,10 +1841,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return $"custom_{faction.loadID}";
         }
 
-        private static List<Pawn> CollectArchiveParticipants(Pawn initiator, Pawn targetNpc)
+internal static List<Pawn> CollectArchiveParticipants(Pawn initiator, Pawn targetNpc)
         {
             var participants = new List<Pawn>(2);
-            TryAddParticipant(participants, targetNpc, includePlayerFaction: true);
+            RpgNpcDialogueArchiveManager.TryAddParticipant(participants, targetNpc, includePlayerFaction: true);
 
             bool includeInitiator =
                 initiator != null &&
@@ -1501,12 +1852,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 initiator.thingIDNumber != targetNpc.thingIDNumber;
             if (includeInitiator)
             {
-                TryAddParticipant(participants, initiator, includePlayerFaction: true);
+                RpgNpcDialogueArchiveManager.TryAddParticipant(participants, initiator, includePlayerFaction: true);
             }
             return participants;
         }
 
-        private static void TryAddParticipant(List<Pawn> participants, Pawn pawn, bool includePlayerFaction)
+internal static void TryAddParticipant(List<Pawn> participants, Pawn pawn, bool includePlayerFaction)
         {
             if (pawn == null || pawn.Destroyed || pawn.Dead)
             {
@@ -1526,12 +1877,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             participants.Add(pawn);
         }
 
-        private string ResolveCurrentSaveKey()
-        {
-            return SaveScopeKeyResolver.ResolveOrThrow();
-        }
-
-        private string GetCurrentSaveName()
+internal string GetCurrentSaveName()
         {
             string trackedSaveName = SaveContextTracker.GetCurrentSaveName();
             if (!string.IsNullOrWhiteSpace(trackedSaveName))
@@ -1543,37 +1889,37 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             object gameInfo = Current.Game?.Info;
             if (gameInfo == null)
             {
-                string loadedGameName = TryResolveLoadedGameNameFromMetaHeader();
+                string loadedGameName = RpgNpcDialogueArchiveManager.TryResolveLoadedGameNameFromMetaHeader();
                 return string.IsNullOrWhiteSpace(loadedGameName)
                     ? DefaultSaveName
                     : loadedGameName.SanitizeFileName();
             }
 
-            string name = ReadStringMember(gameInfo, "name");
+            string name = RpgNpcDialogueArchiveManager.ReadStringMember(gameInfo, "name");
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = ReadStringMember(gameInfo, "Name");
+                name = RpgNpcDialogueArchiveManager.ReadStringMember(gameInfo, "Name");
             }
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = ReadStringMember(gameInfo, "fileName");
+                name = RpgNpcDialogueArchiveManager.ReadStringMember(gameInfo, "fileName");
             }
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = ReadStringMember(gameInfo, "FileName");
+                name = RpgNpcDialogueArchiveManager.ReadStringMember(gameInfo, "FileName");
             }
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = TryResolveNameFromAnyStringMember(gameInfo);
+                name = RpgNpcDialogueArchiveManager.TryResolveNameFromAnyStringMember(gameInfo);
             }
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = TryResolveLoadedGameNameFromMetaHeader();
+                name = RpgNpcDialogueArchiveManager.TryResolveLoadedGameNameFromMetaHeader();
             }
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = TryResolveLoadedGameNameFromKnownVerseStatics();
+                name = RpgNpcDialogueArchiveManager.TryResolveLoadedGameNameFromKnownVerseStatics();
             }
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -1583,7 +1929,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.IsNullOrWhiteSpace(name) ? DefaultSaveName : name.SanitizeFileName();
         }
 
-        private static string ReadStringMember(object target, string memberName)
+internal static string ReadStringMember(object target, string memberName)
         {
             if (target == null || string.IsNullOrWhiteSpace(memberName))
             {
@@ -1619,7 +1965,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.Empty;
         }
 
-        private static string TryResolveNameFromAnyStringMember(object target)
+internal static string TryResolveNameFromAnyStringMember(object target)
         {
             if (target == null)
             {
@@ -1637,7 +1983,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     }
 
                     string value = prop.GetValue(target) as string;
-                    if (!string.IsNullOrWhiteSpace(value) && IsLikelySaveNameMember(prop.Name))
+                    if (!string.IsNullOrWhiteSpace(value) && RpgNpcDialogueArchiveManager.IsLikelySaveNameMember(prop.Name))
                     {
                         return value;
                     }
@@ -1651,7 +1997,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     }
 
                     string value = field.GetValue(target) as string;
-                    if (!string.IsNullOrWhiteSpace(value) && IsLikelySaveNameMember(field.Name))
+                    if (!string.IsNullOrWhiteSpace(value) && RpgNpcDialogueArchiveManager.IsLikelySaveNameMember(field.Name))
                     {
                         return value;
                     }
@@ -1664,7 +2010,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.Empty;
         }
 
-        private static bool IsLikelySaveNameMember(string memberName)
+internal static bool IsLikelySaveNameMember(string memberName)
         {
             if (string.IsNullOrWhiteSpace(memberName))
             {
@@ -1675,11 +2021,11 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return lower.Contains("name") || lower.Contains("file");
         }
 
-        private static string TryResolveLoadedGameNameFromMetaHeader()
+internal static string TryResolveLoadedGameNameFromMetaHeader()
         {
             try
             {
-                Type headerType = FindTypeInLoadedAssemblies("Verse.ScribeMetaHeaderUtility");
+                Type headerType = RpgNpcDialogueArchiveManager.FindTypeInLoadedAssemblies("Verse.ScribeMetaHeaderUtility");
                 if (headerType == null)
                 {
                     return string.Empty;
@@ -1712,7 +2058,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.Empty;
         }
 
-        private static string TryResolveLoadedGameNameFromKnownVerseStatics()
+internal static string TryResolveLoadedGameNameFromKnownVerseStatics()
         {
             string[] typeNames =
             {
@@ -1737,7 +2083,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             for (int i = 0; i < typeNames.Length; i++)
             {
-                Type type = FindTypeInLoadedAssemblies(typeNames[i]);
+                Type type = RpgNpcDialogueArchiveManager.FindTypeInLoadedAssemblies(typeNames[i]);
                 if (type == null)
                 {
                     continue;
@@ -1745,7 +2091,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
                 for (int j = 0; j < memberNames.Length; j++)
                 {
-                    string value = ReadStaticStringMember(type, memberNames[j]);
+                    string value = RpgNpcDialogueArchiveManager.ReadStaticStringMember(type, memberNames[j]);
                     if (!string.IsNullOrWhiteSpace(value) &&
                         !string.Equals(value, DefaultSaveName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -1757,7 +2103,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.Empty;
         }
 
-        private static string ReadStaticStringMember(Type targetType, string memberName)
+internal static string ReadStaticStringMember(Type targetType, string memberName)
         {
             if (targetType == null || string.IsNullOrWhiteSpace(memberName))
             {
@@ -1793,7 +2139,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return string.Empty;
         }
 
-        private string BuildSaveNameResolutionDiagnostic()
+internal string BuildSaveNameResolutionDiagnostic()
         {
             object gameInfo = Current.Game?.Info;
             string[] instanceMembers = { "name", "Name", "fileName", "FileName", "permadeathModeUniqueName" };
@@ -1801,22 +2147,22 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             string gameInfoType = gameInfo?.GetType().FullName ?? "null";
             string gameInfoValues = string.Join(", ",
-                instanceMembers.Select(member => $"{member}='{ReadStringMember(gameInfo, member)}'"));
+                instanceMembers.Select(member => $"{member}='{RpgNpcDialogueArchiveManager.ReadStringMember(gameInfo, member)}'"));
 
-            string scribeValue = TryResolveLoadedGameNameFromMetaHeader();
+            string scribeValue = RpgNpcDialogueArchiveManager.TryResolveLoadedGameNameFromMetaHeader();
             string trackedSaveName = SaveContextTracker.GetCurrentSaveName();
-            string persistentSlotId = ResolvePersistentRpgSaveSlotId();
+            string persistentSlotId = RpgNpcDialogueArchiveManager.ResolvePersistentRpgSaveSlotId();
             string staticValues = string.Join(", ", staticMembers.Select(member =>
             {
-                string savedGameLoaderNow = ReadStaticStringMember(FindTypeInLoadedAssemblies("Verse.SavedGameLoaderNow"), member);
-                string gameDataSaveLoader = ReadStaticStringMember(FindTypeInLoadedAssemblies("Verse.GameDataSaveLoader"), member);
+                string savedGameLoaderNow = RpgNpcDialogueArchiveManager.ReadStaticStringMember(RpgNpcDialogueArchiveManager.FindTypeInLoadedAssemblies("Verse.SavedGameLoaderNow"), member);
+                string gameDataSaveLoader = RpgNpcDialogueArchiveManager.ReadStaticStringMember(RpgNpcDialogueArchiveManager.FindTypeInLoadedAssemblies("Verse.GameDataSaveLoader"), member);
                 return $"{member}:[SavedGameLoaderNow='{savedGameLoaderNow}',GameDataSaveLoader='{gameDataSaveLoader}']";
             }));
 
             return $"gameInfoType={gameInfoType}; gameInfo={gameInfoValues}; tracked='{trackedSaveName}'; slot='{persistentSlotId}'; metaHeader='{scribeValue}'; static={staticValues}";
         }
 
-        private static Type FindTypeInLoadedAssemblies(string fullName)
+internal static Type FindTypeInLoadedAssemblies(string fullName)
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
@@ -1835,12 +2181,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return null;
         }
 
-        private string GetHashSaveKey(string saveName)
-        {
-            return $"Save_{ComputeStableHash(saveName).ToString(CultureInfo.InvariantCulture)}".SanitizeFileName();
-        }
-
-        private static string ResolvePersistentRpgSaveSlotId()
+internal static string ResolvePersistentRpgSaveSlotId()
         {
             try
             {
@@ -1853,13 +2194,20 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private static string BuildArchiveFileName(RpgNpcDialogueArchive archive)
+internal static string BuildArchiveFileName(RpgNpcDialogueArchive archive)
         {
             string safeName = (archive?.PawnName ?? "UnknownPawn").SanitizeFileName();
             return $"npc_{archive.PawnLoadId}_{safeName}.json";
         }
+    }
 
-        private void CleanupLegacyArchiveFiles(int pawnLoadId, string keepFileName)
+    internal sealed class RpgNpcArchiveSlice5 : RpgNpcDialogueArchiveManagerCollaborator
+    {
+        internal RpgNpcArchiveSlice5(RpgNpcDialogueArchiveManager owner) : base(owner)
+        {
+        }
+
+internal void CleanupLegacyArchiveFiles(int pawnLoadId, string keepFileName)
         {
             if (!Directory.Exists(CurrentArchiveDirPath))
             {
@@ -1889,7 +2237,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private static void NormalizeArchiveTurns(RpgNpcDialogueArchive archive)
+internal static void NormalizeArchiveTurns(RpgNpcDialogueArchive archive)
         {
             if (archive == null)
             {
@@ -1908,11 +2256,11 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 .ThenBy(session => session.SessionId ?? string.Empty, StringComparer.Ordinal)
                 .ToList();
 
-            EnsureTurnSequenceState(archive);
-            TrimArchiveSessions(archive);
+            RpgNpcDialogueArchiveManager.EnsureTurnSequenceState(archive);
+            RpgNpcDialogueArchiveManager.TrimArchiveSessions(archive);
         }
 
-        private static void EnsureTurnSequenceState(RpgNpcDialogueArchive archive)
+internal static void EnsureTurnSequenceState(RpgNpcDialogueArchive archive)
         {
             if (archive?.Sessions == null)
             {
@@ -1979,7 +2327,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
 
                 session.Turns = turns;
-                session.TurnCount = Math.Max(session.TurnCount, CountDialogueTurns(session.Turns));
+                session.TurnCount = Math.Max(session.TurnCount, RpgNpcDialogueArchiveManager.CountDialogueTurns(session.Turns));
                 if (session.StartedTick <= 0 && session.Turns.Count > 0)
                 {
                     session.StartedTick = session.Turns.Min(turn => turn.GameTick);
@@ -1994,14 +2342,14 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             archive.NextTurnSequence = Math.Max(archive.NextTurnSequence, next);
         }
 
-        private static void TrimArchiveSessions(RpgNpcDialogueArchive archive)
+internal static void TrimArchiveSessions(RpgNpcDialogueArchive archive)
         {
             if (archive?.Sessions == null || archive.Sessions.Count == 0)
             {
                 return;
             }
 
-            string retainedId = SelectLatestRetainedFullSession(archive)?.SessionId ?? string.Empty;
+            string retainedId = RpgNpcDialogueArchiveManager.SelectLatestRetainedFullSession(archive)?.SessionId ?? string.Empty;
 
             while (archive.Sessions.Count > MaxSessionsPerNpc)
             {
@@ -2055,20 +2403,20 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
 
                 target.Turns.RemoveRange(0, trimCount);
-                target.TurnCount = Math.Max(target.TurnCount, CountDialogueTurns(target.Turns));
+                target.TurnCount = Math.Max(target.TurnCount, RpgNpcDialogueArchiveManager.CountDialogueTurns(target.Turns));
                 totalTurns = archive.Sessions.Sum(session => session?.Turns?.Count ?? 0);
             }
         }
 
-        private static void MergeArchiveData(RpgNpcDialogueArchive existing, RpgNpcDialogueArchive incoming)
+internal static void MergeArchiveData(RpgNpcDialogueArchive existing, RpgNpcDialogueArchive incoming)
         {
             if (existing == null || incoming == null)
             {
                 return;
             }
 
-            EnsureTurnSequenceState(existing);
-            EnsureTurnSequenceState(incoming);
+            RpgNpcDialogueArchiveManager.EnsureTurnSequenceState(existing);
+            RpgNpcDialogueArchiveManager.EnsureTurnSequenceState(incoming);
             if (string.IsNullOrWhiteSpace(existing.SaveKey) && !string.IsNullOrWhiteSpace(incoming.SaveKey))
             {
                 existing.SaveKey = incoming.SaveKey;
@@ -2113,7 +2461,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
                     if (existingSession == null)
                     {
-                        existingSession = CloneSession(incomingSession);
+                        existingSession = RpgNpcDialogueArchiveManager.CloneSession(incomingSession);
                         existingSession.SessionId = sessionId;
                         existing.Sessions.Add(existingSession);
                         continue;
@@ -2153,7 +2501,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     }
                 }
 
-                NormalizeArchiveTurns(existing);
+                RpgNpcDialogueArchiveManager.NormalizeArchiveTurns(existing);
             }
             else
             {
@@ -2161,7 +2509,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        private static RpgNpcDialogueSessionArchive CloneSession(RpgNpcDialogueSessionArchive session)
+internal static RpgNpcDialogueSessionArchive CloneSession(RpgNpcDialogueSessionArchive session)
         {
             if (session == null)
             {
@@ -2184,7 +2532,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             };
         }
 
-        private static RpgNpcDialogueTurnArchive CloneTurn(RpgNpcDialogueTurnArchive turn)
+internal static RpgNpcDialogueTurnArchive CloneTurn(RpgNpcDialogueTurnArchive turn)
         {
             if (turn == null)
             {
@@ -2204,7 +2552,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             };
         }
 
-        private static uint ComputeStableHash(string text)
+internal static uint ComputeStableHash(string text)
         {
             string input = string.IsNullOrWhiteSpace(text) ? "Default" : text;
             uint hash = 2166136261;
@@ -2216,13 +2564,13 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return hash;
         }
 
-        private static List<RpgNpcDialogueTurnArchive> BuildRelevantSummaryTurns(
+internal static List<RpgNpcDialogueTurnArchive> BuildRelevantSummaryTurns(
             List<RpgNpcDialogueTurnArchive> sourceTurns,
             Pawn currentInterlocutor,
             string interlocutorName)
         {
             var summaryTurns = sourceTurns?
-                .Where(turn => turn != null && IsDiplomacySummaryTurn(turn.Text))
+                .Where(turn => turn != null && RpgNpcDialogueArchiveManager.IsDiplomacySummaryTurn(turn.Text))
                 .OrderByDescending(turn => turn.GameTick)
                 .ThenByDescending(turn => turn.TurnSequence)
                 .ToList() ?? new List<RpgNpcDialogueTurnArchive>();
@@ -2244,7 +2592,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
             }
 
-            if (!IsPlaceholderInterlocutorName(interlocutorName))
+            if (!RpgNpcDialogueArchiveManager.IsPlaceholderInterlocutorName(interlocutorName))
             {
                 List<RpgNpcDialogueTurnArchive> byName = summaryTurns
                     .Where(turn =>
@@ -2260,7 +2608,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return summaryTurns;
         }
 
-        private static void AppendDiplomacySummaryMemoryLines(StringBuilder sb, List<RpgNpcDialogueTurnArchive> summaryTurns)
+internal static void AppendDiplomacySummaryMemoryLines(StringBuilder sb, List<RpgNpcDialogueTurnArchive> summaryTurns)
         {
             if (sb == null || summaryTurns == null || summaryTurns.Count == 0)
             {
@@ -2280,453 +2628,43 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             sb.AppendLine("Recent diplomacy summary memories:");
             for (int i = 0; i < picked.Count; i++)
             {
-                string text = StripDiplomacySummaryPrefix(picked[i].Text);
+                string text = RpgNpcDialogueArchiveManager.StripDiplomacySummaryPrefix(picked[i].Text);
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     continue;
                 }
 
-                sb.AppendLine($"- {TrimForPrompt(text, 180)}");
-            }
-        }
-
-        private static bool IsDiplomacySummaryTurn(string text)
-        {
-            return !string.IsNullOrWhiteSpace(text) &&
-                text.StartsWith(DiplomacySummaryPrefix, StringComparison.Ordinal);
-        }
-
-        private static string StripDiplomacySummaryPrefix(string text)
-        {
-            if (!IsDiplomacySummaryTurn(text))
-            {
-                return text?.Trim() ?? string.Empty;
-            }
-
-            return text.Substring(DiplomacySummaryPrefix.Length).Trim();
-        }
-
-        private static Pawn ResolveFactionLeaderPawn(Faction faction)
-        {
-            Pawn leader = faction?.leader;
-            if (leader == null || leader.Dead || leader.Destroyed)
-            {
-                return null;
-            }
-
-            return leader;
-        }
-
-        private static Pawn ResolveCounterpartForDiplomacySummary(Pawn participant, Pawn negotiator, Pawn factionLeader)
-        {
-            if (participant != null && negotiator != null && participant.thingIDNumber == negotiator.thingIDNumber)
-            {
-                return factionLeader;
-            }
-
-            if (participant != null && factionLeader != null && participant.thingIDNumber == factionLeader.thingIDNumber)
-            {
-                return negotiator;
-            }
-
-            return negotiator ?? factionLeader;
-        }
-
-        private static string ResolveFallbackCounterpartName(Pawn counterpart, Faction faction)
-        {
-            if (counterpart != null)
-            {
-                return ResolvePawnName(counterpart);
-            }
-
-            if (!string.IsNullOrWhiteSpace(faction?.Name))
-            {
-                return faction.Name;
-            }
-
-            return "FactionCounterpart";
-        }
-
-        private static string BuildDiplomacySummaryText(
-            Faction faction,
-            List<DialogueMessageData> allMessages,
-            int baselineMessageCount)
-        {
-            if (allMessages == null || allMessages.Count <= baselineMessageCount)
-            {
-                return string.Empty;
-            }
-
-            int start = Math.Max(0, Math.Min(baselineMessageCount, allMessages.Count));
-            List<DialogueMessageData> delta = allMessages
-                .Skip(start)
-                .Where(m => m != null && !m.IsSystemMessage() && !string.IsNullOrWhiteSpace(m.message))
-                .ToList();
-            if (delta.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            string playerLast = delta.LastOrDefault(m => m.isPlayer)?.message ?? string.Empty;
-            string factionLast = delta.LastOrDefault(m => !m.isPlayer)?.message ?? string.Empty;
-            string topic = DetectDiplomacyTopic(delta.Select(m => m.message));
-            string factionName = !string.IsNullOrWhiteSpace(faction?.Name) ? faction.Name : "the faction";
-            return
-                $"Diplomacy session with {factionName} on topic '{topic}'. " +
-                $"Player intent: {TrimForPrompt(playerLast, 70)}. " +
-                $"Faction stance: {TrimForPrompt(factionLast, 70)}.";
-        }
-
-        private static string DetectDiplomacyTopic(IEnumerable<string> lines)
-        {
-            if (lines == null)
-            {
-                return "general";
-            }
-
-            string joined = string.Join(" ", lines.Where(l => !string.IsNullOrWhiteSpace(l))).ToLowerInvariant();
-            if (joined.Contains("trade") || joined.Contains("交易") || joined.Contains("商队")) return "trade";
-            if (joined.Contains("peace") || joined.Contains("war") || joined.Contains("和平") || joined.Contains("宣战")) return "war-peace";
-            if (joined.Contains("aid") || joined.Contains("help") || joined.Contains("援助") || joined.Contains("支援")) return "aid";
-            if (joined.Contains("gift") || joined.Contains("礼物")) return "gift";
-            return "general";
-        }
-
-        private static List<RpgNpcDialogueTurnArchive> BuildRelevantSelfTurns(
-            List<RpgNpcDialogueTurnArchive> sourceTurns,
-            RpgNpcDialogueArchive archive,
-            Pawn targetNpc,
-            Pawn currentInterlocutor,
-            string interlocutorName)
-        {
-            var allTurns = sourceTurns?
-                .Where(turn =>
-                    turn != null &&
-                    !string.IsNullOrWhiteSpace(turn.Text) &&
-                    !IsDiplomacySummaryTurn(turn.Text))
-                .OrderBy(turn => turn.GameTick)
-                .ThenBy(turn => turn.TurnSequence)
-                .ToList() ?? new List<RpgNpcDialogueTurnArchive>();
-            if (allTurns.Count == 0)
-            {
-                return allTurns;
-            }
-
-            int selfId = targetNpc?.thingIDNumber ?? archive?.PawnLoadId ?? -1;
-            int interlocutorId = currentInterlocutor?.thingIDNumber ?? -1;
-            if (selfId > 0)
-            {
-                IEnumerable<RpgNpcDialogueTurnArchive> selfById = allTurns
-                    .Where(turn => turn.SpeakerPawnLoadId == selfId)
-                    .ToList();
-
-                if (interlocutorId > 0)
-                {
-                    List<RpgNpcDialogueTurnArchive> pairById = selfById
-                        .Where(turn => turn.InterlocutorPawnLoadId == interlocutorId)
-                        .ToList();
-                    if (pairById.Count > 0)
-                    {
-                        return pairById;
-                    }
-                }
-
-                List<RpgNpcDialogueTurnArchive> byId = selfById.ToList();
-                if (byId.Count > 0)
-                {
-                    return byId;
-                }
-            }
-
-            string selfName = targetNpc?.LabelShort ?? archive?.PawnName ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(selfName))
-            {
-                IEnumerable<RpgNpcDialogueTurnArchive> selfByName = allTurns
-                    .Where(turn => string.Equals(turn.SpeakerName, selfName, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                if (!IsPlaceholderInterlocutorName(interlocutorName))
-                {
-                    List<RpgNpcDialogueTurnArchive> pairByName = selfByName
-                        .Where(turn => string.Equals(turn.InterlocutorName, interlocutorName, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-                    if (pairByName.Count > 0)
-                    {
-                        return pairByName;
-                    }
-                }
-
-                List<RpgNpcDialogueTurnArchive> byName = selfByName.ToList();
-                if (byName.Count > 0)
-                {
-                    return byName;
-                }
-            }
-
-            return allTurns.Where(turn => !turn.IsPlayer).ToList();
-        }
-
-        private static List<RpgNpcDialogueTurnArchive> BuildChronologicalDialogueTurns(
-            List<RpgNpcDialogueTurnArchive> selfTurns,
-            List<RpgNpcDialogueTurnArchive> interlocutorTurns)
-        {
-            IEnumerable<RpgNpcDialogueTurnArchive> merged = (selfTurns ?? new List<RpgNpcDialogueTurnArchive>())
-                .Concat(interlocutorTurns ?? new List<RpgNpcDialogueTurnArchive>());
-
-            return merged
-                .Where(turn => turn != null && !string.IsNullOrWhiteSpace(turn.Text))
-                .GroupBy(turn =>
-                    $"{turn.GameTick}|{turn.TurnSequence}|{turn.SpeakerPawnLoadId}|{turn.InterlocutorPawnLoadId}|{turn.Text.Trim()}")
-                .Select(group => group.First())
-                .OrderBy(turn => turn.GameTick)
-                .ThenBy(turn => turn.TurnSequence)
-                .ToList();
-        }
-
-        private static List<RpgNpcDialogueTurnArchive> BuildRelevantInterlocutorTurns(
-            List<RpgNpcDialogueTurnArchive> sourceTurns,
-            RpgNpcDialogueArchive archive,
-            Pawn currentInterlocutor,
-            string interlocutorName)
-        {
-            var allTurns = sourceTurns?
-                .Where(turn =>
-                    turn != null &&
-                    !string.IsNullOrWhiteSpace(turn.Text) &&
-                    !IsDiplomacySummaryTurn(turn.Text))
-                .OrderBy(turn => turn.GameTick)
-                .ThenBy(turn => turn.TurnSequence)
-                .ToList() ?? new List<RpgNpcDialogueTurnArchive>();
-
-            if (allTurns.Count == 0)
-            {
-                return allTurns;
-            }
-
-            int interlocutorId = currentInterlocutor?.thingIDNumber ?? -1;
-            if (interlocutorId > 0)
-            {
-                List<RpgNpcDialogueTurnArchive> strictById = allTurns
-                    .Where(turn => turn.SpeakerPawnLoadId == interlocutorId)
-                    .ToList();
-                if (strictById.Count > 0)
-                {
-                    return strictById;
-                }
-            }
-
-            if (!IsPlaceholderInterlocutorName(interlocutorName))
-            {
-                List<RpgNpcDialogueTurnArchive> byName = allTurns
-                    .Where(turn => string.Equals(turn.SpeakerName, interlocutorName, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-                if (byName.Count > 0)
-                {
-                    return byName;
-                }
-            }
-
-            List<RpgNpcDialogueTurnArchive> playerTurns = allTurns.Where(turn => turn.IsPlayer).ToList();
-            if (playerTurns.Count > 0)
-            {
-                return playerTurns;
-            }
-
-            return allTurns.Where(turn => IsInterlocutorTurnFallback(turn, archive)).ToList();
-        }
-
-        private static string ResolvePromptSpeakerName(
-            RpgNpcDialogueTurnArchive turn,
-            Pawn selfPawn,
-            string selfName,
-            Pawn currentInterlocutor,
-            string interlocutorName)
-        {
-            if (turn == null)
-            {
-                return "UnknownSpeaker";
-            }
-
-            int selfId = selfPawn?.thingIDNumber ?? -1;
-            if (selfId > 0 && turn.SpeakerPawnLoadId == selfId)
-            {
-                return string.IsNullOrWhiteSpace(selfName) ? "You" : selfName;
-            }
-
-            int interlocutorId = currentInterlocutor?.thingIDNumber ?? -1;
-            if (interlocutorId > 0 && turn.SpeakerPawnLoadId == interlocutorId)
-            {
-                return IsPlaceholderInterlocutorName(interlocutorName) ? "Interlocutor" : interlocutorName;
-            }
-
-            return ResolveTurnSpeakerName(turn, interlocutorName);
-        }
-
-        private static bool IsInterlocutorTurnFallback(RpgNpcDialogueTurnArchive turn, RpgNpcDialogueArchive archive)
-        {
-            if (turn == null || string.IsNullOrWhiteSpace(turn.Text))
-            {
-                return false;
-            }
-
-            if (turn.IsPlayer)
-            {
-                return true;
-            }
-
-            if (archive == null)
-            {
-                return false;
-            }
-
-            if (archive.LastInterlocutorPawnLoadId > 0 && turn.SpeakerPawnLoadId > 0)
-            {
-                return archive.LastInterlocutorPawnLoadId == turn.SpeakerPawnLoadId;
-            }
-
-            return !string.IsNullOrWhiteSpace(archive.LastInterlocutorName) &&
-                string.Equals(archive.LastInterlocutorName, turn.SpeakerName, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string ResolveInterlocutorName(
-            RpgNpcDialogueArchive archive,
-            Pawn currentInterlocutor,
-            List<RpgNpcDialogueTurnArchive> sourceTurns)
-        {
-            string currentName = ResolveOptionalPawnName(currentInterlocutor);
-            if (!string.IsNullOrWhiteSpace(currentName))
-            {
-                return currentName;
-            }
-
-            if (!IsPlaceholderInterlocutorName(archive?.LastInterlocutorName))
-            {
-                return archive.LastInterlocutorName;
-            }
-
-            RpgNpcDialogueTurnArchive lastTurn = sourceTurns?
-                .Where(turn => turn != null && !IsPlaceholderInterlocutorName(turn.SpeakerName))
-                .OrderByDescending(turn => turn.GameTick)
-                .ThenByDescending(turn => turn.TurnSequence)
-                .FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(lastTurn?.SpeakerName))
-            {
-                return lastTurn.SpeakerName;
-            }
-
-            return "CurrentInterlocutor";
-        }
-
-        private static string ResolveTurnSpeakerName(RpgNpcDialogueTurnArchive turn, string fallbackName)
-        {
-            if (!string.IsNullOrWhiteSpace(turn?.SpeakerName) &&
-                !IsPlaceholderInterlocutorName(turn.SpeakerName))
-            {
-                return turn.SpeakerName;
-            }
-
-            return string.IsNullOrWhiteSpace(fallbackName) ? "CurrentInterlocutor" : fallbackName;
-        }
-
-        private static string ResolveOptionalPawnName(Pawn pawn)
-        {
-            if (pawn == null)
-            {
-                return string.Empty;
-            }
-
-            return pawn.LabelShort ?? pawn.Name?.ToStringShort ?? pawn.Name?.ToStringFull ?? string.Empty;
-        }
-
-        private static bool IsPlaceholderInterlocutorName(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ||
-                string.Equals(value, "Interlocutor", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(value, "CurrentInterlocutor", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(value, "UnknownPawn", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsHostileIntent(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            string lower = text.ToLowerInvariant();
-            string[] keywords =
-            {
-                "kill", "murder", "attack", "hurt", "destroy", "threat", "hate",
-                "杀", "死", "干掉", "攻击", "伤害", "威胁", "仇恨"
-            };
-
-            for (int i = 0; i < keywords.Length; i++)
-            {
-                if (lower.Contains(keywords[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static string TrimForPrompt(string text, int maxLen)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return string.Empty;
-            }
-
-            string value = text.Trim();
-            if (value.Length <= maxLen)
-            {
-                return value;
-            }
-
-            if (maxLen <= 3)
-            {
-                return value.Substring(0, maxLen);
-            }
-
-            return value.Substring(0, maxLen - 3) + "...";
-        }
-
-        private void LogDebugMissingArchive(Pawn targetNpc, Pawn currentInterlocutor)
-        {
-            if (RelationsMod.Settings?.EnableDebugLogging != true)
-            {
-                return;
-            }
-
-            int targetId = targetNpc?.thingIDNumber ?? -1;
-            int interlocutorId = currentInterlocutor?.thingIDNumber ?? -1;
-            string targetName = ResolvePawnName(targetNpc);
-            string interlocutorName = ResolveOptionalPawnName(currentInterlocutor);
-            bool hasSaveContext = TryResolveArchiveDebugContext(out string saveKey, out string archiveDir);
-            string contextSuffix = hasSaveContext
-                ? $"saveKey={saveKey}, dir={archiveDir}"
-                : "saveKey=<unresolved>, dir=<unresolved>";
-            Log.Message(
-                $"[RimAI.Relations] RPG memory skipped: no archive sessions for target={targetName}({targetId}), " +
-                $"interlocutor={interlocutorName}({interlocutorId}), {contextSuffix}");
-        }
-
-        private bool TryResolveArchiveDebugContext(out string saveKey, out string archiveDir)
-        {
-            saveKey = string.Empty;
-            archiveDir = string.Empty;
-            try
-            {
-                saveKey = CurrentSaveKey;
-                archiveDir = CurrentArchiveDirPath;
-                return true;
-            }
-            catch (InvalidOperationException ex)
-            {
-                Log.Warning($"[RimAI.Relations] RPG memory debug context unresolved: {ex.Message}");
-                return false;
+                sb.AppendLine($"- {RpgNpcDialogueArchiveManager.TrimForPrompt(text, 180)}");
             }
         }
     }
+
+    internal sealed class RpgNpcDialogueArchiveManagerParts
+    {
+        internal readonly RpgNpcDialogueArchiveManager Owner;
+        internal readonly RpgNpcDialogueArchiveManagerPromptCache PromptCache;
+        internal readonly RpgNpcDialogueArchiveManagerSessions Sessions;
+        internal readonly RpgNpcDialogueArchiveManagerWarmup Warmup;
+        internal readonly RpgNpcArchiveSlice1 Slice1;
+        internal readonly RpgNpcArchiveSlice2 Slice2;
+        internal readonly RpgNpcArchiveSlice3 Slice3;
+        internal readonly RpgNpcArchiveSlice4 Slice4;
+        internal readonly RpgNpcArchiveSlice5 Slice5;
+        internal readonly RpgNpcArchiveSlice6 Slice6;
+        internal RpgNpcDialogueArchiveManagerParts(RpgNpcDialogueArchiveManager owner)
+        {
+            Owner = owner;
+            PromptCache = new RpgNpcDialogueArchiveManagerPromptCache(owner);
+            Sessions = new RpgNpcDialogueArchiveManagerSessions(owner);
+            Warmup = new RpgNpcDialogueArchiveManagerWarmup(owner);
+            Slice1 = new RpgNpcArchiveSlice1(owner);
+            Slice2 = new RpgNpcArchiveSlice2(owner);
+            Slice3 = new RpgNpcArchiveSlice3(owner);
+            Slice4 = new RpgNpcArchiveSlice4(owner);
+            Slice5 = new RpgNpcArchiveSlice5(owner);
+            Slice6 = new RpgNpcArchiveSlice6(owner);
+        }
+    }
+
+
 }

@@ -13,6 +13,8 @@ using Ustas.RimAI.Communication.Relations.Diagnostics;
 using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
+using PersonaPronouns = Ustas.RimAI.Communication.Relations.DiplomacySystem.RPGManagerPersonaBootstrap.PersonaPronouns;
+using PendingPersonaGenerationContext = Ustas.RimAI.Communication.Relations.DiplomacySystem.RPGManagerPersonaBootstrap.PendingPersonaGenerationContext;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -20,54 +22,62 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
     /// Dependencies: PromptPersistenceService, PromptTemplateRenderer, ModDependencyProbe, RimTalk reflection bridge, and pawn persona storage in this component.
     /// Responsibility: bootstrap/runtime RimTalk persona copy-sync flow for dialogue-eligible colony pawns with capability gating, without external persona-bootstrap requests.
     /// </summary>
-    public partial class GameComponent_RPGManager
+        internal sealed class RPGManagerPersonaBootstrap : GameComponent_RPGManagerCollaborator
     {
-        private sealed class PendingPersonaGenerationContext
+        internal RPGManagerPersonaBootstrapParts Parts;
+
+        internal RPGManagerPersonaBootstrap(GameComponent_RPGManager owner) : base(owner)
+        {
+            Parts = new RPGManagerPersonaBootstrapParts(this);
+        }
+
+
+        internal sealed class PendingPersonaGenerationContext
         {
             public Pawn Pawn = null;
             public int Attempt = 0;
             public List<ChatMessageData> Messages = null;
         }
 
-        private const int PersonaBootstrapTickInterval = 150;
-        private const int PersonaRuntimeScanIntervalTicks = 9000; // was 900; reduced peak frequency 10x
-        private const int PersonaPromptMaxLength = 1200;
-        private const int CurrentNpcPersonaBootstrapVersion = 3;
-        private const string RimTalkPersonaServiceTypeName = "Ustas.RimAI.Communication.Data.PersonaService";
-        private const string RimTalkDependencyToken = "rimtalk";
+        internal const int PersonaBootstrapTickInterval = 150;
+        internal const int PersonaRuntimeScanIntervalTicks = 9000; // was 900; reduced peak frequency 10x
+        internal const int PersonaPromptMaxLength = 1200;
+        internal const int CurrentNpcPersonaBootstrapVersion = 3;
+        internal const string RimTalkPersonaServiceTypeName = "Ustas.RimAI.Communication.Data.PersonaService";
+        internal const string RimTalkDependencyToken = "rimtalk";
 
-        private static readonly Regex WhitespaceRegex = new Regex(@"\s+", RegexOptions.Compiled);
-        private static readonly Regex PersonaSentenceStartRegex =
+        internal static readonly Regex WhitespaceRegex = new Regex(@"\s+", RegexOptions.Compiled);
+        internal static readonly Regex PersonaSentenceStartRegex =
             new Regex(@"\b(?:He|She|They)\s+(?:is|are)\s+(?:a|an)\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex PersonaTemplateRegex =
+        internal static readonly Regex PersonaTemplateRegex =
             new Regex(
                 @"^(?:He|She|They)\s+(?:is|are)\s+(?:a|an)\s+.+?\s+person\s+who\s+.+?,\s+because\s+deep\s+down\s+(?:he|she|they)\s+seek[s]?\s+.+?,\s+but\s+this\s+also\s+makes\s+(?:him|her|them)\s+.+?(?:,\s+often\s+leading\s+to\s+.+?)?[.!]",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private bool npcPersonaBootstrapCompleted;
-        private int npcPersonaBootstrapVersion;
-        private bool npcPersonaBootstrapQueued;
-        private readonly Queue<Pawn> npcPersonaBootstrapTargets = new Queue<Pawn>();
-        private readonly Dictionary<string, PendingPersonaGenerationContext> npcPersonaPendingRequests =
+        internal bool npcPersonaBootstrapCompleted;
+        internal int npcPersonaBootstrapVersion;
+        internal bool npcPersonaBootstrapQueued;
+        internal readonly Queue<Pawn> npcPersonaBootstrapTargets = new Queue<Pawn>();
+        internal readonly Dictionary<string, PendingPersonaGenerationContext> npcPersonaPendingRequests =
             new Dictionary<string, PendingPersonaGenerationContext>();
-        private readonly HashSet<int> npcPersonaPendingThingIds = new HashSet<int>();
-        private List<Pawn> cachedNpcPersonaTargets;
-        private int npcPersonaTargetsCacheTick;
+        internal readonly HashSet<int> npcPersonaPendingThingIds = new HashSet<int>();
+        internal List<Pawn> cachedNpcPersonaTargets;
+        internal int npcPersonaTargetsCacheTick;
         // Multi-frame scan state to avoid blocking the game tick on full pawn sweep.
-        private bool personaScanInProgress;
-        private int personaScanMapIndex;
-        private List<Pawn> personaScanAccumulatedTargets;
-        private HashSet<int> personaScanSeenIds;
-        private int nextPersonaBootstrapTick;
-        private int nextPersonaRuntimeScanTick;
-        private bool npcPersonaRuntimeScanDisabledNoRimTalk;
-        private static readonly object RimTalkPersonaResolverLock = new object();
-        private static bool rimTalkPersonaResolverInitialized;
-        private static MethodInfo rimTalkGetPersonalityMethod;
-        private static bool rimTalkPersonaResolverLoggedUnavailable;
-        private static bool rimTalkPersonaAiBlockLogged;
+        internal bool personaScanInProgress;
+        internal int personaScanMapIndex;
+        internal List<Pawn> personaScanAccumulatedTargets;
+        internal HashSet<int> personaScanSeenIds;
+        internal int nextPersonaBootstrapTick;
+        internal int nextPersonaRuntimeScanTick;
+        internal bool npcPersonaRuntimeScanDisabledNoRimTalk;
+        internal static readonly object RimTalkPersonaResolverLock = new object();
+        internal static bool rimTalkPersonaResolverInitialized;
+        internal static MethodInfo rimTalkGetPersonalityMethod;
+        internal static bool rimTalkPersonaResolverLoggedUnavailable;
+        internal static bool rimTalkPersonaAiBlockLogged;
 
-        private readonly struct PersonaPronouns
+        internal readonly struct PersonaPronouns
         {
             public PersonaPronouns(string subject, string beVerb, string possessive, string objective, string seekVerb)
             {
@@ -86,7 +96,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             public string SubjectLower => Subject.ToLowerInvariant();
         }
 
-        public override void GameComponentTick()
+        internal void GameComponentTick()
         {
             if (Current.ProgramState != ProgramState.Playing)
                 return;
@@ -98,453 +108,219 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             ProcessNpcPersonaRuntimeTick();
         }
 
-        private void ExposeData_NpcPersonaBootstrap()
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal bool HasPersonaPrompt(Pawn pawn)
         {
-            Scribe_Values.Look(ref npcPersonaBootstrapCompleted, "npcPersonaBootstrapCompleted", false);
-            Scribe_Values.Look(ref npcPersonaBootstrapVersion, "npcPersonaBootstrapVersion", 0);
+            return !string.IsNullOrWhiteSpace(Owner.GetPawnPersonaPrompt(pawn));
         }
 
-        private void MarkNpcPersonaBootstrapAsNewGame()
-        {
-            npcPersonaBootstrapCompleted = true;
-            npcPersonaBootstrapVersion = CurrentNpcPersonaBootstrapVersion;
-            ResetNpcPersonaBootstrapRuntimeState();
-        }
+        
 
-        private void ScheduleNpcPersonaBootstrapOnLoad()
-        {
-            if (!ShouldRunNpcPersonaBootstrap())
-            {
-                ResetNpcPersonaBootstrapRuntimeState();
-                return;
-            }
+        
 
-            npcPersonaBootstrapQueued = false;
-            nextPersonaBootstrapTick = Find.TickManager?.TicksGame ?? 0;
-            nextPersonaRuntimeScanTick = nextPersonaBootstrapTick;
-        }
+        
 
-        private void OnPostLoadInit_NpcPersonaBootstrap()
-        {
-            if (!ShouldRunNpcPersonaBootstrap())
-            {
-                ResetNpcPersonaBootstrapRuntimeState();
-                return;
-            }
+        
 
-            npcPersonaBootstrapQueued = false;
-            nextPersonaBootstrapTick = Find.TickManager?.TicksGame ?? 0;
-            nextPersonaRuntimeScanTick = nextPersonaBootstrapTick;
-        }
+        
 
-        private void ProcessNpcPersonaBootstrapTick()
-        {
-            if (npcPersonaBootstrapCompleted || Current.ProgramState != ProgramState.Playing || Find.TickManager == null)
-            {
-                return;
-            }
+        
 
-            int currentTick = Find.TickManager.TicksGame;
-            if (currentTick < nextPersonaBootstrapTick)
-            {
-                return;
-            }
-
-            if (npcPersonaPendingRequests.Count > 0)
-            {
-                return;
-            }
-
-            if (!IsRimTalkLoadedForPersonaBlock())
-            {
-                CompleteNpcPersonaBootstrap();
-                return;
-            }
-
-            if (!npcPersonaBootstrapQueued)
-            {
-                InitializeNpcPersonaBootstrapQueue();
-            }
-
-            if (npcPersonaBootstrapCompleted)
-            {
-                return;
-            }
-
-            if (TryApplyRimTalkPersonaFromBootstrapQueue())
-            {
-                nextPersonaBootstrapTick = currentTick + PersonaBootstrapTickInterval;
-                return;
-            }
-
-            CompleteNpcPersonaBootstrap();
-        }
-
-        private void ProcessNpcPersonaRuntimeTick()
-        {
-            if (Current.ProgramState != ProgramState.Playing || Find.TickManager == null)
-                return;
-            if (npcPersonaPendingRequests.Count > 0 || npcPersonaRuntimeScanDisabledNoRimTalk)
-                return;
-
-            int currentTick = Find.TickManager.TicksGame;
-
-            // Process ongoing multi-frame scan: one map per tick to avoid peaks.
-            if (personaScanInProgress)
-            {
-                ProcessPersonaScanOneFrame(currentTick);
-                return;
-            }
-
-            if (currentTick < nextPersonaRuntimeScanTick)
-                return;
-
-            if (!IsRimTalkLoadedForPersonaBlock())
-            {
-                npcPersonaRuntimeScanDisabledNoRimTalk = true;
-                return;
-            }
-
-            nextPersonaRuntimeScanTick = currentTick + PersonaRuntimeScanIntervalTicks;
-
-            // Kick off multi-frame scan instead of blocking single-frame collection.
-            var maps = Find.Maps;
-            if (maps == null || maps.Count == 0)
-            {
-                cachedNpcPersonaTargets = new List<Pawn>(0);
-                npcPersonaTargetsCacheTick = currentTick;
-                return;
-            }
-
-            personaScanInProgress = true;
-            personaScanMapIndex = 0;
-            personaScanAccumulatedTargets = new List<Pawn>();
-            personaScanSeenIds = new HashSet<int>();
-            ProcessPersonaScanOneFrame(currentTick);
-        }
-
-        private void ProcessPersonaScanOneFrame(int currentTick)
-        {
-            var maps = Find.Maps;
-            if (maps == null || personaScanMapIndex >= maps.Count)
-            {
-                FinishPersonaScan(currentTick);
-                return;
-            }
-
-            // Scan exactly one map this tick.
-            Map map = maps[personaScanMapIndex];
-            personaScanMapIndex++;
-            if (map?.mapPawns?.AllPawnsSpawned == null)
-                return;
-
-            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
-            {
-                AppendUniqueNpcTarget(personaScanAccumulatedTargets, personaScanSeenIds, pawn);
-            }
-
-            // If this was the last map, finish and trigger persona application.
-            if (personaScanMapIndex >= maps.Count)
-            {
-                // Also include faction leaders (cheap, single pass).
-                foreach (Faction faction in Find.FactionManager?.AllFactionsVisible ?? System.Linq.Enumerable.Empty<Faction>())
-                {
-                    AppendUniqueNpcTarget(personaScanAccumulatedTargets, personaScanSeenIds, faction?.leader);
-                }
-                FinishPersonaScan(currentTick);
-            }
-        }
-
-        private void FinishPersonaScan(int currentTick)
-        {
-            cachedNpcPersonaTargets = personaScanAccumulatedTargets;
-            npcPersonaTargetsCacheTick = currentTick;
-            personaScanInProgress = false;
-            personaScanAccumulatedTargets = null;
-            personaScanSeenIds = null;
-
-            TryApplyRimTalkPersonaFromRuntimeScan();
-        }
-
-        private void InitializeNpcPersonaBootstrapQueue()
-        {
-            ResetNpcPersonaBootstrapRuntimeState();
-            npcPersonaBootstrapQueued = true;
-
-            List<Pawn> targets = CollectNpcPersonaBootstrapTargets();
-            foreach (Pawn pawn in targets)
-            {
-                if (!HasPersonaPrompt(pawn))
-                {
-                    npcPersonaBootstrapTargets.Enqueue(pawn);
-                }
-            }
-
-            if (npcPersonaBootstrapTargets.Count == 0)
-            {
-                CompleteNpcPersonaBootstrap();
-                return;
-            }
-
-            Log.Message($"[RimAI.Relations] NPC persona bootstrap queued {npcPersonaBootstrapTargets.Count} existing NPC pawn(s).");
-        }
-
-        private List<Pawn> CollectNpcPersonaBootstrapTargets()
-        {
-            var result = new List<Pawn>();
-            var ids = new HashSet<int>();
-
-            foreach (Map map in Find.Maps ?? Enumerable.Empty<Map>())
-            {
-                if (map?.mapPawns?.AllPawnsSpawned == null)
-                {
-                    continue;
-                }
-
-                foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
-                {
-                    AppendUniqueNpcTarget(result, ids, pawn);
-                }
-            }
-
-            foreach (Faction faction in Find.FactionManager?.AllFactionsVisible ?? Enumerable.Empty<Faction>())
-            {
-                AppendUniqueNpcTarget(result, ids, faction?.leader);
-            }
-
-            return result;
-        }
-
-        private static void AppendUniqueNpcTarget(List<Pawn> target, HashSet<int> ids, Pawn pawn)
-        {
-            if (target == null || ids == null || pawn == null)
-            {
-                return;
-            }
-
-            if (pawn.thingIDNumber <= 0 || !ids.Add(pawn.thingIDNumber))
-            {
-                return;
-            }
-
-            target.Add(pawn);
-        }
-
-        private static bool IsEligibleNpcPersonaTarget(Pawn pawn)
-        {
-            return pawn != null &&
-                   PawnDialogueRoutingPolicy.IsRpgDialogueEligibleRace(pawn) &&
-                   !pawn.Dead &&
-                   !pawn.Destroyed;
-        }
-
-        private bool HasPersonaPrompt(Pawn pawn)
-        {
-            return !string.IsNullOrWhiteSpace(GetPawnPersonaPrompt(pawn));
-        }
-
-        private bool TryGetNextBootstrapPawn(out Pawn pawn)
-        {
-            pawn = null;
-            while (npcPersonaBootstrapTargets.Count > 0)
-            {
-                Pawn candidate = npcPersonaBootstrapTargets.Dequeue();
-                if (!IsEligibleNpcPersonaTarget(candidate) || HasPersonaPrompt(candidate))
-                {
-                    continue;
-                }
-
-                pawn = candidate;
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool TryApplyRimTalkPersonaFromRuntimeScan()
-        {
-            var targets = cachedNpcPersonaTargets;
-            if (targets == null || targets.Count == 0)
-                return false;
-
-            string template = ResolveRimTalkPersonaCopyTemplateOrDefaultCached();
-            bool anySynced = false;
-            for (int i = 0; i < targets.Count; i++)
-            {
-                Pawn candidate = targets[i];
-                if (!CanCopyPawnPersonaFromRimTalk(candidate) ||
-                    IsPawnPersonaGenerationPending(candidate))
-                {
-                    continue;
-                }
-
-                if (TrySyncPawnPersonaFromRimTalk(candidate, template))
-                {
-                    anySynced = true;
-                }
-            }
-
-            return anySynced;
-        }
-
-        private bool TryFindMissingPersonaPawn(out Pawn pawn)
-        {
-            var targets = cachedNpcPersonaTargets;
-            if (targets != null)
-            {
-                for (int i = 0; i < targets.Count; i++)
-                {
-                    Pawn candidate = targets[i];
-                    if (IsEligibleNpcPersonaTarget(candidate) &&
-                        !CanCopyPawnPersonaFromRimTalk(candidate) &&
-                        !HasPersonaPrompt(candidate) &&
-                        !IsPawnPersonaGenerationPending(candidate))
-                    {
-                        pawn = candidate;
-                        return true;
-                    }
-                }
-            }
-            pawn = null;
-            return false;
-        }
-
-        private bool IsPawnPersonaGenerationPending(Pawn pawn)
-        {
-            return pawn != null
-                && pawn.thingIDNumber > 0
-                && npcPersonaPendingRequests.Count > 0
-                && npcPersonaPendingThingIds.Contains(pawn.thingIDNumber);
-        }
-
-        private static bool CanStartPersonaGeneration()
-        {
-            AIChatServiceAsync service = AIChatServiceAsync.Instance;
-            return service != null && service.IsConfigured();
-        }
-
-        private static bool ShouldBlockAiPersonaGeneration()
-        {
-            if (!IsRimTalkLoadedForPersonaBlock())
-            {
-                return false;
-            }
-
-            if (!rimTalkPersonaAiBlockLogged)
-            {
-                rimTalkPersonaAiBlockLogged = true;
-                Log.Message("[RimAI.Relations] RimTalk detected; AI persona generation blocked at runtime.");
-            }
-
-            return true;
-        }
-
-        private static bool IsRimTalkLoadedForPersonaBlock()
+        internal static bool IsRimTalkLoadedForPersonaBlock()
         {
             return ModDependencyProbe.IsLoaded(RimTalkDependencyToken);
         }
 
-        private void StartNpcPersonaGeneration(Pawn pawn, int attempt)
-        {
-            _ = attempt;
-            if (!IsEligibleNpcPersonaTarget(pawn) || IsPawnPersonaGenerationPending(pawn))
-            {
-                return;
-            }
+        
 
-            if (ShouldBlockAiPersonaGeneration())
-            {
-                return;
-            }
+        
 
-            if (TrySyncPawnPersonaFromRimTalk(pawn))
-            {
-                return;
-            }
-
-            if (CanCopyPawnPersonaFromRimTalk(pawn))
-            {
-                return;
-            }
-        }
-
-        private bool TryApplyRimTalkPersonaFromBootstrapQueue()
-        {
-            int count = npcPersonaBootstrapTargets.Count;
-            bool copied = false;
-            string template = ResolveRimTalkPersonaCopyTemplateOrDefaultCached();
-            for (int i = 0; i < count; i++)
-            {
-                Pawn candidate = npcPersonaBootstrapTargets.Dequeue();
-                if (!IsEligibleNpcPersonaTarget(candidate) || HasPersonaPrompt(candidate))
-                {
-                    continue;
-                }
-
-                if (!copied && TryCopyPawnPersonaFromRimTalk(candidate, template))
-                {
-                    copied = true;
-                    continue;
-                }
-
-                npcPersonaBootstrapTargets.Enqueue(candidate);
-            }
-
-            return copied;
-        }
-
-        private bool TryCopyPawnPersonaFromRimTalk(Pawn pawn)
+        internal bool TryCopyPawnPersonaFromRimTalk(Pawn pawn)
         {
             return TryCopyPawnPersonaFromRimTalk(pawn, ResolveRimTalkPersonaCopyTemplateOrDefaultCached());
         }
 
-        private bool TryCopyPawnPersonaFromRimTalk(Pawn pawn, string template)
-        {
-            if (!IsEligibleRimTalkPersonaCopyTarget(pawn) || HasPersonaPrompt(pawn))
-            {
-                return false;
-            }
+        
 
-            if (!TryGetRimTalkSourcePersona(pawn, out string sourcePersona))
-            {
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                DebugLogger.Debug("RimTalk persona copy skipped: template is empty.");
-                return false;
-            }
-
-            string rendered = RenderPersonaCopyTemplateOrThrow(pawn, template, sourcePersona);
-            string normalized = NormalizeCopiedPersonaPrompt(rendered);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                throw BuildPersonaCopyRenderException(
-                    "prompt_templates.rpg_persona_copy",
-                    "rpg",
-                    $"Persona copy template returned empty normalized text for pawn '{pawn?.LabelShortCap ?? "unknown"}'.");
-            }
-
-            SetPawnPersonaPrompt(pawn, normalized);
-            TryEnsureRpgPersonaTokenCoverageSafe();
-            DebugLogger.Debug($"RimTalk persona copied for pawn '{pawn?.LabelShortCap}'.");
-            return true;
-        }
-
-        private bool TrySyncPawnPersonaFromRimTalk(Pawn pawn)
+        internal bool TrySyncPawnPersonaFromRimTalk(Pawn pawn)
         {
             return TrySyncPawnPersonaFromRimTalk(pawn, ResolveRimTalkPersonaCopyTemplateOrDefaultCached());
         }
 
-        private bool TrySyncPawnPersonaFromRimTalk(Pawn pawn, string template)
+        
+
+        
+
+        internal static string ResolveRimTalkPersonaCopyTemplateOrDefaultCached()
         {
-            if (!IsEligibleRimTalkPersonaCopyTarget(pawn))
+            return RelationsMod.Settings?.GetRimTalkPersonaCopyTemplateOrDefault() ?? string.Empty;
+        }
+
+        
+
+        
+
+        internal static bool CanCopyPawnPersonaFromRimTalk(Pawn pawn)
+        {
+            return IsEligibleRimTalkPersonaCopyTarget(pawn) && TryGetRimTalkSourcePersona(pawn, out _);
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        internal static bool IsPersonaTemplateFormat(string text)
+        {
+            return PersonaTemplateRegex.IsMatch(text);
+        }
+
+        
+
+        internal static string CollapseWhitespace(string text)
+        {
+            return string.IsNullOrWhiteSpace(text) ? string.Empty : WhitespaceRegex.Replace(text, " ").Trim();
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        #region Cluster forwards
+        internal void ExposeData_NpcPersonaBootstrap() => Parts.Slice1.ExposeData_NpcPersonaBootstrap();
+        internal void MarkNpcPersonaBootstrapAsNewGame() => Parts.Slice1.MarkNpcPersonaBootstrapAsNewGame();
+        internal void ScheduleNpcPersonaBootstrapOnLoad() => Parts.Slice1.ScheduleNpcPersonaBootstrapOnLoad();
+        internal void OnPostLoadInit_NpcPersonaBootstrap() => Parts.Slice1.OnPostLoadInit_NpcPersonaBootstrap();
+        internal void ProcessNpcPersonaBootstrapTick() => Parts.Slice1.ProcessNpcPersonaBootstrapTick();
+        internal void ProcessNpcPersonaRuntimeTick() => Parts.Slice1.ProcessNpcPersonaRuntimeTick();
+        internal void ProcessPersonaScanOneFrame(int currentTick) => Parts.Slice1.ProcessPersonaScanOneFrame(currentTick);
+        internal void FinishPersonaScan(int currentTick) => Parts.Slice1.FinishPersonaScan(currentTick);
+        internal void InitializeNpcPersonaBootstrapQueue() => Parts.Slice1.InitializeNpcPersonaBootstrapQueue();
+        internal List<Pawn> CollectNpcPersonaBootstrapTargets() => Parts.Slice1.CollectNpcPersonaBootstrapTargets();
+        internal static void AppendUniqueNpcTarget(List<Pawn> target, HashSet<int> ids, Pawn pawn) => RPGPersonaSlice1.AppendUniqueNpcTarget(target, ids, pawn);
+        internal static bool IsEligibleNpcPersonaTarget(Pawn pawn) => RPGPersonaSlice1.IsEligibleNpcPersonaTarget(pawn);
+        internal bool TryGetNextBootstrapPawn(out Pawn pawn) => Parts.Slice1.TryGetNextBootstrapPawn(out pawn);
+        internal bool TryApplyRimTalkPersonaFromRuntimeScan() => Parts.Slice1.TryApplyRimTalkPersonaFromRuntimeScan();
+        internal bool TryFindMissingPersonaPawn(out Pawn pawn) => Parts.Slice1.TryFindMissingPersonaPawn(out pawn);
+        internal bool IsPawnPersonaGenerationPending(Pawn pawn) => Parts.Slice1.IsPawnPersonaGenerationPending(pawn);
+        internal static bool CanStartPersonaGeneration() => RPGPersonaSlice1.CanStartPersonaGeneration();
+        internal static bool ShouldBlockAiPersonaGeneration() => RPGPersonaSlice1.ShouldBlockAiPersonaGeneration();
+        internal void StartNpcPersonaGeneration(Pawn pawn, int attempt) => Parts.Slice1.StartNpcPersonaGeneration(pawn, attempt);
+        internal bool TryApplyRimTalkPersonaFromBootstrapQueue() => Parts.Slice1.TryApplyRimTalkPersonaFromBootstrapQueue();
+        internal bool TryCopyPawnPersonaFromRimTalk(Pawn pawn, string template) => Parts.Slice1.TryCopyPawnPersonaFromRimTalk(pawn, template);
+        internal bool TrySyncPawnPersonaFromRimTalk(Pawn pawn, string template) => Parts.Slice2.TrySyncPawnPersonaFromRimTalk(pawn, template);
+        public bool TrySyncAllColonyPawnPersonasFromRimTalk(out int updated, out int cleared, out int unchanged, out int skipped) => Parts.Slice2.TrySyncAllColonyPawnPersonasFromRimTalk(out updated, out cleared, out unchanged, out skipped);
+        internal static void TryEnsureRpgPersonaTokenCoverageSafe() => RPGPersonaSlice2.TryEnsureRpgPersonaTokenCoverageSafe();
+        internal static bool IsEligibleRimTalkPersonaCopyTarget(Pawn pawn) => RPGPersonaSlice2.IsEligibleRimTalkPersonaCopyTarget(pawn);
+        internal static bool TryGetRimTalkSourcePersona(Pawn pawn, out string sourcePersona) => RPGPersonaSlice2.TryGetRimTalkSourcePersona(pawn, out sourcePersona);
+        internal static MethodInfo ResolveRimTalkGetPersonalityMethod() => RPGPersonaSlice2.ResolveRimTalkGetPersonalityMethod();
+        internal static string NormalizeCopiedPersonaPrompt(string raw) => RPGPersonaSlice2.NormalizeCopiedPersonaPrompt(raw);
+        internal string RenderPersonaCopyTemplateOrThrow(Pawn pawn, string template, string sourcePersona) => Parts.Slice2.RenderPersonaCopyTemplateOrThrow(pawn, template, sourcePersona);
+        internal static PromptRenderException BuildPersonaCopyRenderException(string templateId, string channel, string message) => RPGPersonaSlice2.BuildPersonaCopyRenderException(templateId, channel, message);
+        internal List<ChatMessageData> BuildNpcPersonaGenerationMessages(Pawn pawn) => Parts.Slice2.BuildNpcPersonaGenerationMessages(pawn);
+        internal static string BuildPersonaTemplateLine(PersonaPronouns pronouns) => RPGPersonaSlice2.BuildPersonaTemplateLine(pronouns);
+        internal void OnNpcPersonaGenerationSuccess(string requestId, string response) => Parts.Slice2.OnNpcPersonaGenerationSuccess(requestId, response);
+        internal void OnNpcPersonaGenerationError(string requestId, string error) => Parts.Slice2.OnNpcPersonaGenerationError(requestId, error);
+        internal void RetryOrFallbackPersonaPrompt(PendingPersonaGenerationContext pending) => Parts.Slice2.RetryOrFallbackPersonaPrompt(pending);
+        internal static bool TryNormalizePersonaPrompt(string raw, out string normalized) => RPGPersonaSlice2.TryNormalizePersonaPrompt(raw, out normalized);
+        internal static bool HasOrderedAnchors(string text, params string[] anchors) => RPGPersonaSlice2.HasOrderedAnchors(text, anchors);
+        internal string BuildFallbackPersonaPrompt(Pawn pawn) => Parts.Slice2.BuildFallbackPersonaPrompt(pawn);
+        internal static PersonaPronouns ResolvePersonaPronouns(Pawn pawn) => RPGPersonaSlice2.ResolvePersonaPronouns(pawn);
+        internal static string BuildPersonaBootstrapPrompt(RpgPromptDefaultsConfig defaults, PersonaPronouns pronouns, string profile) => RPGPersonaSlice3.BuildPersonaBootstrapPrompt(defaults, pronouns, profile);
+        internal static string RenderPersonaBootstrapTemplate(string template, PersonaPronouns pronouns) => RPGPersonaSlice3.RenderPersonaBootstrapTemplate(template, pronouns);
+        internal static PromptRenderContext BuildPersonaBootstrapRenderContext(string templateId, PersonaPronouns pronouns) => RPGPersonaSlice3.BuildPersonaBootstrapRenderContext(templateId, pronouns);
+        internal static string BuildCoreTemperament(Pawn pawn) => RPGPersonaSlice3.BuildCoreTemperament(pawn);
+        internal static string BuildEmotionalPattern(Pawn pawn) => RPGPersonaSlice3.BuildEmotionalPattern(pawn);
+        internal static string BuildBehavioralStrategy(Pawn pawn) => RPGPersonaSlice3.BuildBehavioralStrategy(pawn);
+        internal static string BuildCoreMotivation(Pawn pawn) => RPGPersonaSlice3.BuildCoreMotivation(pawn);
+        internal static string BuildDefenseWeakness(Pawn pawn) => RPGPersonaSlice3.BuildDefenseWeakness(pawn);
+        internal static string BuildPersonalityCost(Pawn pawn) => RPGPersonaSlice3.BuildPersonalityCost(pawn);
+        internal static bool StartsWithVowelSound(string text) => RPGPersonaSlice3.StartsWithVowelSound(text);
+        internal void CompleteNpcPersonaBootstrap() => Parts.Slice3.CompleteNpcPersonaBootstrap();
+        internal bool ShouldRunNpcPersonaBootstrap() => Parts.Slice3.ShouldRunNpcPersonaBootstrap();
+        internal void ResetNpcPersonaBootstrapRuntimeState() => Parts.Slice3.ResetNpcPersonaBootstrapRuntimeState();
+        #endregion
+}
+    internal sealed class RPGPersonaSlice2 : RPGManagerPersonaBootstrapCollaborator
+    {
+        internal RPGPersonaSlice2(RPGManagerPersonaBootstrap owner) : base(owner)
+        {
+        }
+
+internal bool TrySyncPawnPersonaFromRimTalk(Pawn pawn, string template)
+        {
+            if (!RPGManagerPersonaBootstrap.IsEligibleRimTalkPersonaCopyTarget(pawn))
             {
                 return false;
             }
 
-            if (!TryGetRimTalkSourcePersona(pawn, out string sourcePersona))
+            if (!RPGManagerPersonaBootstrap.TryGetRimTalkSourcePersona(pawn, out string sourcePersona))
             {
                 return false;
             }
@@ -555,11 +331,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            string rendered = RenderPersonaCopyTemplateOrThrow(pawn, template, sourcePersona);
-            string normalized = NormalizeCopiedPersonaPrompt(rendered);
+            string rendered = Owner.RenderPersonaCopyTemplateOrThrow(pawn, template, sourcePersona);
+            string normalized = RPGManagerPersonaBootstrap.NormalizeCopiedPersonaPrompt(rendered);
             if (string.IsNullOrWhiteSpace(normalized))
             {
-                throw BuildPersonaCopyRenderException(
+                throw RPGManagerPersonaBootstrap.BuildPersonaCopyRenderException(
                     "prompt_templates.rpg_persona_copy",
                     "rpg",
                     $"Persona sync template returned empty normalized text for pawn '{pawn?.LabelShortCap ?? "unknown"}'.");
@@ -572,12 +348,12 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             SetPawnPersonaPrompt(pawn, normalized);
-            TryEnsureRpgPersonaTokenCoverageSafe();
+            RPGManagerPersonaBootstrap.TryEnsureRpgPersonaTokenCoverageSafe();
             DebugLogger.Debug($"RimTalk persona synced(update) for pawn '{pawn?.LabelShortCap}'.");
             return true;
         }
 
-        public bool TrySyncAllColonyPawnPersonasFromRimTalk(
+public bool TrySyncAllColonyPawnPersonasFromRimTalk(
             out int updated,
             out int cleared,
             out int unchanged,
@@ -587,19 +363,19 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             cleared = 0;
             unchanged = 0;
             skipped = 0;
-            string template = ResolveRimTalkPersonaCopyTemplateOrDefaultCached();
-            var targets = cachedNpcPersonaTargets ?? CollectNpcPersonaBootstrapTargets();
+            string template = RPGManagerPersonaBootstrap.ResolveRimTalkPersonaCopyTemplateOrDefaultCached();
+            var targets = cachedNpcPersonaTargets ?? Owner.CollectNpcPersonaBootstrapTargets();
 
             foreach (Pawn pawn in targets)
             {
-                if (!CanCopyPawnPersonaFromRimTalk(pawn) || IsPawnPersonaGenerationPending(pawn))
+                if (!RPGManagerPersonaBootstrap.CanCopyPawnPersonaFromRimTalk(pawn) || Owner.IsPawnPersonaGenerationPending(pawn))
                 {
                     skipped++;
                     continue;
                 }
 
                 string before = GetPawnPersonaPrompt(pawn)?.Trim() ?? string.Empty;
-                if (!TrySyncPawnPersonaFromRimTalk(pawn, template))
+                if (!Owner.TrySyncPawnPersonaFromRimTalk(pawn, template))
                 {
                     unchanged++;
                     continue;
@@ -619,12 +395,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return updated > 0 || cleared > 0;
         }
 
-        private static string ResolveRimTalkPersonaCopyTemplateOrDefaultCached()
-        {
-            return RelationsMod.Settings?.GetRimTalkPersonaCopyTemplateOrDefault() ?? string.Empty;
-        }
-
-        private static void TryEnsureRpgPersonaTokenCoverageSafe()
+internal static void TryEnsureRpgPersonaTokenCoverageSafe()
         {
             try
             {
@@ -636,7 +407,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static bool IsEligibleRimTalkPersonaCopyTarget(Pawn pawn)
+internal static bool IsEligibleRimTalkPersonaCopyTarget(Pawn pawn)
         {
             return pawn != null &&
                    pawn.Faction == Faction.OfPlayer &&
@@ -645,22 +416,17 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                    PawnDialogueRoutingPolicy.IsPersonaSyncEligible(pawn);
         }
 
-        private static bool CanCopyPawnPersonaFromRimTalk(Pawn pawn)
-        {
-            return IsEligibleRimTalkPersonaCopyTarget(pawn) && TryGetRimTalkSourcePersona(pawn, out _);
-        }
-
-        private static bool TryGetRimTalkSourcePersona(Pawn pawn, out string sourcePersona)
+internal static bool TryGetRimTalkSourcePersona(Pawn pawn, out string sourcePersona)
         {
             sourcePersona = string.Empty;
-            if (!IsEligibleRimTalkPersonaCopyTarget(pawn))
+            if (!RPGManagerPersonaBootstrap.IsEligibleRimTalkPersonaCopyTarget(pawn))
             {
                 DebugLogger.Debug(
                     $"RimTalk persona sync skipped: pawn '{pawn?.LabelShortCap ?? "unknown"}' is not persona-sync eligible.");
                 return false;
             }
 
-            MethodInfo getPersonality = ResolveRimTalkGetPersonalityMethod();
+            MethodInfo getPersonality = RPGManagerPersonaBootstrap.ResolveRimTalkGetPersonalityMethod();
             if (getPersonality == null)
             {
                 return false;
@@ -668,7 +434,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
             try
             {
-                sourcePersona = CollapseWhitespace(getPersonality.Invoke(null, new object[] { pawn }) as string);
+                sourcePersona = RPGManagerPersonaBootstrap.CollapseWhitespace(getPersonality.Invoke(null, new object[] { pawn }) as string);
                 return !string.IsNullOrWhiteSpace(sourcePersona);
             }
             catch (Exception ex)
@@ -678,7 +444,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static MethodInfo ResolveRimTalkGetPersonalityMethod()
+internal static MethodInfo ResolveRimTalkGetPersonalityMethod()
         {
             if (rimTalkPersonaResolverInitialized)
             {
@@ -710,9 +476,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static string NormalizeCopiedPersonaPrompt(string raw)
+internal static string NormalizeCopiedPersonaPrompt(string raw)
         {
-            string normalized = CollapseWhitespace(raw);
+            string normalized = RPGManagerPersonaBootstrap.CollapseWhitespace(raw);
             if (string.IsNullOrWhiteSpace(normalized))
             {
                 return string.Empty;
@@ -723,11 +489,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 : normalized;
         }
 
-        private string RenderPersonaCopyTemplateOrThrow(Pawn pawn, string template, string sourcePersona)
+internal string RenderPersonaCopyTemplateOrThrow(Pawn pawn, string template, string sourcePersona)
         {
             if (pawn == null || string.IsNullOrWhiteSpace(template))
             {
-                throw BuildPersonaCopyRenderException(
+                throw RPGManagerPersonaBootstrap.BuildPersonaCopyRenderException(
                     "prompt_templates.rpg_persona_copy",
                     "rpg",
                     "Persona copy template or pawn is missing.");
@@ -735,7 +501,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
             if (string.IsNullOrWhiteSpace(sourcePersona))
             {
-                throw BuildPersonaCopyRenderException(
+                throw RPGManagerPersonaBootstrap.BuildPersonaCopyRenderException(
                     "prompt_templates.rpg_persona_copy",
                     "rpg",
                     "Persona copy source is empty.");
@@ -758,7 +524,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             string rendered = PromptTemplateRenderer.RenderOrThrow(templateId, channel, template, context);
             if (string.IsNullOrWhiteSpace(rendered))
             {
-                throw BuildPersonaCopyRenderException(
+                throw RPGManagerPersonaBootstrap.BuildPersonaCopyRenderException(
                     templateId,
                     channel,
                     $"Persona copy template rendered empty text for pawn '{pawn?.LabelShortCap ?? "unknown"}'.");
@@ -767,7 +533,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return rendered;
         }
 
-        private static PromptRenderException BuildPersonaCopyRenderException(
+internal static PromptRenderException BuildPersonaCopyRenderException(
             string templateId,
             string channel,
             string message)
@@ -782,9 +548,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 });
         }
 
-        private List<ChatMessageData> BuildNpcPersonaGenerationMessages(Pawn pawn)
+internal List<ChatMessageData> BuildNpcPersonaGenerationMessages(Pawn pawn)
         {
-            PersonaPronouns pronouns = ResolvePersonaPronouns(pawn);
+            PersonaPronouns pronouns = RPGManagerPersonaBootstrap.ResolvePersonaPronouns(pawn);
             string profile = PromptPersistenceService.Instance.BuildPawnPersonaBootstrapProfile(pawn);
             var variables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
             {
@@ -797,7 +563,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 ["pawn.pronouns.object"] = pronouns.Objective,
                 ["pawn.pronouns.possessive"] = pronouns.Possessive,
                 ["pawn.pronouns.seek_verb"] = pronouns.SeekVerb,
-                ["dialogue.template_line"] = BuildPersonaTemplateLine(pronouns),
+                ["dialogue.template_line"] = RPGManagerPersonaBootstrap.BuildPersonaTemplateLine(pronouns),
                 ["dialogue.example_line"] = RpgPromptDefaultsProvider.GetDefaults().PersonaBootstrapExample ?? string.Empty,
                 ["dialogue.primary_objective"] = "Generate exactly one persona bootstrap line.",
                 ["dialogue.optional_followup"] = "Keep language concise and stable for long-term roleplay continuity.",
@@ -827,14 +593,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             };
         }
 
-        private static string BuildPersonaTemplateLine(PersonaPronouns pronouns)
+internal static string BuildPersonaTemplateLine(PersonaPronouns pronouns)
         {
             return $"{pronouns.Subject} {pronouns.BeVerb} a [core temperament] person who tends to [emotional pattern], "
                 + $"usually handles situations by [behavioral strategy], because deep down {pronouns.SubjectLower} {pronouns.SeekVerb} [core motivation], "
                 + $"but this also makes {pronouns.Objective} [defense/weakness], often leading to [personality cost].";
         }
 
-        private void OnNpcPersonaGenerationSuccess(string requestId, string response)
+internal void OnNpcPersonaGenerationSuccess(string requestId, string response)
         {
             if (string.IsNullOrWhiteSpace(requestId) ||
                 !npcPersonaPendingRequests.TryGetValue(requestId, out PendingPersonaGenerationContext pending))
@@ -843,21 +609,21 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             npcPersonaPendingRequests.Remove(requestId);
-            if (!IsEligibleNpcPersonaTarget(pending.Pawn) || HasPersonaPrompt(pending.Pawn))
+            if (!RPGManagerPersonaBootstrap.IsEligibleNpcPersonaTarget(pending.Pawn) || Owner.HasPersonaPrompt(pending.Pawn))
             {
                 return;
             }
 
-            if (TryNormalizePersonaPrompt(response, out string normalized))
+            if (RPGManagerPersonaBootstrap.TryNormalizePersonaPrompt(response, out string normalized))
             {
                 SetPawnPersonaPrompt(pending.Pawn, normalized);
                 return;
             }
 
-            RetryOrFallbackPersonaPrompt(pending);
+            Owner.RetryOrFallbackPersonaPrompt(pending);
         }
 
-        private void OnNpcPersonaGenerationError(string requestId, string error)
+internal void OnNpcPersonaGenerationError(string requestId, string error)
         {
             if (string.IsNullOrWhiteSpace(requestId) ||
                 !npcPersonaPendingRequests.TryGetValue(requestId, out PendingPersonaGenerationContext pending))
@@ -866,21 +632,21 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             npcPersonaPendingRequests.Remove(requestId);
-            RetryOrFallbackPersonaPrompt(pending);
+            Owner.RetryOrFallbackPersonaPrompt(pending);
         }
 
-        private void RetryOrFallbackPersonaPrompt(PendingPersonaGenerationContext pending)
+internal void RetryOrFallbackPersonaPrompt(PendingPersonaGenerationContext pending)
         {
-            if (pending == null || !IsEligibleNpcPersonaTarget(pending.Pawn) || HasPersonaPrompt(pending.Pawn))
+            if (pending == null || !RPGManagerPersonaBootstrap.IsEligibleNpcPersonaTarget(pending.Pawn) || Owner.HasPersonaPrompt(pending.Pawn))
             {
                 return;
             }
 
-            TrySyncPawnPersonaFromRimTalk(pending.Pawn);
-            TryCopyPawnPersonaFromRimTalk(pending.Pawn);
+            Owner.TrySyncPawnPersonaFromRimTalk(pending.Pawn);
+            Owner.TryCopyPawnPersonaFromRimTalk(pending.Pawn);
         }
 
-        private static bool TryNormalizePersonaPrompt(string raw, out string normalized)
+internal static bool TryNormalizePersonaPrompt(string raw, out string normalized)
         {
             normalized = string.Empty;
             if (string.IsNullOrWhiteSpace(raw))
@@ -888,7 +654,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            string text = CollapseWhitespace(raw.Replace("```", " ").Trim(' ', '"', '\'', '`'));
+            string text = RPGManagerPersonaBootstrap.CollapseWhitespace(raw.Replace("```", " ").Trim(' ', '"', '\'', '`'));
             Match start = PersonaSentenceStartRegex.Match(text);
             if (start.Success)
             {
@@ -901,8 +667,8 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            string personaLine = CollapseWhitespace(match.Value);
-            if (!IsPersonaTemplateFormat(personaLine))
+            string personaLine = RPGManagerPersonaBootstrap.CollapseWhitespace(match.Value);
+            if (!RPGManagerPersonaBootstrap.IsPersonaTemplateFormat(personaLine))
             {
                 return false;
             }
@@ -913,12 +679,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static bool IsPersonaTemplateFormat(string text)
-        {
-            return PersonaTemplateRegex.IsMatch(text);
-        }
-
-        private static bool HasOrderedAnchors(string text, params string[] anchors)
+internal static bool HasOrderedAnchors(string text, params string[] anchors)
         {
             if (string.IsNullOrWhiteSpace(text) || anchors == null || anchors.Length == 0)
             {
@@ -940,21 +701,16 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return true;
         }
 
-        private static string CollapseWhitespace(string text)
+internal string BuildFallbackPersonaPrompt(Pawn pawn)
         {
-            return string.IsNullOrWhiteSpace(text) ? string.Empty : WhitespaceRegex.Replace(text, " ").Trim();
-        }
-
-        private string BuildFallbackPersonaPrompt(Pawn pawn)
-        {
-            PersonaPronouns pronouns = ResolvePersonaPronouns(pawn);
-            string temperament = BuildCoreTemperament(pawn);
-            string emotion = BuildEmotionalPattern(pawn);
-            string strategy = BuildBehavioralStrategy(pawn);
-            string motivation = BuildCoreMotivation(pawn);
-            string defense = BuildDefenseWeakness(pawn);
-            string cost = BuildPersonalityCost(pawn);
-            string article = StartsWithVowelSound(temperament) ? "an" : "a";
+            PersonaPronouns pronouns = RPGManagerPersonaBootstrap.ResolvePersonaPronouns(pawn);
+            string temperament = RPGManagerPersonaBootstrap.BuildCoreTemperament(pawn);
+            string emotion = RPGManagerPersonaBootstrap.BuildEmotionalPattern(pawn);
+            string strategy = RPGManagerPersonaBootstrap.BuildBehavioralStrategy(pawn);
+            string motivation = RPGManagerPersonaBootstrap.BuildCoreMotivation(pawn);
+            string defense = RPGManagerPersonaBootstrap.BuildDefenseWeakness(pawn);
+            string cost = RPGManagerPersonaBootstrap.BuildPersonalityCost(pawn);
+            string article = RPGManagerPersonaBootstrap.StartsWithVowelSound(temperament) ? "an" : "a";
             string prompt =
                 $"{pronouns.Subject} {pronouns.BeVerb} {article} {temperament} person who tends to {emotion}, " +
                 $"usually handles situations by {strategy}, because deep down {pronouns.SubjectLower} {pronouns.SeekVerb} {motivation}, " +
@@ -962,7 +718,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return prompt.Length > PersonaPromptMaxLength ? prompt.Substring(0, PersonaPromptMaxLength).TrimEnd() : prompt;
         }
 
-        private static PersonaPronouns ResolvePersonaPronouns(Pawn pawn)
+internal static PersonaPronouns ResolvePersonaPronouns(Pawn pawn)
         {
             switch (pawn?.gender ?? Gender.None)
             {
@@ -974,189 +730,22 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return new PersonaPronouns("They", "are", "their", "them", "seek");
             }
         }
+    }
 
-        private static string BuildPersonaBootstrapPrompt(RpgPromptDefaultsConfig defaults, PersonaPronouns pronouns, string profile)
+    internal sealed class RPGManagerPersonaBootstrapParts
+    {
+        internal readonly RPGManagerPersonaBootstrap Owner;
+        internal readonly RPGPersonaSlice1 Slice1;
+        internal readonly RPGPersonaSlice2 Slice2;
+        internal readonly RPGPersonaSlice3 Slice3;
+        internal RPGManagerPersonaBootstrapParts(RPGManagerPersonaBootstrap owner)
         {
-            string template = RenderPersonaBootstrapTemplate(defaults?.PersonaBootstrapOutputTemplate, pronouns);
-            string userTemplate = defaults?.PersonaBootstrapUserPromptTemplate;
-            if (string.IsNullOrWhiteSpace(userTemplate))
-            {
-                return profile ?? string.Empty;
-            }
-
-            const string templateId = "prompt_templates.persona_bootstrap.user";
-            PromptRenderContext context = BuildPersonaBootstrapRenderContext(templateId, pronouns);
-            context.SetValue("dialogue.template_line", template);
-            context.SetValue("dialogue.example_line", defaults?.PersonaBootstrapExample ?? string.Empty);
-            context.SetValue("pawn.profile", profile ?? string.Empty);
-            return PromptTemplateRenderer.RenderOrThrow(templateId, "rpg", userTemplate, context);
-        }
-
-        private static string RenderPersonaBootstrapTemplate(string template, PersonaPronouns pronouns)
-        {
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                return string.Empty;
-            }
-
-            const string templateId = "prompt_templates.persona_bootstrap.output";
-            PromptRenderContext context = BuildPersonaBootstrapRenderContext(templateId, pronouns);
-            return PromptTemplateRenderer.RenderOrThrow(templateId, "rpg", template, context);
-        }
-
-        private static PromptRenderContext BuildPersonaBootstrapRenderContext(string templateId, PersonaPronouns pronouns)
-        {
-            PromptRenderContext context = PromptRenderContext.Create(templateId, "rpg");
-            context.SetValue("pawn.pronouns.subject", pronouns.Subject);
-            context.SetValue("pawn.pronouns.subject_lower", pronouns.SubjectLower);
-            context.SetValue("pawn.pronouns.be_verb", pronouns.BeVerb);
-            context.SetValue("pawn.pronouns.object", pronouns.Objective);
-            context.SetValue("pawn.pronouns.possessive", pronouns.Possessive);
-            context.SetValue("pawn.pronouns.seek_verb", pronouns.SeekVerb);
-            return context;
-        }
-
-        private static string BuildCoreTemperament(Pawn pawn)
-        {
-            List<string> traits = pawn?.story?.traits?.allTraits?
-                .Select(t => t?.Label)
-                .Where(v => !string.IsNullOrWhiteSpace(v))
-                .Take(2)
-                .Select(v => v.ToLowerInvariant())
-                .ToList();
-            if (traits != null && traits.Count > 0)
-            {
-                return string.Join(" and ", traits);
-            }
-
-            int social = pawn?.skills?.GetSkill(SkillDefOf.Social)?.Level ?? 0;
-            if (social >= 8)
-            {
-                return "calm and perceptive";
-            }
-
-            return "practical and cautious";
-        }
-
-        private static string BuildEmotionalPattern(Pawn pawn)
-        {
-            int social = pawn?.skills?.GetSkill(SkillDefOf.Social)?.Level ?? 0;
-            if (social >= 10)
-            {
-                return "keep emotions measured and carefully filtered";
-            }
-
-            if (social >= 5)
-            {
-                return "stay polite while keeping feelings under control";
-            }
-
-            return "keep feelings guarded and close to the chest";
-        }
-
-        private static string BuildBehavioralStrategy(Pawn pawn)
-        {
-            int intellectual = pawn?.skills?.GetSkill(SkillDefOf.Intellectual)?.Level ?? 0;
-            int social = pawn?.skills?.GetSkill(SkillDefOf.Social)?.Level ?? 0;
-            int combat = Math.Max(
-                pawn?.skills?.GetSkill(SkillDefOf.Melee)?.Level ?? 0,
-                pawn?.skills?.GetSkill(SkillDefOf.Shooting)?.Level ?? 0);
-            if (intellectual >= 8)
-            {
-                return "careful observation and planning";
-            }
-
-            if (social >= 8)
-            {
-                return "reading people first and responding with tact";
-            }
-
-            if (combat >= 8)
-            {
-                return "disciplined action and steady pressure";
-            }
-
-            return "steady routines and deliberate choices";
-        }
-
-        private static string BuildCoreMotivation(Pawn pawn)
-        {
-            int intellectual = pawn?.skills?.GetSkill(SkillDefOf.Intellectual)?.Level ?? 0;
-            int social = pawn?.skills?.GetSkill(SkillDefOf.Social)?.Level ?? 0;
-            if (intellectual >= 8)
-            {
-                return "clarity and control";
-            }
-
-            if (social >= 8)
-            {
-                return "stable trust and mutual understanding";
-            }
-
-            return "security and dependable bonds";
-        }
-
-        private static string BuildDefenseWeakness(Pawn pawn)
-        {
-            int social = pawn?.skills?.GetSkill(SkillDefOf.Social)?.Level ?? 0;
-            if (social >= 8)
-            {
-                return "hard to read and slow to lower defenses";
-            }
-
-            return "distant and slow to trust others";
-        }
-
-        private static string BuildPersonalityCost(Pawn pawn)
-        {
-            int social = pawn?.skills?.GetSkill(SkillDefOf.Social)?.Level ?? 0;
-            if (social >= 8)
-            {
-                return "missed chances for deeper closeness";
-            }
-
-            return "emotional distance in close relationships";
-        }
-
-        private static bool StartsWithVowelSound(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            char c = char.ToLowerInvariant(text[0]);
-            return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
-        }
-
-        private void CompleteNpcPersonaBootstrap()
-        {
-            npcPersonaBootstrapCompleted = true;
-            npcPersonaBootstrapVersion = CurrentNpcPersonaBootstrapVersion;
-            ResetNpcPersonaBootstrapRuntimeState();
-            Log.Message("[RimAI.Relations] Existing NPC persona bootstrap completed.");
-        }
-
-        private bool ShouldRunNpcPersonaBootstrap()
-        {
-            if (npcPersonaBootstrapVersion < CurrentNpcPersonaBootstrapVersion)
-            {
-                npcPersonaBootstrapCompleted = false;
-            }
-
-            return !npcPersonaBootstrapCompleted;
-        }
-
-        private void ResetNpcPersonaBootstrapRuntimeState()
-        {
-            npcPersonaBootstrapTargets.Clear();
-            npcPersonaPendingRequests.Clear();
-            npcPersonaPendingThingIds.Clear();
-            cachedNpcPersonaTargets = null;
-            npcPersonaTargetsCacheTick = 0;
-            nextPersonaBootstrapTick = 0;
-            nextPersonaRuntimeScanTick = 0;
-            npcPersonaRuntimeScanDisabledNoRimTalk = false;
+            Owner = owner;
+            Slice1 = new RPGPersonaSlice1(owner);
+            Slice2 = new RPGPersonaSlice2(owner);
+            Slice3 = new RPGPersonaSlice3(owner);
         }
     }
+
+
 }

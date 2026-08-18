@@ -8,38 +8,45 @@ using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.WorldState;
+using System.Reflection;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Config;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    public partial class GameComponent_RPGManager : GameComponent
+    public class GameComponent_RPGManager : GameComponent
     {
+        internal GameComponent_RPGManagerParts Parts;
+
         public static GameComponent_RPGManager Instance;
 
-        private Dictionary<string, int> pawnDialogueCooldownUntilTickById = new Dictionary<string, int>();
-        private List<string> cooldownKeysByIdWorkingList;
-        private List<int> cooldownValuesByIdWorkingList;
+        internal Dictionary<string, int> pawnDialogueCooldownUntilTickById = new Dictionary<string, int>();
+        internal List<string> cooldownKeysByIdWorkingList;
+        internal List<int> cooldownValuesByIdWorkingList;
 
-        private Dictionary<string, string> pawnPersonaPromptsById = new Dictionary<string, string>();
-        private List<string> pawnPersonaPromptKeysByIdWorkingList;
-        private List<string> pawnPersonaPromptValuesByIdWorkingList;
+        internal Dictionary<string, string> pawnPersonaPromptsById = new Dictionary<string, string>();
+        internal List<string> pawnPersonaPromptKeysByIdWorkingList;
+        internal List<string> pawnPersonaPromptValuesByIdWorkingList;
 
         // Legacy fields are loaded once for migration only (read-only on load).
         // These use LookMode.Reference to consume legacy Pawn-keyed XML nodes from old saves.
         // Pawn keys that resolve to null (destroyed/recycled) are safely skipped in MigrateLegacyPawnDictionaries.
-        private Dictionary<Pawn, int> legacyPawnDialogueCooldownUntilTick;
-        private List<Pawn> legacyCooldownKeysWorkingList;
-        private List<int> legacyCooldownValuesWorkingList;
-        private Dictionary<Pawn, string> legacyPawnPersonaPrompts;
-        private List<Pawn> legacyPawnPersonaPromptKeysWorkingList;
-        private List<string> legacyPawnPersonaPromptValuesWorkingList;
-        private readonly HashSet<int> pawnPersonaSyncGuards = new HashSet<int>();
-        private string persistentRpgSaveSlotId = string.Empty;
+        internal Dictionary<Pawn, int> legacyPawnDialogueCooldownUntilTick;
+        internal List<Pawn> legacyCooldownKeysWorkingList;
+        internal List<int> legacyCooldownValuesWorkingList;
+        internal Dictionary<Pawn, string> legacyPawnPersonaPrompts;
+        internal List<Pawn> legacyPawnPersonaPromptKeysWorkingList;
+        internal List<string> legacyPawnPersonaPromptValuesWorkingList;
+        internal readonly HashSet<int> pawnPersonaSyncGuards = new HashSet<int>();
+        internal string persistentRpgSaveSlotId = string.Empty;
 
-        private const float DefaultExitCooldownHours = 2f;
-        private const string PersistentRpgSaveSlotPrefix = "slot";
+        internal const float DefaultExitCooldownHours = 2f;
+        internal const string PersistentRpgSaveSlotPrefix = "slot";
 
         public GameComponent_RPGManager(Game game)
         {
+            Parts = new GameComponent_RPGManagerParts(this);
             Instance = this;
         }
 
@@ -171,19 +178,154 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        public string GetPersistentRpgSaveSlotId()
+        
+
+        
+
+        
+
+        public int GetRpgDialogueExitCooldownTicks()
         {
-            EnsurePersistentRpgSaveSlotId();
+            return Mathf.RoundToInt(DefaultExitCooldownHours * 2500f);
+        }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        #region Facade forwards
+        public override void GameComponentTick() => Parts.PersonaBootstrap.GameComponentTick();
+        internal void ExposeData_NpcPersonaBootstrap() => Parts.PersonaBootstrap.ExposeData_NpcPersonaBootstrap();
+        internal void MarkNpcPersonaBootstrapAsNewGame() => Parts.PersonaBootstrap.MarkNpcPersonaBootstrapAsNewGame();
+        internal void ScheduleNpcPersonaBootstrapOnLoad() => Parts.PersonaBootstrap.ScheduleNpcPersonaBootstrapOnLoad();
+        internal void OnPostLoadInit_NpcPersonaBootstrap() => Parts.PersonaBootstrap.OnPostLoadInit_NpcPersonaBootstrap();
+        internal void ProcessNpcPersonaBootstrapTick() => Parts.PersonaBootstrap.ProcessNpcPersonaBootstrapTick();
+        internal void ProcessNpcPersonaRuntimeTick() => Parts.PersonaBootstrap.ProcessNpcPersonaRuntimeTick();
+        internal void ProcessPersonaScanOneFrame(int currentTick) => Parts.PersonaBootstrap.ProcessPersonaScanOneFrame(currentTick);
+        internal void FinishPersonaScan(int currentTick) => Parts.PersonaBootstrap.FinishPersonaScan(currentTick);
+        internal void InitializeNpcPersonaBootstrapQueue() => Parts.PersonaBootstrap.InitializeNpcPersonaBootstrapQueue();
+        internal List<Pawn> CollectNpcPersonaBootstrapTargets() => Parts.PersonaBootstrap.CollectNpcPersonaBootstrapTargets();
+        internal static void AppendUniqueNpcTarget(List<Pawn> target, HashSet<int> ids, Pawn pawn) => RPGManagerPersonaBootstrap.AppendUniqueNpcTarget(target, ids, pawn);
+        internal static bool IsEligibleNpcPersonaTarget(Pawn pawn) => RPGManagerPersonaBootstrap.IsEligibleNpcPersonaTarget(pawn);
+        internal bool HasPersonaPrompt(Pawn pawn) => Parts.PersonaBootstrap.HasPersonaPrompt(pawn);
+        internal bool TryGetNextBootstrapPawn(out Pawn pawn) => Parts.PersonaBootstrap.TryGetNextBootstrapPawn(out pawn);
+        internal bool TryApplyRimTalkPersonaFromRuntimeScan() => Parts.PersonaBootstrap.TryApplyRimTalkPersonaFromRuntimeScan();
+        internal bool TryFindMissingPersonaPawn(out Pawn pawn) => Parts.PersonaBootstrap.TryFindMissingPersonaPawn(out pawn);
+        internal bool IsPawnPersonaGenerationPending(Pawn pawn) => Parts.PersonaBootstrap.IsPawnPersonaGenerationPending(pawn);
+        internal static bool CanStartPersonaGeneration() => RPGManagerPersonaBootstrap.CanStartPersonaGeneration();
+        internal static bool ShouldBlockAiPersonaGeneration() => RPGManagerPersonaBootstrap.ShouldBlockAiPersonaGeneration();
+        internal static bool IsRimTalkLoadedForPersonaBlock() => RPGManagerPersonaBootstrap.IsRimTalkLoadedForPersonaBlock();
+        internal void StartNpcPersonaGeneration(Pawn pawn, int attempt) => Parts.PersonaBootstrap.StartNpcPersonaGeneration(pawn, attempt);
+        internal bool TryApplyRimTalkPersonaFromBootstrapQueue() => Parts.PersonaBootstrap.TryApplyRimTalkPersonaFromBootstrapQueue();
+        internal bool TryCopyPawnPersonaFromRimTalk(Pawn pawn) => Parts.PersonaBootstrap.TryCopyPawnPersonaFromRimTalk(pawn);
+        internal bool TryCopyPawnPersonaFromRimTalk(Pawn pawn, string template) => Parts.PersonaBootstrap.TryCopyPawnPersonaFromRimTalk(pawn, template);
+        internal bool TrySyncPawnPersonaFromRimTalk(Pawn pawn) => Parts.PersonaBootstrap.TrySyncPawnPersonaFromRimTalk(pawn);
+        internal bool TrySyncPawnPersonaFromRimTalk(Pawn pawn, string template) => Parts.PersonaBootstrap.TrySyncPawnPersonaFromRimTalk(pawn, template);
+        public bool TrySyncAllColonyPawnPersonasFromRimTalk(out int updated, out int cleared, out int unchanged, out int skipped) => Parts.PersonaBootstrap.TrySyncAllColonyPawnPersonasFromRimTalk(out updated, out cleared, out unchanged, out skipped);
+        internal static string ResolveRimTalkPersonaCopyTemplateOrDefaultCached() => RPGManagerPersonaBootstrap.ResolveRimTalkPersonaCopyTemplateOrDefaultCached();
+        internal static void TryEnsureRpgPersonaTokenCoverageSafe() => RPGManagerPersonaBootstrap.TryEnsureRpgPersonaTokenCoverageSafe();
+        internal static bool IsEligibleRimTalkPersonaCopyTarget(Pawn pawn) => RPGManagerPersonaBootstrap.IsEligibleRimTalkPersonaCopyTarget(pawn);
+        internal static bool CanCopyPawnPersonaFromRimTalk(Pawn pawn) => RPGManagerPersonaBootstrap.CanCopyPawnPersonaFromRimTalk(pawn);
+        internal static bool TryGetRimTalkSourcePersona(Pawn pawn, out string sourcePersona) => RPGManagerPersonaBootstrap.TryGetRimTalkSourcePersona(pawn, out sourcePersona);
+        internal static MethodInfo ResolveRimTalkGetPersonalityMethod() => RPGManagerPersonaBootstrap.ResolveRimTalkGetPersonalityMethod();
+        internal static string NormalizeCopiedPersonaPrompt(string raw) => RPGManagerPersonaBootstrap.NormalizeCopiedPersonaPrompt(raw);
+        internal string RenderPersonaCopyTemplateOrThrow(Pawn pawn, string template, string sourcePersona) => Parts.PersonaBootstrap.RenderPersonaCopyTemplateOrThrow(pawn, template, sourcePersona);
+        internal static PromptRenderException BuildPersonaCopyRenderException(string templateId, string channel, string message) => RPGManagerPersonaBootstrap.BuildPersonaCopyRenderException(templateId, channel, message);
+        internal List<ChatMessageData> BuildNpcPersonaGenerationMessages(Pawn pawn) => Parts.PersonaBootstrap.BuildNpcPersonaGenerationMessages(pawn);
+        internal static string BuildPersonaTemplateLine(RPGManagerPersonaBootstrap.PersonaPronouns pronouns) => RPGManagerPersonaBootstrap.BuildPersonaTemplateLine(pronouns);
+        internal void OnNpcPersonaGenerationSuccess(string requestId, string response) => Parts.PersonaBootstrap.OnNpcPersonaGenerationSuccess(requestId, response);
+        internal void OnNpcPersonaGenerationError(string requestId, string error) => Parts.PersonaBootstrap.OnNpcPersonaGenerationError(requestId, error);
+        internal void RetryOrFallbackPersonaPrompt(RPGManagerPersonaBootstrap.PendingPersonaGenerationContext pending) => Parts.PersonaBootstrap.RetryOrFallbackPersonaPrompt(pending);
+        internal static bool TryNormalizePersonaPrompt(string raw, out string normalized) => RPGManagerPersonaBootstrap.TryNormalizePersonaPrompt(raw, out normalized);
+        internal static bool IsPersonaTemplateFormat(string text) => RPGManagerPersonaBootstrap.IsPersonaTemplateFormat(text);
+        internal static bool HasOrderedAnchors(string text, params string[] anchors) => RPGManagerPersonaBootstrap.HasOrderedAnchors(text, anchors);
+        internal static string CollapseWhitespace(string text) => RPGManagerPersonaBootstrap.CollapseWhitespace(text);
+        internal string BuildFallbackPersonaPrompt(Pawn pawn) => Parts.PersonaBootstrap.BuildFallbackPersonaPrompt(pawn);
+        internal static RPGManagerPersonaBootstrap.PersonaPronouns ResolvePersonaPronouns(Pawn pawn) => RPGManagerPersonaBootstrap.ResolvePersonaPronouns(pawn);
+        internal static string BuildPersonaBootstrapPrompt(RpgPromptDefaultsConfig defaults, RPGManagerPersonaBootstrap.PersonaPronouns pronouns, string profile) => RPGManagerPersonaBootstrap.BuildPersonaBootstrapPrompt(defaults, pronouns, profile);
+        internal static string RenderPersonaBootstrapTemplate(string template, RPGManagerPersonaBootstrap.PersonaPronouns pronouns) => RPGManagerPersonaBootstrap.RenderPersonaBootstrapTemplate(template, pronouns);
+        internal static PromptRenderContext BuildPersonaBootstrapRenderContext(string templateId, RPGManagerPersonaBootstrap.PersonaPronouns pronouns) => RPGManagerPersonaBootstrap.BuildPersonaBootstrapRenderContext(templateId, pronouns);
+        internal static string BuildCoreTemperament(Pawn pawn) => RPGManagerPersonaBootstrap.BuildCoreTemperament(pawn);
+        internal static string BuildEmotionalPattern(Pawn pawn) => RPGManagerPersonaBootstrap.BuildEmotionalPattern(pawn);
+        internal static string BuildBehavioralStrategy(Pawn pawn) => RPGManagerPersonaBootstrap.BuildBehavioralStrategy(pawn);
+        internal static string BuildCoreMotivation(Pawn pawn) => RPGManagerPersonaBootstrap.BuildCoreMotivation(pawn);
+        internal static string BuildDefenseWeakness(Pawn pawn) => RPGManagerPersonaBootstrap.BuildDefenseWeakness(pawn);
+        internal static string BuildPersonalityCost(Pawn pawn) => RPGManagerPersonaBootstrap.BuildPersonalityCost(pawn);
+        internal static bool StartsWithVowelSound(string text) => RPGManagerPersonaBootstrap.StartsWithVowelSound(text);
+        internal void CompleteNpcPersonaBootstrap() => Parts.PersonaBootstrap.CompleteNpcPersonaBootstrap();
+        internal bool ShouldRunNpcPersonaBootstrap() => Parts.PersonaBootstrap.ShouldRunNpcPersonaBootstrap();
+        internal void ResetNpcPersonaBootstrapRuntimeState() => Parts.PersonaBootstrap.ResetNpcPersonaBootstrapRuntimeState();
+        #endregion
+    
+        #region Cluster forwards
+        public string GetPersistentRpgSaveSlotId() => Parts.Slice1.GetPersistentRpgSaveSlotId();
+        internal void ResetPersistentRpgSaveSlotIdForNewGame() => Parts.Slice1.ResetPersistentRpgSaveSlotIdForNewGame();
+        internal void EnsurePersistentRpgSaveSlotId() => Parts.Slice1.EnsurePersistentRpgSaveSlotId();
+        public void StartRpgDialogueCooldown(Pawn pawn, int cooldownTicks) => Parts.Slice1.StartRpgDialogueCooldown(pawn, cooldownTicks);
+        public bool IsRpgDialogueOnCooldown(Pawn pawn, out int remainingTicks) => Parts.Slice1.IsRpgDialogueOnCooldown(pawn, out remainingTicks);
+        public int GetDialogueCooldownUntilTick(Pawn pawn) => Parts.Slice1.GetDialogueCooldownUntilTick(pawn);
+        public void SetDialogueCooldownUntilTick(Pawn pawn, int untilTick) => Parts.Slice1.SetDialogueCooldownUntilTick(pawn, untilTick);
+        public string GetPawnPersonaPrompt(Pawn pawn) => Parts.Slice1.GetPawnPersonaPrompt(pawn);
+        public string ResolveEffectivePawnPersonalityPrompt(Pawn pawn, bool allowGenerateFallback = true) => Parts.Slice1.ResolveEffectivePawnPersonalityPrompt(pawn, allowGenerateFallback);
+        internal void TrySyncPawnPersonaFromRimTalkSafely(Pawn pawn) => Parts.Slice1.TrySyncPawnPersonaFromRimTalkSafely(pawn);
+        internal bool IsPawnPersonaSyncInProgress(Pawn pawn) => Parts.Slice1.IsPawnPersonaSyncInProgress(pawn);
+        internal bool TryBeginPawnPersonaSync(Pawn pawn) => Parts.Slice1.TryBeginPawnPersonaSync(pawn);
+        internal void EndPawnPersonaSync(Pawn pawn) => Parts.Slice1.EndPawnPersonaSync(pawn);
+        internal string BuildAndPersistFallbackPawnPersonaPrompt(Pawn pawn) => Parts.Slice1.BuildAndPersistFallbackPawnPersonaPrompt(pawn);
+        public void SetPawnPersonaPrompt(Pawn pawn, string prompt) => Parts.Slice1.SetPawnPersonaPrompt(pawn, prompt);
+        internal void MigrateLegacyPawnDictionaries() => Parts.Slice1.MigrateLegacyPawnDictionaries();
+        internal void CleanupInvalidRpgDictionaries(int currentTick) => Parts.Slice1.CleanupInvalidRpgDictionaries(currentTick);
+        internal static bool TryResolvePawnByStableId(string pawnId, out Pawn pawn) => RPGManagerSlice1.TryResolvePawnByStableId(pawnId, out pawn);
+        internal static string GetPawnStableId(Pawn pawn) => RPGManagerSlice1.GetPawnStableId(pawn);
+        #endregion
+}
+    internal sealed class RPGManagerSlice1 : GameComponent_RPGManagerCollaborator
+    {
+        internal RPGManagerSlice1(GameComponent_RPGManager owner) : base(owner)
+        {
+        }
+
+public string GetPersistentRpgSaveSlotId()
+        {
+            Owner.EnsurePersistentRpgSaveSlotId();
             return persistentRpgSaveSlotId;
         }
 
-        private void ResetPersistentRpgSaveSlotIdForNewGame()
+internal void ResetPersistentRpgSaveSlotIdForNewGame()
         {
             persistentRpgSaveSlotId = string.Empty;
-            EnsurePersistentRpgSaveSlotId();
+            Owner.EnsurePersistentRpgSaveSlotId();
         }
 
-        private void EnsurePersistentRpgSaveSlotId()
+internal void EnsurePersistentRpgSaveSlotId()
         {
             if (!string.IsNullOrWhiteSpace(persistentRpgSaveSlotId))
             {
@@ -193,19 +335,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             persistentRpgSaveSlotId = $"{PersistentRpgSaveSlotPrefix}_{Guid.NewGuid():N}";
         }
 
-        public int GetRpgDialogueExitCooldownTicks()
-        {
-            return Mathf.RoundToInt(DefaultExitCooldownHours * 2500f);
-        }
-
-        public void StartRpgDialogueCooldown(Pawn pawn, int cooldownTicks)
+public void StartRpgDialogueCooldown(Pawn pawn, int cooldownTicks)
         {
             if (pawn == null || cooldownTicks <= 0)
             {
                 return;
             }
 
-            string pawnId = GetPawnStableId(pawn);
+            string pawnId = GameComponent_RPGManager.GetPawnStableId(pawn);
             if (string.IsNullOrWhiteSpace(pawnId))
             {
                 return;
@@ -222,7 +359,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             pawnDialogueCooldownUntilTickById[pawnId] = untilTick;
         }
 
-        public bool IsRpgDialogueOnCooldown(Pawn pawn, out int remainingTicks)
+public bool IsRpgDialogueOnCooldown(Pawn pawn, out int remainingTicks)
         {
             remainingTicks = 0;
             if (pawn == null || pawnDialogueCooldownUntilTickById == null)
@@ -230,7 +367,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
-            string pawnId = GetPawnStableId(pawn);
+            string pawnId = GameComponent_RPGManager.GetPawnStableId(pawn);
             if (string.IsNullOrWhiteSpace(pawnId) ||
                 !pawnDialogueCooldownUntilTickById.TryGetValue(pawnId, out int untilTick))
             {
@@ -249,14 +386,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return false;
         }
 
-        public int GetDialogueCooldownUntilTick(Pawn pawn)
+public int GetDialogueCooldownUntilTick(Pawn pawn)
         {
             if (pawn == null || pawnDialogueCooldownUntilTickById == null)
             {
                 return 0;
             }
 
-            string pawnId = GetPawnStableId(pawn);
+            string pawnId = GameComponent_RPGManager.GetPawnStableId(pawn);
             if (string.IsNullOrWhiteSpace(pawnId))
             {
                 return 0;
@@ -265,14 +402,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return pawnDialogueCooldownUntilTickById.TryGetValue(pawnId, out int untilTick) ? untilTick : 0;
         }
 
-        public void SetDialogueCooldownUntilTick(Pawn pawn, int untilTick)
+public void SetDialogueCooldownUntilTick(Pawn pawn, int untilTick)
         {
             if (pawn == null)
             {
                 return;
             }
 
-            string pawnId = GetPawnStableId(pawn);
+            string pawnId = GameComponent_RPGManager.GetPawnStableId(pawn);
             if (string.IsNullOrWhiteSpace(pawnId))
             {
                 return;
@@ -293,14 +430,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             pawnDialogueCooldownUntilTickById[pawnId] = untilTick;
         }
 
-        public string GetPawnPersonaPrompt(Pawn pawn)
+public string GetPawnPersonaPrompt(Pawn pawn)
         {
             if (pawn == null || pawnPersonaPromptsById == null)
             {
                 return string.Empty;
             }
 
-            string pawnId = GetPawnStableId(pawn);
+            string pawnId = GameComponent_RPGManager.GetPawnStableId(pawn);
             if (string.IsNullOrWhiteSpace(pawnId))
             {
                 return string.Empty;
@@ -310,30 +447,30 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return found ? prompt ?? string.Empty : string.Empty;
         }
 
-        public string ResolveEffectivePawnPersonalityPrompt(Pawn pawn, bool allowGenerateFallback = true)
+public string ResolveEffectivePawnPersonalityPrompt(Pawn pawn, bool allowGenerateFallback = true)
         {
             if (pawn == null)
             {
                 return string.Empty;
             }
 
-            if (IsPawnPersonaSyncInProgress(pawn))
+            if (Owner.IsPawnPersonaSyncInProgress(pawn))
             {
-                return GetPawnPersonaPrompt(pawn)?.Trim() ?? string.Empty;
+                return Owner.GetPawnPersonaPrompt(pawn)?.Trim() ?? string.Empty;
             }
 
-            TrySyncPawnPersonaFromRimTalkSafely(pawn);
+            Owner.TrySyncPawnPersonaFromRimTalkSafely(pawn);
 
-            string existing = GetPawnPersonaPrompt(pawn)?.Trim() ?? string.Empty;
+            string existing = Owner.GetPawnPersonaPrompt(pawn)?.Trim() ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(existing))
             {
                 return existing;
             }
 
-            return allowGenerateFallback ? BuildAndPersistFallbackPawnPersonaPrompt(pawn) : string.Empty;
+            return allowGenerateFallback ? Owner.BuildAndPersistFallbackPawnPersonaPrompt(pawn) : string.Empty;
         }
 
-        private void TrySyncPawnPersonaFromRimTalkSafely(Pawn pawn)
+internal void TrySyncPawnPersonaFromRimTalkSafely(Pawn pawn)
         {
             if (pawn == null ||
                 pawn.Faction != Faction.OfPlayer ||
@@ -350,16 +487,16 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return;
             }
 
-            if (!TryBeginPawnPersonaSync(pawn))
+            if (!Owner.TryBeginPawnPersonaSync(pawn))
             {
                 return;
             }
 
             try
             {
-                if (CanCopyPawnPersonaFromRimTalk(pawn))
+                if (GameComponent_RPGManager.CanCopyPawnPersonaFromRimTalk(pawn))
                 {
-                    TrySyncPawnPersonaFromRimTalk(pawn);
+                    Owner.TrySyncPawnPersonaFromRimTalk(pawn);
                 }
             }
             catch (Exception ex)
@@ -368,18 +505,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
             finally
             {
-                EndPawnPersonaSync(pawn);
+                Owner.EndPawnPersonaSync(pawn);
             }
         }
 
-        private bool IsPawnPersonaSyncInProgress(Pawn pawn)
+internal bool IsPawnPersonaSyncInProgress(Pawn pawn)
         {
             return pawn != null &&
                 pawn.thingIDNumber > 0 &&
                 pawnPersonaSyncGuards.Contains(pawn.thingIDNumber);
         }
 
-        private bool TryBeginPawnPersonaSync(Pawn pawn)
+internal bool TryBeginPawnPersonaSync(Pawn pawn)
         {
             if (pawn == null || pawn.thingIDNumber <= 0)
             {
@@ -389,7 +526,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return pawnPersonaSyncGuards.Add(pawn.thingIDNumber);
         }
 
-        private void EndPawnPersonaSync(Pawn pawn)
+internal void EndPawnPersonaSync(Pawn pawn)
         {
             if (pawn == null || pawn.thingIDNumber <= 0)
             {
@@ -399,31 +536,31 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             pawnPersonaSyncGuards.Remove(pawn.thingIDNumber);
         }
 
-        private string BuildAndPersistFallbackPawnPersonaPrompt(Pawn pawn)
+internal string BuildAndPersistFallbackPawnPersonaPrompt(Pawn pawn)
         {
-            if (!IsEligibleNpcPersonaTarget(pawn))
+            if (!GameComponent_RPGManager.IsEligibleNpcPersonaTarget(pawn))
             {
                 return string.Empty;
             }
 
-            string generated = BuildFallbackPersonaPrompt(pawn)?.Trim() ?? string.Empty;
+            string generated = Owner.BuildFallbackPersonaPrompt(pawn)?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(generated))
             {
                 return string.Empty;
             }
 
-            SetPawnPersonaPrompt(pawn, generated);
+            Owner.SetPawnPersonaPrompt(pawn, generated);
             return generated;
         }
 
-        public void SetPawnPersonaPrompt(Pawn pawn, string prompt)
+public void SetPawnPersonaPrompt(Pawn pawn, string prompt)
         {
             if (pawn == null)
             {
                 return;
             }
 
-            string pawnId = GetPawnStableId(pawn);
+            string pawnId = GameComponent_RPGManager.GetPawnStableId(pawn);
             if (string.IsNullOrWhiteSpace(pawnId))
             {
                 return;
@@ -444,13 +581,13 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             pawnPersonaPromptsById[pawnId] = normalized;
         }
 
-        private void MigrateLegacyPawnDictionaries()
+internal void MigrateLegacyPawnDictionaries()
         {
             if (legacyPawnDialogueCooldownUntilTick != null)
             {
                 foreach (KeyValuePair<Pawn, int> entry in legacyPawnDialogueCooldownUntilTick)
                 {
-                    string pawnId = GetPawnStableId(entry.Key);
+                    string pawnId = GameComponent_RPGManager.GetPawnStableId(entry.Key);
                     if (string.IsNullOrWhiteSpace(pawnId))
                     {
                         continue;
@@ -471,7 +608,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             {
                 foreach (KeyValuePair<Pawn, string> entry in legacyPawnPersonaPrompts)
                 {
-                    string pawnId = GetPawnStableId(entry.Key);
+                    string pawnId = GameComponent_RPGManager.GetPawnStableId(entry.Key);
                     if (string.IsNullOrWhiteSpace(pawnId))
                     {
                         continue;
@@ -491,7 +628,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             legacyPawnPersonaPrompts = null;
         }
 
-        private void CleanupInvalidRpgDictionaries(int currentTick)
+internal void CleanupInvalidRpgDictionaries(int currentTick)
         {
             if (pawnDialogueCooldownUntilTickById == null)
             {
@@ -500,7 +637,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             else
             {
                 List<string> invalidCooldownIds = pawnDialogueCooldownUntilTickById
-                    .Where(entry => entry.Value <= currentTick || !TryResolvePawnByStableId(entry.Key, out _))
+                    .Where(entry => entry.Value <= currentTick || !GameComponent_RPGManager.TryResolvePawnByStableId(entry.Key, out _))
                     .Select(entry => entry.Key)
                     .ToList();
                 foreach (string id in invalidCooldownIds)
@@ -523,7 +660,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                             return true;
                         }
 
-                        if (!TryResolvePawnByStableId(entry.Key, out Pawn pawn))
+                        if (!GameComponent_RPGManager.TryResolvePawnByStableId(entry.Key, out Pawn pawn))
                         {
                             return true;
                         }
@@ -539,7 +676,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private static bool TryResolvePawnByStableId(string pawnId, out Pawn pawn)
+internal static bool TryResolvePawnByStableId(string pawnId, out Pawn pawn)
         {
             if (string.IsNullOrWhiteSpace(pawnId))
             {
@@ -550,7 +687,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return DialogueContextResolver.TryResolvePawn(pawnId, out pawn);
         }
 
-        private static string GetPawnStableId(Pawn pawn)
+internal static string GetPawnStableId(Pawn pawn)
         {
             if (pawn == null || pawn.Destroyed || pawn.Dead)
             {
@@ -560,4 +697,19 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return pawn.GetUniqueLoadID() ?? string.Empty;
         }
     }
+
+    internal sealed class GameComponent_RPGManagerParts
+    {
+        internal readonly GameComponent_RPGManager Owner;
+        internal readonly RPGManagerPersonaBootstrap PersonaBootstrap;
+        internal readonly RPGManagerSlice1 Slice1;
+        internal GameComponent_RPGManagerParts(GameComponent_RPGManager owner)
+        {
+            Owner = owner;
+            PersonaBootstrap = new RPGManagerPersonaBootstrap(owner);
+            Slice1 = new RPGManagerSlice1(owner);
+        }
+    }
+
+
 }

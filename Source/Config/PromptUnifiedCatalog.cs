@@ -442,7 +442,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return fallback;
         }
 
-        private static void ApplyLegacyTemplatesToNodes(PromptUnifiedCatalog catalog, PromptTemplateTextConfig templates)
+        internal static void ApplyLegacyTemplatesToNodes(PromptUnifiedCatalog catalog, PromptTemplateTextConfig templates)
         {
             if (catalog == null || templates == null)
             {
@@ -468,7 +468,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             SetNodeIfNotEmpty(catalog, RimTalkPromptEntryChannelCatalog.Any, "rpg_role_setting_fallback", templates.RpgRoleSettingTemplate);
         }
 
-        private static void SetNodeIfNotEmpty(PromptUnifiedCatalog catalog, string channel, string nodeId, string content)
+        internal static void SetNodeIfNotEmpty(PromptUnifiedCatalog catalog, string channel, string nodeId, string content)
         {
             string text = content?.Trim() ?? string.Empty;
             if (text.Length == 0)
@@ -479,19 +479,19 @@ namespace Ustas.RimAI.Communication.Relations.Config
             catalog.SetNode(channel, nodeId, text);
         }
 
-        private static bool HasAnyNodeEntry(IEnumerable<PromptUnifiedNodeContent> nodes)
+        internal static bool HasAnyNodeEntry(IEnumerable<PromptUnifiedNodeContent> nodes)
         {
             return (nodes ?? Enumerable.Empty<PromptUnifiedNodeContent>())
                 .Any(node => node != null && PromptUnifiedNodeSchemaCatalog.NormalizeId(node.NodeId).Length > 0);
         }
 
-        private static bool HasAnyLayoutEntry(IEnumerable<PromptUnifiedNodeLayoutConfig> layouts)
+        internal static bool HasAnyLayoutEntry(IEnumerable<PromptUnifiedNodeLayoutConfig> layouts)
         {
             return (layouts ?? Enumerable.Empty<PromptUnifiedNodeLayoutConfig>())
                 .Any(layout => layout != null && PromptUnifiedNodeSchemaCatalog.NormalizeId(layout.NodeId).Length > 0);
         }
 
-        private static string RequireNodeIdOrThrow(string nodeId, string operation, string channel)
+        internal static string RequireNodeIdOrThrow(string nodeId, string operation, string channel)
         {
             string normalizedNode = PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId);
             if (normalizedNode.Length > 0)
@@ -503,13 +503,13 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 $"[RimAI.Relations] {operation} requires a non-empty nodeId for channel '{channel}'.");
         }
 
-        private PromptUnifiedChannelConfig ResolveChannel(string promptChannel)
+        internal PromptUnifiedChannelConfig ResolveChannel(string promptChannel)
         {
             return Channels?.FirstOrDefault(c =>
                 c != null && string.Equals(c.PromptChannel, promptChannel, StringComparison.OrdinalIgnoreCase));
         }
 
-        private PromptUnifiedChannelConfig GetOrCreateChannel(string promptChannel)
+        internal PromptUnifiedChannelConfig GetOrCreateChannel(string promptChannel)
         {
             Channels ??= new List<PromptUnifiedChannelConfig>();
             PromptUnifiedChannelConfig existing = ResolveChannel(promptChannel);
@@ -523,7 +523,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return existing;
         }
 
-        private static void MergeChannels(
+        internal static void MergeChannels(
             IDictionary<string, PromptUnifiedChannelConfig> target,
             IEnumerable<PromptUnifiedChannelConfig> source,
             PromptUnifiedCatalogNormalizeReport report)
@@ -560,7 +560,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
         }
 
-        private static bool IsUnknownChannel(string channelId)
+        internal static bool IsUnknownChannel(string channelId)
         {
             if (string.IsNullOrWhiteSpace(channelId))
             {
@@ -577,6 +577,13 @@ namespace Ustas.RimAI.Communication.Relations.Config
     [Serializable]
     public sealed class PromptUnifiedChannelConfig : IExposable
     {
+        internal PromptUnifiedChannelConfigParts Parts;
+
+        public PromptUnifiedChannelConfig()
+        {
+            Parts = new PromptUnifiedChannelConfigParts(this);
+        }
+
         public string PromptChannel = RimTalkPromptEntryChannelCatalog.Any;
         public List<PromptUnifiedSectionContent> Sections = new List<PromptUnifiedSectionContent>();
         public List<PromptUnifiedNodeContent> Nodes = new List<PromptUnifiedNodeContent>();
@@ -603,585 +610,99 @@ namespace Ustas.RimAI.Communication.Relations.Config
             CustomNodes ??= new List<PromptUnifiedNodeRegistration>();
         }
 
-        public PromptUnifiedChannelConfig Clone()
-        {
-            return new PromptUnifiedChannelConfig
-            {
-                PromptChannel = RimTalkPromptEntryChannelCatalog.NormalizeLoose(PromptChannel),
-                Sections = Sections?.Where(s => s != null).Select(s => s.Clone()).ToList() ?? new List<PromptUnifiedSectionContent>(),
-                Nodes = Nodes?.Where(n => n != null).Select(n => n.Clone()).ToList() ?? new List<PromptUnifiedNodeContent>(),
-                NodeLayout = NodeLayout?.Where(n => n != null).Select(n => n.Clone()).ToList() ?? new List<PromptUnifiedNodeLayoutConfig>(),
-                TemplateAliases = TemplateAliases?.Where(a => a != null).Select(a => a.Clone()).ToList() ?? new List<PromptUnifiedTemplateAliasConfig>(),
-                CustomNodes = CustomNodes?.Where(c => c != null).Select(c => c.Clone()).ToList() ?? new List<PromptUnifiedNodeRegistration>()
-            };
-        }
+        
 
         public void Normalize()
         {
             _ = NormalizeWithReport();
         }
 
-        public PromptUnifiedCatalogNormalizeReport NormalizeWithReport()
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    
+        #region Cluster forwards
+        public PromptUnifiedChannelConfig Clone() => Parts.Slice1.Clone();
+        public PromptUnifiedCatalogNormalizeReport NormalizeWithReport() => Parts.Slice1.NormalizeWithReport();
+        public string ResolveSection(string sectionId) => Parts.Slice1.ResolveSection(sectionId);
+        public bool TryResolveSection(string sectionId, out string content) => Parts.Slice1.TryResolveSection(sectionId, out content);
+        public string ResolveNode(string nodeId) => Parts.Slice1.ResolveNode(nodeId);
+        public bool TryResolveNode(string nodeId, out string content) => Parts.Slice1.TryResolveNode(nodeId, out content);
+        public PromptUnifiedNodeLayoutConfig ResolveNodeLayout(string nodeId) => Parts.Slice1.ResolveNodeLayout(nodeId);
+        public List<PromptUnifiedTemplateAliasConfig> GetTemplateAliases() => Parts.Slice1.GetTemplateAliases();
+        public PromptUnifiedTemplateAliasConfig ResolveTemplateAlias(string templateId) => Parts.Slice1.ResolveTemplateAlias(templateId);
+        public PromptUnifiedTemplateAliasConfig ResolvePreferredTemplateAlias(string preferredTemplateId) => Parts.Slice1.ResolvePreferredTemplateAlias(preferredTemplateId);
+        public void SetSection(string sectionId, string content) => Parts.Slice1.SetSection(sectionId, content);
+        public void SetSectionLayout(string sectionId, int order) => Parts.Slice1.SetSectionLayout(sectionId, order);
+        public List<PromptSectionLayoutConfig> GetOrderedSectionLayouts() => Parts.Slice1.GetOrderedSectionLayouts();
+        public void SetNode(string nodeId, string content) => Parts.Slice1.SetNode(nodeId, content);
+        public void SetNodeLayout(string nodeId, PromptUnifiedNodeSlot slot, int order, bool enabled) => Parts.Slice1.SetNodeLayout(nodeId, slot, order, enabled);
+        public void SetTemplateAlias(string templateId, string name, string description, string content, bool enabled) => Parts.Slice1.SetTemplateAlias(templateId, name, description, content, enabled);
+        public List<PromptUnifiedNodeLayoutConfig> GetOrderedNodeLayouts(string promptChannel) => Parts.Slice1.GetOrderedNodeLayouts(promptChannel);
+        public void Merge(PromptUnifiedChannelConfig source) => Parts.Slice1.Merge(source);
+        internal static List<PromptUnifiedSectionContent> NormalizeSections(List<PromptUnifiedSectionContent> source) => PromptUnifiedChannelSlice1.NormalizeSections(source);
+        internal static List<PromptUnifiedNodeContent> NormalizeNodes(string promptChannel, List<PromptUnifiedNodeContent> source, PromptUnifiedCatalogNormalizeReport report) => PromptUnifiedChannelSlice1.NormalizeNodes(promptChannel, source, report);
+        internal static List<PromptUnifiedNodeLayoutConfig> NormalizeNodeLayout(string promptChannel, List<PromptUnifiedNodeLayoutConfig> source, PromptUnifiedCatalogNormalizeReport report) => PromptUnifiedChannelSlice2.NormalizeNodeLayout(promptChannel, source, report);
+        internal static List<PromptUnifiedTemplateAliasConfig> NormalizeTemplateAliases(List<PromptUnifiedTemplateAliasConfig> source) => PromptUnifiedChannelSlice2.NormalizeTemplateAliases(source);
+        internal static string MigrateLegacyRpgRelationshipProfileTemplate(string promptChannel, string nodeId, string template) => PromptUnifiedChannelSlice2.MigrateLegacyRpgRelationshipProfileTemplate(promptChannel, nodeId, template);
+        internal static string WrapLegacyGuidanceLine(string template, string lineText) => PromptUnifiedChannelSlice2.WrapLegacyGuidanceLine(template, lineText);
+        #endregion
+}
+    internal sealed class PromptUnifiedChannelConfigParts
+    {
+        internal readonly PromptUnifiedChannelConfig Owner;
+        internal readonly PromptUnifiedChannelSlice1 Slice1;
+        internal readonly PromptUnifiedChannelSlice2 Slice2;
+        internal PromptUnifiedChannelConfigParts(PromptUnifiedChannelConfig owner)
         {
-            var report = new PromptUnifiedCatalogNormalizeReport();
-            PromptChannel = RimTalkPromptEntryChannelCatalog.NormalizeLoose(PromptChannel);
-            Sections = NormalizeSections(Sections);
-            Nodes = NormalizeNodes(PromptChannel, Nodes, report);
-            NodeLayout = NormalizeNodeLayout(PromptChannel, NodeLayout, report);
-            TemplateAliases = NormalizeTemplateAliases(TemplateAliases);
-            return report;
-        }
-
-        public string ResolveSection(string sectionId)
-        {
-            string normalized = PromptSectionSchemaCatalog.NormalizeSectionId(sectionId);
-            return Sections?.FirstOrDefault(s =>
-                s != null && string.Equals(s.SectionId, normalized, StringComparison.OrdinalIgnoreCase))?.Content ?? string.Empty;
-        }
-
-        public bool TryResolveSection(string sectionId, out string content)
-        {
-            string normalized = PromptSectionSchemaCatalog.NormalizeSectionId(sectionId);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                content = string.Empty;
-                return false;
-            }
-
-            PromptUnifiedSectionContent section = Sections?.FirstOrDefault(s =>
-                s != null && string.Equals(s.SectionId, normalized, StringComparison.OrdinalIgnoreCase));
-            if (section == null)
-            {
-                content = string.Empty;
-                return false;
-            }
-
-            content = section.Content ?? string.Empty;
-            return true;
-        }
-
-        public string ResolveNode(string nodeId)
-        {
-            string normalized = PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId);
-            return Nodes?.FirstOrDefault(n =>
-                n != null && string.Equals(n.NodeId, normalized, StringComparison.OrdinalIgnoreCase))?.Content ?? string.Empty;
-        }
-
-        public bool TryResolveNode(string nodeId, out string content)
-        {
-            string normalized = PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                content = string.Empty;
-                return false;
-            }
-
-            PromptUnifiedNodeContent node = Nodes?.FirstOrDefault(n =>
-                n != null && string.Equals(n.NodeId, normalized, StringComparison.OrdinalIgnoreCase));
-            if (node == null)
-            {
-                content = string.Empty;
-                return false;
-            }
-
-            content = node.Content ?? string.Empty;
-            return true;
-        }
-
-        public PromptUnifiedNodeLayoutConfig ResolveNodeLayout(string nodeId)
-        {
-            string normalized = PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId);
-            return NodeLayout?.FirstOrDefault(n =>
-                n != null && string.Equals(n.NodeId, normalized, StringComparison.OrdinalIgnoreCase))?.Clone();
-        }
-
-        public List<PromptUnifiedTemplateAliasConfig> GetTemplateAliases()
-        {
-            Normalize();
-            return TemplateAliases ?? new List<PromptUnifiedTemplateAliasConfig>();
-        }
-
-        public PromptUnifiedTemplateAliasConfig ResolveTemplateAlias(string templateId)
-        {
-            string normalized = PromptUnifiedTemplateAliasConfig.NormalizeTemplateId(templateId);
-            if (normalized.Length == 0)
-            {
-                return null;
-            }
-
-            return TemplateAliases?.FirstOrDefault(alias =>
-                alias != null &&
-                string.Equals(alias.TemplateId, normalized, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public PromptUnifiedTemplateAliasConfig ResolvePreferredTemplateAlias(string preferredTemplateId)
-        {
-            string preferred = PromptUnifiedTemplateAliasConfig.NormalizeTemplateId(preferredTemplateId);
-            if (preferred.Length > 0)
-            {
-                PromptUnifiedTemplateAliasConfig preferredAlias = ResolveTemplateAlias(preferred);
-                if (preferredAlias != null && preferredAlias.Enabled)
-                {
-                    return preferredAlias;
-                }
-            }
-
-            PromptUnifiedTemplateAliasConfig firstEnabled = TemplateAliases?.FirstOrDefault(alias =>
-                alias != null &&
-                alias.Enabled &&
-                !string.IsNullOrWhiteSpace(alias.TemplateId));
-            if (firstEnabled != null)
-            {
-                return firstEnabled;
-            }
-
-            return TemplateAliases?.FirstOrDefault(alias =>
-                alias != null &&
-                !string.IsNullOrWhiteSpace(alias.TemplateId));
-        }
-
-        public void SetSection(string sectionId, string content)
-        {
-            string normalized = PromptSectionSchemaCatalog.NormalizeSectionId(sectionId);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return;
-            }
-
-            Sections ??= new List<PromptUnifiedSectionContent>();
-            PromptUnifiedSectionContent existing = Sections.FirstOrDefault(s =>
-                s != null && string.Equals(s.SectionId, normalized, StringComparison.OrdinalIgnoreCase));
-            if (existing == null)
-            {
-                Sections.Add(PromptUnifiedSectionContent.Create(normalized, content));
-                return;
-            }
-
-            existing.Content = content?.Trim() ?? string.Empty;
-        }
-
-        public void SetSectionLayout(string sectionId, int order)
-        {
-            string normalized = PromptSectionSchemaCatalog.NormalizeSectionId(sectionId);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return;
-            }
-
-            SectionLayout ??= new List<PromptSectionLayoutConfig>();
-            PromptSectionLayoutConfig existing = SectionLayout.FirstOrDefault(s =>
-                s != null && string.Equals(s.SectionId, normalized, StringComparison.OrdinalIgnoreCase));
-            if (existing == null)
-            {
-                SectionLayout.Add(PromptSectionLayoutConfig.Create(normalized, order));
-                return;
-            }
-
-            existing.Order = order;
-        }
-
-        public List<PromptSectionLayoutConfig> GetOrderedSectionLayouts()
-        {
-            Normalize();
-            return SectionLayout
-                .Where(item => item != null)
-                .Select(item => item.Clone())
-                .OrderBy(item => item.Order)
-                .ThenBy(item => item.SectionId, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-
-        public void SetNode(string nodeId, string content)
-        {
-            string normalized = PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return;
-            }
-
-            Nodes ??= new List<PromptUnifiedNodeContent>();
-            PromptUnifiedNodeContent existing = Nodes.FirstOrDefault(n =>
-                n != null && string.Equals(n.NodeId, normalized, StringComparison.OrdinalIgnoreCase));
-            if (existing == null)
-            {
-                Nodes.Add(PromptUnifiedNodeContent.Create(normalized, content));
-                return;
-            }
-
-            existing.Content = content?.Trim() ?? string.Empty;
-        }
-
-        public void SetNodeLayout(string nodeId, PromptUnifiedNodeSlot slot, int order, bool enabled)
-        {
-            string normalized = PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return;
-            }
-
-            NodeLayout ??= new List<PromptUnifiedNodeLayoutConfig>();
-            PromptUnifiedNodeLayoutConfig existing = NodeLayout.FirstOrDefault(n =>
-                n != null && string.Equals(n.NodeId, normalized, StringComparison.OrdinalIgnoreCase));
-            if (existing == null)
-            {
-                NodeLayout.Add(PromptUnifiedNodeLayoutConfig.Create(normalized, PromptUnifiedNodeSlot.MainChainBefore, order, enabled));
-                return;
-            }
-
-            existing.Slot = PromptUnifiedNodeSlot.MainChainBefore.ToSerializedValue();
-            existing.Order = order;
-            existing.Enabled = enabled;
-        }
-
-        public void SetTemplateAlias(
-            string templateId,
-            string name,
-            string description,
-            string content,
-            bool enabled)
-        {
-            string normalizedId = PromptUnifiedTemplateAliasConfig.NormalizeTemplateId(templateId);
-            if (normalizedId.Length == 0)
-            {
-                return;
-            }
-
-            TemplateAliases ??= new List<PromptUnifiedTemplateAliasConfig>();
-            PromptUnifiedTemplateAliasConfig existing = TemplateAliases.FirstOrDefault(alias =>
-                alias != null &&
-                string.Equals(alias.TemplateId, normalizedId, StringComparison.OrdinalIgnoreCase));
-            if (existing == null)
-            {
-                TemplateAliases.Add(PromptUnifiedTemplateAliasConfig.Create(
-                    normalizedId,
-                    name,
-                    description,
-                    content,
-                    enabled));
-                return;
-            }
-
-            existing.Name = name?.Trim() ?? string.Empty;
-            existing.Description = description?.Trim() ?? string.Empty;
-            existing.Content = content?.Trim() ?? string.Empty;
-            existing.Enabled = enabled;
-        }
-
-        public List<PromptUnifiedNodeLayoutConfig> GetOrderedNodeLayouts(string promptChannel)
-        {
-            Normalize();
-            return NodeLayout
-                .Where(item => item != null)
-                .Select(item => item.Clone())
-                .OrderBy(item => item.Order)
-                .ThenBy(item => item.NodeId, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-
-        public void Merge(PromptUnifiedChannelConfig source)
-        {
-            if (source == null)
-            {
-                return;
-            }
-
-            foreach (PromptUnifiedSectionContent section in source.Sections ?? new List<PromptUnifiedSectionContent>())
-            {
-                if (section != null)
-                {
-                    SetSection(section.SectionId, section.Content);
-                }
-            }
-
-            foreach (PromptUnifiedNodeContent node in source.Nodes ?? new List<PromptUnifiedNodeContent>())
-            {
-                if (node != null)
-                {
-                    SetNode(node.NodeId, node.Content);
-                }
-            }
-
-            foreach (PromptUnifiedNodeLayoutConfig layout in source.NodeLayout ?? new List<PromptUnifiedNodeLayoutConfig>())
-            {
-                if (layout == null)
-                {
-                    continue;
-                }
-
-                SetNodeLayout(layout.NodeId, layout.GetSlot(), layout.Order, layout.Enabled);
-            }
-
-            foreach (PromptSectionLayoutConfig sectionLayout in source.SectionLayout ?? new List<PromptSectionLayoutConfig>())
-            {
-                if (sectionLayout == null)
-                {
-                    continue;
-                }
-
-                SetSectionLayout(sectionLayout.SectionId, sectionLayout.Order);
-            }
-
-            foreach (PromptUnifiedTemplateAliasConfig alias in source.TemplateAliases ?? new List<PromptUnifiedTemplateAliasConfig>())
-            {
-                if (alias == null)
-                {
-                    continue;
-                }
-
-                SetTemplateAlias(alias.TemplateId, alias.Name, alias.Description, alias.Content, alias.Enabled);
-            }
-
-            foreach (PromptUnifiedNodeRegistration customNode in source.CustomNodes ?? new List<PromptUnifiedNodeRegistration>())
-            {
-                if (customNode == null || string.IsNullOrWhiteSpace(customNode.NodeId))
-                {
-                    continue;
-                }
-
-                if (!CustomNodes.Any(c => c != null && string.Equals(c.NodeId, customNode.NodeId, StringComparison.OrdinalIgnoreCase)))
-                {
-                    CustomNodes.Add(customNode.Clone());
-                }
-            }
-        }
-
-        private static List<PromptUnifiedSectionContent> NormalizeSections(List<PromptUnifiedSectionContent> source)
-        {
-            var merged = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (PromptUnifiedSectionContent section in source ?? new List<PromptUnifiedSectionContent>())
-            {
-                if (section == null)
-                {
-                    continue;
-                }
-
-                string id = PromptSectionSchemaCatalog.NormalizeSectionId(section.SectionId);
-                string content = section.Content?.Trim() ?? string.Empty;
-                if (id.Length == 0)
-                {
-                    continue;
-                }
-
-                merged[id] = content;
-            }
-
-            return merged.Select(i => PromptUnifiedSectionContent.Create(i.Key, i.Value)).ToList();
-        }
-
-        private static List<PromptUnifiedNodeContent> NormalizeNodes(
-            string promptChannel,
-            List<PromptUnifiedNodeContent> source,
-            PromptUnifiedCatalogNormalizeReport report)
-        {
-            var allowedNodes = new HashSet<string>(
-                PromptUnifiedNodeSchemaCatalog.GetAllowedNodes(promptChannel).Select(item => item.Id),
-                StringComparer.OrdinalIgnoreCase);
-            var merged = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            int sourceCount = (source ?? new List<PromptUnifiedNodeContent>()).Count(node => node != null);
-            foreach (PromptUnifiedNodeContent node in source ?? new List<PromptUnifiedNodeContent>())
-            {
-                if (node == null)
-                {
-                    continue;
-                }
-
-                string id = PromptUnifiedNodeSchemaCatalog.NormalizeId(node.NodeId);
-                string content = node.Content?.Trim() ?? string.Empty;
-                if (id.Length == 0)
-                {
-                    continue;
-                }
-
-                if (!allowedNodes.Contains(id))
-                {
-                    continue;
-                }
-
-                string migrated = MigrateLegacyRpgRelationshipProfileTemplate(promptChannel, id, content);
-                if (!string.Equals(migrated, content, StringComparison.Ordinal))
-                {
-                    content = migrated;
-                    report.MarkChanged();
-                }
-
-                merged[id] = content;
-            }
-
-            int removedCount = Math.Max(0, sourceCount - merged.Count);
-            if (removedCount > 0)
-            {
-                report.RemovedNodeCount += removedCount;
-                report.MarkChanged();
-            }
-
-            return merged.Select(i => PromptUnifiedNodeContent.Create(i.Key, i.Value)).ToList();
-        }
-
-        private static List<PromptUnifiedNodeLayoutConfig> NormalizeNodeLayout(
-            string promptChannel,
-            List<PromptUnifiedNodeLayoutConfig> source,
-            PromptUnifiedCatalogNormalizeReport report)
-        {
-            var allowedNodes = new HashSet<string>(
-                PromptUnifiedNodeSchemaCatalog.GetAllowedNodes(promptChannel).Select(item => item.Id),
-                StringComparer.OrdinalIgnoreCase);
-            int sourceCount = (source ?? new List<PromptUnifiedNodeLayoutConfig>()).Count(layout => layout != null);
-            if (allowedNodes.Count == 0)
-            {
-                if (sourceCount > 0)
-                {
-                    report.RemovedLayoutCount += sourceCount;
-                    report.MarkChanged();
-                }
-
-                return new List<PromptUnifiedNodeLayoutConfig>();
-            }
-
-            var merged = new Dictionary<string, PromptUnifiedNodeLayoutConfig>(StringComparer.OrdinalIgnoreCase);
-            foreach (PromptUnifiedNodeLayoutConfig layout in source ?? new List<PromptUnifiedNodeLayoutConfig>())
-            {
-                if (layout == null)
-                {
-                    continue;
-                }
-
-                string id = PromptUnifiedNodeSchemaCatalog.NormalizeId(layout.NodeId);
-                if (id.Length == 0)
-                {
-                    continue;
-                }
-
-                if (!allowedNodes.Contains(id))
-                {
-                    continue;
-                }
-
-                merged[id] = PromptUnifiedNodeLayoutConfig.Create(
-                    id,
-                    PromptUnifiedNodeSlot.MainChainBefore,
-                    layout.Order,
-                    layout.Enabled);
-            }
-
-            int removedCount = Math.Max(0, sourceCount - merged.Count);
-            if (removedCount > 0)
-            {
-                report.RemovedLayoutCount += removedCount;
-                report.MarkChanged();
-            }
-
-            int filledDefaultCount = 0;
-            foreach (string nodeId in allowedNodes)
-            {
-                if (merged.ContainsKey(nodeId))
-                {
-                    continue;
-                }
-
-                PromptUnifiedNodeLayoutConfig fallback = PromptUnifiedNodeLayoutDefaults.BuildDefaultLayout(promptChannel, nodeId);
-                merged[nodeId] = fallback;
-                filledDefaultCount++;
-            }
-
-            if (filledDefaultCount > 0)
-            {
-                report.FilledDefaultLayoutCount += filledDefaultCount;
-                report.MarkChanged();
-            }
-
-            return merged.Values
-                .OrderBy(item => item.Order)
-                .ThenBy(item => item.NodeId, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-
-        private static List<PromptUnifiedTemplateAliasConfig> NormalizeTemplateAliases(
-            List<PromptUnifiedTemplateAliasConfig> source)
-        {
-            var merged = new Dictionary<string, PromptUnifiedTemplateAliasConfig>(StringComparer.OrdinalIgnoreCase);
-            foreach (PromptUnifiedTemplateAliasConfig alias in source ?? new List<PromptUnifiedTemplateAliasConfig>())
-            {
-                if (alias == null)
-                {
-                    continue;
-                }
-
-                string id = PromptUnifiedTemplateAliasConfig.NormalizeTemplateId(alias.TemplateId);
-                if (id.Length == 0)
-                {
-                    continue;
-                }
-
-                merged[id] = PromptUnifiedTemplateAliasConfig.Create(
-                    id,
-                    alias.Name,
-                    alias.Description,
-                    alias.Content,
-                    alias.Enabled);
-            }
-
-            return merged.Values
-                .OrderBy(item => item.TemplateId, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-
-        private static string MigrateLegacyRpgRelationshipProfileTemplate(
-            string promptChannel,
-            string nodeId,
-            string template)
-        {
-            if (!string.Equals(
-                    PromptUnifiedNodeSchemaCatalog.NormalizeId(nodeId),
-                    "rpg_relationship_profile",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return template ?? string.Empty;
-            }
-
-            string channel = RimTalkPromptEntryChannelCatalog.NormalizeLoose(promptChannel);
-            bool supportedChannel =
-                string.Equals(channel, RimTalkPromptEntryChannelCatalog.RpgDialogue, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(channel, RimTalkPromptEntryChannelCatalog.ProactiveRpgDialogue, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(channel, RimTalkPromptEntryChannelCatalog.Any, StringComparison.OrdinalIgnoreCase);
-            if (!supportedChannel)
-            {
-                return template ?? string.Empty;
-            }
-
-            string current = template ?? string.Empty;
-            if (current.Length == 0 ||
-                current.IndexOf("{{ dialogue.guidance }}", StringComparison.OrdinalIgnoreCase) < 0 ||
-                current.IndexOf("{{ if dialogue.guidance", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return current;
-            }
-
-            string migrated = current;
-            migrated = WrapLegacyGuidanceLine(migrated, "引导：{{ dialogue.guidance }}");
-            migrated = WrapLegacyGuidanceLine(migrated, "Guidance: {{ dialogue.guidance }}");
-            return migrated;
-        }
-
-        private static string WrapLegacyGuidanceLine(string template, string lineText)
-        {
-            if (string.IsNullOrEmpty(template) || string.IsNullOrEmpty(lineText))
-            {
-                return template ?? string.Empty;
-            }
-
-            string wrapped = "{{ if dialogue.guidance != \"\" }}\n" + lineText + "{{ end }}";
-            string migrated = template
-                .Replace("\r\n" + lineText, wrapped)
-                .Replace("\n" + lineText, wrapped);
-
-            if (string.Equals(migrated, lineText, StringComparison.Ordinal))
-            {
-                return wrapped;
-            }
-
-            return migrated;
+            Owner = owner;
+            Slice1 = new PromptUnifiedChannelSlice1(owner);
+            Slice2 = new PromptUnifiedChannelSlice2(owner);
         }
     }
+
 
     [Serializable]
     public sealed class PromptUnifiedSectionContent : IExposable
@@ -1359,12 +880,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 true);
         }
 
-        private static PromptUnifiedNodeSlot ResolveDefaultSlot(string promptChannel, string nodeId)
+        internal static PromptUnifiedNodeSlot ResolveDefaultSlot(string promptChannel, string nodeId)
         {
             return PromptUnifiedNodeSlot.MainChainBefore;
         }
 
-        private static int ResolveDefaultOrder(string promptChannel, string nodeId)
+        internal static int ResolveDefaultOrder(string promptChannel, string nodeId)
         {
             switch (nodeId)
             {

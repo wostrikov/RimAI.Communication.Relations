@@ -291,196 +291,44 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             int shippingPodCount = 0,
             int shippingCostSilver = 0)
         {
-            hasPendingAirdropTradeCardReference = true;
-            pendingAirdropTradeCardNeed = need ?? string.Empty;
-            pendingAirdropTradeCardNeedDefName = needDefName ?? string.Empty;
-            pendingAirdropTradeCardNeedLabel = needLabel ?? string.Empty;
-            pendingAirdropTradeCardNeedSearchText = needSearchText ?? string.Empty;
-            pendingAirdropTradeCardRequestedCount = Math.Max(0, requestedCount);
-            pendingAirdropTradeCardPaymentItemDef = paymentItemDef ?? string.Empty;
-            pendingAirdropTradeCardPaymentItemLabel = paymentItemLabel ?? string.Empty;
-            pendingAirdropTradeCardPaymentItemCount = Math.Max(0, paymentItemCount);
-            pendingAirdropTradeCardScenario = string.IsNullOrWhiteSpace(scenario) ? "trade" : scenario.Trim();
-            pendingAirdropTradeCardSubmittedTick = Find.TickManager?.TicksGame ?? 0;
-            pendingAirdropTradeCardShippingPodCount = Math.Max(0, shippingPodCount);
-            pendingAirdropTradeCardShippingCost = Math.Max(0, shippingCostSilver);
+            FactionDialogueSessionAirdropRefs.SetPendingAirdropTradeCardReference(
+                this,
+                need,
+                needDefName,
+                needLabel,
+                needSearchText,
+                requestedCount,
+                paymentItemDef,
+                paymentItemLabel,
+                paymentItemCount,
+                scenario,
+                shippingPodCount,
+                shippingCostSilver);
         }
 
         public void ClearPendingAirdropTradeCardReference()
         {
-            hasPendingAirdropTradeCardReference = false;
-            pendingAirdropTradeCardNeed = string.Empty;
-            pendingAirdropTradeCardNeedDefName = string.Empty;
-            pendingAirdropTradeCardNeedLabel = string.Empty;
-            pendingAirdropTradeCardNeedSearchText = string.Empty;
-            pendingAirdropTradeCardRequestedCount = 0;
-            pendingAirdropTradeCardPaymentItemDef = string.Empty;
-            pendingAirdropTradeCardPaymentItemLabel = string.Empty;
-            pendingAirdropTradeCardPaymentItemCount = 0;
-            pendingAirdropTradeCardScenario = "trade";
-            pendingAirdropTradeCardSubmittedTick = 0;
-            pendingAirdropTradeCardShippingPodCount = 0;
-            pendingAirdropTradeCardShippingCost = 0;
+            FactionDialogueSessionAirdropRefs.ClearPendingAirdropTradeCardReference(this);
         }
 
         public void ClearPendingAirdropExecutionState()
         {
-            pendingAirdropRequestId = null;
-            pendingAirdropRequestLease = null;
-            isWaitingForAirdropSelection = false;
-            pendingAirdropRequestStartedRealtime = -1f;
-            pendingAirdropRequestTimeoutSeconds = 0;
-            airdropRequestGeneration++;
-            airdropExecutionStage = AirdropExecutionStage.Idle;
-            ClearPendingAirdropSelectionIntentState();
+            FactionDialogueSessionAirdropRefs.ClearPendingAirdropExecutionState(this);
         }
 
         public bool HasPendingAirdropSelectionIntent()
         {
-            return HasPendingAirdropSelectionPayload(pendingDelayedActionIntent?.Parameters) ||
-                   HasPendingAirdropSelectionPayload(lastDelayedActionIntent?.Parameters);
+            return FactionDialogueSessionAirdropRefs.HasPendingAirdropSelectionIntent(this);
         }
 
         public bool ClearPendingAirdropSelectionIntentState()
         {
-            bool cleared = false;
-            if (HasPendingAirdropSelectionPayload(pendingDelayedActionIntent?.Parameters))
-            {
-                pendingDelayedActionIntent = null;
-                cleared = true;
-            }
-
-            if (HasPendingAirdropSelectionPayload(lastDelayedActionIntent?.Parameters))
-            {
-                lastDelayedActionIntent = null;
-                cleared = true;
-            }
-
-            return cleared;
-        }
-
-        private static bool HasPendingAirdropSelectionPayload(Dictionary<string, object> parameters)
-        {
-            if (parameters == null)
-            {
-                return false;
-            }
-
-            return parameters.ContainsKey("__airdrop_pending_candidates") ||
-                   parameters.ContainsKey("__airdrop_pending_failure_code");
+            return FactionDialogueSessionAirdropRefs.ClearPendingAirdropSelectionIntentState(this);
         }
 
         public bool TryBuildPendingAirdropTradeCardReference(out string referenceBlock)
         {
-            referenceBlock = string.Empty;
-            if (!hasPendingAirdropTradeCardReference)
-            {
-                return false;
-            }
-
-            string scenario = string.IsNullOrWhiteSpace(pendingAirdropTradeCardScenario)
-                ? "trade"
-                : pendingAirdropTradeCardScenario.Trim();
-            int requestedCount = Math.Max(1, pendingAirdropTradeCardRequestedCount);
-            string paymentItem = string.IsNullOrWhiteSpace(pendingAirdropTradeCardPaymentItemDef)
-                ? "Silver"
-                : pendingAirdropTradeCardPaymentItemDef.Trim();
-            int paymentItemCount = Math.Max(1, pendingAirdropTradeCardPaymentItemCount);
-
-            // Resolve live airdrop quote context when possible
-            float needUnitValue = 0f;
-            float needTotalValue = 0f;
-            float offerUnitValue = 0f;
-            float offerTotalValue = 0f;
-            string needValueSemantic = "market_value";
-            string offerValueSemantic = "market_value";
-            string needDefName = pendingAirdropTradeCardNeedDefName ?? string.Empty;
-            Map map = Find.AnyPlayerHomeMap ?? Find.CurrentMap;
-            Pawn negotiator = ItemAirdropTradePolicy.ResolveBestNegotiator(null);
-            if (!string.IsNullOrWhiteSpace(needDefName))
-            {
-                ThingDef def = DefDatabase<ThingDef>.GetNamedSilentFail(needDefName);
-                if (def != null)
-                {
-                    // Check special item pricing first (discount/scarce) to match actual trade execution
-                    SpecialItemType? detectedSpecialType = null;
-                    if (faction != null && FactionSpecialItemsManager.Instance.TryMatchSpecialItem(faction, needDefName, out SpecialItemType sType))
-                    {
-                        detectedSpecialType = sType;
-                    }
-
-                    if (detectedSpecialType.HasValue &&
-                        ItemAirdropTradePolicy.TryResolveSpecialItemPrice(def, detectedSpecialType.Value, out float specialPrice, out _))
-                    {
-                        needUnitValue = specialPrice;
-                    }
-                    else if (ItemAirdropTradePolicy.TryResolveNeedUnitPrice(def, out float resolvedNeedUnit, out _))
-                    {
-                        needUnitValue = resolvedNeedUnit;
-                        ItemAirdropTradePolicy.ApplyUntradeablePremium(def, ref needUnitValue);
-                    }
-                    else
-                    {
-                        needUnitValue = def.BaseMarketValue;
-                    }
-
-                    needValueSemantic = ItemAirdropTradePolicy.ResolveNeedPriceSemantic(def, faction);
-
-                    needTotalValue = needUnitValue * requestedCount;
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(paymentItem))
-            {
-                ThingDef offerDef = DefDatabase<ThingDef>.GetNamedSilentFail(paymentItem);
-                if (offerDef != null)
-                {
-                    if (ItemAirdropTradePolicy.TryResolveOfferUnitPrice(offerDef, out float resolvedOfferUnit, out _))
-                    {
-                        offerUnitValue = resolvedOfferUnit;
-                        offerValueSemantic = ItemAirdropTradePolicy.ResolveOfferPriceSemantic(offerDef);
-                    }
-                    else
-                    {
-                        offerUnitValue = offerDef.BaseMarketValue;
-                    }
-
-                    offerTotalValue = offerUnitValue * paymentItemCount;
-                }
-            }
-
-            int shippingPods = Math.Max(0, pendingAirdropTradeCardShippingPodCount);
-            int shippingCost = Math.Max(0, pendingAirdropTradeCardShippingCost);
-
-            referenceBlock =
-                "[AirdropTradeCardReference]\n" +
-                $"need: {pendingAirdropTradeCardNeed}\n" +
-                $"need_def: {needDefName}\n" +
-                $"need_label: {pendingAirdropTradeCardNeedLabel}\n" +
-                $"need_search_text: {pendingAirdropTradeCardNeedSearchText}\n" +
-                $"count: {requestedCount}\n" +
-                $"payment_items: [{{\"item\":\"{paymentItem}\",\"count\":{paymentItemCount}}}]\n" +
-                $"scenario: {scenario}\n" +
-                $"shipping_pods: {shippingPods}\n" +
-                $"shipping_cost_silver: {shippingCost}\n" +
-                // Hidden context: aligned quote context and role reminder for AI
-                "[AirdropHiddenContext]\n" +
-                $"need_unit_value: {needUnitValue:F2}\n" +
-                $"need_total_value: {needTotalValue:F2}\n" +
-                $"need_value_semantic: {needValueSemantic}\n" +
-                $"offer_unit_value: {offerUnitValue:F2}\n" +
-                $"offer_total_value: {offerTotalValue:F2}\n" +
-                $"offer_value_semantic: {offerValueSemantic}\n" +
-                $"final_quote_with_shipping: {Math.Max(0f, needTotalValue + shippingCost):F2}\n" +
-                "role_reminder: You are the faction providing the requested supplies via emergency airdrop. " +
-                "The player is paying you with their offer items. " +
-                "Your profit increases when the need items have higher market value. " +
-                "The player loses more when they offer higher-value items. " +
-                "You may accept the trade if the offer is fair or above market value (emergency premium is acceptable). " +
-                "Reject or counter-offer if the player's offer is below market value.\n" +
-                "[/AirdropHiddenContext]\n" +
-                "[/AirdropTradeCardReference]";
-            return true;
+            return FactionDialogueSessionAirdropRefs.TryBuildPendingAirdropTradeCardReference(this, out referenceBlock);
         }
 
         public void SetPendingRansomBatchSelection(
@@ -490,39 +338,13 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             int totalMinOfferSilver,
             int totalMaxOfferSilver)
         {
-            List<int> normalizedTargetIds = (targetPawnLoadIds ?? Enumerable.Empty<int>())
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-            if (normalizedTargetIds.Count <= 0)
-            {
-                ClearPendingRansomBatchSelection();
-                return;
-            }
-
-            int safeMin = Math.Max(1, totalMinOfferSilver);
-            int safeMax = Math.Max(safeMin, totalMaxOfferSilver);
-            int safeAsk = Math.Max(1, totalCurrentAskSilver);
-            ClearPendingRansomOfferReference();
-
-            hasPendingRansomBatchSelection = true;
-            pendingRansomBatchGroupId = string.IsNullOrWhiteSpace(batchGroupId)
-                ? Guid.NewGuid().ToString("N")
-                : batchGroupId.Trim();
-            pendingRansomBatchTargetPawnLoadIds = normalizedTargetIds;
-            pendingRansomBatchTotalCurrentAskSilver = safeAsk;
-            pendingRansomBatchTotalMinOfferSilver = safeMin;
-            pendingRansomBatchTotalMaxOfferSilver = safeMax;
+            FactionDialogueSessionRansomRefs.SetPendingRansomBatchSelection(
+                this, batchGroupId, targetPawnLoadIds, totalCurrentAskSilver, totalMinOfferSilver, totalMaxOfferSilver);
         }
 
         public void ClearPendingRansomBatchSelection()
         {
-            hasPendingRansomBatchSelection = false;
-            pendingRansomBatchGroupId = string.Empty;
-            pendingRansomBatchTargetPawnLoadIds?.Clear();
-            pendingRansomBatchTotalCurrentAskSilver = 0;
-            pendingRansomBatchTotalMinOfferSilver = 0;
-            pendingRansomBatchTotalMaxOfferSilver = 0;
+            FactionDialogueSessionRansomRefs.ClearPendingRansomBatchSelection(this);
         }
 
         public bool TryGetPendingRansomBatchSelection(
@@ -532,54 +354,13 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             out int totalMinOfferSilver,
             out int totalMaxOfferSilver)
         {
-            batchGroupId = pendingRansomBatchGroupId ?? string.Empty;
-            targetPawnLoadIds = new List<int>();
-            totalCurrentAskSilver = Math.Max(0, pendingRansomBatchTotalCurrentAskSilver);
-            totalMinOfferSilver = Math.Max(0, pendingRansomBatchTotalMinOfferSilver);
-            totalMaxOfferSilver = Math.Max(0, pendingRansomBatchTotalMaxOfferSilver);
-            if (!hasPendingRansomBatchSelection || pendingRansomBatchTargetPawnLoadIds == null)
-            {
-                return false;
-            }
-
-            targetPawnLoadIds = pendingRansomBatchTargetPawnLoadIds
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-            if (targetPawnLoadIds.Count <= 0)
-            {
-                return false;
-            }
-
-            return true;
+            return FactionDialogueSessionRansomRefs.TryGetPendingRansomBatchSelection(
+                this, out batchGroupId, out targetPawnLoadIds, out totalCurrentAskSilver, out totalMinOfferSilver, out totalMaxOfferSilver);
         }
 
         public bool TryBuildPendingRansomBatchReference(out string referenceBlock)
         {
-            referenceBlock = string.Empty;
-            if (!TryGetPendingRansomBatchSelection(
-                    out string batchGroupId,
-                    out List<int> targetPawnLoadIds,
-                    out int totalCurrentAskSilver,
-                    out int totalMinOfferSilver,
-                    out int totalMaxOfferSilver))
-            {
-                return false;
-            }
-
-            string ids = string.Join(",", targetPawnLoadIds);
-            referenceBlock =
-                "[RansomBatchSelection]\n" +
-                $"batch_group_id: {batchGroupId}\n" +
-                $"target_count: {targetPawnLoadIds.Count}\n" +
-                $"target_pawn_load_ids: [{ids}]\n" +
-                $"total_current_ask_silver: {totalCurrentAskSilver}\n" +
-                $"total_offer_window_min_silver: {totalMinOfferSilver}\n" +
-                $"total_offer_window_max_silver: {totalMaxOfferSilver}\n" +
-                "requirement: if any pay_prisoner_ransom action is used in this turn, output one action for EVERY listed target_pawn_load_id exactly once in the same response.\n" +
-                "requirement: the sum of offer_silver across those actions must be inside [total_offer_window_min_silver, total_offer_window_max_silver].\n" +
-                "[/RansomBatchSelection]";
-            return true;
+            return FactionDialogueSessionRansomRefs.TryBuildPendingRansomBatchReference(this, out referenceBlock);
         }
 
         public void SetPendingRansomOfferReference(
@@ -588,29 +369,13 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             int minOfferSilver,
             int maxOfferSilver)
         {
-            if (targetPawnLoadId <= 0)
-            {
-                ClearPendingRansomOfferReference();
-                return;
-            }
-
-            int safeMin = Math.Max(1, minOfferSilver);
-            int safeMax = Math.Max(safeMin, maxOfferSilver);
-            int safeAsk = Math.Max(1, currentAskSilver);
-            hasPendingRansomOfferReference = true;
-            pendingRansomOfferTargetPawnLoadId = targetPawnLoadId;
-            pendingRansomOfferCurrentAskSilver = safeAsk;
-            pendingRansomOfferMinSilver = safeMin;
-            pendingRansomOfferMaxSilver = safeMax;
+            FactionDialogueSessionRansomRefs.SetPendingRansomOfferReference(
+                this, targetPawnLoadId, currentAskSilver, minOfferSilver, maxOfferSilver);
         }
 
         public void ClearPendingRansomOfferReference()
         {
-            hasPendingRansomOfferReference = false;
-            pendingRansomOfferTargetPawnLoadId = 0;
-            pendingRansomOfferCurrentAskSilver = 0;
-            pendingRansomOfferMinSilver = 0;
-            pendingRansomOfferMaxSilver = 0;
+            FactionDialogueSessionRansomRefs.ClearPendingRansomOfferReference(this);
         }
 
         public bool TryGetPendingRansomOfferReference(
@@ -619,37 +384,13 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             out int minOfferSilver,
             out int maxOfferSilver)
         {
-            targetPawnLoadId = Math.Max(0, pendingRansomOfferTargetPawnLoadId);
-            currentAskSilver = Math.Max(0, pendingRansomOfferCurrentAskSilver);
-            minOfferSilver = Math.Max(0, pendingRansomOfferMinSilver);
-            maxOfferSilver = Math.Max(0, pendingRansomOfferMaxSilver);
-            return hasPendingRansomOfferReference &&
-                targetPawnLoadId > 0 &&
-                minOfferSilver > 0 &&
-                maxOfferSilver >= minOfferSilver;
+            return FactionDialogueSessionRansomRefs.TryGetPendingRansomOfferReference(
+                this, out targetPawnLoadId, out currentAskSilver, out minOfferSilver, out maxOfferSilver);
         }
 
         public bool TryBuildPendingRansomOfferReference(out string referenceBlock)
         {
-            referenceBlock = string.Empty;
-            if (!TryGetPendingRansomOfferReference(
-                    out int targetPawnLoadId,
-                    out int currentAskSilver,
-                    out int minOfferSilver,
-                    out int maxOfferSilver))
-            {
-                return false;
-            }
-
-            referenceBlock =
-                "[RansomOfferReference]\n" +
-                $"target_pawn_load_id: {targetPawnLoadId}\n" +
-                $"current_ask_silver: {currentAskSilver}\n" +
-                $"offer_window_min_silver: {minOfferSilver}\n" +
-                $"offer_window_max_silver: {maxOfferSilver}\n" +
-                "requirement: for pay_prisoner_ransom in single-target flow, keep offer_silver inside [offer_window_min_silver, offer_window_max_silver]; if out of range, execution will clamp to the nearest boundary.\n" +
-                "[/RansomOfferReference]";
-            return true;
+            return FactionDialogueSessionRansomRefs.TryBuildPendingRansomOfferReference(this, out referenceBlock);
         }
 
         public bool TryGetRansomSessionState(
@@ -776,29 +517,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         public void ExposeData()
         {
-            Scribe_References.Look(ref faction, "faction");
-            Scribe_Collections.Look(ref messages, "messages", LookMode.Deep);
-            Scribe_Values.Look(ref lastInteractionTick, "lastInteractionTick", 0);
-            Scribe_Values.Look(ref hasUnreadMessages, "hasUnreadMessages", false);
-            Scribe_Values.Look(ref isConversationEndedByNpc, "isConversationEndedByNpc", false);
-            Scribe_Values.Look(ref allowReinitiate, "allowReinitiate", false);
-            Scribe_Values.Look(ref conversationEndReason, "conversationEndReason", "");
-            Scribe_Values.Look(ref conversationEndedTick, "conversationEndedTick", 0);
-            Scribe_Values.Look(ref reinitiateAvailableTick, "reinitiateAvailableTick", 0);
-            Scribe_Values.Look(ref lastSummarizedMessageIndex, "lastSummarizedMessageIndex", 0);
-            Scribe_Values.Look(ref messageVersion, "messageVersion", 0);
-            Scribe_Values.Look(ref lastAirdropCounterofferDefName, "lastAirdropCounterofferDefName", string.Empty);
-            Scribe_Values.Look(ref lastAirdropCounterofferCount, "lastAirdropCounterofferCount", 0);
-            Scribe_Values.Look(ref lastAirdropCounterofferSilver, "lastAirdropCounterofferSilver", 0);
-            Scribe_Values.Look(ref lastAirdropCounterofferReason, "lastAirdropCounterofferReason", string.Empty);
-            Scribe_Values.Look(ref lastAirdropCounterofferTick, "lastAirdropCounterofferTick", 0);
-            Scribe_Values.Look(ref hasPendingRansomBatchSelection, "hasPendingRansomBatchSelection", false);
-            Scribe_Values.Look(ref pendingRansomBatchGroupId, "pendingRansomBatchGroupId", string.Empty);
-            Scribe_Collections.Look(ref pendingRansomBatchTargetPawnLoadIds, "pendingRansomBatchTargetPawnLoadIds", LookMode.Value);
-            Scribe_Values.Look(ref pendingRansomBatchTotalCurrentAskSilver, "pendingRansomBatchTotalCurrentAskSilver", 0);
-            Scribe_Values.Look(ref pendingRansomBatchTotalMinOfferSilver, "pendingRansomBatchTotalMinOfferSilver", 0);
-            Scribe_Values.Look(ref pendingRansomBatchTotalMaxOfferSilver, "pendingRansomBatchTotalMaxOfferSilver", 0);
-            pendingRansomBatchTargetPawnLoadIds ??= new List<int>();
+            FactionDialogueSessionPersistence.ExposeData(this);
         }
     }
 

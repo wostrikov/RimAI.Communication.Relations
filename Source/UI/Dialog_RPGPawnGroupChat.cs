@@ -14,104 +14,106 @@ using Ustas.RimAI.Communication.Relations.Rpg;
 namespace Ustas.RimAI.Communication.Relations.UI
 {
     [StaticConstructorOnStartup]
-    public partial class Dialog_RPGPawnGroupChat : Window
+    public class Dialog_RPGPawnGroupChat : Window
     {
+        internal Dialog_RPGPawnGroupChatParts Parts;
+
         internal readonly Pawn initiator;
         internal readonly List<GroupChatParticipant> participants;
 
-        private readonly string dialogueSessionId;
-        private readonly DialogueRuntimeContext runtimeContext;
-        private readonly string windowLifecycleKey;
-        private readonly string windowInstanceId = Guid.NewGuid().ToString("N");
-        private readonly RpgDialogueConversationController conversationController = new RpgDialogueConversationController();
+        internal readonly string dialogueSessionId;
+        internal readonly DialogueRuntimeContext runtimeContext;
+        internal readonly string windowLifecycleKey;
+        internal readonly string windowInstanceId = Guid.NewGuid().ToString("N");
+        internal readonly RpgDialogueConversationController conversationController = new RpgDialogueConversationController();
 
-        private DialogueRequestLease activeRequestLease;
-        private DialogueRuntimeContext activeRequestRuntimeContext;
-        private bool isWindowClosing;
+        internal DialogueRequestLease activeRequestLease;
+        internal DialogueRuntimeContext activeRequestRuntimeContext;
+        internal bool isWindowClosing;
 
         // Round-robin state
-        private int currentSpeakerIndex = -1;
-        private int currentRound;
-        private bool pauseForClick;
-        private bool isPlayerTurn;
-        private bool isSendingRequest;
+        internal int currentSpeakerIndex = -1;
+        internal int currentRound;
+        internal bool pauseForClick;
+        internal bool isPlayerTurn;
+        internal bool isSendingRequest;
 
         // Dialogue text state
-        private string currentDialogueText = "";
-        private string displayedText = "";
-        private string userReplyText = "";
-        private int visibleChars;
-        private float lastCharTime;
-        private bool isTyping;
+        internal string currentDialogueText = "";
+        internal string displayedText = "";
+        internal string userReplyText = "";
+        internal int visibleChars;
+        internal float lastCharTime;
+        internal bool isTyping;
 
         // Player-speech display (reuse 1v1 flow)
-        private bool isShowingPlayerText;
-        private bool isWaitingForPlayerDelay;
-        private float timePlayerTextFinished;
-        private bool nextSpeakerRequested;
+        internal bool isShowingPlayerText;
+        internal bool isWaitingForPlayerDelay;
+        internal float timePlayerTextFinished;
+        internal bool nextSpeakerRequested;
 
         // AI state
-        private bool aiResponseReady;
-        private string aiResponseText = "";
+        internal bool aiResponseReady;
+        internal string aiResponseText = "";
 
         // Context accumulation: all dialogues in order for injection
-        private readonly List<GroupTurnRecord> turnRecords = new List<GroupTurnRecord>();
+        internal readonly List<GroupTurnRecord> turnRecords = new List<GroupTurnRecord>();
 
         // History / pages
-        private readonly List<DialoguePage> dialogPages = new List<DialoguePage>();
-        private bool isViewingHistory;
-        private int historyViewIndex;
+        internal readonly List<DialoguePage> dialogPages = new List<DialoguePage>();
+        internal bool isViewingHistory;
+        internal int historyViewIndex;
 
         // Text paging (reuse 1v1 pattern)
-        private readonly List<string> currentTextPages = new List<string>();
-        private string pagedTextCache = "";
-        private float pagedWidthCache = -1f;
-        private float pagedHeightCache = -1f;
-        private int currentTextPageIndex;
+        internal readonly List<string> currentTextPages = new List<string>();
+        internal string pagedTextCache = "";
+        internal float pagedWidthCache = -1f;
+        internal float pagedHeightCache = -1f;
+        internal int currentTextPageIndex;
 
         // Round transition animation
-        private int previousSpeakerIndex = -1;
-        private float roundTransitionTime;
-        private const float RoundTransitionDuration = 0.35f;
+        internal int previousSpeakerIndex = -1;
+        internal float roundTransitionTime;
+        internal const float RoundTransitionDuration = 0.35f;
 
         // Action feedback (reuse 1v1-style floating subtitles)
-        private readonly List<ActionFeedbackEntry> feedbackEntries = new List<ActionFeedbackEntry>();
-        private struct ActionFeedbackEntry
+        internal readonly List<ActionFeedbackEntry> feedbackEntries = new List<ActionFeedbackEntry>();
+        internal struct ActionFeedbackEntry
         {
             public string Text;
             public Color Color;
             public float CreatedAt;
         }
-        private const float FeedbackDuration = 4f;
-        private const int FeedbackMaxCount = 5;
+        internal const float FeedbackDuration = 4f;
+        internal const int FeedbackMaxCount = 5;
 
         // Dialogue box color (reuse 1v1 dynamic color)
-        private Color dialogueBoxCurrentColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
-        private Color dialogueBoxTargetColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
-        private const float DialogueBoxColorBlendSpeed = 2.5f;
-        private static readonly Color BoxDefault = new Color(0.1f, 0.1f, 0.12f, 0.9f);
-        private static readonly Color BoxRomance = new Color(0.50f, 0.44f, 0.45f, 0.9f);
-        private static readonly Color BoxNeutral = new Color(0.13f, 0.17f, 0.24f, 0.9f);
-        private static readonly Color BoxPrisoner = new Color(0.22f, 0.13f, 0.07f, 0.9f);
-        private static readonly Color BoxHostile = new Color(0.40f, 0.15f, 0.16f, 0.9f);
+        internal Color dialogueBoxCurrentColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
+        internal Color dialogueBoxTargetColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
+        internal const float DialogueBoxColorBlendSpeed = 2.5f;
+        internal static readonly Color BoxDefault = new Color(0.1f, 0.1f, 0.12f, 0.9f);
+        internal static readonly Color BoxRomance = new Color(0.50f, 0.44f, 0.45f, 0.9f);
+        internal static readonly Color BoxNeutral = new Color(0.13f, 0.17f, 0.24f, 0.9f);
+        internal static readonly Color BoxPrisoner = new Color(0.22f, 0.13f, 0.07f, 0.9f);
+        internal static readonly Color BoxHostile = new Color(0.40f, 0.15f, 0.16f, 0.9f);
 
         // Animation
-        private float globalFadeAlpha;
-        private float inputAlpha = 0.3f;
-        private const float FadeSpeed = 1.5f;
+        internal float globalFadeAlpha;
+        internal float inputAlpha = 0.3f;
+        internal const float FadeSpeed = 1.5f;
 
         // UI constants
         internal const float PortraitOverlapRatio = 0.55f;
         internal const float PortraitLeftMargin = 50f;
-        private const float ClickHintAlpha = 0.7f;
-        private const float PortraitVerticalOverlap = 150f;
+        internal const float ClickHintAlpha = 0.7f;
+        internal const float PortraitVerticalOverlap = 150f;
 
         // Portrait RT caches
-        private RenderTexture initiatorPortraitRT;
-        private readonly Dictionary<int, float> _lastPortraitRenderTime = new Dictionary<int, float>();
-        private const float NonSpeakerRenderInterval = 0.5f;
+        internal RenderTexture initiatorPortraitRT;
+        internal readonly Dictionary<int, float> _lastPortraitRenderTime = new Dictionary<int, float>();
+        internal const float NonSpeakerRenderInterval = 0.5f;
 
-        private const string UserReplyInputControlName = "GroupChatUserReplyInput";
+        internal const string UserReplyInputControlName = "GroupChatUserReplyInput";
 
         internal struct GroupChatParticipant
         {
@@ -123,7 +125,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             public RenderTexture PortraitRT;
         }
 
-        private struct DialoguePage
+        internal struct DialoguePage
         {
             public string speakerName;
             public string text;
@@ -146,6 +148,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             DialogueRuntimeContext runtimeContext = null,
             string windowLifecycleKey = null)
         {
+            Parts = new Dialog_RPGPawnGroupChatParts(this);
             this.initiator = initiator;
 
             this.participants = new List<GroupChatParticipant>();
@@ -186,88 +189,11 @@ namespace Ustas.RimAI.Communication.Relations.UI
             SendFirstSpeakerRequest();
         }
 
-        private void WarmupParticipantMemories()
-        {
-            foreach (var p in participants)
-            {
-                RpgNpcDialogueArchiveManager.Instance.BeginPromptMemoryWarmup(p.Pawn, initiator);
-            }
-        }
+        
 
-        public bool MatchesWindowLifecycleKey(string key)
-        {
-            if (string.IsNullOrWhiteSpace(key)) return false;
-            return string.Equals(windowLifecycleKey, key.Trim(), StringComparison.Ordinal);
-        }
+        
 
-        public override void DoWindowContents(Rect inRect)
-        {
-            float deltaTime = Time.deltaTime;
-            globalFadeAlpha = Mathf.Clamp01(globalFadeAlpha + deltaTime * FadeSpeed);
-            dialogueBoxTargetColor = ResolveDialogueBoxColor();
-            dialogueBoxCurrentColor = Color.Lerp(dialogueBoxCurrentColor, dialogueBoxTargetColor, deltaTime * DialogueBoxColorBlendSpeed);
-
-            UpdateFlowControl();
-            DrawPortraits(inRect);
-            DrawDialogueBox(inRect);
-            DrawClickToContinueHint(inRect);
-            DrawHistoryPanel(inRect);
-            DrawActionFeedback(inRect);
-
-            if (Event.current.type == EventType.MouseDown)
-            {
-                // Close history panel on outside click
-                if (isHistoryPanelOpen)
-                {
-                    float sidePad = Mathf.Clamp(inRect.width * 0.15f, 160f, 300f);
-                    float pw = Mathf.Clamp(inRect.width - sidePad * 2f, HistoryPanelMinW, HistoryPanelMaxW);
-                    float ph = Mathf.Clamp(inRect.height * 0.7f, HistoryPanelMinH, HistoryPanelMaxH);
-                    Rect panelR = new Rect((inRect.width - pw) / 2f, (inRect.height - ph) / 2f - 30f, pw, ph);
-                    if (!panelR.Contains(Event.current.mousePosition))
-                    {
-                        isHistoryPanelOpen = false;
-                        Event.current.Use();
-                        return;
-                    }
-                }
-
-                Rect dialogueBoxRect = new Rect(0, inRect.height - Dialog_RPGPawnDialogue.DialogueBoxHeight, inRect.width, Dialog_RPGPawnDialogue.DialogueBoxHeight);
-                bool insideDialogueBox = dialogueBoxRect.Contains(Event.current.mousePosition);
-
-                if (!insideDialogueBox)
-                {
-                    Close();
-                    Event.current.Use();
-                }
-                else if (isTyping)
-                {
-                    visibleChars = currentDialogueText.Length;
-                    displayedText = currentDialogueText;
-                    isTyping = false;
-                    if (!isPlayerTurn)
-                        pauseForClick = true;
-                    Event.current.Use();
-                }
-                else if (pauseForClick && !isPlayerTurn)
-                {
-                    pauseForClick = false;
-                    AdvanceToNextSpeaker();
-                    Event.current.Use();
-                }
-                else
-                {
-                    float inputHeight = 45f;
-                    float dialogueBoxY = inRect.height - Dialog_RPGPawnDialogue.DialogueBoxHeight;
-                    Rect bottomArea = new Rect(35f, dialogueBoxY + Dialog_RPGPawnDialogue.DialogueBoxHeight - 35f - inputHeight, inRect.width - 70f, inputHeight);
-                    if (!bottomArea.Contains(Event.current.mousePosition))
-                    {
-                        if (GUI.GetNameOfFocusedControl() == UserReplyInputControlName)
-                            GUI.FocusControl(null);
-                    }
-                    Event.current.Use();
-                }
-            }
-        }
+        
 
         public override void PreClose()
         {
@@ -288,400 +214,120 @@ namespace Ustas.RimAI.Communication.Relations.UI
             base.PreClose();
         }
 
-        private void DrawDialogueBox(Rect inRect)
-        {
-            Rect boxRect = new Rect(0, inRect.height - Dialog_RPGPawnDialogue.DialogueBoxHeight, inRect.width, Dialog_RPGPawnDialogue.DialogueBoxHeight);
-            Widgets.DrawBoxSolid(boxRect, dialogueBoxCurrentColor);
-            GUI.color = new Color(0.3f, 0.3f, 0.35f, 1f);
-            Widgets.DrawBox(boxRect, 2);
-            GUI.color = Color.white;
+        
 
-            Rect contentRect = boxRect.ContractedBy(35f);
+        
 
-            // Determine speaker name (live or history, matching 1v1)
-            string renderSpeaker;
-            string renderText;
-            bool drawLive = !isViewingHistory;
+        
 
-            if (drawLive)
-            {
-                renderSpeaker = isShowingPlayerText ? initiator.LabelShort
-                    : (isPlayerTurn ? initiator.LabelShort
-                        : (currentSpeakerIndex >= 0 && currentSpeakerIndex < participants.Count
-                            ? participants[currentSpeakerIndex].DisplayName : ""));
-                renderText = isTyping ? displayedText : currentDialogueText;
-            }
-            else
-            {
-                renderSpeaker = historyViewIndex < dialogPages.Count ? dialogPages[historyViewIndex].speakerName : "";
-                renderText = historyViewIndex < dialogPages.Count ? dialogPages[historyViewIndex].text : "";
-            }
+        
 
-            bool rightAligned = renderSpeaker == initiator.LabelShort;
+        
 
-            if (!string.IsNullOrEmpty(renderSpeaker))
-            {
-                Rect nameRect = rightAligned
-                    ? new Rect(contentRect.xMax - 600f, contentRect.y - 35f, 600f, 55f)
-                    : new Rect(contentRect.x, contentRect.y - 35f, 600f, 55f);
-                Pawn namePawn = rightAligned ? initiator
-                    : (currentSpeakerIndex >= 0 && currentSpeakerIndex < participants.Count
-                        ? participants[currentSpeakerIndex].Pawn : null);
-                DrawSpeakerName(nameRect, renderSpeaker, rightAligned, namePawn);
-            }
+        
 
-            Rect textArea = new Rect(contentRect.x, contentRect.y + 20f, contentRect.width, contentRect.height - 70f);
-
-            // Right-align player text (reuse 1v1 pattern exactly)
-            if (rightAligned)
-            {
-                string measureText = System.Text.RegularExpressions.Regex.Replace(renderText, "<.*?>", "");
-                GameFont prevFont = Text.Font;
-                Text.Font = GameFont.Medium;
-                Vector2 size = Text.CalcSize(measureText);
-                Text.Font = prevFont;
-                float clampedWidth = Mathf.Min(size.x * 1.6f + 40f, contentRect.width * 0.85f);
-                textArea.x = contentRect.xMax - clampedWidth;
-                textArea.width = clampedWidth;
-                Text.Anchor = TextAnchor.UpperLeft;
-            }
-
-            // State transition: player text done → wait for AI → show NPC response
-            CheckPlayerTextTransition();
-
-            if (drawLive)
-            {
-                if (isSendingRequest && !isShowingPlayerText)
-                {
-                    string dots = new string('.', (int)(Time.time * 2) % 4);
-                    string thinkingText = "RimChat_RPGThinking".Translate(dots);
-                    Widgets.Label(textArea, $"<size=34><color=#b0b0b0>{thinkingText}</color></size>");
-                }
-                else if (isShowingPlayerText && isWaitingForPlayerDelay && !aiResponseReady
-                    && Time.realtimeSinceStartup - timePlayerTextFinished >= 3.0f)
-                {
-                    string dots = new string('.', (int)(Time.time * 2) % 4);
-                    string waitingText = "RimChat_RPGOpponentThinking".Translate(dots);
-                    Widgets.Label(textArea, $"<size=34>{displayedText}\n<color=#b0b0b0>{waitingText}</color></size>");
-                }
-                else
-                {
-                    UpdateTyping();
-                    string rawText = isTyping ? displayedText : currentDialogueText;
-                    if (string.IsNullOrWhiteSpace(rawText)) rawText = "…";
-                    string visibleText = ResolvePagedText(rawText, textArea);
-                    Widgets.Label(textArea, $"<size=34>{visibleText}</size>");
-                }
-            }
-            else
-            {
-                Widgets.Label(textArea, $"<size=34>{renderText}</size>");
-            }
-
-            if (rightAligned)
-                Text.Anchor = TextAnchor.UpperLeft;
-
-            // Player input: only when NOT showing player text, NOT typing, NOT sending
-            if (!isTyping && !isSendingRequest && !isShowingPlayerText && drawLive && isPlayerTurn)
-            {
-                float inputHeight = 45f;
-                Rect bottomArea = new Rect(contentRect.x, contentRect.yMax - inputHeight, contentRect.width, inputHeight);
-                bool isFocused = GUI.GetNameOfFocusedControl() == UserReplyInputControlName;
-                bool mouseInBottom = Mouse.IsOver(bottomArea);
-                float targetAlpha = (mouseInBottom || isFocused) ? 1.0f : 0.25f;
-                inputAlpha = Mathf.Lerp(inputAlpha, targetAlpha, 0.12f);
-
-                GUI.color = new Color(1f, 1f, 1f, inputAlpha);
-
-                Rect inputRect = new Rect(bottomArea.x, bottomArea.y, bottomArea.width - 150f, inputHeight);
-                if (inputAlpha < 0.9f)
-                    Widgets.DrawBoxSolid(inputRect, new Color(1f, 1f, 1f, 0.05f));
-
-                GUI.SetNextControlName(UserReplyInputControlName);
-                if (ShouldSendFromKeyboard())
-                {
-                    Event.current.Use();
-                    TrySendPlayerMessage();
-                }
-                userReplyText = Widgets.TextField(inputRect, userReplyText);
-
-                Rect sendRect = new Rect(bottomArea.xMax - 135f, bottomArea.y, 135f, inputHeight);
-                string sendLabel = "RimChat_SendButton".Translate();
-                if (inputAlpha < 0.5f)
-                {
-                    Text.Anchor = TextAnchor.MiddleCenter;
-                    Widgets.Label(sendRect, sendLabel);
-                    Text.Anchor = TextAnchor.UpperLeft;
-                    if (Widgets.ButtonInvisible(sendRect)) TrySendPlayerMessage();
-                }
-                else
-                {
-                    if (Widgets.ButtonText(sendRect, sendLabel)) TrySendPlayerMessage();
-                }
-                GUI.color = Color.white;
-            }
-
-            DrawDialogueNavigation(boxRect);
-        }
-
-        private void DrawDialogueNavigation(Rect boxRect)
-        {
-            // Page navigation (text too long)
-            if (currentTextPages.Count > 1 && !isTyping && !isSendingRequest)
-            {
-                Rect pageBox = new Rect(boxRect.xMax - 220f, boxRect.yMax - 30f, 100f, 25f);
-                DrawNavBox(pageBox, currentTextPageIndex > 0, currentTextPageIndex < currentTextPages.Count - 1,
-                    $"{currentTextPageIndex + 1}/{currentTextPages.Count}",
-                    () => currentTextPageIndex = Mathf.Max(0, currentTextPageIndex - 1),
-                    () => currentTextPageIndex = Mathf.Min(currentTextPages.Count - 1, currentTextPageIndex + 1));
-            }
-
-            // History toggle button (opens center panel like 1v1)
-            DrawHistoryToggleButton(boxRect);
-        }
-
-        private static void DrawNavBox(Rect boxRect, bool canGoPrev, bool canGoNext, string counter, Action onPrev, Action onNext)
-        {
-            GUI.color = Mouse.IsOver(boxRect) ? new Color(0.9f, 0.9f, 0.9f, 0.9f) : new Color(0.5f, 0.5f, 0.5f, 0.4f);
-            Rect prevRect = new Rect(boxRect.x, boxRect.y, 30f, 25f);
-            Rect countRect = new Rect(boxRect.x + 30f, boxRect.y, 40f, 25f);
-            Rect nextRect = new Rect(boxRect.x + 70f, boxRect.y, 30f, 25f);
-            Text.Font = GameFont.Small;
-            Text.Anchor = TextAnchor.MiddleCenter;
-            if (canGoPrev && Widgets.ButtonInvisible(prevRect)) { onPrev?.Invoke(); SoundDefOf.Tick_Tiny.PlayOneShotOnCamera(); }
-            Widgets.Label(prevRect, "<");
-            Widgets.Label(countRect, counter);
-            if (canGoNext && Widgets.ButtonInvisible(nextRect)) { onNext?.Invoke(); SoundDefOf.Tick_Tiny.PlayOneShotOnCamera(); }
-            Widgets.Label(nextRect, ">");
-            Text.Anchor = TextAnchor.UpperLeft;
-            GUI.color = Color.white;
-        }
-
-        private void DrawClickToContinueHint(Rect inRect)
-        {
-            if (!pauseForClick || isPlayerTurn || isTyping || isSendingRequest) return;
-
-            float hintY = inRect.height - 50f;
-            Rect hintRect = new Rect(0, hintY, inRect.width, 25f);
-            Text.Anchor = TextAnchor.MiddleCenter;
-            GUI.color = new Color(1f, 1f, 1f, ClickHintAlpha);
-            Widgets.Label(hintRect, "RimChat_ClickToContinue".Translate());
-            GUI.color = Color.white;
-            Text.Anchor = TextAnchor.UpperLeft;
-        }
-
-        private void DrawSpeakerName(Rect nameRect, string displayName, bool rightAligned, Pawn pawn = null)
-        {
-            bool hovered = Mouse.IsOver(nameRect);
-            Color nameColor = hovered ? new Color(1f, 0.92f, 0.55f, 1f) : new Color(0.88f, 0.88f, 0.88f, 1f);
-            string colorHex = ColorUtility.ToHtmlStringRGB(nameColor);
-
-            GameFont prevFont = Text.Font;
-            Text.Font = GameFont.Medium;
-            Vector2 textSize = Text.CalcSize(displayName);
-            Text.Font = prevFont;
-            float measuredWidth = textSize.x * 2.1f + 20f;
-
-            Rect clickRect;
-            if (rightAligned)
-            {
-                Text.Anchor = TextAnchor.UpperRight;
-                clickRect = new Rect(nameRect.xMax - measuredWidth, nameRect.y, measuredWidth, nameRect.height);
-            }
-            else
-            {
-                clickRect = new Rect(nameRect.x, nameRect.y, measuredWidth, nameRect.height);
-            }
-
-            Widgets.Label(nameRect, $"<size=44><b><color=#{colorHex}>{displayName}</color></b></size>");
-            Text.Anchor = TextAnchor.UpperLeft;
-
-            if (pawn != null && Widgets.ButtonInvisible(clickRect))
-            {
-                Dialog_RPGPawnDialogue.ShowPawnMenuStatic(pawn);
-            }
-
-            if (hovered)
-                TooltipHandler.TipRegion(clickRect, "RimChat_PawnMenu_HoverTooltip".Translate());
-        }
-
-        private void UpdateTyping()
-        {
-            if (!isTyping || visibleChars >= currentDialogueText.Length) return;
-
-            float interval = 0.02f;
-            if (Time.realtimeSinceStartup - lastCharTime > interval)
-            {
-                visibleChars++;
-                if (visibleChars < currentDialogueText.Length && currentDialogueText[visibleChars - 1] == '<')
-                {
-                    int closeTagIndex = currentDialogueText.IndexOf('>', visibleChars - 1);
-                    if (closeTagIndex != -1) visibleChars = closeTagIndex + 1;
-                }
-                displayedText = currentDialogueText.Substring(0, Mathf.Min(visibleChars, currentDialogueText.Length));
-                lastCharTime = Time.realtimeSinceStartup;
-                if (visibleChars % 3 == 0)
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            }
-
-            if (visibleChars >= currentDialogueText.Length)
-            {
-                isTyping = false;
-                if (!isPlayerTurn)
-                    pauseForClick = true;
-            }
-        }
-
-        private bool ShouldSendFromKeyboard()
-        {
-            Event current = Event.current;
-            if (current == null) return false;
-            if (current.keyCode != KeyCode.Return && current.keyCode != KeyCode.KeypadEnter) return false;
-            if (current.type != EventType.KeyDown && current.rawType != EventType.KeyDown) return false;
-            if (current.alt) return false;
-            if (!string.IsNullOrEmpty(Input.compositionString)) return false;
-            if (GUI.GetNameOfFocusedControl() != UserReplyInputControlName) return false;
-            return !string.IsNullOrWhiteSpace(userReplyText);
-        }
+        
 
         // ── Action feedback (1v1-style floating subtitle) ──
 
-        internal void AddActionFeedback(string text, Color color)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return;
-            feedbackEntries.Add(new ActionFeedbackEntry { Text = text, Color = color, CreatedAt = Time.realtimeSinceStartup });
-            if (feedbackEntries.Count > FeedbackMaxCount) feedbackEntries.RemoveAt(0);
-        }
+        
 
-        private void DrawActionFeedback(Rect inRect)
-        {
-            // Remove expired
-            float now = Time.realtimeSinceStartup;
-            feedbackEntries.RemoveAll(e => now - e.CreatedAt > FeedbackDuration);
-            if (feedbackEntries.Count == 0) return;
+        
 
-            // Anchor: right side, near initiator portrait
-            float anchorX = inRect.width - Dialog_RPGPawnDialogue.PortraitWidth - 120f;
-            float anchorY = inRect.height - Dialog_RPGPawnDialogue.DialogueBoxHeight - 80f;
-            float y = anchorY;
+        
 
-            for (int i = feedbackEntries.Count - 1; i >= 0; i--)
-            {
-                var entry = feedbackEntries[i];
-                float age = now - entry.CreatedAt;
-                float alpha = Mathf.Clamp01((FeedbackDuration - age) / 1f);
-                float rise = Mathf.SmoothStep(0f, 30f, Mathf.Clamp01(age / (FeedbackDuration - 0.5f)));
-
-                Rect textRect = new Rect(anchorX, y - rise, 280f, 28f);
-                GUI.color = new Color(0f, 0f, 0f, 0.5f * alpha);
-                Widgets.Label(new Rect(textRect.x + 1, textRect.y + 2, textRect.width, textRect.height), entry.Text);
-                GUI.color = new Color(entry.Color.r, entry.Color.g, entry.Color.b, 0.95f * alpha);
-                Widgets.Label(textRect, entry.Text);
-                GUI.color = Color.white;
-                y -= 32f;
-            }
-        }
-
-        private Color ResolveDialogueBoxColor()
-        {
-            Pawn currentPawn = null;
-            if (!isPlayerTurn && currentSpeakerIndex >= 0 && currentSpeakerIndex < participants.Count)
-                currentPawn = participants[currentSpeakerIndex].Pawn;
-            if (currentPawn == null) return BoxDefault;
-
-            if (currentPawn.relations?.DirectRelationExists(PawnRelationDefOf.Lover, initiator) == true
-                || currentPawn.relations?.DirectRelationExists(PawnRelationDefOf.Fiance, initiator) == true
-                || currentPawn.relations?.DirectRelationExists(PawnRelationDefOf.Spouse, initiator) == true)
-                return BoxRomance;
-            if (currentPawn.Faction == Faction.OfPlayer) return BoxDefault;
-            if (currentPawn.IsPrisoner || currentPawn.IsSlave) return BoxPrisoner;
-            if (currentPawn.Faction?.HostileTo(Faction.OfPlayer) == true) return BoxHostile;
-            return BoxNeutral;
-        }
-
-        private void CloseActiveRequestLease()
-        {
-            if (activeRequestLease == null) return;
-            conversationController.CloseLease(activeRequestLease);
-            activeRequestLease = null;
-            activeRequestRuntimeContext = null;
-        }
+        
 
         // ── Text paging ──
 
-        private string ResolvePagedText(string fullText, Rect textArea)
+        
+
+        
+
+        
+
+        #region Facade forwards
+        internal void StartRound() => Parts.FlowControl.StartRound();
+        internal void SendSerialRequest(int pawnIndex) => Parts.FlowControl.SendSerialRequest(pawnIndex);
+        internal void OnResponseReceived(int pawnIndex) => Parts.FlowControl.OnResponseReceived(pawnIndex);
+        internal void SendFirstSpeakerRequest() => Parts.FlowControl.SendFirstSpeakerRequest();
+        internal void AdvanceToNextSpeaker() => Parts.FlowControl.AdvanceToNextSpeaker();
+        internal void CheckPendingResponse() => Parts.FlowControl.CheckPendingResponse();
+        internal void TransitionToPlayerTurn() => Parts.FlowControl.TransitionToPlayerTurn();
+        internal void TrySendPlayerMessage() => Parts.FlowControl.TrySendPlayerMessage();
+        internal void CheckPlayerTextTransition() => Parts.FlowControl.CheckPlayerTextTransition();
+        internal void ShowSpeakerFromCache(int idx) => Parts.FlowControl.ShowSpeakerFromCache(idx);
+        internal void UpdateFlowControl() => Parts.FlowControl.UpdateFlowControl();
+        internal void SkipInvalidPawnsForward() => Parts.FlowControl.SkipInvalidPawnsForward();
+        internal void ResetRoundFlags() => Parts.FlowControl.ResetRoundFlags();
+        internal void ExecuteActionsForSpeaker(GroupChatParticipant speaker, List<LLMRpgApiResponse.ApiAction> actions) => Parts.FlowControl.ExecuteActionsForSpeaker(speaker, actions);
+        internal void ExecuteGroupAction(GroupChatParticipant speaker, string normalizedName, LLMRpgApiResponse.ApiAction action) => Parts.FlowControl.ExecuteGroupAction(speaker, normalizedName, action);
+        internal void DrawHistoryToggleButton(Rect boxRect) => Parts.History.DrawHistoryToggleButton(boxRect);
+        internal void DrawHistoryPanel(Rect inRect) => Parts.History.DrawHistoryPanel(inRect);
+        internal bool TryHandleHistoryPanelClick() => Parts.History.TryHandleHistoryPanelClick();
+        internal static float MeasureGroupHistoryEntryHeight(string text, float width) => RPGPawnGroupChatHistory.MeasureGroupHistoryEntryHeight(text, width);
+        internal void PrepareEnvelopeForDisplay(DialogueResponseEnvelope envelope) => Parts.Lifecycle.PrepareEnvelopeForDisplay(envelope);
+        internal void HandleDroppedResponse(string reason) => Parts.Lifecycle.HandleDroppedResponse(reason);
+        internal void DrawPortraits(Rect inRect) => Parts.Portraits.DrawPortraits(inRect);
+        internal int GetActiveSpeakerIndex() => Parts.Portraits.GetActiveSpeakerIndex();
+        internal List<int> BuildDrawOrder(int speakerIndex, int count) => Parts.Portraits.BuildDrawOrder(speakerIndex, count);
+        internal void UpdateRoundTransition(int newSpeakerIdx) => Parts.Portraits.UpdateRoundTransition(newSpeakerIdx);
+        internal float GetRoundTransitionProgress() => Parts.Portraits.GetRoundTransitionProgress();
+        internal bool NeedsPortraitRefresh(int index) => Parts.Portraits.NeedsPortraitRefresh(index);
+        internal List<Rect> CalculateCascadingRects(Rect inRect) => Parts.Portraits.CalculateCascadingRects(inRect);
+        internal void DrawInitiatorPortrait(Rect inRect) => Parts.Portraits.DrawInitiatorPortrait(inRect);
+        internal void ShowForcedActionMenu() => Parts.Portraits.ShowForcedActionMenu();
+        internal void AddMenuOption(List<FloatMenuOption> options, string labelKey, string actionName, Pawn targetPawn) => Parts.Portraits.AddMenuOption(options, labelKey, actionName, targetPawn);
+        internal void ExecuteActionDirect(string actionName, Pawn targetPawn) => Parts.Portraits.ExecuteActionDirect(actionName, targetPawn);
+        internal static bool HasLoveRelation(Pawn target, Pawn initiator) => RPGPawnGroupChatPortraits.HasLoveRelation(target, initiator);
+        internal static bool HasSpouseRelation(Pawn target, Pawn initiator) => RPGPawnGroupChatPortraits.HasSpouseRelation(target, initiator);
+        internal void DrawParticipantNameLabel(Rect portraitRect, string name, bool isSpeaker) => Parts.Portraits.DrawParticipantNameLabel(portraitRect, name, isSpeaker);
+        internal List<ChatMessageData> BuildGroupRequestMessages(GroupChatParticipant speaker, bool isFirstTurn) => Parts.Prompt.BuildGroupRequestMessages(speaker, isFirstTurn);
+        internal string BuildGroupSystemPrompt(GroupChatParticipant speaker, bool isFirstTurn) => Parts.Prompt.BuildGroupSystemPrompt(speaker, isFirstTurn);
+        internal string BuildFallbackPersonaPrompt(GroupChatParticipant speaker) => Parts.Prompt.BuildFallbackPersonaPrompt(speaker);
+        internal string BuildTurnContextMessage(GroupChatParticipant speaker, bool isFirstTurn) => Parts.Prompt.BuildTurnContextMessage(speaker, isFirstTurn);
+        #endregion
+    
+        #region Cluster forwards
+        internal void WarmupParticipantMemories() => Parts.Slice1.WarmupParticipantMemories();
+        public bool MatchesWindowLifecycleKey(string key) => Parts.Slice1.MatchesWindowLifecycleKey(key);
+        public override void DoWindowContents(Rect inRect) => Parts.Slice1.DoWindowContents(inRect);
+        internal void DrawDialogueBox(Rect inRect) => Parts.Slice1.DrawDialogueBox(inRect);
+        internal void DrawDialogueNavigation(Rect boxRect) => Parts.Slice1.DrawDialogueNavigation(boxRect);
+        internal static void DrawNavBox(Rect boxRect, bool canGoPrev, bool canGoNext, string counter, Action onPrev, Action onNext) => RPGPawnGroupChatSlice1.DrawNavBox(boxRect, canGoPrev, canGoNext, counter, onPrev, onNext);
+        internal void DrawClickToContinueHint(Rect inRect) => Parts.Slice1.DrawClickToContinueHint(inRect);
+        internal void DrawSpeakerName(Rect nameRect, string displayName, bool rightAligned, Pawn pawn = null) => Parts.Slice1.DrawSpeakerName(nameRect, displayName, rightAligned, pawn);
+        internal void UpdateTyping() => Parts.Slice1.UpdateTyping();
+        internal bool ShouldSendFromKeyboard() => Parts.Slice1.ShouldSendFromKeyboard();
+        internal void AddActionFeedback(string text, Color color) => Parts.Slice1.AddActionFeedback(text, color);
+        internal void DrawActionFeedback(Rect inRect) => Parts.Slice1.DrawActionFeedback(inRect);
+        internal Color ResolveDialogueBoxColor() => Parts.Slice1.ResolveDialogueBoxColor();
+        internal void CloseActiveRequestLease() => Parts.Slice1.CloseActiveRequestLease();
+        internal string ResolvePagedText(string fullText, Rect textArea) => Parts.Slice1.ResolvePagedText(fullText, textArea);
+        internal bool NeedsPaging(string fullText, Rect textArea) => Parts.Slice1.NeedsPaging(fullText, textArea);
+        internal void EnsureTextPages(string fullText, float width, float height) => Parts.Slice1.EnsureTextPages(fullText, width, height);
+        #endregion
+}
+    internal sealed class Dialog_RPGPawnGroupChatParts
+    {
+        internal readonly Dialog_RPGPawnGroupChat Owner;
+        internal readonly RPGPawnGroupChatFlowControl FlowControl;
+        internal readonly RPGPawnGroupChatHistory History;
+        internal readonly RPGPawnGroupChatLifecycle Lifecycle;
+        internal readonly RPGPawnGroupChatPortraits Portraits;
+        internal readonly RPGPawnGroupChatPrompt Prompt;
+        internal readonly RPGPawnGroupChatSlice1 Slice1;
+        internal Dialog_RPGPawnGroupChatParts(Dialog_RPGPawnGroupChat owner)
         {
-            if (string.IsNullOrEmpty(fullText)) return fullText;
-
-            float areaHeight = textArea.height - 40f; // reserve space for nav
-            if (!NeedsPaging(fullText, textArea))
-            {
-                currentTextPages.Clear();
-                currentTextPageIndex = 0;
-                return fullText;
-            }
-
-            EnsureTextPages(fullText, textArea.width, areaHeight);
-            currentTextPageIndex = Mathf.Clamp(currentTextPageIndex, 0, Math.Max(0, currentTextPages.Count - 1));
-            return currentTextPages.Count == 0 ? fullText : currentTextPages[currentTextPageIndex];
-        }
-
-        private bool NeedsPaging(string fullText, Rect textArea)
-        {
-            GameFont prevFont = Text.Font;
-            Text.Font = GameFont.Medium;
-            float measureWidth = Math.Max(1f, textArea.width - 8f);
-            float height = Text.CalcHeight(fullText, measureWidth) + 4f;
-            Text.Font = prevFont;
-            return height > textArea.height - 40f;
-        }
-
-        private void EnsureTextPages(string fullText, float width, float height)
-        {
-            if (string.Equals(pagedTextCache, fullText) && Mathf.RoundToInt(pagedWidthCache) == Mathf.RoundToInt(width)
-                && Mathf.RoundToInt(pagedHeightCache) == Mathf.RoundToInt(height))
-                return;
-
-            currentTextPages.Clear();
-            currentTextPageIndex = 0;
-
-            int startIndex = 0;
-            float measureWidth = Math.Max(1f, width - 8f);
-            GameFont prevFont = Text.Font;
-            Text.Font = GameFont.Medium;
-
-            while (startIndex < fullText.Length)
-            {
-                int low = 1;
-                int high = fullText.Length - startIndex;
-                int best = 1;
-                while (low <= high)
-                {
-                    int mid = low + (high - low) / 2;
-                    string candidate = fullText.Substring(startIndex, mid);
-                    float h = Text.CalcHeight(candidate, measureWidth) + 4f;
-                    if (h <= height) { best = mid; low = mid + 1; }
-                    else high = mid - 1;
-                }
-                // Backtrack to sentence boundary
-                int end = startIndex + best;
-                if (end < fullText.Length)
-                {
-                    for (int i = end - 1; i > startIndex + best / 2; i--)
-                    {
-                        if (char.IsWhiteSpace(fullText[i]) || ",.;:!?，。！？；：".IndexOf(fullText[i]) >= 0)
-                        { end = i; break; }
-                    }
-                }
-                currentTextPages.Add(fullText.Substring(startIndex, Math.Min(end - startIndex, fullText.Length - startIndex)).Trim());
-                startIndex = end;
-                while (startIndex < fullText.Length && char.IsWhiteSpace(fullText[startIndex])) startIndex++;
-            }
-            Text.Font = prevFont;
-
-            pagedTextCache = fullText;
-            pagedWidthCache = width;
-            pagedHeightCache = height;
+            Owner = owner;
+            FlowControl = new RPGPawnGroupChatFlowControl(owner);
+            History = new RPGPawnGroupChatHistory(owner);
+            Lifecycle = new RPGPawnGroupChatLifecycle(owner);
+            Portraits = new RPGPawnGroupChatPortraits(owner);
+            Prompt = new RPGPawnGroupChatPrompt(owner);
+            Slice1 = new RPGPawnGroupChatSlice1(owner);
         }
     }
+
+
 }

@@ -249,100 +249,11 @@ internal static bool TryGetSessionFactionSpeaker(
 
 
 
-internal static bool TryGetExistingFactionSpeakerPawn(Faction currentFaction, out Pawn speakerPawn)
-{
-    speakerPawn = null;
-    if (currentFaction == null)
-    {
-        return false;
-    }
-
-    List<Pawn> candidates = PawnsFinder.AllMapsWorldAndTemporary_Alive
-        .Where(pawn => IsEligibleSpeakerPawn(pawn, currentFaction))
-        .ToList();
-    if (candidates.Count == 0)
-    {
-        return false;
-    }
-
-    speakerPawn = candidates.RandomElement();
-    return true;
-}
-
-
-
-internal static bool TryGenerateFactionSpeakerPawn(Faction currentFaction, out Pawn speakerPawn)
-{
-    speakerPawn = null;
-    if (currentFaction == null || currentFaction.defeated)
-    {
-        return false;
-    }
-
-    PawnKindDef kindDef = currentFaction.def?.basicMemberKind ?? ResolveFallbackHumanlikeKind();
-    if (kindDef == null)
-    {
-        return false;
-    }
-
-    try
-    {
-        speakerPawn = GenerateFactionSpeakerPawn(currentFaction, kindDef);
-        if (speakerPawn == null)
-        {
-            return false;
-        }
-        return true;
-    }
-    catch (Exception ex)
-    {
-        Log.Warning($"[RimAI.Relations] Failed to generate fallback diplomacy speaker for faction '{currentFaction.Name}': {ex.Message}");
-        return false;
-    }
-}
-
-
-
-internal static Pawn GenerateFactionSpeakerPawn(Faction currentFaction, PawnKindDef kindDef)
-{
-    var request = new PawnGenerationRequest(kindDef, currentFaction, PawnGenerationContext.NonPlayer, -1, true);
-    Pawn generated = PawnGenerator.GeneratePawn(request);
-    if (generated == null)
-    {
-        return null;
-    }
-
-    if (generated.Faction != currentFaction)
-    {
-        generated.SetFaction(currentFaction);
-    }
-
-    Find.WorldPawns?.PassToWorld(generated);
-    return generated;
-}
-
-
-
-internal static PawnKindDef ResolveFallbackHumanlikeKind()
-{
-    return DefDatabase<PawnKindDef>.AllDefsListForReading
-        .FirstOrDefault(def => def?.RaceProps?.Humanlike == true);
-}
-
-
-
-internal static bool IsEligibleSpeakerPawn(Pawn pawn, Faction expectedFaction = null)
-{
-    if (pawn == null || pawn.Destroyed || pawn.Dead || pawn.RaceProps?.Humanlike != true)
-    {
-        return false;
-    }
-
-    return expectedFaction == null || pawn.Faction == expectedFaction;
-}
-
-
-
+        internal static bool TryGetExistingFactionSpeakerPawn(Faction currentFaction, out Pawn speakerPawn) => DiplomacyDialogueSpeakerPawnOps.TryGetExistingFactionSpeakerPawn(currentFaction, out speakerPawn);
+        internal static bool TryGenerateFactionSpeakerPawn(Faction currentFaction, out Pawn speakerPawn) => DiplomacyDialogueSpeakerPawnOps.TryGenerateFactionSpeakerPawn(currentFaction, out speakerPawn);
+        internal static Pawn GenerateFactionSpeakerPawn(Faction currentFaction, PawnKindDef kindDef) => DiplomacyDialogueSpeakerPawnOps.GenerateFactionSpeakerPawn(currentFaction, kindDef);
+        internal static PawnKindDef ResolveFallbackHumanlikeKind() => DiplomacyDialogueSpeakerPawnOps.ResolveFallbackHumanlikeKind();
+        internal static bool IsEligibleSpeakerPawn(Pawn pawn, Faction expectedFaction = null) => DiplomacyDialogueSpeakerPawnOps.IsEligibleSpeakerPawn(pawn, expectedFaction);
 internal string ResolvePlayerSenderName(Pawn playerPawn)
 {
     string name = ResolvePawnLabel(playerPawn);
@@ -351,19 +262,7 @@ internal string ResolvePlayerSenderName(Pawn playerPawn)
 
 
 
-internal static string ResolveFactionSenderName(Faction currentFaction, Pawn factionSpeaker)
-{
-    string speakerName = ResolvePawnLabel(factionSpeaker);
-    if (!string.IsNullOrWhiteSpace(speakerName))
-    {
-        return speakerName;
-    }
-
-    return currentFaction?.Name ?? "Unknown";
-}
-
-
-
+        internal static string ResolveFactionSenderName(Faction currentFaction, Pawn factionSpeaker) => DiplomacyDialogueSpeakerLabelOps.ResolveFactionSenderName(currentFaction, factionSpeaker);
 internal string GetDisplaySenderName(DialogueMessageData message)
 {
     if (message == null)
@@ -451,15 +350,7 @@ internal Pawn ResolveVisualSpeakerPawn(DialogueMessageData message)
 
 
 
-internal static bool IsOutboundPrisonerInfoMessage(DialogueMessageData message)
-{
-    return message != null &&
-           message.HasInlineImage() &&
-           string.Equals(message.imageSourceUrl, DiplomacyRansomProofWorkflow.RansomProofImageSourceUrl, StringComparison.OrdinalIgnoreCase);
-}
-
-
-
+        internal static bool IsOutboundPrisonerInfoMessage(DialogueMessageData message) => DiplomacyDialogueSpeakerLabelOps.IsOutboundPrisonerInfoMessage(message);
 internal bool IsPlayerVisualMessage(DialogueMessageData message)
 {
     return message?.isPlayer == true || IsOutboundPrisonerInfoMessage(message);
@@ -467,22 +358,7 @@ internal bool IsPlayerVisualMessage(DialogueMessageData message)
 
 
 
-internal static string ResolvePawnLabel(Pawn pawn)
-{
-    if (pawn?.Name != null)
-    {
-        string shortName = pawn.Name.ToStringShort;
-        if (!string.IsNullOrWhiteSpace(shortName))
-        {
-            return shortName;
-        }
-    }
-
-    return pawn?.LabelShort;
-}
-
-
-
+        internal static string ResolvePawnLabel(Pawn pawn) => DiplomacyDialogueSpeakerLabelOps.ResolvePawnLabel(pawn);
 internal float GetBubbleXForMessage(DialogueMessageData message, float viewportWidth, float bubbleWidth)
 {
     float leftEdge = MessageSidePadding + MessageAvatarSize + MessageAvatarGap;
@@ -540,15 +416,7 @@ internal float GetMaxSystemMessageWidth(float viewportWidth)
 
 
 
-internal static float GetMessageBubbleTrackWidth(float viewportWidth)
-{
-    float left = MessageSidePadding + MessageAvatarSize + MessageAvatarGap;
-    float right = viewportWidth - MessageSidePadding - MessageAvatarSize - MessageAvatarGap;
-    return Mathf.Max(140f, right - left);
-}
-
-
-
+        internal static float GetMessageBubbleTrackWidth(float viewportWidth) => DiplomacyDialogueSpeakerLabelOps.GetMessageBubbleTrackWidth(viewportWidth);
 internal void DrawMessageAvatar(DialogueMessageData message, Rect bubbleRect)
 {
     if (message == null || message.IsSystemMessage())
@@ -608,39 +476,6 @@ internal Rect BuildAvatarRect(DialogueMessageData message, Rect bubbleRect)
 
 
 
-internal static Texture ResolveSpeakerPortrait(Pawn pawn)
-{
-    if (!IsEligibleSpeakerPawn(pawn))
-    {
-        return null;
-    }
-
-    try
-    {
-        return PortraitsCache.Get(
-            pawn,
-            new Vector2(AvatarPortraitRequestSize, AvatarPortraitRequestSize),
-            Rot4.South,
-            AvatarCameraOffset,
-            AvatarCameraZoom);
-    }
-    catch
-    {
-        return null;
-    }
-}
-
-
-
-internal static void DrawAvatarFallback(Rect avatarRect, string label)
-{
-    string letter = string.IsNullOrWhiteSpace(label) ? "?" : label.Trim()[0].ToString().ToUpperInvariant();
-    Text.Font = GameFont.Tiny;
-    Text.Anchor = TextAnchor.MiddleCenter;
-    GUI.color = new Color(0.9f, 0.92f, 0.97f, 0.95f);
-    Widgets.Label(avatarRect, letter);
-    GUI.color = Color.white;
-    Text.Anchor = TextAnchor.UpperLeft;
-    Text.Font = GameFont.Small;
-}
+        internal static Texture ResolveSpeakerPortrait(Pawn pawn) => DiplomacyDialogueSpeakerLabelOps.ResolveSpeakerPortrait(pawn);
+        internal static void DrawAvatarFallback(Rect avatarRect, string label) => DiplomacyDialogueSpeakerLabelOps.DrawAvatarFallback(avatarRect, label);
 }

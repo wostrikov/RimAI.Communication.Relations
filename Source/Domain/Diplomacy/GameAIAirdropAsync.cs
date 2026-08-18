@@ -1,0 +1,757 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Ustas.RimAI.Communication.Relations.AI;
+using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Module;
+using RimWorld;
+using UnityEngine;
+using Verse;
+using APIResult = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.APIResult;
+using APICallRecord = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.APICallRecord;
+using DialogueApiGoodwillCostResult = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.DialogueApiGoodwillCostResult;
+using FactionCooldownEntry = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.FactionCooldownEntry;
+using RaidWaveState = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.RaidWaveState;
+
+namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
+{
+    /// <summary>Async item-airdrop prepare pipeline.</summary>
+    internal sealed class GameAIAirdropAsync : GameAIInterfaceCollaborator
+    {
+        internal GameAIAirdropAsync(GameAIInterface owner) : base(owner)
+        {
+        }
+
+
+        public APIResult BeginPrepareItemAirdropTradeAsync(
+            Faction faction,
+            Dictionary<string, object> parameters,
+            Pawn playerNegotiator,
+            Action<APIResult> onCompleted,
+            Action<string, int> onRequestQueued)
+        {
+            Log.Message($"[RimAI.Relations] BeginPrepareItemAirdropTradeAsync: faction={faction?.Name}, defName={faction?.def?.defName}, need={parameters?["need"] ?? "null"}");
+            
+            APIResult contextResult = TryBuildAirdropAsyncContext(
+                faction,
+                parameters,
+                playerNegotiator,
+                out ItemAirdropAsyncPrepareContext context);
+            if (!contextResult.Success)
+            {
+                Log.Warning($"[RimAI.Relations] BeginPrepareItemAirdropTradeAsync context build failed: {contextResult.Message}");
+                return contextResult;
+            }
+
+            return ContinueAirdropPrepareAsync(context, onCompleted, onRequestQueued);
+        }
+
+        public bool CancelItemAirdropAsyncRequest(string requestId, string cancelReason, string error)
+        {
+            if (string.IsNullOrWhiteSpace(requestId))
+            {
+                return false;
+            }
+
+            return AIChatServiceAsync.Instance.CancelRequest(
+                requestId,
+                string.IsNullOrWhiteSpace(cancelReason) ? "airdrop_async_cancelled" : cancelReason,
+                string.IsNullOrWhiteSpace(error) ? "Airdrop async request cancelled." : error);
+        }
+
+        internal APIResult TryBuildAirdropAsyncContext(
+            Faction faction,
+            Dictionary<string, object> parameters,
+            Pawn playerNegotiator,
+            out ItemAirdropAsyncPrepareContext context)
+        {
+            context = null;
+            if (RelationsMod.Instance?.InstanceSettings == null)
+            {
+                return APIResult.FailureResult("Settings not initialized");
+            }
+
+            if (playerNegotiator == null || playerNegotiator.Map == null)
+            {
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                    "player_negotiator_required",
+                    "Preparing a barter airdrop requires a valid player negotiator on a map.",
+                    faction,
+                    parameters,
+                    sendLetter: false);
+            }
+
+            RelationsSettings settings = RelationsMod.Instance.InstanceSettings;
+            if (!settings.EnableAIItemAirdrop)
+            {
+                return APIResult.FailureResult("request_item_airdrop is disabled in settings.");
+            }
+
+            if (faction == null)
+            {
+                return APIResult.FailureResult("Faction cannot be null");
+            }
+
+            if (parameters == null)
+            {
+                return APIResult.FailureResult("request_item_airdrop requires parameters.");
+            }
+
+            Map map = playerNegotiator.Map;
+            if (map == null || !map.IsPlayerHome)
+            {
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                    "map_not_player_home",
+                    "Barter airdrop requires a player home map context.",
+                    faction,
+                    parameters,
+                    sendLetter: false);
+            }
+
+            bool hasNeed = GameAIAirdropDrop.TryReadRequiredStringParameter(
+                parameters,
+                "need",
+                out string need,
+                out string needType,
+                out string needRawPreview);
+            if (!hasNeed)
+            {
+                string code = string.Equals(needType, "missing", StringComparison.Ordinal) ? "missing_need" : "need_type_invalid";
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(code, "request_item_airdrop requires string parameter 'need'.", faction, parameters, sendLetter: false);
+            }
+
+            string scenario = GameAIAirdropDrop.NormalizeScenario(GameAIAirdropDrop.ReadString(parameters, "scenario"));
+            string constraints = GameAIAirdropDrop.ReadString(parameters, "constraints");
+            bool hasProvidedBudget = GameAIAirdropDrop.TryReadIntParameter(parameters, "budget_silver", out int providedBudgetSilver);
+            APIResult paymentPlanResult = Owner.Parts.AirdropPayment.BuildPaymentPlan(
+                parameters,
+                map,
+                faction,
+                playerNegotiator,
+                out List<ItemAirdropPreparedPaymentLine> paymentLines,
+                out List<ItemAirdropDeductionPlanLine> deductionPlan,
+                out int budget,
+                out int paymentTotalSilver);
+            if (!paymentPlanResult.Success)
+            {
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                    (paymentPlanResult.Data as ItemAirdropResultData)?.FailureCode ?? "payment_plan_failed",
+                    paymentPlanResult.Message,
+                    faction,
+                    parameters);
+            }
+
+            if (hasProvidedBudget && providedBudgetSilver != budget)
+            {
+                string mismatchAudit =
+                    $"faction={faction?.Name ?? "unknown"},provided={providedBudgetSilver},derived={budget},delta={providedBudgetSilver - budget},need={need},scenario={scenario}";
+                Owner.Parts.CooldownOps.RecordAPICall("RequestItemAirdrop.BudgetMismatch", true, mismatchAudit);
+            }
+
+            ItemAirdropIntent intent = ItemAirdropIntent.Create(need, constraints, scenario);
+            APIResult candidateResult = Owner.Parts.AirdropRequest.PrepareItemAirdropCandidates(
+                intent,
+                budget,
+                settings,
+                out ItemAirdropCandidatePack candidatePack);
+            if (!candidateResult.Success)
+            {
+                return candidateResult;
+            }
+            var localAliases = new List<string>();
+            string forcedSelectedDefName = GameAIAirdropDrop.ReadString(parameters, "selected_def");
+            if (candidatePack.Candidates.Count == 0)
+            {
+                localAliases = ThingDefResolver.ExpandLocalAliases(intent);
+                if (localAliases.Count > 0)
+                {
+                    intent = ItemAirdropIntent.Create(need, constraints, scenario, localAliases);
+                    candidateResult = Owner.Parts.AirdropRequest.PrepareItemAirdropCandidates(
+                        intent,
+                        budget,
+                        settings,
+                        out candidatePack);
+                    if (!candidateResult.Success)
+                    {
+                        return candidateResult;
+                    }
+                }
+            }
+
+            APIResult boundNeedResult = Owner.Parts.AirdropBoundNeed.TryApplyBoundNeedArbitration(
+                faction,
+                parameters,
+                intent,
+                candidatePack,
+                out _);
+            if (!boundNeedResult.Success)
+            {
+                return boundNeedResult;
+            }
+
+            string boundNeedDefName = GameAIAirdropDrop.ReadString(parameters, ItemAirdropParameterKeys.BoundNeedDefName);
+            bool hasBoundNeed = !string.IsNullOrWhiteSpace(boundNeedDefName);
+            bool hadForcedSelectionConflict = false;
+            if (hasBoundNeed)
+            {
+                if (string.IsNullOrWhiteSpace(forcedSelectedDefName))
+                {
+                    forcedSelectedDefName = boundNeedDefName;
+                }
+                else if (!string.Equals(forcedSelectedDefName, boundNeedDefName, StringComparison.OrdinalIgnoreCase))
+                {
+                    forcedSelectedDefName = boundNeedDefName;
+                    hadForcedSelectionConflict = true;
+                }
+            }
+
+            context = new ItemAirdropAsyncPrepareContext
+            {
+                Faction = faction,
+                Parameters = GameAIAirdropPayment.CloneParameterDictionary(parameters),
+                Settings = settings,
+                Map = map,
+                PlayerNegotiator = playerNegotiator,
+                Need = need,
+                Scenario = scenario,
+                Constraints = constraints,
+                Budget = budget,
+                PaymentTotalSilver = paymentTotalSilver,
+                HasProvidedBudget = hasProvidedBudget,
+                ProvidedBudgetSilver = providedBudgetSilver,
+                PaymentLines = paymentLines,
+                DeductionPlan = deductionPlan,
+                Intent = intent,
+                CandidatePack = candidatePack,
+                LocalAliases = localAliases,
+                ForcedSelectedDef = forcedSelectedDefName,
+                HasBoundNeed = hasBoundNeed,
+                HadForcedSelectionConflict = hadForcedSelectionConflict,
+                NeedType = needType,
+                NeedRawPreview = needRawPreview
+            };
+            return APIResult.SuccessResult("Airdrop async context prepared.", context);
+        }
+
+        internal APIResult ContinueAirdropPrepareAsync(
+            ItemAirdropAsyncPrepareContext context,
+            Action<APIResult> onCompleted,
+            Action<string, int> onRequestQueued)
+        {
+            if (context == null)
+            {
+                return APIResult.FailureResult("Airdrop async context is null.");
+            }
+
+            if (context.CandidatePack?.Candidates?.Count > 0)
+            {
+                RecordAirdropPrepareStage(context);
+                return ContinueAirdropSelectionStageAsync(context, onCompleted, onRequestQueued);
+            }
+
+            if (!CanQueueAirdropAliasExpansion(context))
+            {
+                RecordAirdropPrepareStage(context);
+                return BuildNoCandidateFailure(context);
+            }
+
+            return QueueAirdropAliasExpansionAsync(context, onCompleted, onRequestQueued);
+        }
+
+        internal static bool CanQueueAirdropAliasExpansion(ItemAirdropAsyncPrepareContext context)
+        {
+            return context?.Settings != null &&
+                   context.Settings.EnableAirdropAliasExpansion &&
+                   AIChatServiceAsync.Instance.IsConfigured();
+        }
+
+        internal APIResult QueueAirdropAliasExpansionAsync(
+            ItemAirdropAsyncPrepareContext context,
+            Action<APIResult> onCompleted,
+            Action<string, int> onRequestQueued)
+        {
+            int maxCount = Mathf.Clamp(context.Settings.ItemAirdropAliasExpansionMaxCount, 2, 12);
+            int timeoutSeconds = Mathf.Clamp(context.Settings.ItemAirdropAliasExpansionTimeoutSeconds, 2, 10);
+            var messages = new List<ChatMessageData>
+            {
+                new ChatMessageData
+                {
+                    role = "system",
+                    content = "Generate only JSON: {\"aliases\":[\"...\"]}. Return up to 8 concise CN/EN aliases for a RimWorld item need. No explanation."
+                },
+                new ChatMessageData
+                {
+                    role = "user",
+                    content = GameAIAirdropRequest.BuildAliasExpansionPrompt(context.Need, context.Constraints, maxCount)
+                }
+            };
+
+            DateTime startedAt = DateTime.UtcNow;
+            bool queued = TryQueueAirdropAsyncRequest(
+                messages,
+                timeoutSeconds,
+                timeoutSeconds,
+                onRequestQueued,
+                (requestId, response) =>
+                {
+                    context.AiAliases = GameAIAirdropRequest.ParseAliases(response, maxCount);
+                    if (context.AiAliases.Count > 0)
+                    {
+                        context.Intent = ItemAirdropIntent.Create(context.Need, context.Constraints, context.Scenario, context.AiAliases);
+                        APIResult candidateResult = Owner.Parts.AirdropRequest.PrepareItemAirdropCandidates(
+                            context.Intent,
+                            context.Budget,
+                            context.Settings,
+                            out ItemAirdropCandidatePack refreshedPack);
+                        if (!candidateResult.Success)
+                        {
+                            onCompleted?.Invoke(candidateResult);
+                            return;
+                        }
+
+                        context.CandidatePack = refreshedPack;
+                        APIResult boundNeedResult = Owner.Parts.AirdropBoundNeed.TryApplyBoundNeedArbitration(
+                            context.Faction,
+                            context.Parameters,
+                            context.Intent,
+                            context.CandidatePack,
+                            out _);
+                        if (!boundNeedResult.Success)
+                        {
+                            onCompleted?.Invoke(boundNeedResult);
+                            return;
+                        }
+                    }
+
+                    RecordAirdropPrepareStage(context);
+                    if (context.CandidatePack?.Candidates?.Count <= 0)
+                    {
+                        onCompleted?.Invoke(BuildNoCandidateFailure(context));
+                        return;
+                    }
+
+                    ContinueAirdropSelectionStageAsync(context, onCompleted, onRequestQueued);
+                },
+                (requestId, errorText) =>
+                {
+                    RecordAirdropPrepareStage(context);
+                    long durationMs = Math.Max(0L, (long)(DateTime.UtcNow - startedAt).TotalMilliseconds);
+                    Owner.Parts.AirdropDrop.RecordSelectionDebugRecord(
+                        "channel:airdrop_alias_expansion",
+                        string.Empty,
+                        errorText ?? string.Empty,
+                        AIRequestDebugStatus.Error,
+                        durationMs,
+                        0L,
+                        startedAt);
+                    onCompleted?.Invoke(BuildNoCandidateFailure(context));
+                });
+            if (!queued)
+            {
+                RecordAirdropPrepareStage(context);
+                return BuildNoCandidateFailure(context);
+            }
+
+            return APIResult.SuccessResult("Airdrop alias expansion queued.", new ItemAirdropAsyncQueuedData());
+        }
+
+        internal APIResult ContinueAirdropSelectionStageAsync(
+            ItemAirdropAsyncPrepareContext context,
+            Action<APIResult> onCompleted,
+            Action<string, int> onRequestQueued)
+        {
+            Log.Message($"[RimAI.Relations] ContinueAirdropSelectionStageAsync: need={context.Need}, def={context.ForcedSelectedDef}, candidates={context.CandidatePack?.Candidates?.Count ?? 0}");
+            
+            RequestedCountExtraction requestedCount = GameAIAirdropSelection.ExtractRequestedCount(context.Intent?.NeedText);
+            requestedCount = GameAIAirdropSelection.MergeRequestedCountWithParameters(requestedCount, context.Parameters);
+            if (requestedCount.HasMultipleCounts)
+            {
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                    "need_count_ambiguous",
+                    "need contains multiple explicit counts; request_item_airdrop supports single-item count only.",
+                    context.Faction,
+                    context.Parameters,
+                    sendLetter: false);
+            }
+
+            if (GameAIAirdropRequest.ShouldRequireNeedClarification(context.Intent, context.CandidatePack))
+            {
+                APIResult pendingClarification = Owner.Parts.AirdropPending.BuildTimeoutPendingSelection(
+                    context.Intent,
+                    context.CandidatePack,
+                    context.Budget,
+                    context.Settings,
+                    "need_relevance_insufficient",
+                    GameAIAirdropRequest.BuildNeedClarificationReason(),
+                    allowEmptyOptions: true);
+                if (pendingClarification.Data is ItemAirdropPendingSelectionData clarificationData)
+                {
+                    Owner.Parts.AirdropDrop.RecordStageAudit("selection", null, null, GameAIAirdropPending.BuildPendingSelectionAuditDetails(clarificationData));
+                }
+
+                return pendingClarification;
+            }
+
+            if (!string.IsNullOrWhiteSpace(context.ForcedSelectedDef))
+            {
+                APIResult forcedResult = Owner.Parts.AirdropPending.TryBuildForcedSelection(
+                    context.ForcedSelectedDef,
+                    context.Intent,
+                    context.CandidatePack,
+                    context.Budget,
+                    context.Settings,
+                    requestedCount,
+                    out ItemAirdropSelection forcedSelection,
+                    out string forcedCountSource,
+                    out int forcedHardMax,
+                    out int forcedMaxByBudget);
+                if (!forcedResult.Success || forcedSelection == null)
+                {
+                    return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                        (forcedResult.Data as ItemAirdropResultData)?.FailureCode ?? "selection_invalid",
+                        forcedResult.Message,
+                        context.Faction,
+                        context.Parameters,
+                        sendLetter: false);
+                }
+
+                if (context.HasBoundNeed)
+                {
+                    forcedSelection.Reason = context.HadForcedSelectionConflict
+                        ? "bound_need_conflict_rebuilt"
+                        : "bound_need_selected";
+                }
+
+                return BuildPreparedTradeFromSelection(
+                    context,
+                    forcedSelection,
+                    requestedCount,
+                    forcedCountSource,
+                    forcedMaxByBudget,
+                    forcedHardMax);
+            }
+
+            Owner.Parts.AirdropDrop.RecordStageAudit(
+                "selection_manual_dispatch",
+                context.Faction,
+                context.Parameters,
+                $"candidateCount={context.CandidatePack?.Candidates?.Count ?? 0},hasNeedCount={requestedCount.HasExplicitCount},hasParamCount={requestedCount.HasParameterCount}");
+            APIResult pendingResult = Owner.Parts.AirdropPending.BuildTimeoutPendingSelection(
+                context.Intent,
+                context.CandidatePack,
+                context.Budget,
+                context.Settings,
+                "selection_manual_choice",
+                "Second-pass AI selection disabled; awaiting direct player confirmation.");
+            if (pendingResult.Data is ItemAirdropPendingSelectionData pendingData)
+            {
+                Owner.Parts.AirdropDrop.RecordStageAudit("selection", null, null, GameAIAirdropPending.BuildPendingSelectionAuditDetails(pendingData));
+            }
+
+            onCompleted?.Invoke(pendingResult);
+            return pendingResult;
+        }
+
+        internal APIResult BuildPreparedTradeFromSelection(
+            ItemAirdropAsyncPrepareContext context,
+            ItemAirdropSelection selection,
+            RequestedCountExtraction requestedCount,
+            string defaultCountSource,
+            int? explicitMaxByBudget,
+            int? explicitHardMax)
+        {
+            APIResult validationResult = Owner.Parts.AirdropSelection.ValidateAirdropSelection(
+                selection,
+                context.CandidatePack,
+                context.Budget,
+                context.Settings,
+                requestedCount,
+                defaultCountSource,
+                out ThingDefRecord selectedRecord,
+                out int validatedCount,
+                out string resolvedCountSource,
+                out int requestedOriginalCount,
+                out int maxByBudget,
+                out int maxBySystem,
+                out int hardMax);
+            if (!validationResult.Success)
+            {
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                    (validationResult.Data as ItemAirdropResultData)?.FailureCode ?? "selection_invalid",
+                    validationResult.Message,
+                    context.Faction,
+                    context.Parameters,
+                    sendLetter: false);
+            }
+
+            var auditedSelection = new ItemAirdropSelection
+            {
+                SelectedDefName = selection?.SelectedDefName ?? string.Empty,
+                Count = validatedCount,
+                Reason = selection?.Reason ?? string.Empty
+            };
+            string selectionDetails = Owner.Parts.AirdropDrop.BuildSelectionAuditDetails(
+                auditedSelection,
+                context.CandidatePack,
+                context.Budget,
+                context.Settings,
+                resolvedCountSource,
+                explicitMaxByBudget,
+                explicitHardMax);
+            Owner.Parts.AirdropDrop.RecordStageAudit("selection", null, null, selectionDetails);
+
+            // Detect if this is a special item (discount/scarce)
+            SpecialItemType? detectedSpecialItemType = null;
+            if (context.Faction != null && FactionSpecialItemsManager.Instance.TryMatchSpecialItem(context.Faction, selectedRecord.DefName, out SpecialItemType specialItemType))
+            {
+                detectedSpecialItemType = specialItemType;
+            }
+
+            int quotedNeedTotalSilver = GameAIAirdropBarter.ResolveAirdropNeedQuotedTotalSilver(
+                selectedRecord,
+                validatedCount,
+                context.Faction,
+                context.PlayerNegotiator,
+                context.Map,
+                context.CandidatePack,
+                detectedSpecialItemType);
+            AirdropTradeRuleSnapshot quotedTradeRule = ItemAirdropTradePolicy.ResolveRuleSnapshot(
+                context.Faction,
+                context.Map?.wealthWatcher?.WealthItems ?? 0f,
+                Owner.Parts.CooldownOps.GetAirdropFactionTradeTotal(context.Faction));
+            int shippingPodCount = GameAIAirdropBarter.ResolveAirdropShippingPodCount(selectedRecord?.Def, validatedCount);
+            int shippingCostSilver = shippingPodCount * quotedTradeRule.ShippingCostPerPod;
+            int overpay = Math.Max(0, context.PaymentTotalSilver - quotedNeedTotalSilver - shippingCostSilver);
+            string budgetMismatchSummary = context.HasProvidedBudget
+                ? $"{context.ProvidedBudgetSilver}->{quotedNeedTotalSilver}(delta={context.ProvidedBudgetSilver - quotedNeedTotalSilver})"
+                : "none";
+            string paymentSummary = $"budget={quotedNeedTotalSilver},payment={context.PaymentTotalSilver},shipping={shippingCostSilver},pods={shippingPodCount},overpay={overpay},budgetMismatch={budgetMismatchSummary},paymentLines={context.PaymentLines.Count},deductionRows={context.DeductionPlan.Count}";
+            Owner.Parts.AirdropDrop.RecordStageAudit("prepare_trade", context.Faction, context.Parameters, paymentSummary);
+            if (validatedCount < requestedOriginalCount && overpay > 0)
+            {
+                int actualNeeded = quotedNeedTotalSilver + shippingCostSilver;
+                if (actualNeeded < context.PaymentTotalSilver)
+                {
+                    double scale = (double)actualNeeded / Math.Max(1, context.PaymentTotalSilver);
+                    List<ItemAirdropDeductionPlanLine> adjustedPlan = new List<ItemAirdropDeductionPlanLine>();
+                    int adjustedTotal = 0;
+                    foreach (ItemAirdropDeductionPlanLine line in context.DeductionPlan)
+                    {
+                        int scaledCount = Math.Max(1, (int)Math.Round(line.Count * scale));
+                        adjustedPlan.Add(new ItemAirdropDeductionPlanLine
+                        {
+                            ThingId = line.ThingId,
+                            DefName = line.DefName,
+                            Count = scaledCount
+                        });
+                        adjustedTotal += scaledCount;
+                    }
+                    context.DeductionPlan = adjustedPlan;
+                    int originalPayment = context.PaymentTotalSilver;
+                    context.PaymentTotalSilver = actualNeeded;
+                    overpay = 0;
+                    Log.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled from {originalPayment} to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
+                    Owner.Parts.AirdropDrop.RecordStageAudit("prepare_trade", context.Faction, context.Parameters, $"budget={quotedNeedTotalSilver},payment={actualNeeded},shipping={shippingCostSilver},pods={shippingPodCount},overpay=0,clampedPaymentAdjusted=True,paymentLines={context.PaymentLines.Count},deductionRows={adjustedPlan.Count}");
+                }
+            }
+
+
+            var prepared = new ItemAirdropPreparedTradeData
+            {
+                SelectedDefName = selectedRecord.DefName,
+                ResolvedLabel = selectedRecord.Label,
+                Quantity = validatedCount,
+                RequestedQuantity = requestedOriginalCount,
+                MaxByBudget = maxByBudget,
+                MaxBySystem = maxBySystem,
+                HardMax = hardMax,
+                CountAdjustmentReason = validatedCount < requestedOriginalCount
+                    ? $"clamped_to_hard_max({requestedOriginalCount}->{validatedCount})"
+                    : "none",
+                BudgetSilver = quotedNeedTotalSilver,
+                NeedQuotedUnitSilver = GameAIAirdropBarter.ResolveAirdropNeedQuotedUnitPrice(
+                    selectedRecord,
+                    context.Faction,
+                    context.PlayerNegotiator,
+                    context.Map,
+                    context.CandidatePack,
+                    detectedSpecialItemType),
+                PaymentTotalSilver = context.PaymentTotalSilver,
+                PaymentItemTotalSilver = context.PaymentTotalSilver,
+                ShippingPodCount = shippingPodCount,
+                ShippingCostSilver = shippingCostSilver,
+                PaymentOverpaySilver = overpay,
+                MapUniqueId = context.Map.uniqueID,
+                NeedText = context.Need,
+                Scenario = context.Scenario,
+                SelectionReason = selection.Reason ?? string.Empty,
+                NeedPriceSemantic = ItemAirdropTradePolicy.ResolveNeedPriceSemantic(selectedRecord?.Def, context.Faction),
+                PaymentPriceSemantic = ItemAirdropTradePolicy.ResolveOfferPriceSemantic(selectedRecord?.Def),
+                SpecialItemType = detectedSpecialItemType,
+                PaymentLines = context.PaymentLines,
+                DeductionPlan = context.DeductionPlan,
+                ParametersSnapshot = GameAIAirdropPayment.CloneParameterDictionary(context.Parameters)
+            };
+
+            return APIResult.SuccessResult("Airdrop trade prepared.", prepared);
+        }
+
+        internal void RecordAirdropPrepareStage(ItemAirdropAsyncPrepareContext context)
+        {
+            string prepareSummary = GameAIAirdropRequest.BuildPrepareAuditSummary(
+                context.Intent,
+                context.Budget,
+                context.CandidatePack,
+                context.LocalAliases,
+                context.AiAliases,
+                context.NeedType,
+                context.NeedRawPreview);
+            Owner.Parts.AirdropDrop.RecordStageAudit("prepare", context.Faction, context.Parameters, prepareSummary);
+        }
+
+        internal APIResult BuildNoCandidateFailure(ItemAirdropAsyncPrepareContext context)
+        {
+            string prepareSummary = GameAIAirdropRequest.BuildPrepareAuditSummary(
+                context.Intent,
+                context.Budget,
+                context.CandidatePack,
+                context.LocalAliases,
+                context.AiAliases);
+            if (context.Intent?.Family == ItemAirdropNeedFamily.Unknown)
+            {
+                return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                    "need_family_unknown",
+                    "Could not classify request need. Try adding multiple CN/EN aliases in need/constraints.",
+                    context.Faction,
+                    context.Parameters,
+                    prepareSummary,
+                    sendLetter: false);
+            }
+
+            return Owner.Parts.AirdropDrop.FailFastAirdrop(
+                "no_candidates",
+                "No legal airdrop candidates were produced for this request.",
+                context.Faction,
+                context.Parameters,
+                prepareSummary,
+                sendLetter: false);
+        }
+
+        internal bool TryQueueAirdropAsyncRequest(
+            List<ChatMessageData> messages,
+            int requestTimeoutSeconds,
+            int queueTimeoutSeconds,
+            Action<string, int> onRequestQueued,
+            Action<string, string> onSuccess,
+            Action<string, string> onError)
+        {
+            string requestId = null;
+            requestId = AIChatServiceAsync.Instance.SendChatRequestAsync(
+                messages,
+                onSuccess: response => onSuccess?.Invoke(requestId ?? string.Empty, response ?? string.Empty),
+                onError: error => onError?.Invoke(requestId ?? string.Empty, error ?? string.Empty),
+                onProgress: null,
+                usageChannel: DialogueUsageChannel.Diplomacy,
+                debugSource: AIRequestDebugSource.AirdropSelection,
+                requestTimeoutSecondsOverride: requestTimeoutSeconds,
+                queueTimeoutSecondsOverride: queueTimeoutSeconds);
+            if (string.IsNullOrWhiteSpace(requestId))
+            {
+                return false;
+            }
+
+            onRequestQueued?.Invoke(requestId, requestTimeoutSeconds);
+            return true;
+        }
+
+        internal static string BuildAsyncAirdropTimingDetails(string requestId, DateTime startedAtUtc)
+        {
+            AIRequestResult status = string.IsNullOrWhiteSpace(requestId)
+                ? null
+                : AIChatServiceAsync.Instance.GetRequestStatus(requestId);
+            if (status == null)
+            {
+                long endToEndMs = Math.Max(0L, (long)(DateTime.UtcNow - startedAtUtc).TotalMilliseconds);
+                return $"diag=no_status,endToEndMs={endToEndMs}";
+            }
+
+            long queueMs = 0L;
+            if (status.EnqueuedAtUtc != DateTime.MinValue && status.StartedProcessingAtUtc != DateTime.MinValue)
+            {
+                queueMs = Math.Max(0L, (long)(status.StartedProcessingAtUtc - status.EnqueuedAtUtc).TotalMilliseconds);
+            }
+
+            DateTime processingStartedAt = status.StartedProcessingAtUtc != DateTime.MinValue
+                ? status.StartedProcessingAtUtc
+                : startedAtUtc;
+            long processingMs = Math.Max(0L, (long)(DateTime.UtcNow - processingStartedAt).TotalMilliseconds);
+            long endToEnd = Math.Max(0L, (long)(DateTime.UtcNow - startedAtUtc).TotalMilliseconds);
+            long firstByteMs = -1L;
+            if (status.FirstResponseByteAtUtc != DateTime.MinValue)
+            {
+                firstByteMs = Math.Max(0L, (long)(status.FirstResponseByteAtUtc - startedAtUtc).TotalMilliseconds);
+            }
+
+            return $"diag=ok,state={status.State},queueMs={queueMs},processingMs={processingMs},endToEndMs={endToEnd},firstByteMs={firstByteMs},attempts={status.AttemptCount},payloadBytes={status.LastRequestPayloadBytes},http={status.LastHttpStatusCode},endpoint={status.EndpointHostPort},failureReason={status.FailureReason}";
+        }
+
+        internal static string ResolveAsyncRequestFailureReason(string requestId)
+        {
+            if (string.IsNullOrWhiteSpace(requestId))
+            {
+                return string.Empty;
+            }
+
+            AIRequestResult status = AIChatServiceAsync.Instance.GetRequestStatus(requestId);
+            return status?.FailureReason ?? string.Empty;
+        }
+
+        internal static bool IsTimeoutLikeAirdropFailure(string failureReason, string errorText)
+        {
+            string reason = (failureReason ?? string.Empty).Trim().ToLowerInvariant();
+            if (reason.Contains("queue_timeout") || reason.Contains("timeout"))
+            {
+                return true;
+            }
+
+            string error = (errorText ?? string.Empty).Trim().ToLowerInvariant();
+            return error.Contains("timeout") || error.Contains("timed out");
+        }
+        }
+
+/// <summary>
+    /// Dependencies: AIChatServiceAsync, item-airdrop prepare pipeline, selection parser.
+    /// Responsibility: run airdrop alias/selection stages asynchronously without blocking the main thread.
+    /// </summary>
+
+public sealed class ItemAirdropAsyncQueuedData
+    {
+    }
+
+    internal sealed class ItemAirdropAsyncPrepareContext
+    {
+        public Faction Faction { get; set; }
+        public Pawn PlayerNegotiator { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
+        public RelationsSettings Settings { get; set; }
+        public Map Map { get; set; }
+        public string Need { get; set; }
+        public string Scenario { get; set; }
+        public string Constraints { get; set; }
+        public int Budget { get; set; }
+        public int PaymentTotalSilver { get; set; }
+        public bool HasProvidedBudget { get; set; }
+        public int ProvidedBudgetSilver { get; set; }
+        public List<ItemAirdropPreparedPaymentLine> PaymentLines { get; set; }
+        public List<ItemAirdropDeductionPlanLine> DeductionPlan { get; set; }
+        public ItemAirdropIntent Intent { get; set; }
+        public ItemAirdropCandidatePack CandidatePack { get; set; }
+        public List<string> LocalAliases { get; set; } = new List<string>();
+        public List<string> AiAliases { get; set; } = new List<string>();
+        public string ForcedSelectedDef { get; set; }
+        public bool HasBoundNeed { get; set; }
+        public bool HadForcedSelectionConflict { get; set; }
+        public string NeedType { get; set; } = "missing";
+        public string NeedRawPreview { get; set; } = "none";
+    }
+}

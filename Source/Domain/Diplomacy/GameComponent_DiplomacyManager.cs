@@ -14,34 +14,47 @@ using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
+using Ustas.RimAI.Communication.Relations.NpcDialogue;
+using Ustas.RimAI.Communication.Relations.Context;
+
+using PendingSocialNewsRequest = Ustas.RimAI.Communication.Relations.DiplomacySystem.DiplomacyManagerSocialCircleNewsRequests.PendingSocialNewsRequest;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    public partial class GameComponent_DiplomacyManager : GameComponent
+    public class GameComponent_DiplomacyManager : GameComponent
     {
-        private HashSet<Faction> aiControlledFactions = new HashSet<Faction>();
-        private List<FactionDialogueSession> dialogueSessions = new List<FactionDialogueSession>();
-        private Dictionary<Faction, FactionDialogueSession> dialogueSessionsByFaction = new Dictionary<Faction, FactionDialogueSession>();
-        private List<FactionPresenceState> presenceStates = new List<FactionPresenceState>();
-        private Dictionary<Faction, FactionPresenceState> presenceStatesByFaction = new Dictionary<Faction, FactionPresenceState>();
-        private List<DelayedDiplomacyEvent> delayedEvents = new List<DelayedDiplomacyEvent>();
-        private int lastNegotiatorThingId = -1;
-        private const int ForcedOfflineDurationHours = 1;
-        private const int ForcedDoNotDisturbDurationHours = 2;
-        private readonly List<DelayedDiplomacyEvent> delayedEventsPendingAdd = new List<DelayedDiplomacyEvent>();
-        private bool isProcessingDelayedEvents = false;
-        private int lastProcessedDelayedEventsTick = -1;
+        internal GameComponent_DiplomacyManagerParts Parts;
+        internal const int MaxSocialPosts = DiplomacyManagerSocialCircle.MaxSocialPosts;
+        public const int ManualSocialPostTitleMaxLength = DiplomacyManagerSocialCircleManualPost.ManualSocialPostTitleMaxLength;
+        public const int ManualSocialPostBodyMaxLength = DiplomacyManagerSocialCircleManualPost.ManualSocialPostBodyMaxLength;
+
+        internal HashSet<Faction> aiControlledFactions = new HashSet<Faction>();
+        internal HashSet<Faction> manuallyVisibleHiddenFactions = new HashSet<Faction>();
+        internal List<AlbumImageEntry> albumEntries = new List<AlbumImageEntry>();
+        internal SocialCircleState socialCircleState = new SocialCircleState();
+        internal List<FactionDialogueSession> dialogueSessions = new List<FactionDialogueSession>();
+        internal Dictionary<Faction, FactionDialogueSession> dialogueSessionsByFaction = new Dictionary<Faction, FactionDialogueSession>();
+        internal List<FactionPresenceState> presenceStates = new List<FactionPresenceState>();
+        internal Dictionary<Faction, FactionPresenceState> presenceStatesByFaction = new Dictionary<Faction, FactionPresenceState>();
+        internal List<DelayedDiplomacyEvent> delayedEvents = new List<DelayedDiplomacyEvent>();
+        internal int lastNegotiatorThingId = -1;
+        internal const int ForcedOfflineDurationHours = 1;
+        internal const int ForcedDoNotDisturbDurationHours = 2;
+        internal readonly List<DelayedDiplomacyEvent> delayedEventsPendingAdd = new List<DelayedDiplomacyEvent>();
+        internal bool isProcessingDelayedEvents = false;
+        internal int lastProcessedDelayedEventsTick = -1;
 
         // Temporary cross-faction peace during CallEveryone windows (persisted)
         public TempFactionRelationState tempFactionRelations = new TempFactionRelationState();
 
-        private int _lastAiToAiGenerationTick = 0;
-        private const int AiToAiGenerationIntervalTicks = 120000; // 2 game days
+        internal int _lastAiToAiGenerationTick = 0;
+        internal const int AiToAiGenerationIntervalTicks = 120000; // 2 game days
 
         public static GameComponent_DiplomacyManager Instance = null;
 
         public GameComponent_DiplomacyManager(Game game)
         {
+            Parts = new GameComponent_DiplomacyManagerParts(this);
             Instance = this;
         }
 
@@ -100,450 +113,82 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             DiplomacyPromptSnapshotCache.Instance.WarmupOnLoad();
         }
 
-        public static bool ShouldExcludeFactionFromAI(Faction faction)
-        {
-            if (faction == null) return true;
-            if (faction.IsPlayer || faction.defeated) return true;
-            if (faction.def?.hidden ?? true) return true;
+        
 
-            string csv = RelationsMod.Settings?.FactionExclusionDefNamesCsv;
-            if (string.IsNullOrWhiteSpace(csv)) return false;
+        
 
-            HashSet<string> excluded = ParseFactionExclusionCsv(csv);
-            return faction.def != null && excluded.Contains(faction.def.defName);
-        }
+        
 
-        private static HashSet<string> ParseFactionExclusionCsv(string csv)
-        {
-            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (string.IsNullOrWhiteSpace(csv)) return set;
+        
 
-            string[] tokens = csv.Split(new[] { ',', ';', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                string trimmed = tokens[i].Trim();
-                if (!string.IsNullOrWhiteSpace(trimmed))
-                    set.Add(trimmed);
-            }
-            return set;
-        }
+        
 
-        private void InitializeAIControlledFactions()
-        {
-            foreach (var f in Find.FactionManager.AllFactions)
-            {
-                if (ShouldExcludeFactionFromAI(f)) continue;
-                aiControlledFactions.Add(f);
-            }
-        }
+        
 
-        private void InitializeDialogueSessions()
-        {
-            foreach (var f in Find.FactionManager.AllFactions)
-            {
-                if (ShouldExcludeFactionFromAI(f)) continue;
-                GetOrCreateSession(f);
-            }
-        }
+        
 
-        private void InitializePresenceStates()
-        {
-            foreach (var f in Find.FactionManager.AllFactions)
-            {
-                if (ShouldExcludeFactionFromAI(f)) continue;
-                GetOrCreatePresenceState(f);
-            }
-        }
+        
 
-        private void CleanupInvalidSessions()
-        {
-            dialogueSessions.RemoveAll(s => s.faction == null || s.faction.defeated);
-            RebuildDialogueSessionIndex();
-        }
-
-        private void CleanupInvalidPresenceStates()
-        {
-            presenceStates.RemoveAll(s => s.faction == null || s.faction.defeated);
-            RebuildPresenceStateIndex();
-        }
-
-        private void RebuildDialogueSessionIndex()
-        {
-            dialogueSessionsByFaction.Clear();
-            if (dialogueSessions == null) return;
-            for (int i = 0; i < dialogueSessions.Count; i++)
-            {
-                var session = dialogueSessions[i];
-                if (session?.faction != null)
-                    dialogueSessionsByFaction[session.faction] = session;
-            }
-        }
-
-        private void RebuildPresenceStateIndex()
-        {
-            presenceStatesByFaction.Clear();
-            if (presenceStates == null) return;
-            for (int i = 0; i < presenceStates.Count; i++)
-            {
-                var state = presenceStates[i];
-                if (state?.faction != null)
-                    presenceStatesByFaction[state.faction] = state;
-            }
-        }
+        
 
         /// <summary>/// get或创建指定faction的dialoguesession
  ///</summary>
-        public FactionDialogueSession GetOrCreateSession(Faction faction)
-        {
-            if (faction == null) return null;
+        
 
-            if (dialogueSessionsByFaction.TryGetValue(faction, out var session))
-                return session;
-
-            session = new FactionDialogueSession(faction);
-            dialogueSessions.Add(session);
-            dialogueSessionsByFaction[faction] = session;
-            Log.Message($"[RimAI.Relations] Created dialogue session for {faction.Name}");
-            return session;
-        }
-
-        public FactionDialogueSession GetSession(Faction faction)
-        {
-            if (faction == null) return null;
-            dialogueSessionsByFaction.TryGetValue(faction, out var session);
-            return session;
-        }
+        
 
         public List<FactionDialogueSession> GetAllDialogueSessions()
         {
             return dialogueSessions ?? new List<FactionDialogueSession>();
         }
 
-        public bool HandleInboundFactionMessage(
-            Faction faction,
-            string sender,
-            string message,
-            DialogueMessageType messageType,
-            Pawn speakerPawn = null,
-            bool markUnread = true,
-            bool forcePresenceOnline = true)
-        {
-            if (faction == null || string.IsNullOrWhiteSpace(message))
-            {
-                return false;
-            }
+        
 
-            FactionDialogueSession session = GetOrCreateSession(faction);
-            if (session == null)
-            {
-                return false;
-            }
+        
 
-            if (forcePresenceOnline)
-            {
-                ForcePresenceOnlineForNpcInitiated(faction);
-                EnsureConversationReopenedOnInbound(session, faction);
-            }
-            else
-            {
-                EnsureConversationReopenedOnInbound(session, faction);
-            }
+        
 
-            string resolvedSender = string.IsNullOrWhiteSpace(sender)
-                ? (faction.leader?.Name?.ToStringShort ?? faction.Name ?? "Unknown")
-                : sender;
-            session.AddMessage(resolvedSender, message, false, messageType, speakerPawn);
-            session.hasUnreadMessages = markUnread;
-            LeaderMemoryManager.Instance?.UpdateFromDialogue(faction, session.messages);
-            return true;
-        }
+        
 
-        private void EnsureConversationReopenedOnInbound(
-            FactionDialogueSession session,
-            Faction faction)
-        {
-            if (session == null || !session.isConversationEndedByNpc)
-            {
-                return;
-            }
-
-            session.ReinitiateConversation();
-
-            // Keep an explicit audit trail when inbound messages reopen an ended dialogue.
-            session.AddMessage(
-                "System",
-                "RimChat_ConversationReinitiatedByNpc".Translate().ToString(),
-                false,
-                DialogueMessageType.System);
-        }
-
-        public FactionPresenceState GetOrCreatePresenceState(Faction faction)
-        {
-            if (faction == null) return null;
-
-            if (presenceStatesByFaction.TryGetValue(faction, out var state))
-                return state;
-
-            state = new FactionPresenceState(faction);
-            presenceStates.Add(state);
-            presenceStatesByFaction[faction] = state;
-            return state;
-        }
-
-        public FactionPresenceState GetPresenceState(Faction faction)
-        {
-            if (faction == null) return null;
-            presenceStatesByFaction.TryGetValue(faction, out var state);
-            return state;
-        }
-
-        public FactionPresenceStatus GetPresenceStatus(Faction faction)
-        {
-            var state = GetOrCreatePresenceState(faction);
-            return state?.status ?? FactionPresenceStatus.Online;
-        }
+        
 
         public bool CanSendMessage(Faction faction)
         {
             return GetPresenceStatus(faction) == FactionPresenceStatus.Online;
         }
 
-        public void ForcePresenceOnlineForNpcInitiated(Faction faction)
-        {
-            if (faction == null)
-            {
-                return;
-            }
+        
 
-            FactionPresenceState state = GetOrCreatePresenceState(faction);
-            if (state == null)
-            {
-                return;
-            }
+        
 
-            bool wasUnavailable = state.status != FactionPresenceStatus.Online;
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            state.status = FactionPresenceStatus.Online;
-            state.lastReason = string.Empty;
-            state.forcedOfflineUntilTick = 0;
-            state.doNotDisturbUntilTick = 0;
-            int cacheTicks = GetPresenceCacheTicks();
-            state.cacheUntilTick = currentTick + cacheTicks;
-            state.lastResolvedTick = currentTick;
-            if (wasUnavailable)
-            {
-                NpcDialogue.GameComponent_NpcDialoguePushManager.Instance?.CancelQueuedTriggersForFaction(
-                    faction,
-                    "presence_recovered_force_online");
-            }
-        }
+        
 
-        public void RefreshPresenceOnDialogueOpen(Faction faction)
-        {
-            var state = GetOrCreatePresenceState(faction);
-            if (state == null) return;
+        
 
-            FactionPresenceStatus previousStatus = state.status;
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            EnforcePresenceForcedDurationCaps(state, currentTick);
-            if (!IsPresenceEnabled())
-            {
-                state.status = FactionPresenceStatus.Online;
-                state.lastReason = string.Empty;
-                state.lastResolvedTick = currentTick;
-                HandlePresenceRecoveryQueueCleanup(faction, previousStatus, state.status);
-                return;
-            }
+        
 
-            bool forcedExpired = state.forcedOfflineUntilTick > 0 && state.forcedOfflineUntilTick <= currentTick;
-            bool doNotDisturbExpired = state.doNotDisturbUntilTick > 0 && state.doNotDisturbUntilTick <= currentTick;
-            if (forcedExpired || doNotDisturbExpired)
-            {
-                state.status = FactionPresenceStatus.Online;
-                state.lastReason = string.Empty;
-                state.forcedOfflineUntilTick = 0;
-                state.doNotDisturbUntilTick = 0;
-                state.lastResolvedTick = currentTick;
-                state.cacheUntilTick = currentTick + GetPresenceCacheTicks();
-                HandlePresenceRecoveryQueueCleanup(faction, previousStatus, state.status);
-                return;
-            }
+        
 
-            if (state.IsForcedOffline(currentTick))
-            {
-                state.status = FactionPresenceStatus.Offline;
-                state.lastResolvedTick = currentTick;
-                return;
-            }
+        
 
-            if (state.IsDoNotDisturb(currentTick))
-            {
-                state.status = FactionPresenceStatus.DoNotDisturb;
-                state.lastResolvedTick = currentTick;
-                return;
-            }
-
-            if (state.IsCacheValid(currentTick))
-            {
-                HandlePresenceRecoveryQueueCleanup(faction, previousStatus, state.status);
-                return;
-            }
-
-            state.status = EvaluateScheduledPresence(faction, currentTick, out string reason);
-            state.lastReason = reason ?? string.Empty;
-            state.lastResolvedTick = currentTick;
-            HandlePresenceRecoveryQueueCleanup(faction, previousStatus, state.status);
-        }
-
-        private static void HandlePresenceRecoveryQueueCleanup(
-            Faction faction,
-            FactionPresenceStatus previousStatus,
-            FactionPresenceStatus currentStatus)
-        {
-            if (faction == null || previousStatus == FactionPresenceStatus.Online || currentStatus != FactionPresenceStatus.Online)
-            {
-                return;
-            }
-
-            NpcDialogue.GameComponent_NpcDialoguePushManager.Instance?.CancelQueuedTriggersForFaction(
-                faction,
-                "presence_recovered_refresh");
-        }
-
-        private void EnforcePresenceForcedDurationCaps(FactionPresenceState state, int currentTick)
-        {
-            if (state == null)
-            {
-                return;
-            }
-
-            int forcedOfflineCapTick = currentTick + GetPresenceForcedOfflineTicks();
-            if (state.forcedOfflineUntilTick > forcedOfflineCapTick)
-            {
-                state.forcedOfflineUntilTick = forcedOfflineCapTick;
-            }
-
-            int doNotDisturbCapTick = currentTick + GetPresenceDoNotDisturbTicks();
-            if (state.doNotDisturbUntilTick > doNotDisturbCapTick)
-            {
-                state.doNotDisturbUntilTick = doNotDisturbCapTick;
-            }
-        }
-
-        public void RefreshPresenceForFactions(IEnumerable<Faction> factions)
-        {
-            if (factions == null) return;
-            foreach (var faction in factions)
-            {
-                RefreshPresenceOnDialogueOpen(faction);
-            }
-        }
-
-        public void LockPresenceCacheOnDialogueClose(Faction faction)
-        {
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            int cacheTicks = GetPresenceCacheTicks();
-            if (currentTick <= 0 || cacheTicks <= 0) return;
-
-            var state = GetOrCreatePresenceState(faction);
-            if (state == null) return;
-            if (state.cacheUntilTick > currentTick)
-            {
-                return;
-            }
-            if (state.forcedOfflineUntilTick > currentTick)
-            {
-                state.cacheUntilTick = Math.Max(state.cacheUntilTick, state.forcedOfflineUntilTick);
-                return;
-            }
-
-            if (state.doNotDisturbUntilTick > currentTick)
-            {
-                state.cacheUntilTick = Math.Max(state.cacheUntilTick, state.doNotDisturbUntilTick);
-                return;
-            }
-            state.cacheUntilTick = Math.Max(state.cacheUntilTick, currentTick + cacheTicks);
-        }
-
-        public void LockPresenceCacheOnDialogueClose(IEnumerable<Faction> factions)
-        {
-            if (factions == null) return;
-            foreach (var faction in factions)
-            {
-                LockPresenceCacheOnDialogueClose(faction);
-            }
-        }
-
-        public void ApplyPresenceAction(Faction faction, string actionType, string reason, FactionDialogueSession session)
-        {
-            if (faction == null || string.IsNullOrEmpty(actionType)) return;
-
-            int currentTick = Find.TickManager?.TicksGame ?? 0;
-            var state = GetOrCreatePresenceState(faction);
-            if (state == null) return;
-
-            string normalizedReason = reason ?? string.Empty;
-            switch (actionType)
-            {
-                case "exit_dialogue":
-                    if (session == null || !session.isConversationEndedByNpc)
-                    {
-                        session?.MarkConversationEnded(normalizedReason, true, 1 * GenDate.TicksPerHour);
-                    }
-                    break;
-                case "go_offline":
-                    state.status = FactionPresenceStatus.Offline;
-                    state.lastReason = normalizedReason;
-                    state.lastResolvedTick = currentTick;
-                    state.forcedOfflineUntilTick = currentTick + GetPresenceForcedOfflineTicks();
-                    state.doNotDisturbUntilTick = 0;
-                    state.cacheUntilTick = Math.Max(state.cacheUntilTick, state.forcedOfflineUntilTick);
-                    session?.MarkConversationEnded(normalizedReason, false);
-                    NpcDialogue.GameComponent_NpcDialoguePushManager.Instance?.CancelQueuedTriggersForFaction(faction);
-                    break;
-                case "set_dnd":
-                    state.status = FactionPresenceStatus.DoNotDisturb;
-                    state.lastReason = normalizedReason;
-                    state.lastResolvedTick = currentTick;
-                    state.forcedOfflineUntilTick = 0;
-                    state.doNotDisturbUntilTick = currentTick + GetPresenceDoNotDisturbTicks();
-                    state.cacheUntilTick = Math.Max(state.cacheUntilTick, state.doNotDisturbUntilTick);
-                    session?.MarkConversationEnded(normalizedReason, false);
-                    NpcDialogue.GameComponent_NpcDialoguePushManager.Instance?.CancelQueuedTriggersForFaction(faction);
-                    break;
-            }
-        }
+        
 
         /// <summary>/// 检查factionwhether有未读message
  ///</summary>
-        public bool HasUnreadMessages(Faction faction)
-        {
-            var session = GetSession(faction);
-            return session?.hasUnreadMessages ?? false;
-        }
+        
 
         /// <summary>/// get所有有dialoguerecord的faction
  ///</summary>
-        public List<Faction> GetFactionsWithDialogue()
-        {
-            var result = new List<Faction>();
-            for (int i = 0; i < dialogueSessions.Count; i++)
-            {
-                var s = dialogueSessions[i];
-                if (s.faction != null && !s.faction.defeated && s.messages.Count > 0)
-                    result.Add(s.faction);
-            }
-            return result;
-        }
+        
 
-        private int lastDailyResetTick = 0;
-        private int lastPeriodicSnapshotTick = 0;
-        private const int PeriodicSnapshotIntervalTicks = 1500; // ~30 seconds
+        internal int lastDailyResetTick = 0;
+        internal int lastPeriodicSnapshotTick = 0;
+        internal const int PeriodicSnapshotIntervalTicks = 1500; // ~30 seconds
 
         // Per-faction presence evaluation cache keyed by (faction.loadID, dayIndex, hour).
         // Avoids repeated Rand.PushState/PopState when the same faction is resolved multiple times within the same game hour.
-        private readonly Dictionary<Faction, int> presenceEvalCacheKey = new Dictionary<Faction, int>();
-        private readonly Dictionary<Faction, FactionPresenceStatus> presenceEvalCacheResult = new Dictionary<Faction, FactionPresenceStatus>();
+        internal readonly Dictionary<Faction, int> presenceEvalCacheKey = new Dictionary<Faction, int>();
+        internal readonly Dictionary<Faction, FactionPresenceStatus> presenceEvalCacheResult = new Dictionary<Faction, FactionPresenceStatus>();
 
         public override void GameComponentTick()
         {
@@ -584,168 +229,19 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         }
 
-        private void ProcessPeriodicDiplomacySnapshots()
-        {
-            if (dialogueSessions == null) return;
+        
 
-            // Collect pending snapshots synchronously (only cheap index updates).
-            // The expensive traversal (GetLastNegotiatorForSession + I/O) is fully offloaded.
-            var pendingSessions = new List<FactionDialogueSession>();
-            var pendingLastIndices = new List<int>();
-            for (int i = 0; i < dialogueSessions.Count; i++)
-            {
-                var session = dialogueSessions[i];
-                if (session == null || session.faction == null || session.faction.defeated) continue;
-                if (session.messages == null || session.messages.Count <= session.lastSummarizedMessageIndex) continue;
+        
 
-                pendingSessions.Add(session);
-                pendingLastIndices.Add(session.lastSummarizedMessageIndex);
-                session.lastSummarizedMessageIndex = session.messages.Count;
-            }
+        
 
-            if (pendingSessions.Count == 0) return;
+        
 
-            var archive = RpgNpcDialogueArchiveManager.Instance;
-            LongEventHandler.QueueLongEvent(() =>
-            {
-                for (int i = 0; i < pendingSessions.Count; i++)
-                {
-                    var session = pendingSessions[i];
-                    if (session?.faction == null || session.messages == null) continue;
-                    int lastIndex = pendingLastIndices[i];
-                    Pawn negotiator = GetLastNegotiatorForSession(session);
-                    archive.RecordDiplomacySummary(negotiator, session.faction, session.messages, lastIndex);
-                }
-            }, "RimChat_DiplomacySnapshot", false, null);
-        }
+        
 
-        private Pawn GetLastNegotiatorForSession(FactionDialogueSession session)
-        {
-            if (session?.messages == null) return null;
-            for (int i = session.messages.Count - 1; i >= 0; i--)
-            {
-                var msg = session.messages[i];
-                if (msg == null) continue;
-                Pawn speaker = msg.ResolveSpeakerPawn();
-                if (speaker != null && !speaker.Destroyed && !speaker.Dead)
-                {
-                    return speaker;
-                }
-            }
-            return null;
-        }
+        
 
-        public void ProcessDelayedEvents()
-        {
-            int currentTick = Find.TickManager?.TicksGame ?? -1;
-            if (currentTick >= 0 && lastProcessedDelayedEventsTick == currentTick)
-            {
-                return;
-            }
-
-            if (isProcessingDelayedEvents)
-            {
-                return;
-            }
-
-            if (delayedEvents == null)
-            {
-                delayedEvents = new List<DelayedDiplomacyEvent>();
-            }
-
-            isProcessingDelayedEvents = true;
-            lastProcessedDelayedEventsTick = currentTick;
-            try
-            {
-                for (int i = delayedEvents.Count - 1; i >= 0; i--)
-                {
-                    DelayedDiplomacyEvent evt = delayedEvents[i];
-                    if (evt == null || evt.Faction == null || evt.Faction.defeated)
-                    {
-                        delayedEvents.RemoveAt(i);
-                        continue;
-                    }
-
-                    if (!evt.ShouldExecute())
-                    {
-                        continue;
-                    }
-
-                    bool success = evt.Execute();
-                    if (success)
-                    {
-                        delayedEvents.RemoveAt(i);
-                        continue;
-                    }
-
-                    bool noRetryPolicy = evt.EventType == DelayedEventType.RaidCallEveryone;
-                    if (!noRetryPolicy && evt.CanRetry())
-                    {
-                        int retryDelay = Rand.Range(1500, 3000);
-                        evt.ScheduleRetry(retryDelay);
-                        Log.Warning($"[RimAI.Relations] Delayed {evt.EventType} from {evt.Faction?.Name} failed; retry {evt.RetryCount}/{evt.MaxRetryCount} at tick {evt.NextRetryTick}.");
-                    }
-                    else
-                    {
-                        string policyNote = noRetryPolicy ? " (no-retry policy)" : string.Empty;
-                        Log.Error($"[RimAI.Relations] Delayed {evt.EventType} from {evt.Faction?.Name ?? "null"} failed after {evt.RetryCount} retries and was discarded{policyNote}. ExecuteTick={evt.ExecuteTick}, CurrentTick={currentTick}, Faction.defeated={evt.Faction?.defeated}, Faction.def={evt.Faction?.def?.defName}.");
-                        delayedEvents.RemoveAt(i);
-                    }
-                }
-            }
-            finally
-            {
-                FlushPendingDelayedEvents();
-                isProcessingDelayedEvents = false;
-            }
-        }
-
-        public void AddDelayedEvent(DelayedDiplomacyEvent evt)
-        {
-            if (evt == null)
-            {
-                return;
-            }
-
-            if (delayedEvents == null)
-                delayedEvents = new List<DelayedDiplomacyEvent>();
-
-            if (isProcessingDelayedEvents)
-            {
-                delayedEventsPendingAdd.Add(evt);
-            }
-            else
-            {
-                delayedEvents.Add(evt);
-            }
-            Log.Message($"[RimAI.Relations] Scheduled delayed {evt.EventType} from {evt.Faction?.Name} at tick {evt.ExecuteTick}");
-        }
-
-        private void FlushPendingDelayedEvents()
-        {
-            if (delayedEventsPendingAdd.Count == 0)
-            {
-                return;
-            }
-
-            delayedEvents.AddRange(delayedEventsPendingAdd);
-            delayedEventsPendingAdd.Clear();
-        }
-
-        private void DailyReset()
-        {
-            // 重置 GameAIInterface 的每日限制
-            GameAIInterface.Instance?.DailyReset();
-            OnSocialCircleDailyReset();
-
-            Log.Message("[RimAI.Relations] Daily reset completed.");
-        }
-
-        private void ProcessAIDecisions()
-        {
-            // 这里将调用 AI API 进行决策
-            // 暂时留空, pending AI client实现
-        }
+        
 
         public bool IsAIControlled(Faction faction)
         {
@@ -894,337 +390,223 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        private bool IsPresenceEnabled()
+        internal bool IsPresenceEnabled()
         {
             return RelationsMod.Instance?.InstanceSettings?.EnableFactionPresenceStatus ?? true;
         }
 
-        private int GetPresenceCacheTicks()
-        {
-            float cacheHours = RelationsMod.Instance?.InstanceSettings?.PresenceCacheHours ?? 8f;
-            return Math.Max(0, Mathf.RoundToInt(cacheHours * 2500f));
-        }
+        
 
-        private int GetPresenceForcedOfflineTicks()
+        internal int GetPresenceForcedOfflineTicks()
         {
             return ForcedOfflineDurationHours * GenDate.TicksPerHour;
         }
 
-        private void MigrateLegacyRaidCallEveryoneEvents(int currentTick)
-        {
-            if (delayedEvents == null || delayedEvents.Count == 0)
-            {
-                return;
-            }
+        
 
-            int windowStartTick = currentTick + (16 * 2500);
-            int windowEndTick = currentTick + (30 * 2500);
-            foreach (DelayedDiplomacyEvent evt in delayedEvents)
-            {
-                if (evt == null || evt.EventType != DelayedEventType.RaidCallEveryone)
-                {
-                    continue;
-                }
-
-                bool changed = false;
-                Faction evtFaction = evt.Faction;
-                bool neutralOrBetter = evtFaction != null && evtFaction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile;
-                if (neutralOrBetter && evt.CallEveryoneAction != CallEveryoneActionKind.MilitaryAidCustom)
-                {
-                    evt.CallEveryoneAction = CallEveryoneActionKind.MilitaryAidCustom;
-                    changed = true;
-                }
-
-                if (evt.ExecuteTick < windowStartTick || evt.ExecuteTick > windowEndTick)
-                {
-                    evt.ExecuteTick = windowStartTick + Rand.Range(0, 14 * 2500);
-                    changed = true;
-                }
-
-                if (evt.MaxRetryCount != 0 || evt.NextRetryTick > 0)
-                {
-                    evt.MaxRetryCount = 0;
-                    evt.RetryCount = 0;
-                    evt.NextRetryTick = 0;
-                    changed = true;
-                }
-
-                if (changed)
-                {
-                    Log.Message($"[RimAI.Relations] Migrated legacy RaidCallEveryone event from {evtFaction?.Name ?? "Unknown"}: executeTick={evt.ExecuteTick}, action={evt.CallEveryoneAction}, maxRetry={evt.MaxRetryCount}");
-                }
-            }
-        }
-
-        private int GetPresenceDoNotDisturbTicks()
+        internal int GetPresenceDoNotDisturbTicks()
         {
             return ForcedDoNotDisturbDurationHours * GenDate.TicksPerHour;
         }
 
-        private FactionPresenceStatus EvaluateScheduledPresence(Faction faction, int currentTick, out string reason)
-        {
-            int currentHour = GetCurrentHourOfDay();
-            int dayIndex = currentTick / 60000;
-            int cacheKey = dayIndex * 100 + currentHour;
+        
 
-            if (presenceEvalCacheKey.TryGetValue(faction, out int cachedKey) && cachedKey == cacheKey &&
-                presenceEvalCacheResult.TryGetValue(faction, out FactionPresenceStatus cachedStatus))
-            {
-                reason = "schedule_cached";
-                return cachedStatus;
-            }
-
-            reason = "schedule";
-            TechLevel techLevel = faction?.def?.techLevel ?? TechLevel.Undefined;
-            GetPresenceScheduleForTechLevel(techLevel, out int startHour, out int durationHours);
-            int scheduleOffset = GetScheduleOffsetHours(faction, dayIndex);
-            startHour = ModHour(startHour + scheduleOffset);
-            bool isOnline = IsHourWithinWindow(currentHour, startHour, durationHours);
-
-            if (!isOnline)
-            {
-                float offWindowChance = GetOffWindowOnlineChance(techLevel);
-                if (offWindowChance > 0f &&
-                    GetDeterministicRoll(faction, dayIndex, currentHour + 97) < offWindowChance)
-                {
-                    isOnline = true;
-                    reason = "off_window_chance";
-                }
-            }
-
-            if (isOnline && IsNightBiasEnabled() && IsInNightWindow(currentHour))
-            {
-                float offlineBias = Mathf.Clamp01(RelationsMod.Instance?.InstanceSettings?.PresenceNightOfflineBias ?? 0.65f);
-                if (GetDeterministicRoll(faction, dayIndex, currentHour) < offlineBias)
-                {
-                    isOnline = false;
-                    reason = "night_bias";
-                }
-            }
-
-            FactionPresenceStatus result = isOnline ? FactionPresenceStatus.Online : FactionPresenceStatus.Offline;
-            presenceEvalCacheKey[faction] = cacheKey;
-            presenceEvalCacheResult[faction] = result;
-            return result;
-        }
-
-        private bool IsNightBiasEnabled()
+        internal bool IsNightBiasEnabled()
         {
             return RelationsMod.Instance?.InstanceSettings?.PresenceNightBiasEnabled ?? true;
         }
 
-        private int GetCurrentHourOfDay()
-        {
-            var map = Find.CurrentMap ?? Find.AnyPlayerHomeMap;
-            if (map != null)
-            {
-                return GenLocalDate.HourOfDay(map);
-            }
+        
 
-            int ticksAbs = Find.TickManager?.TicksAbs ?? 0;
-            return Mathf.FloorToInt((ticksAbs / 2500f) % 24f);
-        }
+        
 
-        private void GetPresenceScheduleForTechLevel(TechLevel techLevel, out int startHour, out int durationHours)
-        {
-            var settings = RelationsMod.Instance?.InstanceSettings;
-            bool useAdvanced = settings?.PresenceUseAdvancedProfiles ?? false;
-            if (!useAdvanced)
-            {
-                switch (techLevel)
-                {
-                    case TechLevel.Neolithic:
-                        startHour = 8;
-                        durationHours = 8;
-                        return;
-                    case TechLevel.Medieval:
-                        startHour = 8;
-                        durationHours = 10;
-                        return;
-                    case TechLevel.Industrial:
-                        startHour = 7;
-                        durationHours = 14;
-                        return;
-                    case TechLevel.Spacer:
-                        startHour = 6;
-                        durationHours = 18;
-                        return;
-                    case TechLevel.Ultra:
-                    case TechLevel.Archotech:
-                        startHour = 4;
-                        durationHours = 20;
-                        return;
-                    default:
-                        startHour = 7;
-                        durationHours = 12;
-                        return;
-                }
-            }
+        
 
-            switch (techLevel)
-            {
-                case TechLevel.Neolithic:
-                    startHour = settings?.PresenceOnlineStart_Neolithic ?? 10;
-                    durationHours = settings?.PresenceOnlineDuration_Neolithic ?? 6;
-                    break;
-                case TechLevel.Medieval:
-                    startHour = settings?.PresenceOnlineStart_Medieval ?? 9;
-                    durationHours = settings?.PresenceOnlineDuration_Medieval ?? 8;
-                    break;
-                case TechLevel.Industrial:
-                    startHour = settings?.PresenceOnlineStart_Industrial ?? 8;
-                    durationHours = settings?.PresenceOnlineDuration_Industrial ?? 12;
-                    break;
-                case TechLevel.Spacer:
-                    startHour = settings?.PresenceOnlineStart_Spacer ?? 7;
-                    durationHours = settings?.PresenceOnlineDuration_Spacer ?? 16;
-                    break;
-                case TechLevel.Ultra:
-                    startHour = settings?.PresenceOnlineStart_Ultra ?? 6;
-                    durationHours = settings?.PresenceOnlineDuration_Ultra ?? 18;
-                    break;
-                case TechLevel.Archotech:
-                    startHour = settings?.PresenceOnlineStart_Archotech ?? 6;
-                    durationHours = settings?.PresenceOnlineDuration_Archotech ?? 18;
-                    break;
-                default:
-                    startHour = settings?.PresenceOnlineStart_Default ?? 8;
-                    durationHours = settings?.PresenceOnlineDuration_Default ?? 10;
-                    break;
-            }
+        
 
-            startHour = Mathf.Clamp(startHour, 0, 23);
-            durationHours = Mathf.Clamp(durationHours, 1, 24);
-        }
+        
 
-        private bool IsHourWithinWindow(int hour, int startHour, int durationHours)
-        {
-            hour = Mathf.Clamp(hour, 0, 23);
-            startHour = Mathf.Clamp(startHour, 0, 23);
-            durationHours = Mathf.Clamp(durationHours, 1, 24);
-            if (durationHours >= 24) return true;
+        
 
-            int endHour = (startHour + durationHours) % 24;
-            if (startHour < endHour)
-            {
-                return hour >= startHour && hour < endHour;
-            }
+        
 
-            return hour >= startHour || hour < endHour;
-        }
-
-        private bool IsInNightWindow(int hour)
-        {
-            var settings = RelationsMod.Instance?.InstanceSettings;
-            int nightStart = Mathf.Clamp(settings?.PresenceNightStartHour ?? 22, 0, 23);
-            int nightEnd = Mathf.Clamp(settings?.PresenceNightEndHour ?? 6, 0, 23);
-
-            if (nightStart == nightEnd)
-            {
-                return true;
-            }
-
-            if (nightStart < nightEnd)
-            {
-                return hour >= nightStart && hour < nightEnd;
-            }
-
-            return hour >= nightStart || hour < nightEnd;
-        }
-
-        private float GetDeterministicRoll(Faction faction, int dayIndex, int hour)
-        {
-            int seed = Gen.HashCombineInt(faction?.loadID ?? 0, dayIndex);
-            seed = Gen.HashCombineInt(seed, hour);
-            Rand.PushState(seed);
-            float value = Rand.Value;
-            Rand.PopState();
-            return value;
-        }
-
-        private int GetScheduleOffsetHours(Faction faction, int dayIndex)
-        {
-            int seed = Gen.HashCombineInt(faction?.loadID ?? 0, dayIndex);
-            Rand.PushState(seed);
-            int offset = Rand.RangeInclusive(-2, 2);
-            Rand.PopState();
-            return offset;
-        }
-
-        private int ModHour(int hour)
-        {
-            hour %= 24;
-            if (hour < 0)
-            {
-                hour += 24;
-            }
-            return hour;
-        }
-
-        private float GetOffWindowOnlineChance(TechLevel techLevel)
-        {
-            switch (techLevel)
-            {
-                case TechLevel.Neolithic:
-                    return 0.05f;
-                case TechLevel.Medieval:
-                    return 0.08f;
-                case TechLevel.Industrial:
-                    return 0.12f;
-                case TechLevel.Spacer:
-                    return 0.18f;
-                case TechLevel.Ultra:
-                case TechLevel.Archotech:
-                    return 0.25f;
-                default:
-                    return 0.10f;
-            }
-        }
+        
 
         // ── Temporary cross-faction peace for CallEveryone windows ──
 
-        private static string GetTempPeaceKey(Faction a, Faction b)
-        {
-            var ids = new[] { a.loadID.ToString(), b.loadID.ToString() };
-            Array.Sort(ids);
-            return string.Join(":", ids);
-        }
+        
 
-        public void ApplyTempCrossFactionPeace(Faction a, Faction b, int untilTick)
-        {
-            if (a == null || b == null || a == b) return;
-            FactionRelationKind currentKind = a.RelationKindWith(b);
-            if (currentKind != FactionRelationKind.Hostile) return;
+        
 
-            string key = GetTempPeaceKey(a, b);
-            if (!tempFactionRelations.originalRelations.ContainsKey(key))
-                tempFactionRelations.originalRelations[key] = currentKind;
+        
 
-            a.SetRelationDirect(b, FactionRelationKind.Neutral);
-            tempFactionRelations.restoreAtTick = Math.Max(tempFactionRelations.restoreAtTick, untilTick);
-        }
 
-        public void TryRestoreTempFactionRelations(int currentTick)
-        {
-            if (tempFactionRelations?.originalRelations == null || tempFactionRelations.originalRelations.Count == 0) return;
-            if (tempFactionRelations.restoreAtTick <= 0) return;
-            if (currentTick < tempFactionRelations.restoreAtTick) return;
-
-            Log.Message($"[RimAI.Relations] Restoring {tempFactionRelations.originalRelations.Count} temporary faction peace overrides at tick {currentTick}");
-            foreach (var kv in tempFactionRelations.originalRelations)
-            {
-                string[] ids = kv.Key.Split(':');
-                if (ids.Length != 2) continue;
-                Faction fa = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[0]);
-                Faction fb = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[1]);
-                if (fa == null || fb == null || fa.defeated || fb.defeated) continue;
-                fa.SetRelationDirect(fb, kv.Value);
-            }
-            tempFactionRelations.originalRelations.Clear();
-            tempFactionRelations.restoreAtTick = 0;
-        }
-
-    }
+        #region Facade forwards
+        public bool AddAlbumEntry(AlbumImageEntry entry) => Parts.Album.AddAlbumEntry(entry);
+        public List<AlbumImageEntry> GetAlbumEntries() => Parts.Album.GetAlbumEntries();
+        public int PruneMissingAlbumFiles() => Parts.Album.PruneMissingAlbumFiles();
+        public bool RemoveAlbumEntry(string id) => Parts.Album.RemoveAlbumEntry(id);
+        public bool HasCaravanDispatchedNow(Faction faction) => Parts.EventQueries.HasCaravanDispatchedNow(faction);
+        public bool HasRaidScheduledNow(Faction faction) => Parts.EventQueries.HasRaidScheduledNow(faction);
+        public List<Faction> GetManuallyVisibleHiddenFactions() => Parts.HiddenFactionVisibility.GetManuallyVisibleHiddenFactions();
+        public bool IsHiddenFactionManuallyVisible(Faction faction) => Parts.HiddenFactionVisibility.IsHiddenFactionManuallyVisible(faction);
+        public void SetManuallyVisibleHiddenFactions(IEnumerable<Faction> factions) => Parts.HiddenFactionVisibility.SetManuallyVisibleHiddenFactions(factions);
+        internal void EnsureHiddenFactionVisibilityState() => Parts.HiddenFactionVisibility.EnsureHiddenFactionVisibilityState();
+        internal void CleanupManuallyVisibleHiddenFactions() => Parts.HiddenFactionVisibility.CleanupManuallyVisibleHiddenFactions();
+        internal static bool IsSelectableHiddenFaction(Faction faction) => DiplomacyManagerHiddenFactionVisibility.IsSelectableHiddenFaction(faction);
+        internal void InitializeSocialCircleOnNewGame() => Parts.SocialCircle.InitializeSocialCircleOnNewGame();
+        internal void InitializeSocialCircleOnLoadedGame() => Parts.SocialCircle.InitializeSocialCircleOnLoadedGame();
+        public void ProcessSocialCircleTick() => Parts.SocialCircle.ProcessSocialCircleTick();
+        internal void OnSocialCircleDailyReset() => Parts.SocialCircle.OnSocialCircleDailyReset();
+        public bool IsSocialCircleEnabled() => Parts.SocialCircle.IsSocialCircleEnabled();
+        public bool ForceGeneratePublicPost(DebugGenerateReason reason = DebugGenerateReason.ManualButton) => Parts.SocialCircle.ForceGeneratePublicPost(reason);
+        public bool TryForceGeneratePublicPost(DebugGenerateReason reason, out SocialForceGenerateFailureReason failureReason) => Parts.SocialCircle.TryForceGeneratePublicPost(reason, out failureReason);
+        public bool EnqueuePublicPost(Faction sourceFaction, Faction targetFaction, SocialPostCategory category, int sentiment, string summary, bool isFromPlayerDialogue, string intentHint = "", DebugGenerateReason reason = DebugGenerateReason.DialogueExplicit) => Parts.SocialCircle.EnqueuePublicPost(sourceFaction, targetFaction, category, sentiment, summary, isFromPlayerDialogue, intentHint, reason);
+        public bool EnqueuePublicPost(Faction sourceFaction, Faction targetFaction, SocialPostCategory category, int sentiment, string summary, bool isFromPlayerDialogue, out SocialPostEnqueueResult enqueueResult, string intentHint = "", DebugGenerateReason reason = DebugGenerateReason.DialogueExplicit) => Parts.SocialCircle.EnqueuePublicPost(sourceFaction, targetFaction, category, sentiment, summary, isFromPlayerDialogue, out enqueueResult, intentHint, reason);
+        public bool TryCreateKeywordDialoguePost(Faction sourceFaction, string playerMessage, string aiResponse) => Parts.SocialCircle.TryCreateKeywordDialoguePost(sourceFaction, playerMessage, aiResponse);
+        public bool TryCreateKeywordDialoguePost(Faction sourceFaction, string playerMessage, string aiResponse, out SocialPostEnqueueResult enqueueResult) => Parts.SocialCircle.TryCreateKeywordDialoguePost(sourceFaction, playerMessage, aiResponse, out enqueueResult);
+        public Faction ResolveSocialTargetFaction(string token, Faction sourceFaction = null) => Parts.SocialCircle.ResolveSocialTargetFaction(token, sourceFaction);
+        public List<PublicSocialPost> GetSocialPosts(int maxCount = MaxSocialPosts) => Parts.SocialCircle.GetSocialPosts(maxCount);
+        public int GetSocialPostListVersion() => Parts.SocialCircle.GetSocialPostListVersion();
+        public int GetUnreadSocialPostCount() => Parts.SocialCircle.GetUnreadSocialPostCount();
+        public void MarkSocialPostsRead() => Parts.SocialCircle.MarkSocialPostsRead();
+        internal void EnsureSocialCircleState() => Parts.SocialCircle.EnsureSocialCircleState();
+        internal void EnsureNextSocialPostTick(int currentTick) => Parts.SocialCircle.EnsureNextSocialPostTick(currentTick);
+        internal void ScheduleNextSocialPost(int currentTick) => Parts.SocialCircle.ScheduleNextSocialPost(currentTick);
+        internal void TryGenerateScheduledSocialPost(int currentTick) => Parts.SocialCircle.TryGenerateScheduledSocialPost(currentTick);
+        internal void TrimSocialPosts() => Parts.SocialCircle.TrimSocialPosts();
+        internal List<Faction> GetEligibleSocialFactions() => Parts.SocialCircle.GetEligibleSocialFactions();
+        internal Faction ResolveMentionedFaction(string text, Faction sourceFaction) => Parts.SocialCircle.ResolveMentionedFaction(text, sourceFaction);
+        internal void AddSocialSystemMessage(Faction sourceFaction, string message) => Parts.SocialCircle.AddSocialSystemMessage(sourceFaction, message);
+        public void RecordScheduledSocialEvent(ScheduledSocialEventType eventType, Faction sourceFaction, Faction targetFaction, string summary, string detail, int value, string sourceKey) => Parts.SocialCircle.RecordScheduledSocialEvent(eventType, sourceFaction, targetFaction, summary, detail, value, sourceKey);
+        public List<ScheduledSocialEventRecord> GetRecentScheduledSocialEvents(int daysWindow) => Parts.SocialCircle.GetRecentScheduledSocialEvents(daysWindow);
+        internal void AddSocialGenerationMessage(SocialNewsSeed seed, bool success, SocialPostGenerationFailureReason failureReason = SocialPostGenerationFailureReason.None) => Parts.SocialCircle.AddSocialGenerationMessage(seed, success, failureReason);
+        public static string GetSocialFailureReasonLabel(SocialPostEnqueueFailureReason reason) => DiplomacyManagerSocialCircle.GetSocialFailureReasonLabel(reason);
+        public static string GetSocialFailureReasonLabel(SocialPostGenerationFailureReason reason) => DiplomacyManagerSocialCircle.GetSocialFailureReasonLabel(reason);
+        internal static string GetSocialFailureReasonKey(SocialPostEnqueueFailureReason reason) => DiplomacyManagerSocialCircle.GetSocialFailureReasonKey(reason);
+        internal static string GetSocialFailureReasonKey(SocialPostGenerationFailureReason reason) => DiplomacyManagerSocialCircle.GetSocialFailureReasonKey(reason);
+        internal void TryProcessAiToAiInteraction(int currentTick) => Parts.SocialCircle.TryProcessAiToAiInteraction(currentTick);
+        public bool TryGenerateAiToAiSocialPost(DebugGenerateReason reason, int currentTick) => Parts.SocialCircle.TryGenerateAiToAiSocialPost(reason, currentTick);
+        internal static SocialPostCategory PickRandomAiToAiCategory(Faction source, Faction target) => DiplomacyManagerSocialCircle.PickRandomAiToAiCategory(source, target);
+        internal static int PickRandomAiToAiSentiment(Faction source, Faction target, SocialPostCategory category) => DiplomacyManagerSocialCircle.PickRandomAiToAiSentiment(source, target, category);
+        internal static string BuildAiToAiSummary(Faction source, Faction target, SocialPostCategory category, int sentiment) => DiplomacyManagerSocialCircle.BuildAiToAiSummary(source, target, category, sentiment);
+        public ManualSocialPostResult TryPublishManualPlayerSocialPost(string title, string body) => Parts.SocialCircleManualPost.TryPublishManualPlayerSocialPost(title, body);
+        public static string GetManualSocialPostFailureReasonLabel(ManualSocialPostFailureReason reason) => DiplomacyManagerSocialCircleManualPost.GetManualSocialPostFailureReasonLabel(reason);
+        internal PublicSocialPost CreateManualPlayerSocialPost(string title, string body, int currentTick) => Parts.SocialCircleManualPost.CreateManualPlayerSocialPost(title, body, currentTick);
+        internal List<Faction> SelectManualReactionFactions(string title, string body) => Parts.SocialCircleManualPost.SelectManualReactionFactions(title, body);
+        internal void TriggerManualPostResponses(PublicSocialPost post, List<Faction> targetFactions) => Parts.SocialCircleManualPost.TriggerManualPostResponses(post, targetFactions);
+        internal NpcDialogueTriggerContext BuildManualPostTriggerContext(Faction faction, PublicSocialPost post) => Parts.SocialCircleManualPost.BuildManualPostTriggerContext(faction, post);
+        internal bool IsEligibleManualReactionFaction(Faction faction) => Parts.SocialCircleManualPost.IsEligibleManualReactionFaction(faction);
+        internal float ScoreManualReactionFaction(Faction faction, string content, SocialPostCategory category, int sentiment) => Parts.SocialCircleManualPost.ScoreManualReactionFaction(faction, content, category, sentiment);
+        internal static int CountMentionHits(string content, string token) => DiplomacyManagerSocialCircleManualPost.CountMentionHits(content, token);
+        internal static string SanitizeManualReasonSegment(string text) => DiplomacyManagerSocialCircleManualPost.SanitizeManualReasonSegment(text);
+        internal void ClearSocialTransientState() => Parts.SocialCircleNewsRequests.ClearSocialTransientState();
+        public void ProcessDeferredSocialNewsSeeds(int currentTick) => Parts.SocialCircleNewsRequests.ProcessDeferredSocialNewsSeeds(currentTick);
+        internal bool TryQueueNextScheduledNews(DebugGenerateReason reason, int currentTick, bool bypassSimulationToggle) => Parts.SocialCircleNewsRequests.TryQueueNextScheduledNews(reason, currentTick, bypassSimulationToggle);
+        internal bool TryQueueNextScheduledNews(DebugGenerateReason reason, int currentTick, bool bypassSimulationToggle, out SocialForceGenerateFailureReason failureReason) => Parts.SocialCircleNewsRequests.TryQueueNextScheduledNews(reason, currentTick, bypassSimulationToggle, out failureReason);
+        internal bool TryQueueNewsSeed(SocialNewsSeed seed, int currentTick, bool allowFailedRetry = false) => Parts.SocialCircleNewsRequests.TryQueueNewsSeed(seed, currentTick, allowFailedRetry);
+        internal bool TryQueueNewsSeed(SocialNewsSeed seed, int currentTick, out string requestId, out SocialPostEnqueueFailureReason failureReason, bool allowFailedRetry = false) => Parts.SocialCircleNewsRequests.TryQueueNewsSeed(seed, currentTick, out requestId, out failureReason, allowFailedRetry);
+        internal bool TryResolvePromptSnapshotOrDefer(SocialNewsSeed seed, int currentTick, bool allowFailedRetry, out DiplomacyPromptRuntimeSnapshot snapshot) => Parts.SocialCircleNewsRequests.TryResolvePromptSnapshotOrDefer(seed, currentTick, allowFailedRetry, out snapshot);
+        internal void EnqueueDeferredSocialNewsSeed(SocialNewsSeed seed, int dueTick, bool allowFailedRetry) => Parts.SocialCircleNewsRequests.EnqueueDeferredSocialNewsSeed(seed, dueTick, allowFailedRetry);
+        internal static string BuildDeferredSocialSeedKey(SocialNewsSeed seed) => DiplomacyManagerSocialCircleNewsRequests.BuildDeferredSocialSeedKey(seed);
+        internal bool CanGenerateSocialNews() => Parts.SocialCircleNewsRequests.CanGenerateSocialNews();
+        internal bool CanGenerateSocialNews(out SocialForceGenerateFailureReason failureReason) => Parts.SocialCircleNewsRequests.CanGenerateSocialNews(out failureReason);
+        internal SocialNewsSeed SelectNextScheduledSeed(bool allowFailedRetry, int currentTick) => Parts.SocialCircleNewsRequests.SelectNextScheduledSeed(allowFailedRetry, currentTick);
+        internal bool IsOriginBlocked(SocialNewsSeed seed, bool allowFailedRetry, int currentTick) => Parts.SocialCircleNewsRequests.IsOriginBlocked(seed, allowFailedRetry, currentTick);
+        internal SocialProcessedOrigin FindProcessedOrigin(SocialNewsSeed seed) => Parts.SocialCircleNewsRequests.FindProcessedOrigin(seed);
+        internal bool HasPublishedOrigin(SocialNewsSeed seed) => Parts.SocialCircleNewsRequests.HasPublishedOrigin(seed);
+        internal void OnSocialNewsRequestSuccess(string requestId, string response) => Parts.SocialCircleNewsRequests.OnSocialNewsRequestSuccess(requestId, response);
+        internal void OnSocialNewsRequestError(string requestId, string error) => Parts.SocialCircleNewsRequests.OnSocialNewsRequestError(requestId, error);
+        internal static string BuildResponsePreview(string response, int maxLength) => DiplomacyManagerSocialCircleNewsRequests.BuildResponsePreview(response, maxLength);
+        internal bool TryTakePendingSocialRequest(string requestId, out PendingSocialNewsRequest pending) => Parts.SocialCircleNewsRequests.TryTakePendingSocialRequest(requestId, out pending);
+        internal void AddCompletedSocialPost(PublicSocialPost post, SocialNewsSeed seed, int currentTick) => Parts.SocialCircleNewsRequests.AddCompletedSocialPost(post, seed, currentTick);
+        internal static bool ShouldSendSocialNewsLetter(PublicSocialPost post) => DiplomacyManagerSocialCircleNewsRequests.ShouldSendSocialNewsLetter(post);
+        internal void MirrorSocialPostSummaryToLeaderMemories(PublicSocialPost post, int fallbackTick) => Parts.SocialCircleNewsRequests.MirrorSocialPostSummaryToLeaderMemories(post, fallbackTick);
+        internal static bool ShouldMirrorSocialPostSummary(PublicSocialPost post) => DiplomacyManagerSocialCircleNewsRequests.ShouldMirrorSocialPostSummary(post);
+        internal List<Faction> GetSummaryMirrorTargetFactions() => Parts.SocialCircleNewsRequests.GetSummaryMirrorTargetFactions();
+        internal static string BuildSocialPostSummaryText(PublicSocialPost post) => DiplomacyManagerSocialCircleNewsRequests.BuildSocialPostSummaryText(post);
+        internal static string BuildSocialPostContentHash(PublicSocialPost post, int tick) => DiplomacyManagerSocialCircleNewsRequests.BuildSocialPostContentHash(post, tick);
+        internal static CrossChannelSummaryRecord CreateSocialPostSummaryRecord(PublicSocialPost post, Faction targetFaction, string summary, int tick, string contentHash) => DiplomacyManagerSocialCircleNewsRequests.CreateSocialPostSummaryRecord(post, targetFaction, summary, tick, contentHash);
+        internal static List<string> BuildSocialPostSummaryFacts(PublicSocialPost post) => DiplomacyManagerSocialCircleNewsRequests.BuildSocialPostSummaryFacts(post);
+        internal void TrySendSocialNewsLetter(PublicSocialPost post) => Parts.SocialCircleNewsRequests.TrySendSocialNewsLetter(post);
+        internal static LetterDef ResolveSocialNewsLetterDef(PublicSocialPost post) => DiplomacyManagerSocialCircleNewsRequests.ResolveSocialNewsLetterDef(post);
+        internal static SocialPostEnqueueFailureReason MapForceFailureToEnqueueFailure(SocialForceGenerateFailureReason failureReason) => DiplomacyManagerSocialCircleNewsRequests.MapForceFailureToEnqueueFailure(failureReason);
+        #endregion
+    
+        #region Cluster forwards
+        public static bool ShouldExcludeFactionFromAI(Faction faction) => DiplomacyManagerSlice1.ShouldExcludeFactionFromAI(faction);
+        internal static HashSet<string> ParseFactionExclusionCsv(string csv) => DiplomacyManagerSlice1.ParseFactionExclusionCsv(csv);
+        internal void InitializeAIControlledFactions() => Parts.Slice1.InitializeAIControlledFactions();
+        internal void InitializeDialogueSessions() => Parts.Slice1.InitializeDialogueSessions();
+        internal void InitializePresenceStates() => Parts.Slice1.InitializePresenceStates();
+        internal void CleanupInvalidSessions() => Parts.Slice1.CleanupInvalidSessions();
+        internal void CleanupInvalidPresenceStates() => Parts.Slice1.CleanupInvalidPresenceStates();
+        internal void RebuildDialogueSessionIndex() => Parts.Slice1.RebuildDialogueSessionIndex();
+        internal void RebuildPresenceStateIndex() => Parts.Slice1.RebuildPresenceStateIndex();
+        public FactionDialogueSession GetOrCreateSession(Faction faction) => Parts.Slice1.GetOrCreateSession(faction);
+        public FactionDialogueSession GetSession(Faction faction) => Parts.Slice1.GetSession(faction);
+        public bool HandleInboundFactionMessage(Faction faction, string sender, string message, DialogueMessageType messageType, Pawn speakerPawn = null, bool markUnread = true, bool forcePresenceOnline = true) => Parts.Slice1.HandleInboundFactionMessage(faction, sender, message, messageType, speakerPawn, markUnread, forcePresenceOnline);
+        internal void EnsureConversationReopenedOnInbound(FactionDialogueSession session, Faction faction) => Parts.Slice1.EnsureConversationReopenedOnInbound(session, faction);
+        public FactionPresenceState GetOrCreatePresenceState(Faction faction) => Parts.Slice1.GetOrCreatePresenceState(faction);
+        public FactionPresenceState GetPresenceState(Faction faction) => Parts.Slice1.GetPresenceState(faction);
+        public FactionPresenceStatus GetPresenceStatus(Faction faction) => Parts.Slice1.GetPresenceStatus(faction);
+        public void ForcePresenceOnlineForNpcInitiated(Faction faction) => Parts.Slice1.ForcePresenceOnlineForNpcInitiated(faction);
+        public void RefreshPresenceOnDialogueOpen(Faction faction) => Parts.Slice1.RefreshPresenceOnDialogueOpen(faction);
+        internal static void HandlePresenceRecoveryQueueCleanup(Faction faction, FactionPresenceStatus previousStatus, FactionPresenceStatus currentStatus) => DiplomacyManagerSlice1.HandlePresenceRecoveryQueueCleanup(faction, previousStatus, currentStatus);
+        internal void EnforcePresenceForcedDurationCaps(FactionPresenceState state, int currentTick) => Parts.Slice1.EnforcePresenceForcedDurationCaps(state, currentTick);
+        public void RefreshPresenceForFactions(IEnumerable<Faction> factions) => Parts.Slice1.RefreshPresenceForFactions(factions);
+        public void LockPresenceCacheOnDialogueClose(Faction faction) => Parts.Slice1.LockPresenceCacheOnDialogueClose(faction);
+        public void LockPresenceCacheOnDialogueClose(IEnumerable<Faction> factions) => Parts.Slice1.LockPresenceCacheOnDialogueClose(factions);
+        public void ApplyPresenceAction(Faction faction, string actionType, string reason, FactionDialogueSession session) => Parts.Slice1.ApplyPresenceAction(faction, actionType, reason, session);
+        public bool HasUnreadMessages(Faction faction) => Parts.Slice1.HasUnreadMessages(faction);
+        public List<Faction> GetFactionsWithDialogue() => Parts.Slice1.GetFactionsWithDialogue();
+        internal void ProcessPeriodicDiplomacySnapshots() => Parts.Slice2.ProcessPeriodicDiplomacySnapshots();
+        internal Pawn GetLastNegotiatorForSession(FactionDialogueSession session) => Parts.Slice2.GetLastNegotiatorForSession(session);
+        public void ProcessDelayedEvents() => Parts.Slice2.ProcessDelayedEvents();
+        public void AddDelayedEvent(DelayedDiplomacyEvent evt) => Parts.Slice2.AddDelayedEvent(evt);
+        internal void FlushPendingDelayedEvents() => Parts.Slice2.FlushPendingDelayedEvents();
+        internal void DailyReset() => Parts.Slice2.DailyReset();
+        internal void ProcessAIDecisions() => Parts.Slice2.ProcessAIDecisions();
+        internal int GetPresenceCacheTicks() => Parts.Slice2.GetPresenceCacheTicks();
+        internal void MigrateLegacyRaidCallEveryoneEvents(int currentTick) => Parts.Slice2.MigrateLegacyRaidCallEveryoneEvents(currentTick);
+        internal FactionPresenceStatus EvaluateScheduledPresence(Faction faction, int currentTick, out string reason) => Parts.Slice2.EvaluateScheduledPresence(faction, currentTick, out reason);
+        internal int GetCurrentHourOfDay() => Parts.Slice2.GetCurrentHourOfDay();
+        internal void GetPresenceScheduleForTechLevel(TechLevel techLevel, out int startHour, out int durationHours) => Parts.Slice2.GetPresenceScheduleForTechLevel(techLevel, out startHour, out durationHours);
+        internal bool IsHourWithinWindow(int hour, int startHour, int durationHours) => Parts.Slice2.IsHourWithinWindow(hour, startHour, durationHours);
+        internal bool IsInNightWindow(int hour) => Parts.Slice2.IsInNightWindow(hour);
+        internal float GetDeterministicRoll(Faction faction, int dayIndex, int hour) => Parts.Slice2.GetDeterministicRoll(faction, dayIndex, hour);
+        internal int GetScheduleOffsetHours(Faction faction, int dayIndex) => Parts.Slice2.GetScheduleOffsetHours(faction, dayIndex);
+        internal int ModHour(int hour) => Parts.Slice2.ModHour(hour);
+        internal float GetOffWindowOnlineChance(TechLevel techLevel) => Parts.Slice2.GetOffWindowOnlineChance(techLevel);
+        internal static string GetTempPeaceKey(Faction a, Faction b) => DiplomacyManagerSlice2.GetTempPeaceKey(a, b);
+        public void ApplyTempCrossFactionPeace(Faction a, Faction b, int untilTick) => Parts.Slice2.ApplyTempCrossFactionPeace(a, b, untilTick);
+        public void TryRestoreTempFactionRelations(int currentTick) => Parts.Slice2.TryRestoreTempFactionRelations(currentTick);
+        #endregion
 }
+    internal sealed class GameComponent_DiplomacyManagerParts
+    {
+        internal readonly GameComponent_DiplomacyManager Owner;
+        internal readonly DiplomacyManagerAlbum Album;
+        internal readonly DiplomacyManagerEventQueries EventQueries;
+        internal readonly DiplomacyManagerHiddenFactionVisibility HiddenFactionVisibility;
+        internal readonly DiplomacyManagerSocialCircle SocialCircle;
+        internal readonly DiplomacyManagerSocialCircleManualPost SocialCircleManualPost;
+        internal readonly DiplomacyManagerSocialCircleNewsRequests SocialCircleNewsRequests;
+        internal readonly DiplomacyManagerSlice1 Slice1;
+        internal readonly DiplomacyManagerSlice2 Slice2;
+        internal GameComponent_DiplomacyManagerParts(GameComponent_DiplomacyManager owner)
+        {
+            Owner = owner;
+            Album = new DiplomacyManagerAlbum(owner);
+            EventQueries = new DiplomacyManagerEventQueries(owner);
+            HiddenFactionVisibility = new DiplomacyManagerHiddenFactionVisibility(owner);
+            SocialCircle = new DiplomacyManagerSocialCircle(owner);
+            SocialCircleManualPost = new DiplomacyManagerSocialCircleManualPost(owner);
+            SocialCircleNewsRequests = new DiplomacyManagerSocialCircleNewsRequests(owner);
+            Slice1 = new DiplomacyManagerSlice1(owner);
+            Slice2 = new DiplomacyManagerSlice2(owner);
+        }
+    }
 
 
+}

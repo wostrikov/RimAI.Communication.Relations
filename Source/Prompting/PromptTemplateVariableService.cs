@@ -20,15 +20,18 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
 {
 internal sealed class PromptTemplateVariableService
     {
-        private readonly PromptPersistenceService host;
+        internal PromptTemplateVariableServiceParts Parts;
+
+        internal readonly PromptPersistenceService host;
 
         internal PromptTemplateVariableService(PromptPersistenceService host)
         {
+            Parts = new PromptTemplateVariableServiceParts(this);
             this.host = host ?? throw new System.ArgumentNullException(nameof(host));
         }
 
         internal static readonly Regex TemplateVariableRegex = new Regex(@"\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}", RegexOptions.Compiled);
-        private static readonly HashSet<string> AllowedTemplateVariableNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        internal static readonly HashSet<string> AllowedTemplateVariableNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "ctx",
             "pawn",
@@ -37,447 +40,38 @@ internal sealed class PromptTemplateVariableService
             "system"
         };
 
-        public IReadOnlyList<PromptTemplateVariableDefinition> GetTemplateVariableDefinitions()
-        {
-            return PromptVariableCatalog.GetDefinitions()
-                .Where(item => item != null)
-                .Select(item => item.ToTemplateDefinition())
-                .ToList();
-        }
+        
 
         public TemplateVariableValidationResult ValidateTemplateVariables(string templateText)
         {
             return ValidateTemplateVariables(templateText, TemplateVariableValidationContext.CreateDefault());
         }
 
-        public TemplateVariableValidationResult ValidateTemplateVariables(
-            string templateText,
-            IEnumerable<string> additionalKnownVariables)
-        {
-            return ValidateTemplateVariables(
-                templateText,
-                TemplateVariableValidationContext.FromAdditionalKnownVariables(additionalKnownVariables));
-        }
+        
 
-        internal TemplateVariableValidationResult ValidateTemplateVariables(
-            string templateText,
-            TemplateVariableValidationContext validationContext)
-        {
-            var result = new TemplateVariableValidationResult();
-            if (string.IsNullOrWhiteSpace(templateText))
-            {
-                return result;
-            }
+        
 
-            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var unknown = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var validationPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            TemplateVariableValidationContext context = validationContext ?? TemplateVariableValidationContext.CreateDefault();
-            MatchCollection matches = TemplateVariableRegex.Matches(templateText);
-            for (int i = 0; i < matches.Count; i++)
-            {
-                string name = NormalizeTemplateVariableName(matches[i].Groups[1].Value);
-                if (name.Length == 0)
-                {
-                    continue;
-                }
+        
 
-                if (context.Contains(name))
-                {
-                    used.Add(name);
-                }
-                else
-                {
-                    unknown.Add(name);
-                }
+        
 
-                if (IsNamespacedVariablePath(name))
-                {
-                    validationPaths.Add(name);
-                }
-            }
+        
 
-            TryCollectScribanDiagnostic(templateText, validationPaths, result);
-            result.UsedVariables.AddRange(used.OrderBy(item => item));
-            result.UnknownVariables.AddRange(unknown.OrderBy(item => item));
-            return result;
-        }
+        
 
-        internal string RenderTemplateVariables(
-            string templateText,
-            DialogueScenarioContext context,
-            EnvironmentPromptConfig envConfig,
-            out List<string> usedVariables,
-            out List<string> unknownVariables)
-        {
-            if (string.IsNullOrWhiteSpace(templateText) || templateText.IndexOf("{{", StringComparison.Ordinal) < 0)
-            {
-                usedVariables = new List<string>();
-                unknownVariables = new List<string>();
-                return templateText ?? string.Empty;
-            }
+        
 
-            TemplateVariableValidationResult validation = ValidateTemplateVariables(templateText);
-            usedVariables = validation.UsedVariables.OrderBy(item => item).ToList();
-            unknownVariables = validation.UnknownVariables.OrderBy(item => item).ToList();
-            if (unknownVariables.Count > 0)
-            {
-                string channel = context?.IsRpg == true ? "rpg" : "diplomacy";
-                throw new PromptRenderException(
-                    "scene_entry.template",
-                    channel,
-                    new PromptRenderDiagnostic
-                    {
-                        ErrorCode = PromptRenderErrorCode.UnknownVariable,
-                        Message = $"Unknown namespaced variable: {unknownVariables[0]}"
-                    });
-            }
+        
 
-            string resolvedChannel = context?.IsRpg == true ? "rpg" : "diplomacy";
-            const string templateId = "scene_entry.template";
-            PromptRenderContext renderContext = BuildTemplateRenderContext(templateId, resolvedChannel, context, envConfig);
-            return PromptTemplateRenderer.RenderOrThrow(templateId, resolvedChannel, templateText, renderContext);
-        }
+        
 
-        internal PromptRenderContext BuildTemplateRenderContext(
-            string templateId,
-            string channel,
-            DialogueScenarioContext context,
-            EnvironmentPromptConfig envConfig)
-        {
-            PromptRenderContext renderContext = PromptRenderContext.Create(templateId, channel);
-            renderContext.SetValues(BuildTemplateVariableValues(templateId, channel, context, envConfig));
-            return renderContext;
-        }
+        
 
-        internal Dictionary<string, object> BuildTemplateVariableValues(
-            string templateId,
-            string channel,
-            DialogueScenarioContext context,
-            EnvironmentPromptConfig envConfig)
-        {
-            var values = host.NodeSupport.CreatePromptVariableSeed();
-            var variableContext = new PromptRuntimeVariableContext(templateId, channel, context, envConfig);
-            List<IPromptRuntimeVariableProvider> providers = PromptRuntimeVariableRegistry.CreateRuntimeProviders(
-                (path, runtimeContext) => ResolveTemplateVariableValue(path, runtimeContext.ScenarioContext, runtimeContext.EnvironmentConfig));
-            for (int i = 0; i < providers.Count; i++)
-            {
-                IPromptRuntimeVariableProvider provider = providers[i];
-                if (provider == null || !provider.IsAvailable(variableContext))
-                {
-                    continue;
-                }
+        
 
-                provider.PopulateValues(values, variableContext);
-            }
+        
 
-            values["system.game_language"] = LanguageDatabase.activeLanguage?.FriendlyNameNative
-                ?? (RelationsMod.Settings?.GetEffectivePromptLanguage() ?? string.Empty);
-            values["dialogue.mandatory_race_profile_body"] = host.NodeSupport.BuildMandatoryRaceProfileBody(context);
-            bool isPreview = host.NodeSupport.IsPreviewScenario(context);
-            if (context?.Initiator != null)
-            {
-                values["pawn.initiator"] = context.Initiator;
-            }
-            else if (isPreview)
-            {
-                values["pawn.initiator"] = host.NodeSupport.CreatePreviewPawnPlaceholder("PreviewInitiator");
-            }
-
-            if (context?.Target != null)
-            {
-                values["pawn.target"] = context.Target;
-            }
-            else if (isPreview)
-            {
-                values["pawn.target"] = host.NodeSupport.CreatePreviewPawnPlaceholder("PreviewTarget");
-            }
-
-            if (context?.Faction != null)
-            {
-                values["world.faction"] = context.Faction;
-            }
-            else if (isPreview)
-            {
-                values["world.faction"] = host.NodeSupport.CreatePreviewFactionPlaceholder("PreviewFaction");
-            }
-
-            return values;
-        }
-
-        internal string NormalizeTemplateVariableName(string rawName)
-        {
-            if (string.IsNullOrWhiteSpace(rawName))
-            {
-                return string.Empty;
-            }
-
-            return rawName.Trim().ToLowerInvariant();
-        }
-
-        internal bool IsNamespacedVariablePath(string variableName)
-        {
-            if (string.IsNullOrWhiteSpace(variableName))
-            {
-                return false;
-            }
-
-            int separator = variableName.IndexOf('.');
-            if (separator <= 0)
-            {
-                return false;
-            }
-
-            string rootNamespace = variableName.Substring(0, separator).Trim();
-            return AllowedTemplateVariableNamespaces.Contains(rootNamespace);
-        }
-
-        internal void TryCollectScribanDiagnostic(
-            string templateText,
-            IEnumerable<string> variablePaths,
-            TemplateVariableValidationResult result)
-        {
-            const string templateId = "editor.template_validation";
-            const string channel = "editor";
-            try
-            {
-                PromptRenderContext context = PromptTemplateRenderer.BuildValidationContext(templateId, channel, variablePaths);
-                PromptTemplateRenderer.ValidateOrThrow(templateId, channel, templateText, context);
-            }
-            catch (PromptRenderException ex)
-            {
-                result.ScribanErrorCode = (int)ex.ErrorCode;
-                result.ScribanErrorLine = ex.ErrorLine;
-                result.ScribanErrorColumn = ex.ErrorColumn;
-                result.ScribanErrorMessage = ex.Message ?? string.Empty;
-            }
-            catch (ArgumentException ex)
-            {
-                result.ScribanErrorCode = (int)PromptRenderErrorCode.UnknownVariable;
-                result.ScribanErrorLine = 0;
-                result.ScribanErrorColumn = 0;
-                result.ScribanErrorMessage = ex.Message ?? string.Empty;
-            }
-        }
-
-        internal object ResolveTemplateVariableValue(
-            string variableName,
-            DialogueScenarioContext context,
-            EnvironmentPromptConfig envConfig)
-        {
-            switch (variableName)
-            {
-                case "ctx.channel":
-                    return context?.IsRpg == true ? "rpg" : "diplomacy";
-                case "ctx.mode":
-                    return context?.IsProactive == true ? "proactive" : "manual";
-                case "system.target_language":
-                    return RelationsMod.Settings?.GetEffectivePromptLanguage() ?? string.Empty;
-                case "world.time.hour":
-                    return BuildWorldTimeHourVariableValue(context);
-                case "world.time.day":
-                    return BuildWorldTimeDayVariableValue(context);
-                case "world.time.quadrum":
-                    return BuildWorldTimeQuadrumVariableValue(context);
-                case "world.time.year":
-                    return BuildWorldTimeYearVariableValue(context);
-                case "world.time.season":
-                    return BuildWorldTimeSeasonVariableValue(context);
-                case "world.time.date":
-                    return BuildWorldTimeDateVariableValue(context);
-                case "world.weather":
-                    return BuildWorldWeatherVariableValue(context);
-                case "world.temperature":
-                    return BuildWorldTemperatureVariableValue(context);
-                case "world.faction.name":
-                    return context?.Faction?.Name ?? "Unknown Faction";
-                case "world.faction.description":
-                    return BuildFactionDescriptionVariableText(context);
-                case "pawn.initiator.name":
-                    return context?.Initiator?.LabelShort ?? "Unknown";
-                case "pawn.target.name":
-                    return context?.Target?.LabelShort ?? "Unknown";
-                case "pawn.recipient":
-                    return context?.Target;
-                case "pawn.recipient.name":
-                    return context?.Target?.LabelShort ?? "Unknown";
-                case "world.scene_tags":
-                    return BuildSceneTagsVariableText(context);
-                case "world.environment_params":
-                    return BuildEnvironmentParamsVariableText(context, envConfig);
-                case "world.recent_world_events":
-                    return BuildRecentWorldEventsVariableText(context, envConfig);
-                case "world.colony_status":
-                    return BuildColonyStatusVariableText();
-                case "world.colony_factions":
-                    return BuildColonyFactionsVariableText();
-                case "world.current_faction_profile":
-                    return BuildCurrentFactionProfileVariableText(context);
-                case "pawn.target.profile":
-                    return host.RpgBuilder.BuildPawnProfileVariableText(context?.Target, context, envConfig);
-                case "pawn.initiator.profile":
-                    return host.RpgBuilder.BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
-                case "pawn.player.profile":
-                    return BuildPlayerPawnProfileVariableText(context);
-                case "pawn.player.royalty_summary":
-                    return BuildPlayerRoyaltySummaryVariableText(context);
-                case "world.faction_settlement_summary":
-                    return BuildFactionSettlementSummaryVariableText(context);
-                case "pawn.personality":
-                    return BuildPawnPersonalityVariableText(context);
-                case "dialogue.primary_objective":
-                    return ResolveDialoguePrimaryObjectiveVariableValue(context);
-                case "dialogue.optional_followup":
-                    return ResolveDialogueOptionalFollowupVariableValue(context);
-                case "dialogue.latest_unresolved_intent":
-                    return ResolveDialogueLatestUnresolvedIntentVariableValue(context);
-                case "dialogue.topic_shift_rule":
-                    return "Complete the primary objective first, then allow at most one natural topic extension.";
-                case "pawn.relation.kinship":
-                    return ResolveRpgRelationSnapshot(context).Kinship;
-                case "pawn.relation.romance_state":
-                    return ResolveRpgRelationSnapshot(context).RomanceState;
-                case "pawn.relation.social_summary":
-                    return ResolveRpgRelationSnapshot(context).SocialSummary;
-                case "dialogue.guidance":
-                    return ResolveRpgRelationSnapshot(context).Guidance;
-                case "world.faction.relation_band":
-                    return BuildFactionRelationBandVariableValue(context);
-                case "pawn.target.traits_summary":
-                    return BuildPawnTraitsSummaryVariableValue(context);
-                case "world.faction.ideology_summary":
-                    return BuildFactionIdeologySummaryVariableValue(context);
-                case "world.faction.tech_level":
-                    return BuildFactionTechLevelVariableValue(context);
-                case "world.social.diplomacy_stance":
-                    return BuildSocialDiplomacyStanceVariableValue(context);
-                case "world.social.source_faction":
-                    return context?.Faction?.Name ?? string.Empty;
-                case "world.social.target_faction":
-                    return Faction.OfPlayer?.Name ?? "Colony";
-                case "dialogue.action_names":
-                    return BuildAvailableActionNamesVariableValue(context);
-                case "dialogue.response_contract_body":
-                    return BuildResponseContractBodyVariableValue(context);
-                case "dialogue.api_limits_body":
-                    return "Follow rate limits and token budgets as specified in the system prompt.";
-                case "dialogue.example_line":
-                    return string.Empty;
-                case "dialogue.examples":
-                    return string.Empty;
-                case "dialogue.intent_hint":
-                    return string.Empty;
-                case "dialogue.mandatory_race_profile_body":
-                    return string.Empty;
-                case "dialogue.quest_guidance_body":
-                    return string.Empty;
-                case "dialogue.strategy_fact_pack_body":
-                    return string.Empty;
-                case "dialogue.strategy_player_negotiator_context_body":
-                    return string.Empty;
-                case "dialogue.strategy_scenario_dossier_body":
-                    return string.Empty;
-                case "dialogue.summary":
-                    return string.Empty;
-                case "dialogue.template_line":
-                    return string.Empty;
-                case "pawn.initiator":
-                    return context?.Initiator?.LabelShortCap ?? "Unknown";
-                case "pawn.profile":
-                    return host.RpgBuilder.BuildPawnProfileVariableText(context?.Initiator, context, envConfig);
-                case "pawn.pronouns.be_verb":
-                    return "is";
-                case "pawn.pronouns.object":
-                    return "them";
-                case "pawn.pronouns.possessive":
-                    return "their";
-                case "pawn.pronouns.seek_verb":
-                    return "seeks";
-                case "pawn.pronouns.subject":
-                    return "They";
-                case "pawn.pronouns.subject_lower":
-                    return "they";
-                case "pawn.speaker.animal_sound":
-                    return "*growl*";
-                case "pawn.speaker.baby_sound":
-                    return "*coo*";
-                case "pawn.speaker.default_sound":
-                    return string.Empty;
-                case "pawn.speaker.kind":
-                    return context?.Initiator?.kindDef?.label ?? "human";
-                case "pawn.speaker.mechanoid_sound":
-                    return "*beep*";
-                case "pawn.target":
-                    return context?.Target?.LabelShortCap ?? "Unknown";
-                case "system.game_language":
-                    return Prefs.LangFolderName ?? "English";
-                case "system.punctuation.close_paren":
-                    return ")";
-                case "system.punctuation.open_paren":
-                    return "(";
-                case "world.social.category":
-                    return string.Empty;
-                case "world.social.credibility_label":
-                    return "official statement";
-                case "world.social.credibility_value":
-                    return "0.8";
-                case "world.social.fact_lines":
-                    return string.Empty;
-                case "world.social.origin_type":
-                    return "dialogue";
-                case "world.social.source_label":
-                    return context?.Faction?.Name ?? "Unknown";
-                default:
-                    // Validation layer (ValidateTemplateVariables) reports unknown variables.
-                    // Silent fallback here to avoid per-variable log spam during rendering.
-                    return string.Empty;
-            }
-        }
-
-        internal string ResolveDialoguePrimaryObjectiveVariableValue(DialogueScenarioContext context)
-        {
-            string unresolvedIntent = ResolveDialogueLatestUnresolvedIntentVariableValue(context);
-            return host.NodeSupport.BuildPrimaryObjectiveFromIntent(unresolvedIntent);
-        }
-
-        internal string ResolveDialogueOptionalFollowupVariableValue(DialogueScenarioContext context)
-        {
-            if (context?.IsRpg == true)
-            {
-                return "After completing the primary objective, optionally add one relevant follow-up.";
-            }
-
-            return string.Empty;
-        }
-
-        internal string ResolveDialogueLatestUnresolvedIntentVariableValue(DialogueScenarioContext context)
-        {
-            if (context?.IsRpg != true || context.Target == null || context.Initiator == null)
-            {
-                return string.Empty;
-            }
-
-            return RpgNpcDialogueArchiveManager.Instance.BuildUnresolvedIntentSummary(context.Target, context.Initiator) ?? string.Empty;
-        }
-
-        internal RpgRelationSnapshot ResolveRpgRelationSnapshot(DialogueScenarioContext context)
-        {
-            if (context?.IsRpg != true || context.Initiator == null || context.Target == null)
-            {
-                return RpgRelationSnapshot.Empty;
-            }
-
-            bool kinship = host.NodeSupport.HasAnyBloodRelationBetweenPair(context.Initiator, context.Target);
-            string kinshipValue = kinship ? "yes" : "no";
-            string romanceState = host.NodeSupport.ResolvePairRomanceState(context.Initiator, context.Target);
-            string guidance = host.NodeSupport.BuildRpgKinshipBoundaryGuidanceText(
-                RelationsMod.Settings,
-                context.Initiator,
-                context.Target,
-                context) ?? string.Empty;
-            string socialSummary = host.RpgBuilder.BuildPairSocialSummary(context.Initiator, context.Target, kinshipValue, romanceState);
-            return new RpgRelationSnapshot(kinshipValue, romanceState, socialSummary, guidance);
-        }
+        
 
         internal readonly struct RpgRelationSnapshot
         {
@@ -517,30 +111,16 @@ internal sealed class PromptTemplateVariableService
             return GenDate.Year(GetAbsoluteTicks(), GetLongitude(context));
         }
 
-        internal string BuildWorldTimeSeasonVariableValue(DialogueScenarioContext context)
-        {
-            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
-            return map != null ? GenLocalDate.Season(map).Label() : Season.Undefined.Label();
-        }
+        
 
         internal string BuildWorldTimeDateVariableValue(DialogueScenarioContext context)
         {
             return GenDate.DateFullStringAt(GetAbsoluteTicks(), GetLongLat(context));
         }
 
-        internal string BuildWorldWeatherVariableValue(DialogueScenarioContext context)
-        {
-            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
-            return map?.weatherManager?.curWeather?.label ?? "Unknown";
-        }
+        
 
-        internal string BuildWorldTemperatureVariableValue(DialogueScenarioContext context)
-        {
-            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
-            return map == null
-                ? "Unknown"
-                : Mathf.RoundToInt(map.mapTemperature?.OutdoorTemp ?? 0f).ToString();
-        }
+        
 
         internal int GetAbsoluteTicks()
         {
@@ -552,7 +132,158 @@ internal sealed class PromptTemplateVariableService
             return GetLongLat(context).x;
         }
 
-        internal Vector2 GetLongLat(DialogueScenarioContext context)
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    
+        #region Cluster forwards
+        public IReadOnlyList<PromptTemplateVariableDefinition> GetTemplateVariableDefinitions() => Parts.Slice1.GetTemplateVariableDefinitions();
+        public TemplateVariableValidationResult ValidateTemplateVariables(string templateText, IEnumerable<string> additionalKnownVariables) => Parts.Slice1.ValidateTemplateVariables(templateText, additionalKnownVariables);
+        internal TemplateVariableValidationResult ValidateTemplateVariables(string templateText, TemplateVariableValidationContext validationContext) => Parts.Slice1.ValidateTemplateVariables(templateText, validationContext);
+        internal string RenderTemplateVariables(string templateText, DialogueScenarioContext context, EnvironmentPromptConfig envConfig, out List<string> usedVariables, out List<string> unknownVariables) => Parts.Slice1.RenderTemplateVariables(templateText, context, envConfig, out usedVariables, out unknownVariables);
+        internal PromptRenderContext BuildTemplateRenderContext(string templateId, string channel, DialogueScenarioContext context, EnvironmentPromptConfig envConfig) => Parts.Slice1.BuildTemplateRenderContext(templateId, channel, context, envConfig);
+        internal Dictionary<string, object> BuildTemplateVariableValues(string templateId, string channel, DialogueScenarioContext context, EnvironmentPromptConfig envConfig) => Parts.Slice1.BuildTemplateVariableValues(templateId, channel, context, envConfig);
+        internal string NormalizeTemplateVariableName(string rawName) => Parts.Slice1.NormalizeTemplateVariableName(rawName);
+        internal bool IsNamespacedVariablePath(string variableName) => Parts.Slice1.IsNamespacedVariablePath(variableName);
+        internal void TryCollectScribanDiagnostic(string templateText, IEnumerable<string> variablePaths, TemplateVariableValidationResult result) => Parts.Slice1.TryCollectScribanDiagnostic(templateText, variablePaths, result);
+        internal object ResolveTemplateVariableValue(string variableName, DialogueScenarioContext context, EnvironmentPromptConfig envConfig) => Parts.Slice1.ResolveTemplateVariableValue(variableName, context, envConfig);
+        internal string ResolveDialoguePrimaryObjectiveVariableValue(DialogueScenarioContext context) => Parts.Slice1.ResolveDialoguePrimaryObjectiveVariableValue(context);
+        internal string ResolveDialogueOptionalFollowupVariableValue(DialogueScenarioContext context) => Parts.Slice2.ResolveDialogueOptionalFollowupVariableValue(context);
+        internal string ResolveDialogueLatestUnresolvedIntentVariableValue(DialogueScenarioContext context) => Parts.Slice2.ResolveDialogueLatestUnresolvedIntentVariableValue(context);
+        internal RpgRelationSnapshot ResolveRpgRelationSnapshot(DialogueScenarioContext context) => Parts.Slice2.ResolveRpgRelationSnapshot(context);
+        internal string BuildWorldTimeSeasonVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildWorldTimeSeasonVariableValue(context);
+        internal string BuildWorldWeatherVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildWorldWeatherVariableValue(context);
+        internal string BuildWorldTemperatureVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildWorldTemperatureVariableValue(context);
+        internal Vector2 GetLongLat(DialogueScenarioContext context) => Parts.Slice2.GetLongLat(context);
+        internal string BuildSceneTagsVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildSceneTagsVariableText(context);
+        internal string BuildEnvironmentParamsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig) => Parts.Slice2.BuildEnvironmentParamsVariableText(context, envConfig);
+        internal string BuildRecentWorldEventsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig) => Parts.Slice2.BuildRecentWorldEventsVariableText(context, envConfig);
+        internal string BuildEnvironmentSnapshotVariableText(IEnumerable<string> lines, int maxItems, int maxChars) => Parts.Slice2.BuildEnvironmentSnapshotVariableText(lines, maxItems, maxChars);
+        internal string BuildColonyStatusVariableText() => Parts.Slice2.BuildColonyStatusVariableText();
+        internal string BuildColonyFactionsVariableText() => Parts.Slice2.BuildColonyFactionsVariableText();
+        internal string BuildCurrentFactionProfileVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildCurrentFactionProfileVariableText(context);
+        internal string BuildFactionDescriptionVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildFactionDescriptionVariableText(context);
+        internal string BuildFactionRelationTowardPlayerText(Faction faction, Faction playerFaction) => Parts.Slice2.BuildFactionRelationTowardPlayerText(faction, playerFaction);
+        internal int? TryGetGoodwillTowardPlayer(Faction faction) => Parts.Slice2.TryGetGoodwillTowardPlayer(faction);
+        internal string BuildPawnPersonalityVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildPawnPersonalityVariableText(context);
+        internal string BuildPlayerPawnProfileVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildPlayerPawnProfileVariableText(context);
+        internal string BuildPlayerRoyaltySummaryVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildPlayerRoyaltySummaryVariableText(context);
+        internal string BuildFactionSettlementSummaryVariableText(DialogueScenarioContext context) => Parts.Slice2.BuildFactionSettlementSummaryVariableText(context);
+        internal string BuildFactionRelationBandVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildFactionRelationBandVariableValue(context);
+        internal string BuildPawnTraitsSummaryVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildPawnTraitsSummaryVariableValue(context);
+        internal string BuildFactionIdeologySummaryVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildFactionIdeologySummaryVariableValue(context);
+        internal string BuildFactionTechLevelVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildFactionTechLevelVariableValue(context);
+        internal string BuildSocialDiplomacyStanceVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildSocialDiplomacyStanceVariableValue(context);
+        internal string BuildAvailableActionNamesVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildAvailableActionNamesVariableValue(context);
+        internal string BuildResponseContractBodyVariableValue(DialogueScenarioContext context) => Parts.Slice2.BuildResponseContractBodyVariableValue(context);
+        #endregion
+}
+    internal sealed class PromptTemplateVariableSlice2 : PromptTemplateVariableServiceCollaborator
+    {
+        internal PromptTemplateVariableSlice2(PromptTemplateVariableService owner) : base(owner)
+        {
+        }
+
+internal string ResolveDialogueOptionalFollowupVariableValue(DialogueScenarioContext context)
+        {
+            if (context?.IsRpg == true)
+            {
+                return "After completing the primary objective, optionally add one relevant follow-up.";
+            }
+
+            return string.Empty;
+        }
+
+internal string ResolveDialogueLatestUnresolvedIntentVariableValue(DialogueScenarioContext context)
+        {
+            if (context?.IsRpg != true || context.Target == null || context.Initiator == null)
+            {
+                return string.Empty;
+            }
+
+            return RpgNpcDialogueArchiveManager.Instance.BuildUnresolvedIntentSummary(context.Target, context.Initiator) ?? string.Empty;
+        }
+
+internal PromptTemplateVariableService.RpgRelationSnapshot ResolveRpgRelationSnapshot(DialogueScenarioContext context)
+        {
+            if (context?.IsRpg != true || context.Initiator == null || context.Target == null)
+            {
+                return PromptTemplateVariableService.RpgRelationSnapshot.Empty;
+            }
+
+            bool kinship = host.NodeSupport.HasAnyBloodRelationBetweenPair(context.Initiator, context.Target);
+            string kinshipValue = kinship ? "yes" : "no";
+            string romanceState = host.NodeSupport.ResolvePairRomanceState(context.Initiator, context.Target);
+            string guidance = host.NodeSupport.BuildRpgKinshipBoundaryGuidanceText(
+                RelationsMod.Settings,
+                context.Initiator,
+                context.Target,
+                context) ?? string.Empty;
+            string socialSummary = host.RpgBuilder.BuildPairSocialSummary(context.Initiator, context.Target, kinshipValue, romanceState);
+            return new PromptTemplateVariableService.RpgRelationSnapshot(kinshipValue, romanceState, socialSummary, guidance);
+        }
+
+internal string BuildWorldTimeSeasonVariableValue(DialogueScenarioContext context)
+        {
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
+            return map != null ? GenLocalDate.Season(map).Label() : Season.Undefined.Label();
+        }
+
+internal string BuildWorldWeatherVariableValue(DialogueScenarioContext context)
+        {
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
+            return map?.weatherManager?.curWeather?.label ?? "Unknown";
+        }
+
+internal string BuildWorldTemperatureVariableValue(DialogueScenarioContext context)
+        {
+            Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
+            return map == null
+                ? "Unknown"
+                : Mathf.RoundToInt(map.mapTemperature?.OutdoorTemp ?? 0f).ToString();
+        }
+
+internal Vector2 GetLongLat(DialogueScenarioContext context)
         {
             Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             if (map == null || !WorldTileGuard.IsValidTile(map.Tile))
@@ -563,7 +294,7 @@ internal sealed class PromptTemplateVariableService
             return Find.WorldGrid.LongLatOf(map.Tile);
         }
 
-        internal string BuildSceneTagsVariableText(DialogueScenarioContext context)
+internal string BuildSceneTagsVariableText(DialogueScenarioContext context)
         {
             HashSet<string> tags = host.ContextAssembler.BuildScenarioTags(context, includePresetTags: true);
             if (tags == null || tags.Count == 0)
@@ -574,7 +305,7 @@ internal sealed class PromptTemplateVariableService
             return string.Join(", ", tags.OrderBy(tag => tag));
         }
 
-        internal string BuildEnvironmentParamsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
+internal string BuildEnvironmentParamsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
         {
             Map map = host.ContextAssembler.ResolveEnvironmentMap(context);
             if (map == null)
@@ -594,7 +325,7 @@ internal sealed class PromptTemplateVariableService
                 return "No environment parameters.";
             }
 
-            string snapshot = BuildEnvironmentSnapshotVariableText(lines, maxItems: 5, maxChars: 220);
+            string snapshot = Owner.BuildEnvironmentSnapshotVariableText(lines, maxItems: 5, maxChars: 220);
             if (string.IsNullOrWhiteSpace(snapshot))
             {
                 return "See <environment> for full environment details.";
@@ -603,7 +334,7 @@ internal sealed class PromptTemplateVariableService
             return "See <environment> for full environment details. Snapshot: " + snapshot;
         }
 
-        internal string BuildRecentWorldEventsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
+internal string BuildRecentWorldEventsVariableText(DialogueScenarioContext context, EnvironmentPromptConfig envConfig)
         {
             var clonedEnv = envConfig?.Clone() ?? new EnvironmentPromptConfig();
             if (clonedEnv.EventIntelPrompt == null)
@@ -622,7 +353,7 @@ internal sealed class PromptTemplateVariableService
             return string.IsNullOrWhiteSpace(digest) ? "No recent world events." : digest;
         }
 
-        internal string BuildEnvironmentSnapshotVariableText(
+internal string BuildEnvironmentSnapshotVariableText(
             IEnumerable<string> lines,
             int maxItems,
             int maxChars)
@@ -673,7 +404,7 @@ internal sealed class PromptTemplateVariableService
             return snapshot.Substring(0, Math.Max(16, maxChars)).TrimEnd() + "...";
         }
 
-        internal string BuildColonyStatusVariableText()
+internal string BuildColonyStatusVariableText()
         {
             List<Map> homeMaps = Find.Maps?.Where(map => map != null && map.IsPlayerHome).ToList();
             if (homeMaps == null || homeMaps.Count == 0)
@@ -690,7 +421,7 @@ internal sealed class PromptTemplateVariableService
             return $"Colony: {colonyName}\nHomeMaps: {homeMaps.Count}\nColonists: {colonists}\nTotalWealth: {wealth}\nDate: {dateText}";
         }
 
-        internal string BuildColonyFactionsVariableText()
+internal string BuildColonyFactionsVariableText()
         {
             IEnumerable<Faction> factions = Find.FactionManager?.AllFactionsVisible?
                 .Where(faction => faction != null && !faction.IsPlayer && !faction.defeated)
@@ -711,7 +442,7 @@ internal sealed class PromptTemplateVariableService
             return lines.Count == 0 ? "No known factions." : string.Join("\n", lines);
         }
 
-        internal string BuildCurrentFactionProfileVariableText(DialogueScenarioContext context)
+internal string BuildCurrentFactionProfileVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction == null)
@@ -721,15 +452,15 @@ internal sealed class PromptTemplateVariableService
 
             Faction playerFaction = Faction.OfPlayer;
             string leader = faction.leader?.Name?.ToStringFull ?? "Unknown";
-            string relation = BuildFactionRelationTowardPlayerText(faction, playerFaction);
+            string relation = Owner.BuildFactionRelationTowardPlayerText(faction, playerFaction);
             int? goodwill = faction == playerFaction || faction.IsPlayer
                 ? null
-                : TryGetGoodwillTowardPlayer(faction);
+                : Owner.TryGetGoodwillTowardPlayer(faction);
             string goodwillText = goodwill.HasValue ? goodwill.Value.ToString() : "N/A";
             return $"Faction: {faction.Name}\nDef: {faction.def?.defName}\nTech: {faction.def?.techLevel}\nGoodwill: {goodwillText}\nRelation: {relation}\nLeader: {leader}";
         }
 
-        internal string BuildFactionDescriptionVariableText(DialogueScenarioContext context)
+internal string BuildFactionDescriptionVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction?.def == null)
@@ -743,7 +474,7 @@ internal sealed class PromptTemplateVariableService
                 : prompt.Trim();
         }
 
-        internal string BuildFactionRelationTowardPlayerText(Faction faction, Faction playerFaction)
+internal string BuildFactionRelationTowardPlayerText(Faction faction, Faction playerFaction)
         {
             if (faction == null || playerFaction == null)
             {
@@ -758,7 +489,7 @@ internal sealed class PromptTemplateVariableService
             return faction.RelationKindWith(playerFaction).ToString();
         }
 
-        internal int? TryGetGoodwillTowardPlayer(Faction faction)
+internal int? TryGetGoodwillTowardPlayer(Faction faction)
         {
             Faction playerFaction = Faction.OfPlayer;
             if (faction == null || playerFaction == null || faction == playerFaction || faction.IsPlayer)
@@ -777,7 +508,7 @@ internal sealed class PromptTemplateVariableService
             }
         }
 
-        internal string BuildPawnPersonalityVariableText(DialogueScenarioContext context)
+internal string BuildPawnPersonalityVariableText(DialogueScenarioContext context)
         {
             Pawn primary = context?.Target ?? context?.Initiator;
             if (primary == null)
@@ -793,7 +524,7 @@ internal sealed class PromptTemplateVariableService
                 : text.Trim();
         }
 
-        internal string BuildPlayerPawnProfileVariableText(DialogueScenarioContext context)
+internal string BuildPlayerPawnProfileVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             Pawn preferred = context?.Initiator != null && context.Initiator.Faction == Faction.OfPlayer
@@ -803,7 +534,7 @@ internal sealed class PromptTemplateVariableService
             return string.IsNullOrWhiteSpace(text) ? "No player pawn context." : text;
         }
 
-        internal string BuildPlayerRoyaltySummaryVariableText(DialogueScenarioContext context)
+internal string BuildPlayerRoyaltySummaryVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             Pawn preferred = context?.Initiator != null && context.Initiator.Faction == Faction.OfPlayer
@@ -813,14 +544,14 @@ internal sealed class PromptTemplateVariableService
             return string.IsNullOrWhiteSpace(text) ? "No empire royalty context." : text;
         }
 
-        internal string BuildFactionSettlementSummaryVariableText(DialogueScenarioContext context)
+internal string BuildFactionSettlementSummaryVariableText(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             string text = host.ContextAssembler.BuildFactionSettlementSummaryForPrompt(faction);
             return string.IsNullOrWhiteSpace(text) ? "No settlement context." : text;
         }
 
-        internal string BuildFactionRelationBandVariableValue(DialogueScenarioContext context)
+internal string BuildFactionRelationBandVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction == null || faction == Faction.OfPlayer)
@@ -831,7 +562,7 @@ internal sealed class PromptTemplateVariableService
             return faction.PlayerRelationKind.ToString();
         }
 
-        internal string BuildPawnTraitsSummaryVariableValue(DialogueScenarioContext context)
+internal string BuildPawnTraitsSummaryVariableValue(DialogueScenarioContext context)
         {
             Pawn target = context?.Target;
             if (target?.story?.traits == null)
@@ -857,7 +588,7 @@ internal sealed class PromptTemplateVariableService
             return traitStrings.Count > 0 ? string.Join(", ", traitStrings) : "No traits.";
         }
 
-        internal string BuildFactionIdeologySummaryVariableValue(DialogueScenarioContext context)
+internal string BuildFactionIdeologySummaryVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             Ideo ideo = faction?.ideos?.PrimaryIdeo;
@@ -869,14 +600,14 @@ internal sealed class PromptTemplateVariableService
             return ideo.name ?? "Unknown ideology";
         }
 
-        internal string BuildFactionTechLevelVariableValue(DialogueScenarioContext context)
+internal string BuildFactionTechLevelVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             TechLevel techLevel = faction?.def?.techLevel ?? TechLevel.Undefined;
             return techLevel.ToString();
         }
 
-        internal string BuildSocialDiplomacyStanceVariableValue(DialogueScenarioContext context)
+internal string BuildSocialDiplomacyStanceVariableValue(DialogueScenarioContext context)
         {
             Faction faction = context?.Faction ?? context?.Target?.Faction ?? context?.Initiator?.Faction;
             if (faction == null || faction == Faction.OfPlayer)
@@ -889,7 +620,7 @@ internal sealed class PromptTemplateVariableService
             return $"{relationKind} (Goodwill: {goodwill})";
         }
 
-        internal string BuildAvailableActionNamesVariableValue(DialogueScenarioContext context)
+internal string BuildAvailableActionNamesVariableValue(DialogueScenarioContext context)
         {
             return "adjust_goodwill, send_gift, request_aid, request_caravan, request_visitor, "
                  + "request_raid, request_item_airdrop, request_info, pay_prisoner_ransom, "
@@ -897,7 +628,7 @@ internal sealed class PromptTemplateVariableService
                  + "reject_request, publish_public_post";
         }
 
-        internal string BuildResponseContractBodyVariableValue(DialogueScenarioContext context)
+internal string BuildResponseContractBodyVariableValue(DialogueScenarioContext context)
         {
             return "Return exactly one JSON object. Required key: visible_dialogue. "
                  + "Optional key: actions (array of {action, parameters} objects). "
@@ -905,4 +636,18 @@ internal sealed class PromptTemplateVariableService
                  + "If making an execution commitment, include matching action in actions array.";
         }
     }
+
+    internal sealed class PromptTemplateVariableServiceParts
+    {
+        internal readonly PromptTemplateVariableService Owner;
+        internal readonly PromptTemplateVariableSlice1 Slice1;
+        internal readonly PromptTemplateVariableSlice2 Slice2;
+        internal PromptTemplateVariableServiceParts(PromptTemplateVariableService owner)
+        {
+            Owner = owner;
+            Slice1 = new PromptTemplateVariableSlice1(owner);
+            Slice2 = new PromptTemplateVariableSlice2(owner);
+        }
+    }
+
 }

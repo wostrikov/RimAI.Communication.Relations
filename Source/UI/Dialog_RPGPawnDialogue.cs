@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -13,62 +14,71 @@ using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Rpg;
 
+using IntentActionCategory = Ustas.RimAI.Communication.Relations.UI.RPGPawnDialogueActionPolicies.IntentActionCategory;
+using ActionFeedbackEntry = Ustas.RimAI.Communication.Relations.UI.RPGPawnDialogueFeedbackOverlay.ActionFeedbackEntry;
+using SessionDialogueRecord = Ustas.RimAI.Communication.Relations.UI.RPGPawnDialogueHistoryPanel.SessionDialogueRecord;
+using SessionActionRecord = Ustas.RimAI.Communication.Relations.UI.RPGPawnDialogueHistoryPanel.SessionActionRecord;
+using SessionActionOutcome = Ustas.RimAI.Communication.Relations.UI.RPGPawnDialogueHistoryPanel.SessionActionOutcome;
+
 namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>/// Dependencies: RimWorld window/UI runtime, AI request callbacks, and RPG archive/session helpers.
  /// Responsibility: host the full-screen PawnRPG dialogue window and orchestrate live/history rendering.
  ///</summary>
     [StaticConstructorOnStartup]
-    public partial class Dialog_RPGPawnDialogue : Window
+    public class Dialog_RPGPawnDialogue : Window
     {
-        private readonly Pawn initiator;
-        private readonly Pawn target;
-        private readonly string dialogueSessionId;
-        private readonly DialogueRuntimeContext runtimeContext;
-        private readonly string windowLifecycleKey;
-        private readonly string windowInstanceId = Guid.NewGuid().ToString("N");
-        private readonly RpgDialogueConversationController conversationController = new RpgDialogueConversationController();
-        private InitialRequestPromptCache initialRequestPromptCache;
-        private DialogueRequestLease activeRequestLease;
-        private DialogueRuntimeContext activeRequestRuntimeContext;
-        private bool isWindowClosing;
-        private string currentDialogueText = "";
-        private string displayedText = "";
-        private string userReplyText = "";
-        private int visibleChars = 0;
-        private float lastCharTime = 0f;
+        internal Dialog_RPGPawnDialogueParts Parts;
+        internal const float ActionFeedbackDefaultDuration = RPGPawnDialogueFeedbackOverlay.ActionFeedbackDefaultDuration;
+
+        internal readonly Pawn initiator;
+        internal readonly Pawn target;
+        internal readonly string dialogueSessionId;
+        internal readonly DialogueRuntimeContext runtimeContext;
+        internal readonly string windowLifecycleKey;
+        internal readonly string windowInstanceId = Guid.NewGuid().ToString("N");
+        internal readonly RpgDialogueConversationController conversationController = new RpgDialogueConversationController();
+        internal InitialRequestPromptCache initialRequestPromptCache;
+        internal DialogueRequestLease activeRequestLease;
+        internal DialogueRuntimeContext activeRequestRuntimeContext;
+        internal bool isWindowClosing;
+        internal string currentDialogueText = "";
+        internal string displayedText = "";
+        internal string userReplyText = "";
+        internal int visibleChars = 0;
+        internal float lastCharTime = 0f;
         
         // Typing State
-        private bool isTyping = false;
+        internal bool isTyping = false;
         
         // Logical States
-        private bool isSendingInitialMessage = false;
-        private bool isShowingUserText = false;
-        private bool isWaitingForDelayAfterUser = false;
-        private float timeUserTextFinished = 0f;
+        internal bool isSendingInitialMessage = false;
+        internal bool isShowingUserText = false;
+        internal bool isWaitingForDelayAfterUser = false;
+        internal float timeUserTextFinished = 0f;
         
         // AI State
-        private bool aiResponseReady = false;
-        private string aiResponseText = "";
-        private DialogueResponseEnvelope pendingResponseEnvelope = null;
+        internal bool aiResponseReady = false;
+        internal string aiResponseText = "";
+        internal DialogueResponseEnvelope pendingResponseEnvelope = null;
 
         // NPC离开session后, 进入冷却拒聊
-        private bool isDialogueEndedByNpc = false;
-        private string dialogueEndReason = "";
-        private bool sessionCloseSummaryCommitted = false;
-        private bool archiveSessionFinalized = false;
+        internal bool isDialogueEndedByNpc = false;
+        internal string dialogueEndReason = "";
+        internal bool sessionCloseSummaryCommitted = false;
+        internal bool archiveSessionFinalized = false;
         
-        private string currentSpeakerName = "";
+        internal string currentSpeakerName = "";
         
-        private List<ChatMessageData> chatHistory = new List<ChatMessageData>();
+        internal List<ChatMessageData> chatHistory = new List<ChatMessageData>();
         
-        private struct DialoguePage
+        internal struct DialoguePage
         {
             public string speakerName;
             public string text;
         }
 
-        private sealed class InitialRequestPromptCache
+        internal sealed class InitialRequestPromptCache
         {
             public int ContextVersion;
             public string WindowKey = string.Empty;
@@ -76,9 +86,9 @@ namespace Ustas.RimAI.Communication.Relations.UI
             public List<ChatMessageData> Messages = new List<ChatMessageData>();
         }
 
-        private List<DialoguePage> dialogPages = new List<DialoguePage>();
-        private bool isViewingHistory = false;
-        private int historyViewIndex = 0;
+        internal List<DialoguePage> dialogPages = new List<DialoguePage>();
+        internal bool isViewingHistory = false;
+        internal int historyViewIndex = 0;
         
         internal const float DialogueBoxHeight = 260f;
         internal const float PortraitWidth = 400f;
@@ -86,35 +96,31 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         internal static float GetPortraitWidthScale(float bodySize) => Mathf.Clamp(Mathf.Sqrt(Mathf.Max(bodySize, 0.5f)), 0.7f, 1.5f);
         internal static float GetPortraitHeightScale(float bodySize) => Mathf.Clamp(Mathf.Max(bodySize, 0.5f), 0.7f, 2.0f);
-        internal static float GetPortraitZoom(float bodySize, bool humanlike)
-        {
-            float b = humanlike ? 1.35f : 1.0f;
-            return Mathf.Clamp(b / Mathf.Pow(Mathf.Max(bodySize, 0.5f), 0.3f), 0.5f, 1.35f);
-        }
+        
 
-        private float TargetPortraitWidth => PortraitWidth * GetPortraitWidthScale(target?.BodySize ?? 1f);
-        private float TargetPortraitHeight => PortraitHeight * GetPortraitHeightScale(target?.BodySize ?? 1f);
-        private float InitiatorPortraitWidth => PortraitWidth * GetPortraitWidthScale(initiator?.BodySize ?? 1f);
-        private float InitiatorPortraitHeight => PortraitHeight * GetPortraitHeightScale(initiator?.BodySize ?? 1f);
+        internal float TargetPortraitWidth => PortraitWidth * GetPortraitWidthScale(target?.BodySize ?? 1f);
+        internal float TargetPortraitHeight => PortraitHeight * GetPortraitHeightScale(target?.BodySize ?? 1f);
+        internal float InitiatorPortraitWidth => PortraitWidth * GetPortraitWidthScale(initiator?.BodySize ?? 1f);
+        internal float InitiatorPortraitHeight => PortraitHeight * GetPortraitHeightScale(initiator?.BodySize ?? 1f);
 
-        private float globalFadeAlpha = 0f;
-        private float initiatorFadeAlpha = 0f;
-        private float targetFadeAlpha = 0f;
+        internal float globalFadeAlpha = 0f;
+        internal float initiatorFadeAlpha = 0f;
+        internal float targetFadeAlpha = 0f;
 
         // Dynamic dialogue box background color
-        private Color dialogueBoxCurrentColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
-        private Color dialogueBoxTargetColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
-        private const float DialogueBoxColorBlendSpeed = 2.5f;
+        internal Color dialogueBoxCurrentColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
+        internal Color dialogueBoxTargetColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
+        internal const float DialogueBoxColorBlendSpeed = 2.5f;
 
-        private static readonly Color DialogueBoxDefaultColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
-        private static readonly Color DialogueBoxRomanceColor = new Color(0.50f, 0.44f, 0.45f, 0.9f);
-        private static readonly Color DialogueBoxNeutralColor  = new Color(0.13f, 0.17f, 0.24f, 0.9f);
-        private static readonly Color DialogueBoxPrisonerColor = new Color(0.22f, 0.13f, 0.07f, 0.9f);
-        private static readonly Color DialogueBoxHostileColor  = new Color(0.40f, 0.15f, 0.16f, 0.9f);
-        private bool firstTargetSentenceDone = false;
-        private const float FadeSpeed = 1.5f; // Real-time per second speed
-        private const string UserReplyInputControlName = "UserReplyInput";
-        private const string RpgStrictOutputContractReminder =
+        internal static readonly Color DialogueBoxDefaultColor = new Color(0.1f, 0.1f, 0.12f, 0.9f);
+        internal static readonly Color DialogueBoxRomanceColor = new Color(0.50f, 0.44f, 0.45f, 0.9f);
+        internal static readonly Color DialogueBoxNeutralColor  = new Color(0.13f, 0.17f, 0.24f, 0.9f);
+        internal static readonly Color DialogueBoxPrisonerColor = new Color(0.22f, 0.13f, 0.07f, 0.9f);
+        internal static readonly Color DialogueBoxHostileColor  = new Color(0.40f, 0.15f, 0.16f, 0.9f);
+        internal bool firstTargetSentenceDone = false;
+        internal const float FadeSpeed = 1.5f; // Real-time per second speed
+        internal const string UserReplyInputControlName = "UserReplyInput";
+        internal const string RpgStrictOutputContractReminder =
             "Strict RPG output contract: write natural dialogue as plain text. " +
             "Only if gameplay effects are needed, append exactly one raw JSON object in the form " +
             "{\"actions\":[...]} after the dialogue. " +
@@ -136,6 +142,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             DialogueRuntimeContext runtimeContext = null,
             string windowLifecycleKey = null)
         {
+            Parts = new Dialog_RPGPawnDialogueParts(this);
             this.initiator = initiator;
             this.target = target;
             string resolvedSessionId = runtimeContext?.DialogueSessionId;
@@ -186,300 +193,31 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }
         }
 
-        private List<ChatMessageData> BuildRPGChatMessages()
+        internal List<ChatMessageData> BuildRPGChatMessages()
         {
             return new List<ChatMessageData>();
         }
 
-        private static List<string> ParseSceneTagsCsv(string csv)
-        {
-            if (string.IsNullOrWhiteSpace(csv))
-            {
-                return null;
-            }
+        
 
-            return csv
-                .Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(tag => tag.Trim().ToLowerInvariant())
-                .Where(tag => !string.IsNullOrWhiteSpace(tag))
-                .Distinct()
-                .ToList();
-        }
+        
 
-        private static string BuildProactiveOpeningCarryOverPrompt(string proactiveOpening)
-        {
-            return "A proactive trigger opened this chat from NPC side.\n"
-                + "Use it only as scene context. Do not copy previous opening wording.\n"
-                + "Generate a fresh in-character line with continuity from personal memory.";
-        }
+        
 
-        private bool TrySeedProactiveOpening(string proactiveOpening)
-        {
-            if (string.IsNullOrWhiteSpace(proactiveOpening))
-            {
-                return false;
-            }
+        internal float inputAlpha = 0.3f;
 
-            string opening = NormalizeVisibleNpcDialogueText(proactiveOpening);
-            currentSpeakerName = target.LabelShort;
-            currentDialogueText = opening;
-            displayedText = "";
-            visibleChars = 0;
-            isTyping = true;
-            lastCharTime = Time.realtimeSinceStartup;
-            ResetDialogueTextPaging();
-            bool hasOpeningContent = !string.IsNullOrWhiteSpace(opening);
-            if (hasOpeningContent)
-            {
-                chatHistory.Add(new ChatMessageData { role = "assistant", content = opening });
-            }
-            dialogPages.Add(new DialoguePage { speakerName = target.LabelShort, text = opening });
-            RecordSessionDialogueTurn(target.LabelShort, opening, false);
-            RpgDialogueTraceTracker.RegisterTurn(initiator, target, false, opening, dialogueSessionId);
-            return true;
-        }
+        
 
-        private float inputAlpha = 0.3f;
+        
 
-        private void SendInitialMessage()
-        {
-            isSendingInitialMessage = true;
-            currentDialogueText = "";
-            displayedText = "";
-            visibleChars = 0;
-            currentSpeakerName = target.LabelShort;
-            List<ChatMessageData> requestMessages;
-            try
-            {
-                requestMessages = TryGetValidInitialRequestPromptMessages(out List<ChatMessageData> cached)
-                    ? cached
-                    : BuildCompressedRpgRequestMessages();
-            }
-            catch (PromptRenderException ex)
-            {
-                ApplyPromptRenderFailure(ex);
-                return;
-            }
-            finally
-            {
-                initialRequestPromptCache = null;
-            }
+        
 
-            CloseActiveRequestLease();
-            activeRequestRuntimeContext = runtimeContext.WithCurrentRuntimeMarkers();
-            activeRequestLease = conversationController.TrySend(
-                activeRequestRuntimeContext,
-                windowInstanceId,
-                requestMessages,
-                onReady: envelope =>
-                {
-                    if (isWindowClosing)
-                    {
-                        return;
-                    }
+        
 
-                    PrepareEnvelopeForDisplay(envelope);
-                    pendingResponseEnvelope = envelope;
-                    currentDialogueText = envelope.DialogueText ?? string.Empty;
-                    isSendingInitialMessage = false;
-                    ResetDialogueTextPaging();
-                    string visibleHistoryContent = NormalizeHistoryAssistantContent(envelope, currentDialogueText);
-                    if (!string.IsNullOrWhiteSpace(visibleHistoryContent))
-                    {
-                        chatHistory.Add(new ChatMessageData { role = "assistant", content = visibleHistoryContent });
-                    }
-                    dialogPages.Add(new DialoguePage { speakerName = target.LabelShort, text = currentDialogueText });
-                    RecordSessionDialogueTurn(target.LabelShort, currentDialogueText, false);
-                    RpgDialogueTraceTracker.RegisterTurn(initiator, target, false, currentDialogueText, dialogueSessionId);
-                    isTyping = true;
-                    lastCharTime = Time.realtimeSinceStartup;
-                    TryApplyPendingEnvelope();
-                },
-                onError: error =>
-                {
-                    if (isWindowClosing)
-                    {
-                        return;
-                    }
+        
 
-                    isSendingInitialMessage = false;
-                    currentDialogueText = "Error: " + error;
-                    isTyping = true;
-                    ReleaseActiveRequestLease();
-                },
-                onDropped: HandleDroppedResponse);
-
-            if (activeRequestLease == null)
-            {
-                isSendingInitialMessage = false;
-                HandleDroppedResponse("send_initial_blocked");
-            }
-        }
-
-        private void PrepareInitialRequestPromptCache()
-        {
-            if (initialRequestPromptCache != null)
-            {
-                return;
-            }
-
-            List<ChatMessageData> requestMessages = BuildCompressedRpgRequestMessages();
-            var markers = runtimeContext.WithCurrentRuntimeMarkers();
-            initialRequestPromptCache = new InitialRequestPromptCache
-            {
-                ContextVersion = markers?.ContextVersion ?? runtimeContext?.ContextVersion ?? 0,
-                WindowKey = windowLifecycleKey ?? string.Empty,
-                OwnerWindowId = windowInstanceId ?? string.Empty,
-                Messages = CloneChatMessages(requestMessages)
-            };
-        }
-
-        private bool TryGetValidInitialRequestPromptMessages(out List<ChatMessageData> requestMessages)
-        {
-            requestMessages = null;
-            if (initialRequestPromptCache == null)
-            {
-                return false;
-            }
-
-            var markers = runtimeContext.WithCurrentRuntimeMarkers();
-            int currentContextVersion = markers?.ContextVersion ?? runtimeContext?.ContextVersion ?? 0;
-            if (currentContextVersion != initialRequestPromptCache.ContextVersion)
-            {
-                return false;
-            }
-
-            if (!string.Equals(initialRequestPromptCache.WindowKey, windowLifecycleKey ?? string.Empty, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            if (!string.Equals(initialRequestPromptCache.OwnerWindowId, windowInstanceId ?? string.Empty, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            requestMessages = CloneChatMessages(initialRequestPromptCache.Messages);
-            return requestMessages.Count > 0;
-        }
-
-        private static List<ChatMessageData> CloneChatMessages(IEnumerable<ChatMessageData> source)
-        {
-            return source?
-                .Where(item => item != null)
-                .Select(item => new ChatMessageData
-                {
-                    role = item.role,
-                    content = item.content
-                })
-                .ToList() ?? new List<ChatMessageData>();
-        }
-
-        public override void DoWindowContents(Rect inRect)
-        {
-            // Update Alphas based on real time
-            float deltaTime = Time.deltaTime;
-            globalFadeAlpha = Mathf.Clamp01(globalFadeAlpha + deltaTime * FadeSpeed);
-            targetFadeAlpha = Mathf.Clamp01(targetFadeAlpha + deltaTime * FadeSpeed);
-            
-            // Player pawn starts fading in when target finishes first sentence or player speaks
-            if (firstTargetSentenceDone || currentSpeakerName == initiator.LabelShort || dialogPages.Any(p => p.speakerName == initiator.LabelShort))
-            {
-                initiatorFadeAlpha = Mathf.Clamp01(initiatorFadeAlpha + deltaTime * FadeSpeed);
-            }
-
-            // Update portrait drag physics (spring follow, spring-back, collision)
-            UpdatePortraitDrag(inRect, deltaTime);
-
-            // Dynamic dialogue box background color based on target pawn status
-            dialogueBoxTargetColor = ResolveDialogueBoxTargetColor();
-            dialogueBoxCurrentColor = Color.Lerp(dialogueBoxCurrentColor, dialogueBoxTargetColor, deltaTime * DialogueBoxColorBlendSpeed);
-
-            // Inspect pane: let events fall through to the pane below when it was opened via our menu
-            bool inspectPaneShowing = IsInspectPaneShowing();
-            absorbInputAroundWindow = !inspectPaneShowing;
-
-            // Smooth portrait transparency when mouse hovers over the inspect-pane overlap zone
-            Rect inspectPaneOverlapRect = inspectPaneShowing ? GetInspectPaneOverlapRect() : Rect.zero;
-            bool mouseOverInspectPane = inspectPaneShowing && Mouse.IsOver(inspectPaneOverlapRect);
-            float targetInspectAlpha = mouseOverInspectPane ? 0f : 1f;
-            inspectPaneAlpha = Mathf.Lerp(inspectPaneAlpha, targetInspectAlpha, deltaTime * InspectPaneAlphaSpeed);
-
-            // Draw Portraits first (Portraits use their own alpha inside the methods)
-            DrawPortraits(inRect);
-
-            // Draw Dialogue Box with global alpha
-            GUI.color = new Color(1f, 1f, 1f, globalFadeAlpha);
-            DrawDialogueBox(inRect);
-            GUI.color = Color.white;
-            DrawActionFeedback(inRect);
-            DrawSessionHistoryPanel(inRect);
-
-            if (Event.current.type == EventType.MouseDown)
-            {
-                // Drag the initiator portrait
-                if (TryStartInitiatorDrag(inRect))
-                {
-                    return;
-                }
-
-                if (TryHandleHistoryPanelMouseDown(Event.current))
-                {
-                    return;
-                }
-
-                Rect dialogueBoxRect = new Rect(0, inRect.height - DialogueBoxHeight, inRect.width, DialogueBoxHeight);
-                bool insideDialogueBox = dialogueBoxRect.Contains(Event.current.mousePosition);
-
-                // When the inspect pane was opened through our menu, never close on outside clicks.
-                // Let the event fall through to the inspect pane below (absorbInputAroundWindow is false).
-                if (!insideDialogueBox && inspectPaneShowing)
-                {
-                    return;
-                }
-
-                // Click outside dialogue box → close window (normal exit)
-                if (!insideDialogueBox)
-                {
-                    Close();
-                    Event.current.Use();
-                }
-                // Click inside dialogue box to skip text animation
-                else if (isTyping)
-                {
-                    visibleChars = currentDialogueText.Length;
-                    displayedText = currentDialogueText;
-                    isTyping = false;
-
-                    if (isShowingUserText)
-                    {
-                        isWaitingForDelayAfterUser = true;
-                        timeUserTextFinished = Time.realtimeSinceStartup;
-                    }
-
-                    Event.current.Use();
-                }
-                else
-                {
-                    // Click inside dialogue box but not in input area -> clear focus
-                    float inputHeight = 45f;
-                    float dialogueBoxY = inRect.height - DialogueBoxHeight;
-                    Rect bottomArea = new Rect(35f, dialogueBoxY + DialogueBoxHeight - 35f - inputHeight, inRect.width - 70f, inputHeight);
-
-                    if (!bottomArea.Contains(Event.current.mousePosition))
-                    {
-                        if (GUI.GetNameOfFocusedControl() == UserReplyInputControlName)
-                        {
-                            GUI.FocusControl(null);
-                        }
-                    }
-                    Event.current.Use();
-                }
-            }
-        }
-
-        private RenderTexture initiatorRT;
-        private RenderTexture targetRT;
+        internal RenderTexture initiatorRT;
+        internal RenderTexture targetRT;
 
         public override void PreClose()
         {
@@ -492,540 +230,319 @@ namespace Ustas.RimAI.Communication.Relations.UI
             if (targetRT != null) { UnityEngine.Object.Destroy(targetRT); targetRT = null; }
         }
 
-        private void TryFinalizeArchiveSessionOnClose()
-        {
-            if (archiveSessionFinalized)
-            {
-                return;
-            }
+        
 
-            archiveSessionFinalized = true;
-            RpgNpcDialogueArchiveManager.Instance.FinalizeSession(initiator, target, dialogueSessionId, chatHistory);
-        }
+        
 
-        private void TryCommitRpgSessionSummaryOnClose()
-        {
-            if (sessionCloseSummaryCommitted)
-            {
-                return;
-            }
+        
 
-            sessionCloseSummaryCommitted = true;
-            DialogueSummaryService.TryPushRpgSessionSummaryOnClose(initiator, target, chatHistory);
-        }
+        
 
-        private void DrawPawnPortrait(Rect rect, Pawn pawn, bool flip)
-        {
-            RenderTexture rt = flip ? initiatorRT : targetRT;
-            bool created;
-            DrawPawnPortrait(rect, pawn, flip, ref rt, out created);
-            if (flip) initiatorRT = rt;
-            else targetRT = rt;
-        }
+        
 
-        internal static void DrawPawnPortrait(Rect rect, Pawn pawn, bool flip, ref RenderTexture cachedRT, out bool created)
-        {
-            created = false;
-            if (pawn == null) return;
+        
 
-            int texWidth = (int)(rect.width * 3f);
-            int texHeight = (int)(rect.height * 3f);
+        
 
-            if (cachedRT == null || cachedRT.width != texWidth || cachedRT.height != texHeight)
-            {
-                if (cachedRT != null) { cachedRT.Release(); UnityEngine.Object.Destroy(cachedRT); }
-                cachedRT = new RenderTexture(texWidth, texHeight, 24, RenderTextureFormat.ARGB32);
-                cachedRT.antiAliasing = (QualitySettings.antiAliasing > 0) ? QualitySettings.antiAliasing : 8;
-                cachedRT.filterMode = FilterMode.Bilinear;
-                cachedRT.useMipMap = false;
-                cachedRT.Create();
-                created = true;
-            }
-
-            if (Event.current.type == EventType.Repaint)
-            {
-                Vector3 cameraOffset = new Vector3(0f, 0f, 0.15f);
-                float zoom = GetPortraitZoom(pawn.BodySize, pawn.RaceProps.Humanlike);
-                Find.PawnCacheRenderer.RenderPawn(pawn, cachedRT, cameraOffset, zoom, 0f, Rot4.South, true, true, true, true, default(Vector3), null, null, true);
-            }
-
-            if (cachedRT != null)
-            {
-                if (flip)
-                {
-                    Matrix4x4 savedMatrix = GUI.matrix;
-                    Vector2 center = rect.center;
-                    GUIUtility.ScaleAroundPivot(new Vector2(-1f, 1f), center);
-                    GUI.DrawTexture(rect, cachedRT, ScaleMode.StretchToFill, true);
-                    GUI.matrix = savedMatrix;
-                }
-                else
-                {
-                    GUI.DrawTexture(rect, cachedRT, ScaleMode.StretchToFill, true);
-                }
-            }
-        }
-
-        private void DrawDialogueBox(Rect inRect)
-        {
-            // Check State Transitions
-            if (isShowingUserText && isWaitingForDelayAfterUser && !isViewingHistory)
-            {
-                if (Time.realtimeSinceStartup - timeUserTextFinished >= 1.0f)
-                {
-                    if (aiResponseReady)
-                    {
-                        // Switch to AI text
-                        isShowingUserText = false;
-                        isWaitingForDelayAfterUser = false;
-                        
-                        currentSpeakerName = target.LabelShort;
-                        currentDialogueText = NormalizeEnvelopeVisibleDialogueForDisplay(pendingResponseEnvelope, "live_display");
-                        if (string.IsNullOrWhiteSpace(currentDialogueText))
-                        {
-                            currentDialogueText = NormalizeVisibleNpcDialogueText(aiResponseText);
-                        }
-
-                        displayedText = "";
-                        visibleChars = 0;
-                        isTyping = true;
-                        lastCharTime = Time.realtimeSinceStartup;
-                        ResetDialogueTextPaging();
-                        dialogPages.Add(new DialoguePage { speakerName = target.LabelShort, text = currentDialogueText });
-                        RecordSessionDialogueTurn(target.LabelShort, currentDialogueText, false);
-                        TryApplyPendingEnvelope();
-                    }
-                }
-            }
-
-            Rect boxRect = new Rect(0, inRect.height - DialogueBoxHeight, inRect.width, DialogueBoxHeight);
-            
-            Widgets.DrawBoxSolid(boxRect, dialogueBoxCurrentColor);
-            GUI.color = new Color(0.3f, 0.3f, 0.35f, 1f);
-            Widgets.DrawBox(boxRect, 2);
-            GUI.color = Color.white;
-
-            Rect contentRect = boxRect.ContractedBy(35f);
-            
-            bool drawLive = !isViewingHistory;
-            string renderSpeaker = drawLive ? currentSpeakerName : dialogPages[historyViewIndex].speakerName;
-            string renderText = drawLive ? currentDialogueText : dialogPages[historyViewIndex].text;
-
-            // Speaker Name Header (interactive: hover tooltip + click FloatMenu)
-            Pawn speakerPawn = renderSpeaker == initiator.LabelShort ? initiator : target;
-            bool speakerRightAligned = renderSpeaker == initiator.LabelShort;
-            Rect nameRect = speakerRightAligned
-                ? new Rect(contentRect.xMax - 600f, contentRect.y - 35f, 600f, 55f)
-                : new Rect(contentRect.x, contentRect.y - 35f, 600f, 55f);
-            DrawPawnNameWithMenu(nameRect, speakerPawn, renderSpeaker, speakerRightAligned);
-
-            // Text Label Box
-            Rect textArea = new Rect(contentRect.x, contentRect.y + 20f, contentRect.width, contentRect.height - 70f);
-            
-            // If the player is speaking, set right alignment by adjusting Rect
-            if (renderSpeaker == initiator.LabelShort)
-            {
-                string calcText = drawLive ? currentDialogueText : renderText;
-                // Strip tags for accurate measurement
-                string measureText = System.Text.RegularExpressions.Regex.Replace(calcText, "<.*?>", "");
-                
-                GameFont prevFont = Text.Font;
-                Text.Font = GameFont.Medium;
-                Vector2 size = Text.CalcSize(measureText);
-                Text.Font = prevFont;
-                
-                // Scale factor: size=34 is ~1.5x of Medium. Add buffer to prevent wrap-around 'two columns' issue.
-                float clampedWidth = Mathf.Min(size.x * 1.6f + 40f, contentRect.width * 0.85f);
-                
-                textArea.x = contentRect.xMax - clampedWidth;
-                textArea.width = clampedWidth;
-                // Use UpperLeft to maintain steady 'left-to-right' typing without text jumping
-                Text.Anchor = TextAnchor.UpperLeft;
-            }
-            
-            if (drawLive)
-            {
-                if (isSendingInitialMessage)
-                {
-                    string dots = new string('.', (int)(Time.time * 2) % 4);
-                    Widgets.Label(textArea, $"<size=34><color=#b0b0b0>{BuildRpgThinkingText(dots)}</color></size>");
-                }
-                else if (isShowingUserText && isWaitingForDelayAfterUser && !aiResponseReady && Time.realtimeSinceStartup - timeUserTextFinished >= 3.0f)
-                {
-                    // The player text fully printed, delayed 3s, waiting for AI.
-                    string dots = new string('.', (int)(Time.time * 2) % 4);
-                    Widgets.Label(textArea, $"<size=34>{displayedText}\n<color=#b0b0b0>{BuildRpgOpponentThinkingText(dots)}</color></size>");
-                }
-                else
-                {
-                    UpdateTyping();
-                    string liveText = ResolveDialogueTextForDisplay(drawLive, renderSpeaker, currentDialogueText, textArea);
-                    string visibleText = isTyping ? displayedText : liveText;
-                    Widgets.Label(textArea, $"<size=34>{visibleText}</size>");
-                }
-            }
-            else
-            {
-                string historyText = ResolveDialogueTextForDisplay(drawLive, renderSpeaker, renderText, textArea);
-                Widgets.Label(textArea, $"<size=34>{historyText}</size>");
-            }
-
-            // Restore anchor
-            if (renderSpeaker == initiator.LabelShort)
-            {
-                Text.Anchor = TextAnchor.UpperLeft;
-            }
-            
-            // Input Mode Display
-            if (!isTyping && !isSendingInitialMessage && !isShowingUserText && drawLive && !isDialogueEndedByNpc)
-            {
-                float inputHeight = 45f;
-                Rect bottomArea = new Rect(contentRect.x, contentRect.yMax - inputHeight, contentRect.width, inputHeight);
-                
-                // Update dynamic alpha for animation
-                // Stay fully visible if either mouse is over OR if the input field has focus
-                bool isFocused = GUI.GetNameOfFocusedControl() == UserReplyInputControlName;
-                bool mouseInBottom = Mouse.IsOver(bottomArea);
-                float targetAlpha = (mouseInBottom || isFocused) ? 1.0f : 0.25f;
-                // Use Real-time delta for smooth transition regardless of frame rate
-                inputAlpha = Mathf.Lerp(inputAlpha, targetAlpha, 0.12f);
-
-                GUI.color = new Color(1f, 1f, 1f, inputAlpha);
-                
-                Rect inputRect = new Rect(bottomArea.x, bottomArea.y, bottomArea.width - 150f, inputHeight);
-                
-                // Draw a more subtle background for the input if not active
-                if (inputAlpha < 0.9f) {
-                    Widgets.DrawBoxSolid(inputRect, new Color(1f, 1f, 1f, 0.05f));
-                }
-                
-                GUI.SetNextControlName(UserReplyInputControlName);
-                if (ShouldSendFromKeyboard(Event.current))
-                {
-                    Event.current.Use();
-                    TrySendMessage();
-                }
-                userReplyText = Widgets.TextField(inputRect, userReplyText);
-                
-                Rect sendRect = new Rect(bottomArea.xMax - 135f, bottomArea.y, 135f, inputHeight);
-                string sendLabel = "RimChat_SendButton".Translate();
-                
-                // Custom-styled button for 'inconspicuous' look
-                Color savedGuiColor = GUI.color;
-                if (inputAlpha < 0.5f) {
-                    // Just draw text when alpha is low
-                    Text.Anchor = TextAnchor.MiddleCenter;
-                    Widgets.Label(sendRect, sendLabel);
-                    Text.Anchor = TextAnchor.UpperLeft;
-                    if (Widgets.ButtonInvisible(sendRect)) TrySendMessage();
-                } else {
-                    if (Widgets.ButtonText(sendRect, sendLabel)) TrySendMessage();
-                }
-
-                DrawRpgPotentialActionsHint(sendRect, inputAlpha);
-
-                GUI.color = Color.white;
-            }
-            else if (!isTyping && !isSendingInitialMessage && !isShowingUserText && drawLive && isDialogueEndedByNpc)
-            {
-                Rect blockedRect = new Rect(contentRect.x, contentRect.yMax - 42f, contentRect.width, 32f);
-                GUI.color = new Color(0.95f, 0.55f, 0.55f, 0.95f);
-                string blockText = string.IsNullOrEmpty(dialogueEndReason)
-                    ? "RimChat_RPGDialogue_EndedByNpc".Translate()
-                    : "RimChat_RPGDialogue_EndedByNpcReason".Translate(dialogueEndReason);
-                Widgets.Label(blockedRect, blockText);
-                GUI.color = Color.white;
-            }
-            
-            DrawDialogueNavigation(boxRect);
-        }
-
-        private bool ShouldSendFromKeyboard(Event current)
-        {
-            if (!IsSubmitKeyPressed(current) || current.alt || IsImeComposing())
-            {
-                return false;
-            }
-
-            if (!IsUserReplyInputFocused())
-            {
-                return false;
-            }
-
-            return CanSendUserReplyFromKeyboard();
-        }
-
-        private static bool IsSubmitKeyPressed(Event current)
-        {
-            if (current == null)
-            {
-                return false;
-            }
-
-            if (current.keyCode != KeyCode.Return && current.keyCode != KeyCode.KeypadEnter)
-            {
-                return false;
-            }
-
-            return current.type == EventType.KeyDown || current.rawType == EventType.KeyDown;
-        }
-
-        private static bool IsImeComposing()
+        internal static bool IsImeComposing()
         {
             return !string.IsNullOrEmpty(Input.compositionString);
         }
 
-        private static bool IsUserReplyInputFocused()
+        internal static bool IsUserReplyInputFocused()
         {
             return GUI.GetNameOfFocusedControl() == UserReplyInputControlName;
         }
 
-        private bool CanSendUserReplyFromKeyboard()
+        internal bool CanSendUserReplyFromKeyboard()
         {
             return !isDialogueEndedByNpc && !string.IsNullOrWhiteSpace(userReplyText);
         }
 
-        private void TrySendMessage()
-        {
-            if (isDialogueEndedByNpc)
-            {
-                return;
-            }
+        
 
-            var rpgManager = Current.Game?.GetComponent<Ustas.RimAI.Communication.Relations.DiplomacySystem.GameComponent_RPGManager>();
-            if (rpgManager != null && rpgManager.IsRpgDialogueOnCooldown(target, out int remainingTicks))
-            {
-                float remainingHours = Math.Max(0f, remainingTicks / 2500f);
-                string cooldownText = "RimChat_RPGDialogue_CooldownBlockedWithHours".Translate(remainingHours.ToString("F1"));
-                Messages.Message(
-                    cooldownText,
-                    MessageTypeDefOf.RejectInput,
-                    false);
-                isDialogueEndedByNpc = true;
-                dialogueEndReason = cooldownText;
-                return;
-            }
+        
 
-            if (!string.IsNullOrWhiteSpace(userReplyText))
-            {
-                string textToSend = userReplyText.Trim();
-                chatHistory.Add(new ChatMessageData { role = "user", content = textToSend });
-                dialogPages.Add(new DialoguePage { speakerName = initiator.LabelShort, text = textToSend });
-                RecordSessionDialogueTurn(initiator.LabelShort, textToSend, true);
-                RpgDialogueTraceTracker.RegisterTurn(initiator, target, true, textToSend, dialogueSessionId);
-                userReplyText = "";
-                GUI.FocusControl(null); // Release focus so it can fade out
-                
-                isViewingHistory = false; // Snap back to live mode
-                ResetDialogueTextPaging();
-                
-                // Switch to User typing mode
-                currentSpeakerName = initiator.LabelShort;
-                currentDialogueText = textToSend;
-                displayedText = "";
-                visibleChars = 0;
-                
-                isTyping = true;
-                isShowingUserText = true;
-                isWaitingForDelayAfterUser = false;
-                
-                aiResponseReady = false;
-                aiResponseText = "";
+        
 
-                List<ChatMessageData> requestMessages;
-                try
-                {
-                    requestMessages = BuildCompressedRpgRequestMessages();
-                }
-                catch (PromptRenderException ex)
-                {
-                    ApplyPromptRenderFailure(ex);
-                    return;
-                }
-
-                CloseActiveRequestLease();
-                activeRequestRuntimeContext = runtimeContext.WithCurrentRuntimeMarkers();
-                activeRequestLease = conversationController.TrySend(
-                    activeRequestRuntimeContext,
-                    windowInstanceId,
-                    requestMessages,
-                    onReady: envelope =>
-                    {
-                        if (isWindowClosing)
-                        {
-                            return;
-                        }
-
-                        PrepareEnvelopeForDisplay(envelope);
-                        pendingResponseEnvelope = envelope;
-                        aiResponseText = envelope.DialogueText ?? string.Empty;
-                        aiResponseReady = true;
-                        string visibleHistoryContent = NormalizeHistoryAssistantContent(envelope, aiResponseText);
-                        if (!string.IsNullOrWhiteSpace(visibleHistoryContent))
-                        {
-                            chatHistory.Add(new ChatMessageData { role = "assistant", content = visibleHistoryContent });
-                        }
-                        RpgDialogueTraceTracker.RegisterTurn(initiator, target, false, aiResponseText, dialogueSessionId);
-                    },
-                    onError: error =>
-                    {
-                        if (isWindowClosing)
-                        {
-                            return;
-                        }
-
-                        aiResponseReady = true;
-                        aiResponseText = "Error: " + error;
-                        ReleaseActiveRequestLease();
-                    },
-                    onDropped: reason =>
-                    {
-                        HandleDroppedResponse(reason);
-                        aiResponseReady = true;
-                    });
-
-                if (activeRequestLease == null)
-                {
-                    aiResponseReady = true;
-                    aiResponseText = "Error: " + "RimChat_DialogueRequestUnavailable".Translate().ToString();
-                }
-            }
-        }
-
-        private void ApplyPromptRenderFailure(PromptRenderException ex)
-        {
-            if (ex == null)
-            {
-                return;
-            }
-
-            string message = "RimChat_PromptRenderBlocked".Translate(ex.TemplateId, ex.Channel, ex.ErrorLine, ex.ErrorColumn).ToString();
-            Log.Error("[RimAI.Relations] RPG prompt rendering aborted request: " + ex.Message);
-            currentDialogueText = message;
-            aiResponseReady = true;
-            aiResponseText = message;
-            isSendingInitialMessage = false;
-            isTyping = true;
-            isDialogueEndedByNpc = true;
-            dialogueEndReason = message;
-            Messages.Message(message, MessageTypeDefOf.RejectInput, false);
-        }
-
-        private List<ChatMessageData> BuildCompressedRpgRequestMessages()
-        {
-            var request = new List<ChatMessageData>();
-            bool openingTurn = !HasVisibleAssistantReply(chatHistory);
-            string currentTurnUserIntent = ExtractLatestVisibleUserIntent(chatHistory);
-            request.Add(new ChatMessageData
-            {
-                role = "system",
-                content = BuildRpgSystemPromptForRequest(openingTurn, currentTurnUserIntent)
-            });
-            List<ChatMessageData> conversation = chatHistory
-                .Where(message => !IsSystemRole(message?.role))
-                .ToList();
-            request.AddRange(DialogueContextCompressionService.BuildFromChatMessages(conversation));
-            if (openingTurn && conversation.Count == 0 && !string.IsNullOrWhiteSpace(currentTurnUserIntent))
-            {
-                request.Add(new ChatMessageData
-                {
-                    role = "user",
-                    content = currentTurnUserIntent
-                });
-            }
-            return request;
-        }
-
-        private static bool IsSystemRole(string role)
+        internal static bool IsSystemRole(string role)
         {
             return string.Equals(role, "system", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string BuildRpgThinkingText(string dots)
+        internal static string BuildRpgThinkingText(string dots)
         {
             return "RimChat_RPGThinking".Translate(dots);
         }
 
-        private static string BuildRpgOpponentThinkingText(string dots)
+        internal static string BuildRpgOpponentThinkingText(string dots)
         {
             return "RimChat_RPGOpponentThinking".Translate(dots);
         }
 
-        private Color ResolveDialogueBoxTargetColor()
+        
+
+        
+
+
+        #region Facade forwards
+        internal void DrawRpgPotentialActionsHint(Rect sendRect, float uiAlpha) => Parts.ActionHint.DrawRpgPotentialActionsHint(sendRect, uiAlpha);
+        internal string GetRpgPotentialActionsTooltipText() => Parts.ActionHint.GetRpgPotentialActionsTooltipText();
+        internal bool ExecuteTryGainMemory(LLMRpgApiResponse.ApiAction action) => Parts.ActionPolicies.ExecuteTryGainMemory(action);
+        internal ThoughtDef ResolveTryGainMemoryThoughtDef(string requestedDefName, out string resolvedFrom) => Parts.ActionPolicies.ResolveTryGainMemoryThoughtDef(requestedDefName, out resolvedFrom);
+        internal string BuildTryGainMemoryExamplesText() => Parts.ActionPolicies.BuildTryGainMemoryExamplesText();
+        internal bool NotifyInvalidTryGainMemory(string requestedDefName) => Parts.ActionPolicies.NotifyInvalidTryGainMemory(requestedDefName);
+        internal void LogTryGainMemoryResolution(string requestedDefName, string resolvedFrom, ThoughtDef def) => Parts.ActionPolicies.LogTryGainMemoryResolution(requestedDefName, resolvedFrom, def);
+        internal void ApplyTryGainMemory(ThoughtDef def) => Parts.ActionPolicies.ApplyTryGainMemory(def);
+        internal float GetMoodEffect(ThoughtDef def) => Parts.ActionPolicies.GetMoodEffect(def);
+        internal static string NormalizeRpgActionName(string actionName) => RPGPawnDialogueActionPolicies.NormalizeRpgActionName(actionName);
+        internal void EnsureRpgActionFallbacks(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.EnsureRpgActionFallbacks(apiResponse);
+        internal void EnsureRpgExitActionFallback(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.EnsureRpgExitActionFallback(apiResponse);
+        internal void EnsureRpgIntentDrivenActionMapping(LLMRpgApiResponse apiResponse, bool allowAutoMemoryFallback) => Parts.ActionPolicies.EnsureRpgIntentDrivenActionMapping(apiResponse, allowAutoMemoryFallback);
+        internal static PromptPolicyConfig GetPromptPolicyForActionMapping() => RPGPawnDialogueActionPolicies.GetPromptPolicyForActionMapping();
+        internal bool TryMapIntentDrivenAction(LLMRpgApiResponse apiResponse, int rounds, PromptPolicyConfig policy, bool allowAutoMemoryFallback) => Parts.ActionPolicies.TryMapIntentDrivenAction(apiResponse, rounds, policy, allowAutoMemoryFallback);
+        internal IntentActionCategory ClassifyIntentActionCategory(string dialogueText) => Parts.ActionPolicies.ClassifyIntentActionCategory(dialogueText);
+        internal bool TryMapStrongRejectToAction(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.TryMapStrongRejectToAction(apiResponse);
+        internal bool TryMapSoftEndingToAction(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.TryMapSoftEndingToAction(apiResponse);
+        internal bool TryMapCollaborationToAction(LLMRpgApiResponse apiResponse, int rounds, PromptPolicyConfig policy) => Parts.ActionPolicies.TryMapCollaborationToAction(apiResponse, rounds, policy);
+        internal void EnsureRpgMemoryActionFallback(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.EnsureRpgMemoryActionFallback(apiResponse);
+        internal void TryAddRoundMemoryFallback(LLMRpgApiResponse apiResponse, int rounds, float chance) => Parts.ActionPolicies.TryAddRoundMemoryFallback(apiResponse, rounds, chance);
+        internal string ResolveAutoMemoryDefName(int rounds) => Parts.ActionPolicies.ResolveAutoMemoryDefName(rounds);
+        internal ThoughtDef ResolveAutoMemoryThoughtDef(int rounds) => Parts.ActionPolicies.ResolveAutoMemoryThoughtDef(rounds);
+        internal int GetNpcDialogueRoundCount() => Parts.ActionPolicies.GetNpcDialogueRoundCount();
+        internal bool HasRpgAction(LLMRpgApiResponse apiResponse, string actionName) => Parts.ActionPolicies.HasRpgAction(apiResponse, actionName);
+        internal bool HasExitAction(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.HasExitAction(apiResponse);
+        internal bool ShouldUseCooldownExitFallback(string text) => Parts.ActionPolicies.ShouldUseCooldownExitFallback(text);
+        internal bool ShouldUseNormalExitFallback(string text) => Parts.ActionPolicies.ShouldUseNormalExitFallback(text);
+        internal void EnsureRpgMinimumActionCoverage(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.EnsureRpgMinimumActionCoverage(apiResponse);
+        internal bool HasAnyRpgEffects(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.HasAnyRpgEffects(apiResponse);
+        internal bool TryAddNoActionStreakMemoryFallback(LLMRpgApiResponse apiResponse) => Parts.ActionPolicies.TryAddNoActionStreakMemoryFallback(apiResponse);
+        internal bool ShouldSuppressAutoMemoryFallback() => Parts.ActionPolicies.ShouldSuppressAutoMemoryFallback();
+        internal bool ContainsAnyPhrase(string text, IReadOnlyList<string> hints) => Parts.ActionPolicies.ContainsAnyPhrase(text, hints);
+        internal static bool MatchesPhraseWithBoundary(string text, string hint) => RPGPawnDialogueActionPolicies.MatchesPhraseWithBoundary(text, hint);
+        internal static bool IsWordChar(char c) => RPGPawnDialogueActionPolicies.IsWordChar(c);
+        internal static bool IsWordCharBefore(string text, int matchStart) => RPGPawnDialogueActionPolicies.IsWordCharBefore(text, matchStart);
+        internal static bool IsWordCharAfter(string text, int matchEnd) => RPGPawnDialogueActionPolicies.IsWordCharAfter(text, matchEnd);
+        internal static bool IsWordBoundaryBefore(string text, int position) => RPGPawnDialogueActionPolicies.IsWordBoundaryBefore(text, position);
+        internal static bool IsWordBoundaryAfter(string text, int position) => RPGPawnDialogueActionPolicies.IsWordBoundaryAfter(text, position);
+        internal void ApplyRPGAPIAndShowPopup(LLMRpgApiResponse apiRes) => Parts.Actions.ApplyRPGAPIAndShowPopup(apiRes);
+        internal void ExecuteRpgActions(List<LLMRpgApiResponse.ApiAction> actions) => Parts.Actions.ExecuteRpgActions(actions);
+        internal bool ExecuteRpgAction(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteRpgAction(action);
+        internal bool TryValidateRpgActionExecutionContext(out string reason) => Parts.Actions.TryValidateRpgActionExecutionContext(out reason);
+        internal bool ExecuteExitDialogue(string reason, bool withCooldown) => Parts.Actions.ExecuteExitDialogue(reason, withCooldown);
+        internal bool ExecuteRomanceAttempt(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteRomanceAttempt(action);
+        internal bool ExecuteMarriageProposal(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteMarriageProposal(action);
+        internal bool ExecuteBreakup(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteBreakup(action);
+        internal bool ExecuteDate(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteDate(action);
+        internal bool ExecuteDivorce(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteDivorce(action);
+        internal bool ExecuteTryAffectSocialGoodwill(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteTryAffectSocialGoodwill(action);
+        internal bool ExecuteReduceResistance(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteReduceResistance(action);
+        internal bool ExecuteReduceWill(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteReduceWill(action);
+        internal bool ExecuteRecruit() => Parts.Actions.ExecuteRecruit();
+        internal bool ExecuteTryTakeOrderedJob(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteTryTakeOrderedJob(action);
+        internal bool ExecuteTriggerIncident(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteTriggerIncident(action);
+        internal bool ExecuteGrantInspiration(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteGrantInspiration(action);
+        internal bool ExecuteUnknownAction(string normalizedName, LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteUnknownAction(normalizedName, action);
+        internal bool CanApplyRelationshipAction(string actionName) => Parts.Actions.CanApplyRelationshipAction(actionName);
+        internal PawnRelationDef ResolveRelationDef(string actionName, PawnRelationDef relationDef, string defName) => Parts.Actions.ResolveRelationDef(actionName, relationDef, defName);
+        internal bool HasPairRelation(PawnRelationDef relationDef) => Parts.Actions.HasPairRelation(relationDef);
+        internal void AddPairRelation(PawnRelationDef relationDef) => Parts.Actions.AddPairRelation(relationDef);
+        internal void RemovePairRelation(PawnRelationDef relationDef) => Parts.Actions.RemovePairRelation(relationDef);
+        internal void ClearOtherSpousesForMarriage(Pawn pawn, Pawn keepPartner, PawnRelationDef spouseDef, PawnRelationDef exSpouseDef) => Parts.Actions.ClearOtherSpousesForMarriage(pawn, keepPartner, spouseDef, exSpouseDef);
+        internal List<InspirationDef> BuildInspirationCandidates(string defName) => Parts.Actions.BuildInspirationCandidates(defName);
+        internal bool TryStartInspiration(object handler, InspirationDef inspirationDef, string reason) => Parts.Actions.TryStartInspiration(handler, inspirationDef, reason);
+        internal object[] BuildInspirationInvokeArgs(MethodInfo method, InspirationDef inspirationDef, string reason) => Parts.Actions.BuildInspirationInvokeArgs(method, inspirationDef, reason);
+        internal bool ExecuteConvertIdeology(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteConvertIdeology(action);
+        internal bool ExecuteAdjustCertainty(LLMRpgApiResponse.ApiAction action) => Parts.Actions.ExecuteAdjustCertainty(action);
+        internal void LogRpgActionDebug(string message) => Parts.Actions.LogRpgActionDebug(message);
+        internal void HandleNpcExitDialogue(string reason) => Parts.Actions.HandleNpcExitDialogue(reason);
+        internal void NotifyActionSuccess(string actionName, LLMRpgApiResponse.ApiAction action) => Parts.Actions.NotifyActionSuccess(actionName, action);
+        internal string ResolveActionDetailForHistory(string actionName, LLMRpgApiResponse.ApiAction action) => Parts.Actions.ResolveActionDetailForHistory(actionName, action);
+        internal void NotifyActionFailure(string actionName, string reason) => Parts.Actions.NotifyActionFailure(actionName, reason);
+        internal void NotifyActionError(string actionName, string reason) => Parts.Actions.NotifyActionError(actionName, reason);
+        internal string GetRpgActionLabel(string actionName) => Parts.Actions.GetRpgActionLabel(actionName);
+        internal void AddActionFeedback(string text, Color color, float duration = ActionFeedbackDefaultDuration) => Parts.FeedbackOverlay.AddActionFeedback(text, color, duration);
+        internal void AddActionFeedback(string text, string moodColoredText, Color color, Color moodColor, float duration = ActionFeedbackDefaultDuration) => Parts.FeedbackOverlay.AddActionFeedback(text, moodColoredText, color, moodColor, duration);
+        internal void AddSystemFeedback(string text, float duration = ActionFeedbackDefaultDuration) => Parts.FeedbackOverlay.AddSystemFeedback(text, duration);
+        internal void DrawActionFeedback(Rect inRect) => Parts.FeedbackOverlay.DrawActionFeedback(inRect);
+        internal bool TryGetActionFeedbackAnchorRect(Rect inRect, out Rect anchorRect) => Parts.FeedbackOverlay.TryGetActionFeedbackAnchorRect(inRect, out anchorRect);
+        internal void DrawActionFeedbackEntries(Rect anchorRect) => Parts.FeedbackOverlay.DrawActionFeedbackEntries(anchorRect);
+        internal Rect BuildActionFeedbackRect(Rect anchorRect, float baseY, float height, ActionFeedbackEntry entry) => Parts.FeedbackOverlay.BuildActionFeedbackRect(anchorRect, baseY, height, entry);
+        internal float CalculateActionFeedbackPanelHeight(string text) => Parts.FeedbackOverlay.CalculateActionFeedbackPanelHeight(text);
+        internal float GetActionFeedbackTextWidth() => Parts.FeedbackOverlay.GetActionFeedbackTextWidth();
+        internal void DrawActionFeedbackEntry(ActionFeedbackEntry entry, Rect subtitleRect) => Parts.FeedbackOverlay.DrawActionFeedbackEntry(entry, subtitleRect);
+        internal void DrawActionFeedbackBackground(Rect subtitleRect, float alpha) => Parts.FeedbackOverlay.DrawActionFeedbackBackground(subtitleRect, alpha);
+        internal void DrawActionFeedbackAccent(ActionFeedbackEntry entry, Rect subtitleRect, float alpha) => Parts.FeedbackOverlay.DrawActionFeedbackAccent(entry, subtitleRect, alpha);
+        internal void DrawActionFeedbackText(ActionFeedbackEntry entry, Rect subtitleRect, float alpha) => Parts.FeedbackOverlay.DrawActionFeedbackText(entry, subtitleRect, alpha);
+        internal void DrawBicolorFeedbackText(ActionFeedbackEntry entry, Rect textRect, float alpha) => Parts.FeedbackOverlay.DrawBicolorFeedbackText(entry, textRect, alpha);
+        internal Rect GetActionFeedbackTextRect(Rect subtitleRect) => Parts.FeedbackOverlay.GetActionFeedbackTextRect(subtitleRect);
+        internal Color GetActionFeedbackTextColor(Color sourceColor, float alpha) => Parts.FeedbackOverlay.GetActionFeedbackTextColor(sourceColor, alpha);
+        internal float GetActionFeedbackRiseOffset(ActionFeedbackEntry entry) => Parts.FeedbackOverlay.GetActionFeedbackRiseOffset(entry);
+        internal float GetActionFeedbackAlpha(ActionFeedbackEntry entry) => Parts.FeedbackOverlay.GetActionFeedbackAlpha(entry);
+        internal float GetActionFeedbackVisibility() => Parts.FeedbackOverlay.GetActionFeedbackVisibility();
+        internal void RemoveExpiredActionFeedback() => Parts.FeedbackOverlay.RemoveExpiredActionFeedback();
+        internal void DrawRoundedRect(Rect rect, Color color, float radius) => Parts.FeedbackOverlay.DrawRoundedRect(rect, color, radius);
+        internal static Texture2D CreateSubtitleCornerTexture() => RPGPawnDialogueFeedbackOverlay.CreateSubtitleCornerTexture();
+        internal void DrawHistoryToggleButton(Rect boxRect) => Parts.HistoryPanel.DrawHistoryToggleButton(boxRect);
+        internal void DrawSessionHistoryPanel(Rect inRect) => Parts.HistoryPanel.DrawSessionHistoryPanel(inRect);
+        internal void DrawSessionHistoryPanelHeader(Rect panelRect) => Parts.HistoryPanel.DrawSessionHistoryPanelHeader(panelRect);
+        internal void DrawSessionHistoryPanelBody(Rect panelRect) => Parts.HistoryPanel.DrawSessionHistoryPanelBody(panelRect);
+        internal float CalculateSessionHistoryContentHeight(float width) => Parts.HistoryPanel.CalculateSessionHistoryContentHeight(width);
+        internal void DrawSessionHistoryRecords(Rect viewRect) => Parts.HistoryPanel.DrawSessionHistoryRecords(viewRect);
+        internal float MeasureSessionHistoryRecordHeight(SessionDialogueRecord record, float width) => Parts.HistoryPanel.MeasureSessionHistoryRecordHeight(record, width);
+        internal void DrawSessionHistoryRecord(SessionDialogueRecord record, Rect rect, int index) => Parts.HistoryPanel.DrawSessionHistoryRecord(record, rect, index);
+        internal void DeleteSessionRecord(int index) => Parts.HistoryPanel.DeleteSessionRecord(index);
+        internal void ConfirmDeleteSessionRecord(int index) => Parts.HistoryPanel.ConfirmDeleteSessionRecord(index);
+        internal void ClearAllSessionRecords() => Parts.HistoryPanel.ClearAllSessionRecords();
+        internal void ConfirmClearAllSessionRecords() => Parts.HistoryPanel.ConfirmClearAllSessionRecords();
+        internal static float CalcHeightWithFont(string text, float width, GameFont font) => RPGPawnDialogueHistoryPanel.CalcHeightWithFont(text, width, font);
+        internal string BuildSessionActionLine(SessionActionRecord action) => Parts.HistoryPanel.BuildSessionActionLine(action);
+        internal static SessionActionRecord GetFinalSuccessfulAction(SessionDialogueRecord record) => RPGPawnDialogueHistoryPanel.GetFinalSuccessfulAction(record);
+        internal static string BuildSpeakerLine(string speakerName) => RPGPawnDialogueHistoryPanel.BuildSpeakerLine(speakerName);
+        internal bool TryHandleHistoryPanelMouseDown(Event current) => Parts.HistoryPanel.TryHandleHistoryPanelMouseDown(current);
+        internal void RecordSessionDialogueTurn(string speakerName, string text, bool isPlayerSpeaker) => Parts.HistoryPanel.RecordSessionDialogueTurn(speakerName, text, isPlayerSpeaker);
+        internal void RecordSessionActionOutcome(string actionName, SessionActionOutcome outcome, string reason, string detail = "") => Parts.HistoryPanel.RecordSessionActionOutcome(actionName, outcome, reason, detail);
+        internal SessionDialogueRecord FindLatestNpcSessionRecord() => Parts.HistoryPanel.FindLatestNpcSessionRecord();
+        public bool MatchesWindowLifecycleKey(string key) => Parts.Lifecycle.MatchesWindowLifecycleKey(key);
+        internal void CloseActiveRequestLease() => Parts.Lifecycle.CloseActiveRequestLease();
+        internal void ReleaseActiveRequestLease() => Parts.Lifecycle.ReleaseActiveRequestLease();
+        internal void PrepareEnvelopeForDisplay(DialogueResponseEnvelope envelope) => Parts.Lifecycle.PrepareEnvelopeForDisplay(envelope);
+        internal void TryApplyPendingEnvelope() => Parts.Lifecycle.TryApplyPendingEnvelope();
+        internal void HandleDroppedResponse(string reason) => Parts.Lifecycle.HandleDroppedResponse(reason);
+        internal bool IsInspectPaneShowing() => Parts.PawnMenu.IsInspectPaneShowing();
+        internal Rect GetInspectPaneOverlapRect() => Parts.PawnMenu.GetInspectPaneOverlapRect();
+        internal void DrawPawnNameWithMenu(Rect nameRect, Pawn pawn, string displayName, bool rightAligned) => Parts.PawnMenu.DrawPawnNameWithMenu(nameRect, pawn, displayName, rightAligned);
+        internal void ShowPawnMenu(Pawn pawn) => Parts.PawnMenu.ShowPawnMenu(pawn);
+        internal static void ShowPawnMenuStatic(Pawn pawn) => RPGPawnDialoguePawnMenu.ShowPawnMenuStatic(pawn);
+        internal void OpenPawnTab(Pawn pawn, Type itabType) => Parts.PawnMenu.OpenPawnTab(pawn, itabType);
+        internal static void OpenPawnTabStatic(Pawn pawn, Type itabType) => RPGPawnDialoguePawnMenu.OpenPawnTabStatic(pawn, itabType);
+        internal static bool HasLoveRelation(Pawn target, Pawn initiator) => RPGPawnDialoguePortraitDrag.HasLoveRelation(target, initiator);
+        internal static bool HasSpouseRelation(Pawn target, Pawn initiator) => RPGPawnDialoguePortraitDrag.HasSpouseRelation(target, initiator);
+        internal Rect GetInitiatorDragRect(Rect inRect) => Parts.PortraitDrag.GetInitiatorDragRect(inRect);
+        internal void UpdatePortraitDrag(Rect inRect, float deltaTime) => Parts.PortraitDrag.UpdatePortraitDrag(inRect, deltaTime);
+        internal void UpdateCollisionDetection(Rect inRect) => Parts.PortraitDrag.UpdateCollisionDetection(inRect);
+        internal void UpdateCollisionAnimation(float deltaTime) => Parts.PortraitDrag.UpdateCollisionAnimation(deltaTime);
+        internal Rect RectIntersect(Rect a, Rect b) => Parts.PortraitDrag.RectIntersect(a, b);
+        internal void DrawInitiatorPortraitWithDrag(Rect inRect) => Parts.PortraitDrag.DrawInitiatorPortraitWithDrag(inRect);
+        internal bool TryStartInitiatorDrag(Rect inRect) => Parts.PortraitDrag.TryStartInitiatorDrag(inRect);
+        internal void ShowCollisionMenu() => Parts.PortraitDrag.ShowCollisionMenu();
+        internal void ExecuteCollisionAction(string actionName) => Parts.PortraitDrag.ExecuteCollisionAction(actionName);
+        internal void DrawPortraits(Rect inRect) => Parts.Portraits.DrawPortraits(inRect);
+        internal Rect GetTargetPortraitRect(Rect inRect) => Parts.Portraits.GetTargetPortraitRect(inRect);
+        internal Rect GetInitiatorPortraitRect(Rect inRect) => Parts.Portraits.GetInitiatorPortraitRect(inRect);
+        internal static float CappedHeight(float desired, Rect inRect) => RPGPawnDialoguePortraits.CappedHeight(desired, inRect);
+        internal string NormalizeHistoryAssistantContent(DialogueResponseEnvelope envelope, string visibleDialogueText) => Parts.RequestContext.NormalizeHistoryAssistantContent(envelope, visibleDialogueText);
+        internal string ExtractNarrativeOnly(string rawResponse) => Parts.RequestContext.ExtractNarrativeOnly(rawResponse);
+        internal string NormalizeVisibleNpcDialogueText(string content) => Parts.RequestContext.NormalizeVisibleNpcDialogueText(content);
+        internal string NormalizeEnvelopeVisibleDialogueForDisplay(DialogueResponseEnvelope envelope, string sourceTag) => Parts.RequestContext.NormalizeEnvelopeVisibleDialogueForDisplay(envelope, sourceTag);
+        internal static string CollapseWhitespace(string content) => RPGPawnDialogueRequestContext.CollapseWhitespace(content);
+        internal bool ShouldApplyNonVerbalSpeechFormatting() => Parts.RequestContext.ShouldApplyNonVerbalSpeechFormatting();
+        internal string EnsureNonVerbalSpeechFormat(string normalized) => Parts.RequestContext.EnsureNonVerbalSpeechFormat(normalized);
+        internal static bool TryParseSoundThoughtPair(string text, out string sound, out string thought) => RPGPawnDialogueCharacterStyleOps.TryParseSoundThoughtPair(text, out sound, out thought);
+        internal static bool UseFullWidthParentheses() => RPGPawnDialogueCharacterStyleOps.UseFullWidthParentheses();
+        internal static bool IsNonVerbalSpeechPawn(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.IsNonVerbalSpeechPawn(pawn);
+        internal static bool IsAnimalPawn(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.IsAnimalPawn(pawn);
+        internal static bool IsMechanoidPawn(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.IsMechanoidPawn(pawn);
+        internal static bool IsBabyPawn(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.IsBabyPawn(pawn);
+        internal static string ResolveNonVerbalSpeakerKind(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.ResolveNonVerbalSpeakerKind(pawn);
+        internal static string ResolveRacialType(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.ResolveRacialType(pawn);
+        internal static string ResolveSocialIdentity(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.ResolveSocialIdentity(pawn);
+        internal static string ResolveRelationshipStatus(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.ResolveRelationshipStatus(pawn);
+        internal static string ResolvePersonalityTraits(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.ResolvePersonalityTraits(pawn);
+        internal static string BuildStyleGuidelines(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.BuildStyleGuidelines(pawn);
+        internal static void AppendTraitStyleGuidelines(Pawn pawn, List<string> guidelines) => RPGPawnDialogueCharacterStyleOps.AppendTraitStyleGuidelines(pawn, guidelines);
+        internal static string ResolveDefaultNonVerbalSound(Pawn pawn) => RPGPawnDialogueCharacterStyleOps.ResolveDefaultNonVerbalSound(pawn);
+        internal string ApplyNonVerbalSpeechFormatting(string basePrompt) => Parts.RequestContext.ApplyNonVerbalSpeechFormatting(basePrompt);
+        internal string ApplyNonVerbalSpeechConstraintTemplate(string basePrompt) => Parts.RequestContext.ApplyNonVerbalSpeechConstraintTemplate(basePrompt);
+        internal string ApplyCharacterStyleConstraint(string basePrompt) => Parts.RequestContext.ApplyCharacterStyleConstraint(basePrompt);
+        internal static bool HasVisibleAssistantReply(IEnumerable<ChatMessageData> messages) => RPGPawnDialogueRequestContext.HasVisibleAssistantReply(messages);
+        internal static string ExtractLatestVisibleUserIntent(IEnumerable<ChatMessageData> messages) => RPGPawnDialogueRequestContext.ExtractLatestVisibleUserIntent(messages);
+        internal static bool IsPromptSeedUserMessage(string content) => RPGPawnDialogueRequestContext.IsPromptSeedUserMessage(content);
+        internal string BuildRpgSystemPromptForRequest(bool openingTurn, string currentTurnUserIntent) => Parts.RequestContext.BuildRpgSystemPromptForRequest(openingTurn, currentTurnUserIntent);
+        internal void UpdateRpgActionContractGuard(string prompt, bool rpgApiEnabled) => Parts.RequestContext.UpdateRpgActionContractGuard(prompt, rpgApiEnabled);
+        internal static bool HasRpgActionContract(string prompt) => RPGPawnDialogueRequestContext.HasRpgActionContract(prompt);
+        internal string ResolveDialogueTextForDisplay(bool drawLive, string speakerName, string fullText, Rect textArea) => Parts.TextPaging.ResolveDialogueTextForDisplay(drawLive, speakerName, fullText, textArea);
+        internal bool CanPageCurrentDialogue(bool drawLive) => Parts.TextPaging.CanPageCurrentDialogue(drawLive);
+        internal void EnsureDialogueTextPages(string fullText, string speakerName, Rect textArea, bool drawLive) => Parts.TextPaging.EnsureDialogueTextPages(fullText, speakerName, textArea, drawLive);
+        internal bool RequiresDialogueTextPageRefresh(string fullText, string speakerName, Rect textArea, bool drawLive) => Parts.TextPaging.RequiresDialogueTextPageRefresh(fullText, speakerName, textArea, drawLive);
+        internal void UpdateDialogueTextPageCache(string fullText, string speakerName, Rect textArea, bool drawLive) => Parts.TextPaging.UpdateDialogueTextPageCache(fullText, speakerName, textArea, drawLive);
+        internal List<string> BuildDialogueTextPages(string fullText, float width, float height) => Parts.TextPaging.BuildDialogueTextPages(fullText, width, height);
+        internal int FindDialoguePageLength(string fullText, int startIndex, float width, float height) => Parts.TextPaging.FindDialoguePageLength(fullText, startIndex, width, height);
+        internal bool DoesDialoguePageFit(string fullText, int startIndex, int length, float width, float height) => Parts.TextPaging.DoesDialoguePageFit(fullText, startIndex, length, width, height);
+        internal float CalcDialogueTextHeight(string text, float width) => Parts.TextPaging.CalcDialogueTextHeight(text, width);
+        internal int AdjustDialoguePageLength(string fullText, int startIndex, int rawLength) => Parts.TextPaging.AdjustDialoguePageLength(fullText, startIndex, rawLength);
+        internal static bool IsDialoguePageBoundary(char character) => RPGPawnDialogueTextPaging.IsDialoguePageBoundary(character);
+        internal int SkipDialoguePageSeparators(string fullText, int startIndex) => Parts.TextPaging.SkipDialoguePageSeparators(fullText, startIndex);
+        internal string ExtractDialoguePageText(string fullText, int startIndex, int length) => Parts.TextPaging.ExtractDialoguePageText(fullText, startIndex, length);
+        internal void ResetDialogueTextPaging() => Parts.TextPaging.ResetDialogueTextPaging();
+        internal void DrawDialogueNavigation(Rect boxRect) => Parts.TextPaging.DrawDialogueNavigation(boxRect);
+        internal void DrawHistoryNavigation(Rect boxRect) => Parts.TextPaging.DrawHistoryNavigation(boxRect);
+        internal void DrawTextPageNavigation(Rect boxRect) => Parts.TextPaging.DrawTextPageNavigation(boxRect);
+        internal void DrawNavigationBox(Rect boxRect, bool canGoPrev, bool canGoNext, string counterLabel, Action onPrev, Action onNext) => Parts.TextPaging.DrawNavigationBox(boxRect, canGoPrev, canGoNext, counterLabel, onPrev, onNext);
+        internal void DrawNavigationButton(Rect rect, bool enabled, string label, Action onClick) => Parts.TextPaging.DrawNavigationButton(rect, enabled, label, onClick);
+        internal int GetCurrentDialogueDisplayIndex() => Parts.TextPaging.GetCurrentDialogueDisplayIndex();
+        internal void ShowDialogueHistoryAt(int displayIndex) => Parts.TextPaging.ShowDialogueHistoryAt(displayIndex);
+        internal void ChangeDialogueTextPage(int direction) => Parts.TextPaging.ChangeDialogueTextPage(direction);
+        #endregion
+    
+        #region Cluster forwards
+        internal static float GetPortraitZoom(float bodySize, bool humanlike) => RPGPawnDialogueSlice1.GetPortraitZoom(bodySize, humanlike);
+        internal static List<string> ParseSceneTagsCsv(string csv) => RPGPawnDialogueSlice1.ParseSceneTagsCsv(csv);
+        internal static string BuildProactiveOpeningCarryOverPrompt(string proactiveOpening) => RPGPawnDialogueSlice1.BuildProactiveOpeningCarryOverPrompt(proactiveOpening);
+        internal bool TrySeedProactiveOpening(string proactiveOpening) => Parts.Slice1.TrySeedProactiveOpening(proactiveOpening);
+        internal void SendInitialMessage() => Parts.Slice1.SendInitialMessage();
+        internal void PrepareInitialRequestPromptCache() => Parts.Slice1.PrepareInitialRequestPromptCache();
+        internal bool TryGetValidInitialRequestPromptMessages(out List<ChatMessageData> requestMessages) => Parts.Slice1.TryGetValidInitialRequestPromptMessages(out requestMessages);
+        internal static List<ChatMessageData> CloneChatMessages(IEnumerable<ChatMessageData> source) => RPGPawnDialogueSlice1.CloneChatMessages(source);
+        public override void DoWindowContents(Rect inRect) => Parts.Slice1.DoWindowContents(inRect);
+        internal void TryFinalizeArchiveSessionOnClose() => Parts.Slice1.TryFinalizeArchiveSessionOnClose();
+        internal void TryCommitRpgSessionSummaryOnClose() => Parts.Slice1.TryCommitRpgSessionSummaryOnClose();
+        internal void DrawPawnPortrait(Rect rect, Pawn pawn, bool flip) => Parts.Slice1.DrawPawnPortrait(rect, pawn, flip);
+        internal static void DrawPawnPortrait(Rect rect, Pawn pawn, bool flip, ref RenderTexture cachedRT, out bool created) => RPGPawnDialogueSlice1.DrawPawnPortrait(rect, pawn, flip, ref cachedRT, out created);
+        internal void DrawDialogueBox(Rect inRect) => Parts.Slice2.DrawDialogueBox(inRect);
+        internal bool ShouldSendFromKeyboard(Event current) => Parts.Slice2.ShouldSendFromKeyboard(current);
+        internal static bool IsSubmitKeyPressed(Event current) => RPGPawnDialogueSlice2.IsSubmitKeyPressed(current);
+        internal void TrySendMessage() => Parts.Slice2.TrySendMessage();
+        internal void ApplyPromptRenderFailure(PromptRenderException ex) => Parts.Slice2.ApplyPromptRenderFailure(ex);
+        internal List<ChatMessageData> BuildCompressedRpgRequestMessages() => Parts.Slice2.BuildCompressedRpgRequestMessages();
+        internal Color ResolveDialogueBoxTargetColor() => Parts.Slice2.ResolveDialogueBoxTargetColor();
+        internal void UpdateTyping() => Parts.Slice2.UpdateTyping();
+        #endregion
+}
+    internal sealed class Dialog_RPGPawnDialogueParts
+    {
+        internal readonly Dialog_RPGPawnDialogue Owner;
+        internal readonly RPGPawnDialogueActionHint ActionHint;
+        internal readonly RPGPawnDialogueActionPolicies ActionPolicies;
+        internal readonly RPGPawnDialogueActions Actions;
+        internal readonly RPGPawnDialogueFeedbackOverlay FeedbackOverlay;
+        internal readonly RPGPawnDialogueHistoryPanel HistoryPanel;
+        internal readonly RPGPawnDialogueLifecycle Lifecycle;
+        internal readonly RPGPawnDialoguePawnMenu PawnMenu;
+        internal readonly RPGPawnDialoguePortraitDrag PortraitDrag;
+        internal readonly RPGPawnDialoguePortraits Portraits;
+        internal readonly RPGPawnDialogueRequestContext RequestContext;
+        internal readonly RPGPawnDialogueTextPaging TextPaging;
+        internal readonly RPGPawnDialogueSlice1 Slice1;
+        internal readonly RPGPawnDialogueSlice2 Slice2;
+        internal Dialog_RPGPawnDialogueParts(Dialog_RPGPawnDialogue owner)
         {
-            if (target == null)
-                return DialogueBoxDefaultColor;
-
-            // 1. Romantic relationship → pink
-            if (target.relations?.DirectRelationExists(PawnRelationDefOf.Lover, initiator) == true
-                || target.relations?.DirectRelationExists(PawnRelationDefOf.Fiance, initiator) == true
-                || target.relations?.DirectRelationExists(PawnRelationDefOf.Spouse, initiator) == true)
-            {
-                return DialogueBoxRomanceColor;
-            }
-
-            // Colony pawn → default
-            if (target.Faction == Faction.OfPlayer)
-                return DialogueBoxDefaultColor;
-
-            // 2. Prisoner or slave → yellow
-            if (target.IsPrisoner || target.IsSlave)
-                return DialogueBoxPrisonerColor;
-
-            // 3. Hostile non-colony pawn (not prisoner/slave) → red
-            if (target.Faction?.HostileTo(Faction.OfPlayer) == true)
-                return DialogueBoxHostileColor;
-
-            // 4. Non-colony, neutral/friendly → blue
-            return DialogueBoxNeutralColor;
+            Owner = owner;
+            ActionHint = new RPGPawnDialogueActionHint(owner);
+            ActionPolicies = new RPGPawnDialogueActionPolicies(owner);
+            Actions = new RPGPawnDialogueActions(owner);
+            FeedbackOverlay = new RPGPawnDialogueFeedbackOverlay(owner);
+            HistoryPanel = new RPGPawnDialogueHistoryPanel(owner);
+            Lifecycle = new RPGPawnDialogueLifecycle(owner);
+            PawnMenu = new RPGPawnDialoguePawnMenu(owner);
+            PortraitDrag = new RPGPawnDialoguePortraitDrag(owner);
+            Portraits = new RPGPawnDialoguePortraits(owner);
+            RequestContext = new RPGPawnDialogueRequestContext(owner);
+            TextPaging = new RPGPawnDialogueTextPaging(owner);
+            Slice1 = new RPGPawnDialogueSlice1(owner);
+            Slice2 = new RPGPawnDialogueSlice2(owner);
         }
-
-        private void UpdateTyping()
-        {
-            if (isTyping && visibleChars < currentDialogueText.Length)
-            {
-                float interval = 0.02f;
-                if (Time.realtimeSinceStartup - lastCharTime > interval)
-                {
-                    visibleChars++;
-                    
-                    // Skip rich text tags <...> instantaneously
-                    if (visibleChars < currentDialogueText.Length && currentDialogueText[visibleChars - 1] == '<')
-                    {
-                        int closeTagIndex = currentDialogueText.IndexOf('>', visibleChars - 1);
-                        if (closeTagIndex != -1)
-                        {
-                            visibleChars = closeTagIndex + 1;
-                        }
-                    }
-
-                    displayedText = currentDialogueText.Substring(0, Mathf.Min(visibleChars, currentDialogueText.Length));
-                    lastCharTime = Time.realtimeSinceStartup;
-                    
-                    if (visibleChars % 3 == 0)
-                    {
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    }
-                }
-                
-                if (visibleChars >= currentDialogueText.Length)
-                {
-                    isTyping = false;
-                    
-                    // Trigger player pawn fade-in when target's first sentence is done
-                    if (!firstTargetSentenceDone && currentSpeakerName == target.LabelShort)
-                    {
-                        firstTargetSentenceDone = true;
-                    }
-
-                    if (isShowingUserText)
-                    {
-                        isWaitingForDelayAfterUser = true;
-                        timeUserTextFinished = Time.realtimeSinceStartup;
-                    }
-                }
-            }
-        }
-
     }
+
+
 }

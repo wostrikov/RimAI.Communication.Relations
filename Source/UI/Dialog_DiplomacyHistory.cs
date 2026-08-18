@@ -8,6 +8,9 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 
+using DiplomacyHistoryRow = Ustas.RimAI.Communication.Relations.Memory.LeaderMemoryManager.DiplomacyHistoryRow;
+using DiplomacyHistorySessionGroup = Ustas.RimAI.Communication.Relations.Memory.LeaderMemoryManager.DiplomacyHistorySessionGroup;
+
 namespace Ustas.RimAI.Communication.Relations.UI
 {
     /// <summary>
@@ -34,7 +37,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private readonly Faction currentFaction;
         private readonly LeaderMemoryManager historyManager;
         private Vector2 scrollPosition = Vector2.zero;
-        private List<LeaderMemoryManager.DiplomacyHistorySessionGroup> groups = new List<LeaderMemoryManager.DiplomacyHistorySessionGroup>();
+        private List<DiplomacyHistorySessionGroup> groups = new List<DiplomacyHistorySessionGroup>();
         private string selectedRowKey = string.Empty;
         private string lastDataSignature = string.Empty;
         private int lastObservedRevision = -1;
@@ -118,10 +121,10 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private float CalculateContentHeight(float width)
         {
             float total = 4f;
-            foreach (LeaderMemoryManager.DiplomacyHistorySessionGroup group in groups)
+            foreach (DiplomacyHistorySessionGroup group in groups)
             {
                 total += SectionHeaderHeight;
-                foreach (LeaderMemoryManager.DiplomacyHistoryRow row in group.Rows)
+                foreach (DiplomacyHistoryRow row in group.Rows)
                 {
                     total += MeasureRowHeight(row, width) + 2f;
                 }
@@ -135,7 +138,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private void DrawGroups(float width)
         {
             float y = 0f;
-            foreach (LeaderMemoryManager.DiplomacyHistorySessionGroup group in groups)
+            foreach (DiplomacyHistorySessionGroup group in groups)
             {
                 Rect headerRect = new Rect(0f, y, width, SectionHeaderHeight);
                 DrawGroupHeader(headerRect, group);
@@ -143,7 +146,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
                 for (int i = 0; i < group.Rows.Count; i++)
                 {
-                    LeaderMemoryManager.DiplomacyHistoryRow row = group.Rows[i];
+                    DiplomacyHistoryRow row = group.Rows[i];
                     float height = MeasureRowHeight(row, width);
                     Rect rowRect = new Rect(0f, y, width, height);
                     DrawRow(rowRect, row, i);
@@ -154,7 +157,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }
         }
 
-        private void DrawGroupHeader(Rect rect, LeaderMemoryManager.DiplomacyHistorySessionGroup group)
+        private void DrawGroupHeader(Rect rect, DiplomacyHistorySessionGroup group)
         {
             GUI.color = new Color(1f, 1f, 1f, 0.06f);
             Widgets.DrawLineHorizontal(rect.x, rect.y + rect.height - 1f, rect.width);
@@ -164,7 +167,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             GUI.color = Color.white;
         }
 
-        private string BuildGroupTitle(LeaderMemoryManager.DiplomacyHistorySessionGroup group)
+        private string BuildGroupTitle(DiplomacyHistorySessionGroup group)
         {
             if (group == null)
             {
@@ -179,14 +182,14 @@ namespace Ustas.RimAI.Communication.Relations.UI
             return "RimChat_DiplomacyHistoryPastSession".Translate(group.SessionOrdinal, group.Rows.Count).ToString();
         }
 
-        private float MeasureRowHeight(LeaderMemoryManager.DiplomacyHistoryRow row, float width)
+        private float MeasureRowHeight(DiplomacyHistoryRow row, float width)
         {
             float contentWidth = Math.Max(120f, width - 10f - DeleteButtonWidth - 4f);
             float textHeight = CalcHeightWithFont(row?.Message ?? string.Empty, contentWidth, GameFont.Tiny);
             return Math.Max(36f, 18f + textHeight + 18f);
         }
 
-        private void DrawRow(Rect rect, LeaderMemoryManager.DiplomacyHistoryRow row, int index)
+        private void DrawRow(Rect rect, DiplomacyHistoryRow row, int index)
         {
             bool selected = IsRowSelected(row);
             Rect deleteRect = selected
@@ -212,7 +215,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }
         }
 
-        private void DrawRowContent(Rect rect, LeaderMemoryManager.DiplomacyHistoryRow row)
+        private void DrawRowContent(Rect rect, DiplomacyHistoryRow row)
         {
             Rect speakerRect = new Rect(rect.x, rect.y, rect.width, 16f);
             GUI.color = HistorySpeakerText;
@@ -238,7 +241,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             GUI.color = Color.white;
         }
 
-        private string BuildSpeakerLine(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private string BuildSpeakerLine(DiplomacyHistoryRow row)
         {
             string speakerName = row?.IsPlayer == true
                 ? "RimChat_DiplomacyHistorySpeakerPlayer".Translate().ToString()
@@ -246,7 +249,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             return "RimChat_RPGHistorySpeakerSays".Translate(speakerName).ToString();
         }
 
-        private string ResolveAiSpeakerLabel(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private string ResolveAiSpeakerLabel(DiplomacyHistoryRow row)
         {
             if (!string.IsNullOrWhiteSpace(row?.SenderLabel))
             {
@@ -258,7 +261,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
                    ?? "RimChat_DiplomacyHistorySpeakerAi".Translate().ToString();
         }
 
-        private void DrawDeleteButton(Rect rect, LeaderMemoryManager.DiplomacyHistoryRow row)
+        private void DrawDeleteButton(Rect rect, DiplomacyHistoryRow row)
         {
             Color previous = GUI.color;
             GUI.color = new Color(0.3f, 0.12f, 0.12f, 0.9f);
@@ -271,7 +274,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             TooltipHandler.TipRegion(rect, "RimChat_DiplomacyHistoryDeleteButton".Translate().ToString());
         }
 
-        private void HandleRowInput(Rect rect, LeaderMemoryManager.DiplomacyHistoryRow row, Rect deleteRect, bool selected)
+        private void HandleRowInput(Rect rect, DiplomacyHistoryRow row, Rect deleteRect, bool selected)
         {
             Event current = Event.current;
             if (current == null || current.type != EventType.MouseDown || current.button != 0 || !rect.Contains(current.mousePosition))
@@ -296,17 +299,17 @@ namespace Ustas.RimAI.Communication.Relations.UI
             current.Use();
         }
 
-        private void SelectRow(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private void SelectRow(DiplomacyHistoryRow row)
         {
             selectedRowKey = BuildRowKey(row);
         }
 
-        private bool IsRowSelected(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private bool IsRowSelected(DiplomacyHistoryRow row)
         {
             return string.Equals(selectedRowKey, BuildRowKey(row), StringComparison.Ordinal);
         }
 
-        private string BuildRowKey(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private string BuildRowKey(DiplomacyHistoryRow row)
         {
             if (row == null)
             {
@@ -381,9 +384,9 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 return false;
             }
 
-            foreach (LeaderMemoryManager.DiplomacyHistorySessionGroup group in groups)
+            foreach (DiplomacyHistorySessionGroup group in groups)
             {
-                foreach (LeaderMemoryManager.DiplomacyHistoryRow row in group.Rows)
+                foreach (DiplomacyHistoryRow row in group.Rows)
                 {
                     if (string.Equals(BuildRowKey(row), previousSelection, StringComparison.Ordinal))
                     {
@@ -396,7 +399,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             return false;
         }
 
-        private void OpenEditDialog(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private void OpenEditDialog(DiplomacyHistoryRow row)
         {
             if (row == null)
             {
@@ -415,7 +418,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }));
         }
 
-        private void ConfirmDelete(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private void ConfirmDelete(DiplomacyHistoryRow row)
         {
             if (row == null)
             {
@@ -431,7 +434,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 "RimChat_DiplomacyHistoryDeleteConfirmTitle".Translate()));
         }
 
-        private void DeleteRow(LeaderMemoryManager.DiplomacyHistoryRow row)
+        private void DeleteRow(DiplomacyHistoryRow row)
         {
             if (!historyManager.TryDeleteDialogueHistoryRow(currentFaction, row, out string error))
             {
@@ -457,7 +460,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private void ExecuteClearAllHistory()
         {
             // Delete last-to-first to avoid index shifting
-            var allRows = new List<LeaderMemoryManager.DiplomacyHistoryRow>();
+            var allRows = new List<DiplomacyHistoryRow>();
             foreach (var group in groups)
             {
                 if (group?.Rows != null) allRows.AddRange(group.Rows);

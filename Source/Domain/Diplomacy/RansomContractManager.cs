@@ -4,7 +4,6 @@ using System.Linq;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
-using Ustas.RimAI.Communication.Relations.NpcDialogue;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -28,15 +27,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         private const int TimeoutScanIntervalTicks = 250;
         private const int TimeoutScanOffsetTicks = 160;
         private const int TimeoutScanBudgetPerPass = 12;
-        private const int OrganPenaltyBudgetPerPass = 12;
-        private const int HealthyReplyBudgetPerPass = 12;
         private const int CleanupBudgetPerPass = 24;
-        private const int HealthyExitReplyMinDelayTicks = 12500;
-        private const int HealthyExitReplyMaxDelayTicks = 25000;
-        private const int OrganFailureMinDelayTicks = 12500;
-        private const int OrganFailureMaxDelayTicks = 25000;
-        private const float StrictHealthyExitSummaryThreshold = 0.85f;
-        private const float StrictHealthyExitConsciousnessThreshold = 0.85f;
         private const float BatchRansomDropThresholdBonus = 0.15f;
         private const float BatchRansomPenaltyScale = 0.70f;
         private List<RansomContractRecord> contracts = new List<RansomContractRecord>();
@@ -45,6 +36,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         private int organPenaltyScanCursor;
         private int healthyReplyScanCursor;
         private int cleanupScanCursor;
+
+        internal List<RansomContractRecord> Contracts => contracts;
+        internal int OrganPenaltyScanCursor
+        {
+            get => organPenaltyScanCursor;
+            set => organPenaltyScanCursor = value;
+        }
+        internal int HealthyReplyScanCursor
+        {
+            get => healthyReplyScanCursor;
+            set => healthyReplyScanCursor = value;
+        }
 
         public RansomContractManager(Game game) : base()
         {
@@ -69,8 +72,8 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
             lastTimeoutScanTick = currentTick;
             ProcessTimeoutContracts(currentTick);
-            ProcessOrganFailurePenalties(currentTick);
-            ProcessHealthyExitReplies(currentTick);
+            RansomContractLifecycleOps.ProcessOrganFailurePenalties(this, currentTick);
+            RansomContractLifecycleOps.ProcessHealthyExitReplies(this, currentTick);
             CleanupFinishedContracts(currentTick);
         }
 
@@ -99,7 +102,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 .Select(contract => new PendingReleaseSnapshot
                 {
                     TargetPawnLoadId = contract.TargetPawnLoadId,
-                    TargetPawnLabel = ResolvePawnLabel(contract, null) ?? "Unknown",
+                    TargetPawnLabel = RansomContractLifecycleOps.ResolvePawnLabel(contract, null) ?? "Unknown",
                     ContractId = contract.ContractId ?? string.Empty,
                     DeadlineTick = contract.DeadlineTick
                 })
@@ -145,11 +148,11 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             contract.TargetPawnLabelSnapshot = pawn.LabelShortCap ?? contract.TargetPawnLabelSnapshot ?? string.Empty;
             contract.ExitValueSnapshot = PrisonerRansomService.CalculateExitValueSnapshot(pawn, contract.WealthFactorSnapshot);
             contract.DropRate = ComputeDropRate(contract.NegotiatedValueSnapshot, contract.ExitValueSnapshot);
-            bool organFailureScheduled = TryScheduleOrganFailurePenalty(contract, pawn, contract.ReleasedTick);
+            bool organFailureScheduled = RansomContractLifecycleOps.TryScheduleOrganFailurePenalty(contract, pawn, contract.ReleasedTick);
             if (!organFailureScheduled)
             {
                 ApplyExitPenalties(contract, pawn, settings);
-                TryScheduleHealthyExitReply(contract, pawn, contract.ReleasedTick);
+                RansomContractLifecycleOps.TryScheduleHealthyExitReply(contract, pawn, contract.ReleasedTick);
             }
             contract.Status = RansomContractStatus.Completed;
         }
@@ -180,7 +183,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             {
                 int majorPenalty = ResolveScaledPenalty(contract, settings.RansomPenaltyMajor);
                 totalPenalty += majorPenalty;
-                SendLetter("RimChat_PrisonerRansomPenaltyTitle", "RimChat_PrisonerRansomPenaltyMajorBody", faction.Name, targetPawn?.LabelShortCap ?? "Unknown", Mathf.RoundToInt(contract.DropRate * 100f));
+                RansomContractLifecycleOps.SendLetter("RimChat_PrisonerRansomPenaltyTitle", "RimChat_PrisonerRansomPenaltyMajorBody", faction.Name, targetPawn?.LabelShortCap ?? "Unknown", Mathf.RoundToInt(contract.DropRate * 100f));
             }
 
             if (contract.DropRate >= severeThreshold)
@@ -188,7 +191,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 int severePenalty = ResolveScaledPenalty(contract, settings.RansomPenaltySevere);
                 totalPenalty += severePenalty;
                 triggerRaid = true;
-                SendLetter("RimChat_PrisonerRansomPenaltyTitle", "RimChat_PrisonerRansomPenaltySevereBody", faction.Name, targetPawn?.LabelShortCap ?? "Unknown", Mathf.RoundToInt(contract.DropRate * 100f));
+                RansomContractLifecycleOps.SendLetter("RimChat_PrisonerRansomPenaltyTitle", "RimChat_PrisonerRansomPenaltySevereBody", faction.Name, targetPawn?.LabelShortCap ?? "Unknown", Mathf.RoundToInt(contract.DropRate * 100f));
             }
 
             if (totalPenalty <= 0)
@@ -205,7 +208,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             contract.AppliedGoodwillPenalty += Math.Abs(totalPenalty);
             if (triggerRaid && result.Success)
             {
-                SendLetter("RimChat_PrisonerRansomRaidTitle", "RimChat_PrisonerRansomRaidBody", faction.Name);
+                RansomContractLifecycleOps.SendLetter("RimChat_PrisonerRansomRaidTitle", "RimChat_PrisonerRansomRaidBody", faction.Name);
             }
         }
 
@@ -266,331 +269,13 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 reasonTag: "timeout_penalty");
             contract.AppliedGoodwillPenalty += timeoutPenalty;
             contract.Status = RansomContractStatus.TimeoutPunished;
-            SendLetter("RimChat_PrisonerRansomTimeoutTitle", "RimChat_PrisonerRansomTimeoutBody", faction.Name);
-            SendTimeoutWarningMessage(contract, faction);
-            TryEnqueueTimeoutCondemnation(contract, faction);
+            RansomContractLifecycleOps.SendLetter("RimChat_PrisonerRansomTimeoutTitle", "RimChat_PrisonerRansomTimeoutBody", faction.Name);
+            RansomContractLifecycleOps.SendTimeoutWarningMessage(contract, faction);
+            RansomContractLifecycleOps.TryEnqueueTimeoutCondemnation(contract, faction);
             if (result.Success)
             {
-                SendLetter("RimChat_PrisonerRansomRaidTitle", "RimChat_PrisonerRansomRaidBody", faction.Name);
+                RansomContractLifecycleOps.SendLetter("RimChat_PrisonerRansomRaidTitle", "RimChat_PrisonerRansomRaidBody", faction.Name);
             }
-        }
-
-        private void ProcessHealthyExitReplies(int currentTick)
-        {
-            if (contracts == null || contracts.Count == 0)
-            {
-                healthyReplyScanCursor = 0;
-                return;
-            }
-
-            int count = contracts.Count;
-            int cursor = NormalizeCursor(healthyReplyScanCursor, count);
-            int inspected = 0;
-            while (inspected < HealthyReplyBudgetPerPass)
-            {
-                if (cursor >= count)
-                {
-                    cursor = 0;
-                }
-
-                RansomContractRecord contract = contracts[cursor];
-                cursor++;
-                inspected++;
-                if (contract == null ||
-                    contract.Status != RansomContractStatus.Completed ||
-                    !contract.HealthyExitReplyScheduled ||
-                    contract.HealthyExitReplySent ||
-                    contract.HealthyExitReplyDueTick <= 0 ||
-                    currentTick < contract.HealthyExitReplyDueTick)
-                {
-                    continue;
-                }
-
-                bool delivered = TryDeliverHealthyExitReply(contract);
-                contract.HealthyExitReplySent = delivered;
-                contract.HealthyExitReplyScheduled = false;
-                contract.HealthyExitReplyDueTick = 0;
-            }
-
-            healthyReplyScanCursor = NormalizeCursor(cursor, count);
-        }
-
-        private void ProcessOrganFailurePenalties(int currentTick)
-        {
-            RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings == null)
-            {
-                return;
-            }
-
-            if (contracts == null || contracts.Count == 0)
-            {
-                organPenaltyScanCursor = 0;
-                return;
-            }
-
-            int count = contracts.Count;
-            int cursor = NormalizeCursor(organPenaltyScanCursor, count);
-            int inspected = 0;
-            while (inspected < OrganPenaltyBudgetPerPass)
-            {
-                if (cursor >= count)
-                {
-                    cursor = 0;
-                }
-
-                RansomContractRecord contract = contracts[cursor];
-                cursor++;
-                inspected++;
-                if (contract == null ||
-                    contract.Status != RansomContractStatus.Completed ||
-                    !contract.OrganFailureScheduled ||
-                    contract.OrganFailurePenaltyApplied ||
-                    contract.OrganFailureDueTick <= 0 ||
-                    currentTick < contract.OrganFailureDueTick)
-                {
-                    continue;
-                }
-
-                ApplyOrganFailurePenalty(contract, settings);
-            }
-
-            organPenaltyScanCursor = NormalizeCursor(cursor, count);
-        }
-
-        private static bool TryScheduleOrganFailurePenalty(RansomContractRecord contract, Pawn pawn, int exitTick)
-        {
-            if (contract == null || pawn == null)
-            {
-                return false;
-            }
-
-            contract.ExitCoreOrganMissingSnapshot = PrisonerRansomService.CaptureCoreOrganMissingSnapshot(pawn);
-            contract.BaselineCoreOrganMissingSnapshot ??= new List<RansomCoreOrganSnapshotEntry>();
-            contract.NewlyMissingCoreOrgans = PrisonerRansomService.ComputeNewlyMissingCoreOrgans(
-                contract.BaselineCoreOrganMissingSnapshot,
-                contract.ExitCoreOrganMissingSnapshot);
-
-            if (contract.NewlyMissingCoreOrgans == null || contract.NewlyMissingCoreOrgans.Count <= 0)
-            {
-                contract.OrganFailureScheduled = false;
-                contract.OrganFailureDueTick = 0;
-                return false;
-            }
-
-            int delayTicks = Rand.RangeInclusive(OrganFailureMinDelayTicks, OrganFailureMaxDelayTicks);
-            contract.OrganFailureDueTick = Math.Max(exitTick, 0) + delayTicks;
-            contract.OrganFailureScheduled = true;
-            contract.OrganFailurePenaltyApplied = false;
-            return true;
-        }
-
-        private void ApplyOrganFailurePenalty(RansomContractRecord contract, RelationsSettings settings)
-        {
-            if (contract == null)
-            {
-                return;
-            }
-
-            contract.OrganFailureScheduled = false;
-            contract.OrganFailureDueTick = 0;
-            contract.OrganFailurePenaltyApplied = true;
-
-            Faction faction = PrisonerRansomLookupUtility.FindFactionByLoadId(contract.FactionId);
-            if (faction == null)
-            {
-                return;
-            }
-
-            string pawnLabel = ResolvePawnLabel(contract, null);
-            string organSummary = ResolveOrganFailureSummary(contract);
-            // Organ-loss remains strict even in batch mode: do not apply batch scaling.
-            int timeoutPenalty = Math.Abs(settings.RansomPenaltyTimeout);
-            GameAIInterface.APIResult result = GameAIInterface.Instance.ApplyRansomPenaltyAndRaid(
-                faction,
-                timeoutPenalty,
-                triggerRaid: true,
-                reasonTag: "organ_failure_timeout_penalty");
-            contract.AppliedGoodwillPenalty += timeoutPenalty;
-
-            SendLetter(
-                "RimChat_PrisonerRansomTimeoutTitle",
-                "RimChat_PrisonerRansomOrganFailureBody",
-                faction.Name,
-                pawnLabel,
-                organSummary);
-            SendOrganFailureWarningMessage(faction, pawnLabel, organSummary);
-            TryEnqueueOrganFailureCondemnation(faction, pawnLabel, organSummary);
-            if (result.Success)
-            {
-                SendLetter("RimChat_PrisonerRansomRaidTitle", "RimChat_PrisonerRansomRaidBody", faction.Name);
-            }
-        }
-
-        private static void TryScheduleHealthyExitReply(RansomContractRecord contract, Pawn pawn, int exitTick)
-        {
-            if (contract == null || pawn == null || contract.HealthyExitReplySent || contract.HealthyExitReplyScheduled)
-            {
-                return;
-            }
-
-            if (!IsStrictHealthyExit(pawn))
-            {
-                return;
-            }
-
-            int delayTicks = Rand.RangeInclusive(HealthyExitReplyMinDelayTicks, HealthyExitReplyMaxDelayTicks);
-            contract.HealthyExitReplyDueTick = Math.Max(exitTick, 0) + delayTicks;
-            contract.HealthyExitReplyScheduled = true;
-            contract.TargetPawnLabelSnapshot = pawn.LabelShortCap ?? contract.TargetPawnLabelSnapshot ?? string.Empty;
-        }
-
-        private static bool IsStrictHealthyExit(Pawn pawn)
-        {
-            if (pawn == null || pawn.Dead || pawn.Destroyed || pawn.Downed || pawn.health == null)
-            {
-                return false;
-            }
-
-            float summaryHealth = Mathf.Clamp01(pawn.health.summaryHealth?.SummaryHealthPercent ?? 0f);
-            float consciousness = ReadCapacitySafe(pawn, PawnCapacityDefOf.Consciousness);
-            return summaryHealth >= StrictHealthyExitSummaryThreshold &&
-                consciousness >= StrictHealthyExitConsciousnessThreshold;
-        }
-
-        private static float ReadCapacitySafe(Pawn pawn, PawnCapacityDef capacityDef)
-        {
-            if (pawn?.health?.capacities == null || capacityDef == null)
-            {
-                return 0f;
-            }
-
-            return Mathf.Clamp01(pawn.health.capacities.GetLevel(capacityDef));
-        }
-
-        private bool TryDeliverHealthyExitReply(RansomContractRecord contract)
-        {
-            if (contract == null)
-            {
-                return false;
-            }
-
-            Faction faction = PrisonerRansomLookupUtility.FindFactionByLoadId(contract.FactionId);
-            if (faction == null)
-            {
-                return false;
-            }
-
-            string pawnLabel = ResolvePawnLabel(contract, null);
-            string message = "RimChat_PrisonerRansomHealthyExitReplyMessage".Translate(pawnLabel).ToString();
-            PushNpcMessageToFactionSession(faction, message, DialogueMessageType.Normal);
-            SendNpcChoiceLetter(
-                faction,
-                "RimChat_PrisonerRansomHealthyExitLetterTitle".Translate(faction.Name),
-                message,
-                LetterDefOf.PositiveEvent);
-            return true;
-        }
-
-        private void SendTimeoutWarningMessage(RansomContractRecord contract, Faction faction)
-        {
-            if (contract == null || faction == null)
-            {
-                return;
-            }
-
-            string pawnLabel = ResolvePawnLabel(contract, null);
-            string message = "RimChat_PrisonerRansomTimeoutWarningMessage".Translate(pawnLabel).ToString();
-            PushNpcMessageToFactionSession(faction, message, DialogueMessageType.System);
-            SendNpcChoiceLetter(
-                faction,
-                "RimChat_PrisonerRansomTimeoutWarningLetterTitle".Translate(faction.Name),
-                message,
-                LetterDefOf.ThreatSmall);
-        }
-
-        private static void TryEnqueueTimeoutCondemnation(RansomContractRecord contract, Faction faction)
-        {
-            if (contract == null || faction == null)
-            {
-                return;
-            }
-
-            GameComponent_DiplomacyManager manager = GameComponent_DiplomacyManager.Instance;
-            if (manager == null)
-            {
-                return;
-            }
-
-            string pawnLabel = ResolvePawnLabel(contract, null);
-            string summary = "RimChat_PrisonerRansomTimeoutCondemnSummary"
-                .Translate(faction.Name, pawnLabel)
-                .ToString();
-            manager.EnqueuePublicPost(
-                sourceFaction: faction,
-                targetFaction: Faction.OfPlayer,
-                category: SocialPostCategory.Diplomatic,
-                sentiment: -1,
-                summary: summary,
-                isFromPlayerDialogue: false,
-                intentHint: string.Empty,
-                reason: DebugGenerateReason.DialogueExplicit);
-        }
-
-        private static void SendOrganFailureWarningMessage(Faction faction, string pawnLabel, string organSummary)
-        {
-            if (faction == null)
-            {
-                return;
-            }
-
-            string message = "RimChat_PrisonerRansomOrganFailureWarningMessage"
-                .Translate(pawnLabel, organSummary)
-                .ToString();
-            PushNpcMessageToFactionSession(faction, message, DialogueMessageType.System);
-            SendNpcChoiceLetter(
-                faction,
-                "RimChat_PrisonerRansomOrganFailureWarningLetterTitle".Translate(faction.Name),
-                message,
-                LetterDefOf.ThreatSmall);
-        }
-
-        private static void TryEnqueueOrganFailureCondemnation(Faction faction, string pawnLabel, string organSummary)
-        {
-            if (faction == null)
-            {
-                return;
-            }
-
-            GameComponent_DiplomacyManager manager = GameComponent_DiplomacyManager.Instance;
-            if (manager == null)
-            {
-                return;
-            }
-
-            string summary = "RimChat_PrisonerRansomOrganFailureCondemnSummary"
-                .Translate(faction.Name, pawnLabel, organSummary)
-                .ToString();
-            manager.EnqueuePublicPost(
-                sourceFaction: faction,
-                targetFaction: Faction.OfPlayer,
-                category: SocialPostCategory.Diplomatic,
-                sentiment: -1,
-                summary: summary,
-                isFromPlayerDialogue: false,
-                intentHint: string.Empty,
-                reason: DebugGenerateReason.DialogueExplicit);
-        }
-
-        private static string ResolveOrganFailureSummary(RansomContractRecord contract)
-        {
-            string summary = PrisonerRansomService.FormatCoreOrganMissingSummary(contract?.NewlyMissingCoreOrgans);
-            if (!string.IsNullOrWhiteSpace(summary))
-            {
-                return summary;
-            }
-
-            return "RimChat_Unknown".Translate().ToString();
         }
 
         private static void ResolveDropThresholds(
@@ -619,85 +304,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             return Math.Max(1, Mathf.RoundToInt(absolute * BatchRansomPenaltyScale));
-        }
-
-        private static string ResolvePawnLabel(RansomContractRecord contract, Pawn fallbackPawn)
-        {
-            if (fallbackPawn != null && !string.IsNullOrWhiteSpace(fallbackPawn.LabelShortCap))
-            {
-                if (contract != null)
-                {
-                    contract.TargetPawnLabelSnapshot = fallbackPawn.LabelShortCap;
-                }
-                return fallbackPawn.LabelShortCap;
-            }
-
-            if (!string.IsNullOrWhiteSpace(contract?.TargetPawnLabelSnapshot))
-            {
-                return contract.TargetPawnLabelSnapshot;
-            }
-
-            if (contract != null &&
-                contract.TargetPawnLoadId > 0 &&
-                PrisonerRansomService.TryResolvePawnByLoadId(contract.TargetPawnLoadId, out Pawn pawn) &&
-                pawn != null &&
-                !string.IsNullOrWhiteSpace(pawn.LabelShortCap))
-            {
-                contract.TargetPawnLabelSnapshot = pawn.LabelShortCap;
-                return pawn.LabelShortCap;
-            }
-
-            return "Unknown";
-        }
-
-        private static void PushNpcMessageToFactionSession(Faction faction, string message, DialogueMessageType messageType)
-        {
-            if (faction == null || string.IsNullOrWhiteSpace(message))
-            {
-                return;
-            }
-
-            GameComponent_DiplomacyManager manager = GameComponent_DiplomacyManager.Instance;
-            if (manager == null)
-            {
-                return;
-            }
-
-            string sender = faction.leader?.Name?.ToStringShort ?? faction.Name ?? "Unknown";
-            manager.HandleInboundFactionMessage(
-                faction,
-                sender,
-                message,
-                messageType,
-                faction.leader,
-                markUnread: true,
-                forcePresenceOnline: true);
-        }
-
-        private static void SendNpcChoiceLetter(Faction faction, TaggedString title, string body, LetterDef letterDef)
-        {
-            if (faction == null || Find.LetterStack == null || string.IsNullOrWhiteSpace(body))
-            {
-                return;
-            }
-
-            if (ChoiceLetter_NpcInitiatedDialogue.IsDialogueAlreadyOpen(faction))
-            {
-                return;
-            }
-
-            var letter = new ChoiceLetter_NpcInitiatedDialogue();
-            letter.AssignLoadID();
-            letter.Setup(faction, title, body, letterDef ?? LetterDefOf.NeutralEvent);
-            Find.LetterStack.ReceiveLetter(letter, string.Empty, 0, true);
-        }
-
-        private static void SendLetter(string titleKey, string bodyKey, params object[] args)
-        {
-            Find.LetterStack.ReceiveLetter(
-                titleKey.Translate(),
-                bodyKey.Translate(args),
-                LetterDefOf.NegativeEvent);
         }
 
         private RansomContractRecord FindPendingContractByPawn(int targetPawnLoadId)

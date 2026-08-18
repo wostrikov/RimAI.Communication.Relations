@@ -15,6 +15,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
     public class FactionPromptManager
     {
+        readonly FactionPromptCatalogPersistence Persistence;
+        readonly FactionPromptTemplateOps Templates;
+
+        internal FactionPromptManager()
+        {
+            Persistence = new FactionPromptCatalogPersistence(this);
+            Templates = new FactionPromptTemplateOps(this);
+        }
         #region 单例模式
 
         private static FactionPromptManager _instance;
@@ -52,18 +60,18 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         /// <summary>/// configuration集合
  ///</summary>
-        private FactionPromptConfigCollection _configCollection;
+        internal FactionPromptConfigCollection _configCollection;
 
         /// <summary>/// whether已initialize
  ///</summary>
-        private bool _initialized;
+        internal bool _initialized;
 
         /// <summary>/// configurationfile完整path
  ///</summary>
-        private string _configFilePath;
+        internal string _configFilePath;
 
-        private HashSet<string> _defaultFactionDefNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private Dictionary<string, FactionPromptConfig> _defaultConfigLookup =
+        internal HashSet<string> _defaultFactionDefNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        internal Dictionary<string, FactionPromptConfig> _defaultConfigLookup =
             new Dictionary<string, FactionPromptConfig>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
@@ -133,87 +141,25 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         private void LoadConfigs()
         {
-            string sourcePath = ConfigFilePath;
-            if (!string.IsNullOrWhiteSpace(sourcePath) && File.Exists(sourcePath))
-            {
-                try
-                {
-                    string json = File.ReadAllText(sourcePath);
-                    _configCollection = FactionPromptJsonUtility.FromJson(json);
-                    Log.Message($"[RimAI.Relations] Loaded faction prompts from {sourcePath}");
-                    
-                    // 如果configurationfileempty, 从默认configurationload
-                    if (_configCollection == null || _configCollection.Configs.Count == 0)
-                    {
-                        Log.Warning($"[RimAI.Relations] Config file exists but contains no configs, loading defaults");
-                        LoadDefaultConfigs();
-                        SaveConfigs(); // Save默认configuration到file
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning($"[RimAI.Relations] Failed to load prompts from file: {ex}. Using defaults.");
-                    LoadDefaultConfigs();
-                }
-            }
-            else
-            {
-                Log.Message($"[RimAI.Relations] Prompt config file not found, loading defaults");
-                LoadDefaultConfigs();
-                SaveConfigs(); // Save默认configuration到file
-            }
-
-            if (_configCollection == null)
-            {
-                _configCollection = new FactionPromptConfigCollection();
-            }
+            Persistence.LoadConfigs();
         }
+
 
         /// <summary>/// saveconfiguration
  ///</summary>
         public void SaveConfigs()
         {
-            try
-            {
-                if (_configCollection == null) return;
-
-                // 确保目录presence
-                string directory = Path.GetDirectoryName(ConfigFilePath);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                string json = FactionPromptJsonUtility.ToJson(_configCollection, true);
-                File.WriteAllText(ConfigFilePath, json);
-                Log.Message($"[RimAI.Relations] Saved faction prompts to {ConfigFilePath}");
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimAI.Relations] Failed to save prompts: {ex}");
-            }
+            Persistence.SaveConfigs();
         }
+
 
         /// <summary>/// load默认configuration (从 FactionPrompts_Default.json file)
  ///</summary>
         private void LoadDefaultConfigs()
         {
-            _configCollection = new FactionPromptConfigCollection();
-            foreach (var defName in _defaultFactionDefNames.OrderBy(name => name))
-            {
-                if (_defaultConfigLookup.TryGetValue(defName, out FactionPromptConfig config))
-                {
-                    _configCollection.Configs.Add(config.Clone());
-                }
-            }
-
-            if (_configCollection.Configs.Count == 0)
-            {
-                Log.Warning("[RimAI.Relations] Default faction prompt catalog is empty. Using hardcoded fallback.");
-                LoadHardcodedDefaultConfigs();
-                BuildDefaultConfigCatalog();
-            }
+            Persistence.LoadDefaultConfigs();
         }
+
 
         /// <summary>/// Promptfoldername
  ///</summary>
@@ -231,47 +177,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         private string GetDefaultConfigFilePath()
         {
-            // 尝试从当前Mod的pathget
-            try
-            {
-                var mod = LoadedModManager.GetMod<RelationsMod>();
-                if (mod?.Content != null)
-                {
-                    string defaultDir = Path.Combine(mod.Content.RootDir, PromptFolderName, DefaultSubFolderName);
-                    string path = Path.Combine(defaultDir, DefaultConfigFileName);
-                    Log.Message($"[RimAI.Relations] Default config path from mod: {path}");
-                    return path;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"[RimAI.Relations] Failed to get mod path: {ex.Message}");
-            }
-
-            // 后备1: 使用程序集所在目录的上级目录 (通常在 1.6/Assemblies 中)
-            try
-            {
-                string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                string assemblyDir = Path.GetDirectoryName(assemblyPath);
-                // 尝试从 Assemblies 目录向上找到 Mod 根目录
-                string modDir = Directory.GetParent(assemblyDir)?.Parent?.FullName;
-                if (!string.IsNullOrEmpty(modDir))
-                {
-                    string defaultDir = Path.Combine(modDir, PromptFolderName, DefaultSubFolderName);
-                    string path = Path.Combine(defaultDir, DefaultConfigFileName);
-                    Log.Message($"[RimAI.Relations] Default config path from assembly parent: {path}");
-                    return path;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"[RimAI.Relations] Failed to get assembly path: {ex.Message}");
-            }
-
-            string fallbackPath = PromptDomainFileCatalog.GetDefaultPath(DefaultConfigFileName);
-            Log.Message($"[RimAI.Relations] Default config path from domain catalog: {fallbackPath}");
-            return fallbackPath;
+            return Persistence.GetDefaultConfigFilePath();
         }
+
 
         /// <summary>/// get自定义configurationfilepath (Mod目录下的Prompt/Customfolder)
  ///</summary>
@@ -282,69 +190,25 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         private string GetCustomConfigFilePathInternal()
         {
-            // 尝试从当前Mod的pathget
-            try
-            {
-                var mod = LoadedModManager.GetMod<RelationsMod>();
-                if (mod?.Content != null)
-                {
-                    string customDir = Path.Combine(mod.Content.RootDir, PromptFolderName, CustomSubFolderName);
-                    // 确保目录presence
-                    if (!Directory.Exists(customDir))
-                    {
-                        Directory.CreateDirectory(customDir);
-                    }
-                    return Path.Combine(customDir, ConfigFileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"[RimAI.Relations] Failed to get custom config path: {ex.Message}");
-            }
-
-            // 后备: 使用userconfiguration目录
-            return Path.Combine(RelationsMod.Instance?.GetSettingsFolderPath() ?? "", ConfigFileName);
+            return Persistence.GetCustomConfigFilePathInternal();
         }
+
 
         /// <summary>/// load硬编码默认configuration (后备方案)
  ///</summary>
         private void LoadHardcodedDefaultConfigs()
         {
-            _configCollection = new FactionPromptConfigCollection();
-
-            // 创建所有faction的默认configuration
-            foreach (var factionDef in GetSupportedFactionDefs())
-            {
-                var config = CreateDefaultConfig(factionDef);
-                _configCollection.Configs.Add(config);
-            }
+            Persistence.LoadHardcodedDefaultConfigs();
         }
+
 
         /// <summary>/// 确保所有faction都有configuration
  ///</summary>
         private void EnsureAllFactionsHaveConfigs()
         {
-            bool addedNew = false;
-
-            foreach (var defName in _defaultFactionDefNames)
-            {
-                if (_configCollection.GetConfig(defName) != null)
-                {
-                    continue;
-                }
-
-                if (_defaultConfigLookup.TryGetValue(defName, out FactionPromptConfig defaultConfig))
-                {
-                    _configCollection.Configs.Add(defaultConfig.Clone());
-                    addedNew = true;
-                }
-            }
-
-            if (addedNew)
-            {
-                SaveConfigs();
-            }
+            Persistence.EnsureAllFactionsHaveConfigs();
         }
+
 
         #endregion
 
@@ -354,66 +218,35 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         private List<FactionDef> GetSupportedFactionDefs()
         {
-            var supportedDefs = new List<FactionDef>();
-
-            // 主要faction
-            AddFactionDefIfExists(supportedDefs, "OutlanderCivil");
-            AddFactionDefIfExists(supportedDefs, "OutlanderRough");
-            AddFactionDefIfExists(supportedDefs, "TribeCivil");
-            AddFactionDefIfExists(supportedDefs, "TribeRough");
-            AddFactionDefIfExists(supportedDefs, "TribeSavage");
-            AddFactionDefIfExists(supportedDefs, "Pirate");
-            AddFactionDefIfExists(supportedDefs, "Mechanoid");
-            AddFactionDefIfExists(supportedDefs, "Insect");
-            AddFactionDefIfExists(supportedDefs, "HoraxCult");
-            AddFactionDefIfExists(supportedDefs, "Entities");
-
-            return supportedDefs;
+            return Persistence.GetSupportedFactionDefs();
         }
+
 
         /// <summary>/// 如果presence则添加factionDef
  ///</summary>
         private void AddFactionDefIfExists(List<FactionDef> list, string defName)
         {
-            var def = DefDatabase<FactionDef>.GetNamedSilentFail(defName);
-            if (def != null)
-            {
-                list.Add(def);
-            }
+            Persistence.AddFactionDefIfExists(list, defName);
         }
+
 
         /// <summary>/// 创建默认configuration
  ///</summary>
         private FactionPromptConfig CreateDefaultConfig(FactionDef factionDef)
         {
-            var config = new FactionPromptConfig(factionDef.defName, factionDef.label);
-
-            // 根据faction类型settings默认 Prompt template
-            SetupDefaultTemplateFields(config, factionDef.defName);
-
-            return config;
+            return Persistence.CreateDefaultConfig(factionDef);
         }
+
 
         /// <summary>/// 为factionsettings默认template字段
  /// 注意: 默认configuration应从 FactionPrompts_Default.json file读取
  /// 此method仅在file读取失败时作为后备使用, 创建最小化configuration
  ///</summary>
-        private void SetupDefaultTemplateFields(FactionPromptConfig config, string factionDefName)
+        internal void SetupDefaultTemplateFields(FactionPromptConfig config, string factionDefName)
         {
-            // 定义标准字段
-            const string coreStyleName = "核心风格";
-            const string vocabName = "用词特征";
-            const string toneName = "语气特征";
-            const string sentenceName = "句式特征";
-            const string taboosName = "表达禁忌";
-
-            // 创建最小化默认configuration (提示user需要从fileload完整configuration)
-            config.GetOrCreateField(coreStyleName, $"请从 {DefaultConfigFileName} 文件加载 {factionDefName} 的默认配置，或手动编辑此模板。", "描述派系的核心对话风格");
-            config.GetOrCreateField(vocabName, "请配置用词特征。", "描述用词习惯和特征");
-            config.GetOrCreateField(toneName, "请配置语气特征。", "描述语气和情感特征");
-            config.GetOrCreateField(sentenceName, "请配置句式特征。", "描述句式结构特征");
-            config.GetOrCreateField(taboosName, "请配置表达禁忌。", "描述表达禁忌和限制");
+            Persistence.SetupDefaultTemplateFields(config, factionDefName);
         }
+
 
         #endregion
 
@@ -495,35 +328,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
             string factionDefName,
             string instanceKey)
         {
-            if (faction == null || string.IsNullOrWhiteSpace(instanceKey))
-            {
-                return null;
-            }
-
-            FactionPromptConfig source = null;
-            if (!string.IsNullOrWhiteSpace(factionDefName))
-            {
-                source = _configCollection?.GetConfig(factionDefName);
-                if (source == null)
-                {
-                    _defaultConfigLookup.TryGetValue(factionDefName, out source);
-                }
-            }
-
-            FactionPromptConfig clone = source?.Clone() ?? new FactionPromptConfig();
-            clone.FactionDefName = instanceKey;
-            if (string.IsNullOrWhiteSpace(clone.DisplayName))
-            {
-                clone.DisplayName = faction.Name ?? factionDefName ?? instanceKey;
-            }
-
-            if (clone.TemplateFields == null || clone.TemplateFields.Count == 0)
-            {
-                SetupDefaultTemplateFields(clone, factionDefName);
-            }
-
-            return clone;
+            return Templates.SeedInstanceConfigFromTemplate(faction, factionDefName, instanceKey);
         }
+
 
         /// <summary>/// 更新configuration
  ///</summary>
@@ -538,71 +345,15 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         public bool TryAddTemplateForFaction(string factionDefName, string displayName, out string status)
         {
-            if (!_initialized) Initialize();
-
-            status = "invalid";
-            string normalized = factionDefName?.Trim();
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return false;
-            }
-
-            if (_configCollection.GetConfig(normalized) != null)
-            {
-                status = "existing";
-                return false;
-            }
-
-            FactionPromptConfig config;
-            if (_defaultConfigLookup.TryGetValue(normalized, out FactionPromptConfig defaultConfig))
-            {
-                config = defaultConfig.Clone();
-            }
-            else
-            {
-                FactionDef factionDef = DefDatabase<FactionDef>.GetNamedSilentFail(normalized);
-                string resolvedDisplayName = !string.IsNullOrWhiteSpace(displayName)
-                    ? displayName
-                    : factionDef?.label ?? normalized;
-                config = new FactionPromptConfig(normalized, resolvedDisplayName);
-                SetupDefaultTemplateFields(config, normalized);
-            }
-
-            _configCollection.SetConfig(config);
-            SaveConfigs();
-            status = "created";
-            return true;
+            return Templates.TryAddTemplateForFaction(factionDefName, displayName, out status);
         }
+
 
         public bool TryRemoveTemplate(string factionDefName, out string reason)
         {
-            if (!_initialized) Initialize();
-
-            reason = "invalid";
-            string normalized = factionDefName?.Trim();
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return false;
-            }
-
-            if (IsDefaultTemplate(normalized))
-            {
-                reason = "default_protected";
-                return false;
-            }
-
-            FactionPromptConfig existing = _configCollection.GetConfig(normalized);
-            if (existing == null)
-            {
-                reason = "not_found";
-                return false;
-            }
-
-            _configCollection.Configs.Remove(existing);
-            SaveConfigs();
-            reason = "removed";
-            return true;
+            return Templates.TryRemoveTemplate(factionDefName, out reason);
         }
+
 
         public bool IsDefaultTemplate(string factionDefName)
         {
@@ -666,137 +417,47 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         public bool ExportConfigs(string filePath)
         {
-            try
-            {
-                if (_configCollection == null) return false;
-
-                string json = ExportConfigsToJson(prettyPrint: true);
-                File.WriteAllText(filePath, json);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimAI.Relations] Failed to export configs: {ex}");
-                return false;
-            }
+            return Persistence.ExportConfigs(filePath);
         }
+
 
         /// <summary>/// 从file导入configuration
  ///</summary>
         public bool ImportConfigs(string filePath)
         {
-            try
-            {
-                if (!File.Exists(filePath)) return false;
-
-                string json = File.ReadAllText(filePath);
-                return ImportConfigsFromJson(json);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimAI.Relations] Failed to import configs: {ex}");
-                return false;
-            }
+            return Persistence.ImportConfigs(filePath);
         }
+
 
         public string ExportConfigsToJson(bool prettyPrint = false)
         {
-            if (!_initialized) Initialize();
-            if (_configCollection == null)
-            {
-                return string.Empty;
-            }
-
-            return FactionPromptJsonUtility.ToJson(_configCollection, prettyPrint);
+            return Persistence.ExportConfigsToJson(prettyPrint);
         }
+
 
         public bool ImportConfigsFromJson(string json)
         {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return false;
-            }
-
-            var imported = FactionPromptJsonUtility.FromJson(json);
-            if (imported?.Configs == null || imported.Configs.Count == 0)
-            {
-                return false;
-            }
-
-            _configCollection = imported;
-            EnsureAllFactionsHaveConfigs();
-            SaveConfigs();
-            return true;
+            return Persistence.ImportConfigsFromJson(json);
         }
+
 
         private void BuildDefaultConfigCatalog()
         {
-            _defaultFactionDefNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            _defaultConfigLookup = new Dictionary<string, FactionPromptConfig>(StringComparer.OrdinalIgnoreCase);
-
-            string defaultConfigPath = GetDefaultConfigFilePath();
-            Log.Message($"[RimAI.Relations] Looking for default config at: {defaultConfigPath}");
-            if (!string.IsNullOrWhiteSpace(defaultConfigPath) && File.Exists(defaultConfigPath))
-            {
-                try
-                {
-                    string json = File.ReadAllText(defaultConfigPath);
-                    FactionPromptConfigCollection collection = FactionPromptJsonUtility.FromJson(json);
-                    if (TryPopulateDefaultCatalog(collection))
-                    {
-                        Log.Message($"[RimAI.Relations] Loaded default faction prompt catalog ({_defaultFactionDefNames.Count})");
-                        return;
-                    }
-
-                    Log.Warning("[RimAI.Relations] Default prompt file parsed but contains no valid configs.");
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning($"[RimAI.Relations] Failed to parse default prompt file: {ex}");
-                }
-            }
-
-            BuildHardcodedDefaultCatalog();
+            Persistence.BuildDefaultConfigCatalog();
         }
+
 
         private bool TryPopulateDefaultCatalog(FactionPromptConfigCollection collection)
         {
-            if (collection?.Configs == null || collection.Configs.Count == 0)
-            {
-                return false;
-            }
-
-            foreach (FactionPromptConfig config in collection.Configs)
-            {
-                string defName = config?.FactionDefName?.Trim();
-                if (string.IsNullOrWhiteSpace(defName))
-                {
-                    continue;
-                }
-
-                _defaultFactionDefNames.Add(defName);
-                _defaultConfigLookup[defName] = config.Clone();
-            }
-
-            return _defaultFactionDefNames.Count > 0;
+            return Persistence.TryPopulateDefaultCatalog(collection);
         }
+
 
         private void BuildHardcodedDefaultCatalog()
         {
-            Log.Message("[RimAI.Relations] Using hardcoded fallback for faction prompt default catalog.");
-
-            foreach (FactionDef factionDef in GetSupportedFactionDefs())
-            {
-                if (factionDef == null || string.IsNullOrWhiteSpace(factionDef.defName))
-                {
-                    continue;
-                }
-
-                FactionPromptConfig config = CreateDefaultConfig(factionDef);
-                _defaultFactionDefNames.Add(factionDef.defName);
-                _defaultConfigLookup[factionDef.defName] = config;
-            }
+            Persistence.BuildHardcodedDefaultCatalog();
         }
+
 
         #endregion
     }

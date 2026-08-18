@@ -14,18 +14,24 @@ namespace Ustas.RimAI.Communication.Relations.AI
     /// <summary>/// AI动作executor
  /// 执行LLM解析出的API调用动作
  ///</summary>
-    public partial class AIActionExecutor
+    public class AIActionExecutor
     {
-        private readonly Faction faction;
-        private readonly GameAIInterface gameInterface;
-        private readonly bool applyDialogueApiGoodwillCost;
+        internal AIActionExecutorParts Parts;
+
+        internal readonly Faction faction;
+        internal readonly GameAIInterface gameInterface;
+        internal readonly bool applyDialogueApiGoodwillCost;
 
         public AIActionExecutor(Faction faction, bool applyDialogueApiGoodwillCost = false)
         {
+            Parts = new AIActionExecutorParts(this);
             this.faction = faction;
             this.gameInterface = GameAIInterface.Instance;
             this.applyDialogueApiGoodwillCost = applyDialogueApiGoodwillCost;
         }
+
+        internal ActionResult ExecuteRequestItemAirdrop(AIAction action) => Parts.ItemAirdrop.ExecuteRequestItemAirdrop(action);
+        internal ActionResult ExecutePayPrisonerRansom(AIAction action) => Parts.PrisonerRansom.ExecutePayPrisonerRansom(action);
 
         /// <summary>/// 执行AI动作
  ///</summary>
@@ -37,7 +43,127 @@ namespace Ustas.RimAI.Communication.Relations.AI
         }
 
         [System.Obsolete("Production diplomacy uses RelationsInteractionAdapter.")]
-        private ActionResult ExecuteActionLegacy(AIAction action)
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        /// <summary>/// 检查功能whetherenable
+ ///</summary>
+        
+
+        /// <summary>/// 执行触发event
+ ///</summary>
+        
+
+        /// <summary>/// 执行创建任务
+ ///</summary>
+        
+
+        
+
+        /// <summary>/// 执行goodwill调整
+ ///</summary>
+        
+
+        
+
+        /// <summary>/// 执行发送礼物
+ ///</summary>
+        
+
+        /// <summary>/// 执行request援助
+ ///</summary>
+        
+
+        /// <summary>/// 执行宣战
+ ///</summary>
+        
+
+        /// <summary>/// 执行议和
+ ///</summary>
+        
+
+        /// <summary>/// 执行request商队
+ ///</summary>
+        
+
+        /// <summary>/// 执行request访客
+ ///</summary>
+        
+
+        /// <summary>/// 执行拒绝request
+ ///</summary>
+        
+
+        /// <summary>/// 执行request袭击
+ ///</summary>
+        
+
+        /// <summary>/// 执行呼叫所有人袭击/支援
+        ///</summary>
+        
+
+        /// <summary>/// 执行袭击波次
+        ///</summary>
+        
+
+        
+
+        internal static int ReadIntParameterOrDefault(Dictionary<string, object> parameters, string key, int defaultValue)
+        {
+            return TryReadIntParameter(parameters, key, out int value) ? value : defaultValue;
+        }
+
+        
+
+        
+    
+        #region Cluster forwards
+        internal ActionResult ExecuteActionLegacy(AIAction action) => Parts.Slice1.ExecuteActionLegacy(action);
+        internal ActionResult ApplyDialogueApiGoodwillCostIfNeeded(AIAction action, ActionResult result) => Parts.Slice1.ApplyDialogueApiGoodwillCostIfNeeded(action, result);
+        internal static bool ShouldApplyDialogueApiGoodwillCost(AIAction action) => AIActionExecutorSlice1.ShouldApplyDialogueApiGoodwillCost(action);
+        internal static bool TryReadApplyGoodwillCostParameter(Dictionary<string, object> parameters, out bool value) => AIActionExecutorSlice1.TryReadApplyGoodwillCostParameter(parameters, out value);
+        internal static string BuildDialogueApiCostDetail(AIAction action) => AIActionExecutorSlice1.BuildDialogueApiCostDetail(action);
+        internal static DialogueGoodwillCost.DialogueActionType ResolveAidDialogueCostType(AIAction action) => AIActionExecutorSlice1.ResolveAidDialogueCostType(action);
+        internal static string ReadDetail(Dictionary<string, object> parameters, params string[] keys) => AIActionExecutorSlice1.ReadDetail(parameters, keys);
+        internal bool IsFeatureEnabled(string actionType) => Parts.Slice1.IsFeatureEnabled(actionType);
+        internal ActionResult ExecuteTriggerIncident(AIAction action) => Parts.Slice1.ExecuteTriggerIncident(action);
+        internal ActionResult ExecuteCreateQuest(AIAction action) => Parts.Slice1.ExecuteCreateQuest(action);
+        internal string BuildCreateQuestFailureMessage(QuestValidationResult validation, Dictionary<string, object> parameters) => Parts.Slice1.BuildCreateQuestFailureMessage(validation, parameters);
+        internal ActionResult ExecuteAdjustGoodwill(AIAction action) => Parts.Slice1.ExecuteAdjustGoodwill(action);
+        internal static int TryReadGoodwillChangeFromResult(object resultData, int fallbackAmount) => AIActionExecutorSlice1.TryReadGoodwillChangeFromResult(resultData, fallbackAmount);
+        internal ActionResult ExecuteSendGift(AIAction action) => Parts.Slice1.ExecuteSendGift(action);
+        internal ActionResult ExecuteRequestAid(AIAction action) => Parts.Slice2.ExecuteRequestAid(action);
+        internal ActionResult ExecuteDeclareWar(AIAction action) => Parts.Slice2.ExecuteDeclareWar(action);
+        internal ActionResult ExecuteMakePeace(AIAction action) => Parts.Slice2.ExecuteMakePeace(action);
+        internal ActionResult ExecuteRequestCaravan(AIAction action) => Parts.Slice2.ExecuteRequestCaravan(action);
+        internal ActionResult ExecuteRequestVisitor(AIAction action) => Parts.Slice2.ExecuteRequestVisitor(action);
+        internal ActionResult ExecuteRejectRequest(AIAction action) => Parts.Slice2.ExecuteRejectRequest(action);
+        internal ActionResult ExecuteRequestRaid(AIAction action) => Parts.Slice2.ExecuteRequestRaid(action);
+        internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action) => Parts.Slice2.ExecuteRequestRaidCallEveryone(action);
+        internal ActionResult ExecuteRequestRaidWaves(AIAction action) => Parts.Slice2.ExecuteRequestRaidWaves(action);
+        internal static string ReadStringParameterOrDefault(Dictionary<string, object> parameters, string key, string defaultValue) => AIActionExecutorSlice2.ReadStringParameterOrDefault(parameters, key, defaultValue);
+        internal static bool TryReadIntParameter(Dictionary<string, object> parameters, string key, out int value) => AIActionExecutorSlice2.TryReadIntParameter(parameters, key, out value);
+        internal static bool TryReadFloatParameter(Dictionary<string, object> parameters, string key, out float value) => AIActionExecutorSlice2.TryReadFloatParameter(parameters, key, out value);
+        #endregion
+}
+    internal sealed class AIActionExecutorSlice1 : AIActionExecutorCollaborator
+    {
+        internal AIActionExecutorSlice1(AIActionExecutor owner) : base(owner)
+        {
+        }
+
+internal ActionResult ExecuteActionLegacy(AIAction action)
         {
             if (action == null)
             {
@@ -57,7 +183,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
 
             // 检查该功能whether被enable
-            if (!IsFeatureEnabled(action.ActionType))
+            if (!ApiActionEligibilityService.IsFeatureEnabled(action.ActionType))
             {
                 return ActionResult.Failure($"Feature {action.ActionType} is disabled in settings");
             }
@@ -72,27 +198,27 @@ namespace Ustas.RimAI.Communication.Relations.AI
             {
                 ActionResult result = action.ActionType switch
                 {
-                    AIActionNames.AdjustGoodwill => ExecuteAdjustGoodwill(action),
-                    AIActionNames.SendGift => ExecuteSendGift(action),
-                    AIActionNames.RequestAid => ExecuteRequestAid(action),
-                    AIActionNames.DeclareWar => ExecuteDeclareWar(action),
-                    AIActionNames.MakePeace => ExecuteMakePeace(action),
-                    AIActionNames.RequestCaravan => ExecuteRequestCaravan(action),
-                    AIActionNames.RequestVisitor => ExecuteRequestVisitor(action),
-                    AIActionNames.RequestRaid => ExecuteRequestRaid(action),
-                    AIActionNames.RequestItemAirdrop => ExecuteRequestItemAirdrop(action),
+                    AIActionNames.AdjustGoodwill => Owner.ExecuteAdjustGoodwill(action),
+                    AIActionNames.SendGift => Owner.ExecuteSendGift(action),
+                    AIActionNames.RequestAid => Owner.ExecuteRequestAid(action),
+                    AIActionNames.DeclareWar => Owner.ExecuteDeclareWar(action),
+                    AIActionNames.MakePeace => Owner.ExecuteMakePeace(action),
+                    AIActionNames.RequestCaravan => Owner.ExecuteRequestCaravan(action),
+                    AIActionNames.RequestVisitor => Owner.ExecuteRequestVisitor(action),
+                    AIActionNames.RequestRaid => Owner.ExecuteRequestRaid(action),
+                    AIActionNames.RequestItemAirdrop => Owner.ExecuteRequestItemAirdrop(action),
                     AIActionNames.RequestInfo => ActionResult.Failure("request_info must be handled by diplomacy dialogue pipeline."),
-                    AIActionNames.PayPrisonerRansom => ExecutePayPrisonerRansom(action),
-                    AIActionNames.RejectRequest => ExecuteRejectRequest(action),
-                    AIActionNames.TriggerIncident => ExecuteTriggerIncident(action),
-                    AIActionNames.CreateQuest => ExecuteCreateQuest(action),
+                    AIActionNames.PayPrisonerRansom => Owner.ExecutePayPrisonerRansom(action),
+                    AIActionNames.RejectRequest => Owner.ExecuteRejectRequest(action),
+                    AIActionNames.TriggerIncident => Owner.ExecuteTriggerIncident(action),
+                    AIActionNames.CreateQuest => Owner.ExecuteCreateQuest(action),
                     AIActionNames.SendImage => ActionResult.Failure("send_image must be handled by diplomacy dialogue pipeline."),
-                    AIActionNames.RequestRaidCallEveryone => ExecuteRequestRaidCallEveryone(action),
-                    AIActionNames.RequestRaidWaves => ExecuteRequestRaidWaves(action),
+                    AIActionNames.RequestRaidCallEveryone => Owner.ExecuteRequestRaidCallEveryone(action),
+                    AIActionNames.RequestRaidWaves => Owner.ExecuteRequestRaidWaves(action),
                     _ => ActionResult.Failure($"Unknown action type: {action.ActionType}")
                 };
 
-                return ApplyDialogueApiGoodwillCostIfNeeded(action, result);
+                return Owner.ApplyDialogueApiGoodwillCostIfNeeded(action, result);
             }
             catch (Exception ex)
             {
@@ -101,21 +227,21 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private ActionResult ApplyDialogueApiGoodwillCostIfNeeded(AIAction action, ActionResult result)
+internal ActionResult ApplyDialogueApiGoodwillCostIfNeeded(AIAction action, ActionResult result)
         {
             if (!applyDialogueApiGoodwillCost || action == null || result == null || !result.IsSuccess)
             {
                 return result;
             }
 
-            if (!ShouldApplyDialogueApiGoodwillCost(action))
+            if (!AIActionExecutor.ShouldApplyDialogueApiGoodwillCost(action))
             {
                 return result;
             }
 
             DialogueGoodwillCost.DialogueActionType? costType = action.ActionType switch
             {
-                AIActionNames.RequestAid => ResolveAidDialogueCostType(action),
+                AIActionNames.RequestAid => AIActionExecutor.ResolveAidDialogueCostType(action),
                 AIActionNames.RequestCaravan => DialogueGoodwillCost.DialogueActionType.RequestCaravan,
                 _ => null
             };
@@ -125,7 +251,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return result;
             }
 
-            string detail = BuildDialogueApiCostDetail(action);
+            string detail = AIActionExecutor.BuildDialogueApiCostDetail(action);
             var costResult = gameInterface.ApplySuccessfulDialogueApiGoodwillCost(faction, costType.Value, action.ActionType, detail);
             if (!costResult.Success)
             {
@@ -148,7 +274,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return result;
         }
 
-        private static bool ShouldApplyDialogueApiGoodwillCost(AIAction action)
+internal static bool ShouldApplyDialogueApiGoodwillCost(AIAction action)
         {
             if (action == null)
             {
@@ -159,7 +285,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             {
                 case AIActionNames.RequestAid:
                 case AIActionNames.RequestCaravan:
-                    return TryReadApplyGoodwillCostParameter(action.Parameters, out bool shouldApply)
+                    return AIActionExecutor.TryReadApplyGoodwillCostParameter(action.Parameters, out bool shouldApply)
                         ? shouldApply
                         : false;
                 case AIActionNames.CreateQuest:
@@ -169,7 +295,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private static bool TryReadApplyGoodwillCostParameter(Dictionary<string, object> parameters, out bool value)
+internal static bool TryReadApplyGoodwillCostParameter(Dictionary<string, object> parameters, out bool value)
         {
             value = false;
             if (parameters == null ||
@@ -236,7 +362,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return false;
         }
 
-        private static string BuildDialogueApiCostDetail(AIAction action)
+internal static string BuildDialogueApiCostDetail(AIAction action)
         {
             if (action?.Parameters == null)
             {
@@ -245,16 +371,16 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             return action.ActionType switch
             {
-                AIActionNames.RequestAid => ReadDetail(action.Parameters, "type"),
-                AIActionNames.RequestCaravan => ReadDetail(action.Parameters, "type", "goods"),
-                AIActionNames.CreateQuest => ReadDetail(action.Parameters, "questDefName"),
+                AIActionNames.RequestAid => AIActionExecutor.ReadDetail(action.Parameters, "type"),
+                AIActionNames.RequestCaravan => AIActionExecutor.ReadDetail(action.Parameters, "type", "goods"),
+                AIActionNames.CreateQuest => AIActionExecutor.ReadDetail(action.Parameters, "questDefName"),
                 _ => string.Empty
             };
         }
 
-        private static DialogueGoodwillCost.DialogueActionType ResolveAidDialogueCostType(AIAction action)
+internal static DialogueGoodwillCost.DialogueActionType ResolveAidDialogueCostType(AIAction action)
         {
-            string aidType = ReadStringParameterOrDefault(action?.Parameters, "type", "Military");
+            string aidType = AIActionExecutor.ReadStringParameterOrDefault(action?.Parameters, "type", "Military");
             switch ((aidType ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "medical":
@@ -267,7 +393,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private static string ReadDetail(Dictionary<string, object> parameters, params string[] keys)
+internal static string ReadDetail(Dictionary<string, object> parameters, params string[] keys)
         {
             if (parameters == null || keys == null)
             {
@@ -289,9 +415,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return string.Empty;
         }
 
-        /// <summary>/// 检查功能whetherenable
- ///</summary>
-        private bool IsFeatureEnabled(string actionType)
+internal bool IsFeatureEnabled(string actionType)
         {
             if (RelationsMod.Instance == null) return false;
             var settings = RelationsMod.Instance.InstanceSettings;
@@ -323,9 +447,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             };
         }
 
-        /// <summary>/// 执行触发event
- ///</summary>
-        private ActionResult ExecuteTriggerIncident(AIAction action)
+internal ActionResult ExecuteTriggerIncident(AIAction action)
         {
             if (!action.Parameters.TryGetValue("defName", out object defNameObj) || string.IsNullOrEmpty(defNameObj?.ToString()))
             {
@@ -334,7 +456,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             string defName = defNameObj.ToString();
             float points = -1f;
-            TryReadFloatParameter(action.Parameters, "amount", out points);
+            AIActionExecutor.TryReadFloatParameter(action.Parameters, "amount", out points);
 
             var result = gameInterface.TriggerIncident(faction, defName, points);
             if (result.Success)
@@ -347,9 +469,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        /// <summary>/// 执行创建任务
- ///</summary>
-        private ActionResult ExecuteCreateQuest(AIAction action)
+internal ActionResult ExecuteCreateQuest(AIAction action)
         {
             if (!action.Parameters.TryGetValue("questDefName", out object questDefObj) || string.IsNullOrEmpty(questDefObj?.ToString()))
             {
@@ -363,7 +483,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             var questValidation = ApiActionEligibilityService.Instance.ValidateCreateQuest(faction, questDefName, action.Parameters);
             if (!questValidation.Allowed)
             {
-                return ActionResult.Failure(BuildCreateQuestFailureMessage(questValidation, action.Parameters));
+                return ActionResult.Failure(Owner.BuildCreateQuestFailureMessage(questValidation, action.Parameters));
             }
 
             var result = gameInterface.CreateQuest(questValidation.NormalizedQuestDefName, action.Parameters);
@@ -372,7 +492,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 : ActionResult.Failure(result.Message);
         }
 
-        private string BuildCreateQuestFailureMessage(QuestValidationResult validation, Dictionary<string, object> parameters)
+internal string BuildCreateQuestFailureMessage(QuestValidationResult validation, Dictionary<string, object> parameters)
         {
             string reason = validation?.Message ?? "create_quest validation failed.";
             List<string> allowedQuestDefs = ApiActionEligibilityService.Instance.GetAvailableQuestDefsForFaction(faction, parameters);
@@ -384,17 +504,15 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return reason + " Allowed questDefName values for current faction: " + string.Join(", ", allowedQuestDefs) + ".";
         }
 
-        /// <summary>/// 执行goodwill调整
- ///</summary>
-        private ActionResult ExecuteAdjustGoodwill(AIAction action)
+internal ActionResult ExecuteAdjustGoodwill(AIAction action)
         {
             // Get参数
-            if (!TryReadIntParameter(action.Parameters, "amount", out int amount))
+            if (!AIActionExecutor.TryReadIntParameter(action.Parameters, "amount", out int amount))
             {
                 return ActionResult.Failure("Missing or invalid 'amount' parameter");
             }
 
-            string reason = ReadStringParameterOrDefault(action.Parameters, "reason", "Diplomatic dialogue");
+            string reason = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "reason", "Diplomatic dialogue");
 
             // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "AdjustGoodwill");
@@ -408,7 +526,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             if (result.Success)
             {
-                int actualChange = TryReadGoodwillChangeFromResult(result.Data, amount);
+                int actualChange = AIActionExecutor.TryReadGoodwillChangeFromResult(result.Data, amount);
                 DiplomacySystem.DiplomacyNotificationManager.SendAIAdjustGoodwillNotification(faction, actualChange);
                 return ActionResult.Success(result.Message, result.Data);
             }
@@ -418,7 +536,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
         }
 
-        private static int TryReadGoodwillChangeFromResult(object resultData, int fallbackAmount)
+internal static int TryReadGoodwillChangeFromResult(object resultData, int fallbackAmount)
         {
             if (resultData == null)
             {
@@ -440,12 +558,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return fallbackAmount;
         }
 
-        /// <summary>/// 执行发送礼物
- ///</summary>
-        private ActionResult ExecuteSendGift(AIAction action)
+internal ActionResult ExecuteSendGift(AIAction action)
         {
-            int silver = ReadIntParameterOrDefault(action.Parameters, "silver", 500);
-            int goodwillGain = ReadIntParameterOrDefault(action.Parameters, "goodwill_gain", 5);
+            int silver = AIActionExecutor.ReadIntParameterOrDefault(action.Parameters, "silver", 500);
+            int goodwillGain = AIActionExecutor.ReadIntParameterOrDefault(action.Parameters, "goodwill_gain", 5);
 
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "SendGift");
             if (cooldownSeconds > 0)
@@ -466,488 +582,27 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return ActionResult.Failure("send_gift must be handled by diplomacy dialogue confirmation pipeline.");
         }
 
-        /// <summary>/// 执行request援助
- ///</summary>
-        private ActionResult ExecuteRequestAid(AIAction action)
+        internal ActionResult ExecuteRequestItemAirdrop(AIAction action) => Parts.ItemAirdrop.ExecuteRequestItemAirdrop(action);
+        internal ActionResult ExecutePayPrisonerRansom(AIAction action) => Parts.PrisonerRansom.ExecutePayPrisonerRansom(action);
+    }
+
+    internal sealed class AIActionExecutorParts
+    {
+        internal readonly AIActionExecutor Owner;
+        internal readonly AIActionExecutorItemAirdrop ItemAirdrop;
+        internal readonly AIActionExecutorPrisonerRansom PrisonerRansom;
+        internal readonly AIActionExecutorSlice1 Slice1;
+        internal readonly AIActionExecutorSlice2 Slice2;
+        internal AIActionExecutorParts(AIActionExecutor owner)
         {
-            // Get参数
-            string aidType = ReadStringParameterOrDefault(action.Parameters, "type", "Military");
-
-            // 检查relation
-            if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Ally)
-            {
-                return ActionResult.Failure("Can only request aid from allied factions");
-            }
-
-            // 检查goodwill
-            if (RelationsMod.Instance == null) return ActionResult.Failure("Mod not initialized");
-            var settings = RelationsMod.Instance.InstanceSettings;
-            if (faction.PlayerGoodwill < settings?.MinGoodwillForAid)
-            {
-                return ActionResult.Failure($"Need at least {settings.MinGoodwillForAid} goodwill to request aid");
-            }
-
-            // 检查faction独立冷却
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestAid");
-            if (cooldownSeconds > 0)
-            {
-                return ActionResult.Failure($"RequestAid is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
-            }
-
-            // 执行 (使用延迟mode)
-            var result = gameInterface.RequestAid(faction, aidType, delayed: true);
-
-            if (result.Success)
-            {
-                return ActionResult.Success(result.Message, result.Data);
-            }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
-        }
-
-        /// <summary>/// 执行宣战
- ///</summary>
-        private ActionResult ExecuteDeclareWar(AIAction action)
-        {
-            string reason = ReadStringParameterOrDefault(action.Parameters, "reason", "Diplomatic conflict");
-
-            // 检查whether已经是敌对
-            if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
-            {
-                return ActionResult.Failure("Already at war with this faction");
-            }
-
-            // 检查goodwill
-            if (RelationsMod.Instance == null) return ActionResult.Failure("Mod not initialized");
-            var settings = RelationsMod.Instance.InstanceSettings;
-            if (faction.PlayerGoodwill > settings?.MaxGoodwillForWarDeclaration)
-            {
-                return ActionResult.Failure($"Cannot declare war with goodwill above {settings.MaxGoodwillForWarDeclaration}");
-            }
-
-            // 检查faction独立冷却
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "DeclareWar");
-            if (cooldownSeconds > 0)
-            {
-                return ActionResult.Failure($"DeclareWar is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
-            }
-
-            // 执行
-            var result = gameInterface.DeclareWar(faction, reason);
-
-            if (result.Success)
-            {
-                DiplomacySystem.DiplomacyNotificationManager.SendAIActionNotification(faction, DiplomacySystem.AIActionType.DeclareWar, reason);
-                return ActionResult.Success(result.Message, result.Data);
-            }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
-        }
-
-        /// <summary>/// 执行议和
- ///</summary>
-        private ActionResult ExecuteMakePeace(AIAction action)
-        {
-            int peaceCost = ReadIntParameterOrDefault(action.Parameters, "cost", 0);
-
-            // 检查whether处于敌对state
-            if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
-            {
-                return ActionResult.Failure("Not at war with this faction");
-            }
-
-            // 检查faction独立冷却
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "MakePeace");
-            if (cooldownSeconds > 0)
-            {
-                return ActionResult.Failure($"MakePeace is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
-            }
-
-            if (peaceCost <= 0)
-            {
-                return ActionResult.Failure("make_peace requires a positive cost and player confirmation in diplomacy dialogue.");
-            }
-
-            return ActionResult.Failure("make_peace must be handled by diplomacy dialogue confirmation pipeline.");
-        }
-
-        /// <summary>/// 执行request商队
- ///</summary>
-        private ActionResult ExecuteRequestCaravan(AIAction action)
-        {
-            string caravanType = ReadStringParameterOrDefault(action.Parameters, "type", string.Empty);
-            if (string.IsNullOrWhiteSpace(caravanType))
-            {
-                caravanType = ReadStringParameterOrDefault(action.Parameters, "goods", "General");
-            }
-
-            // 检查relation
-            if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
-            {
-                return ActionResult.Failure("Cannot request caravan from hostile faction");
-            }
-
-            // 检查faction独立冷却
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestTradeCaravan");
-            if (cooldownSeconds > 0)
-            {
-                return ActionResult.Failure($"RequestTradeCaravan is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
-            }
-
-            // 执行 (使用延迟mode)
-            var result = gameInterface.RequestTradeCaravan(faction, caravanType, delayed: true);
-
-            if (result.Success)
-            {
-                return ActionResult.Success(result.Message, result.Data);
-            }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
-        }
-
-        /// <summary>/// 执行request访客
- ///</summary>
-        private ActionResult ExecuteRequestVisitor(AIAction action)
-        {
-            // 检查relation
-            if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
-            {
-                return ActionResult.Failure("Cannot request visitor from hostile faction");
-            }
-
-            // 检查faction独立冷却
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestVisitor");
-            if (cooldownSeconds > 0)
-            {
-                return ActionResult.Failure($"RequestVisitor is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
-            }
-
-            // 执行 (使用延迟mode)
-            var result = gameInterface.RequestVisitor(faction, delayed: true);
-
-            if (result.Success)
-            {
-                return ActionResult.Success(result.Message, result.Data);
-            }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
-        }
-
-        /// <summary>/// 执行拒绝request
- ///</summary>
-        private ActionResult ExecuteRejectRequest(AIAction action)
-        {
-            // 拒绝request不需要调用API, 只是返回dialogue
-            string reason = ReadStringParameterOrDefault(
-                action.Parameters,
-                "reason",
-                "I cannot fulfill this request at this time.");
-
-            DiplomacySystem.DiplomacyNotificationManager.SendAIActionNotification(faction, DiplomacySystem.AIActionType.RejectRequest, reason);
-            return ActionResult.Success($"Request rejected: {reason}");
-        }
-
-        /// <summary>/// 执行request袭击
- ///</summary>
-        private ActionResult ExecuteRequestRaid(AIAction action)
-        {
-            if (RelationsMod.Instance == null) return ActionResult.Failure("Mod not initialized");
-            var settings = RelationsMod.Instance.InstanceSettings;
-
-            // Get参数
-            string rawStrategy = ReadStringParameterOrDefault(action.Parameters, "strategy", string.Empty);
-            string rawArrival = ReadStringParameterOrDefault(action.Parameters, "arrival", string.Empty);
-            RaidDefNameNormalizer.NormalizeRaidRequestParameters(rawStrategy, rawArrival, out string strategy, out string arrival);
-
-            // 验证策略whetherenable
-            if (!string.IsNullOrEmpty(strategy))
-            {
-                if (strategy.Equals("ImmediateAttack", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidStrategy_ImmediateAttack)
-                    return ActionResult.Failure("Raid strategy 'ImmediateAttack' is disabled in settings");
-                if (strategy.Equals("ImmediateAttackSmart", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidStrategy_ImmediateAttackSmart)
-                    return ActionResult.Failure("Raid strategy 'ImmediateAttackSmart' is disabled in settings");
-                if (strategy.Equals("StageThenAttack", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidStrategy_StageThenAttack)
-                    return ActionResult.Failure("Raid strategy 'StageThenAttack' is disabled in settings");
-                if (strategy.Equals("ImmediateAttackSappers", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidStrategy_ImmediateAttackSappers)
-                    return ActionResult.Failure("Raid strategy 'ImmediateAttackSappers' is disabled in settings");
-                if (strategy.Equals("Siege", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidStrategy_Siege)
-                    return ActionResult.Failure("Raid strategy 'Siege' is disabled in settings");
-            }
-
-            // 验证到达方式whetherenable
-            if (!string.IsNullOrEmpty(arrival))
-            {
-                if (arrival.Equals("EdgeWalkIn", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidArrival_EdgeWalkIn)
-                    return ActionResult.Failure("Raid arrival 'EdgeWalkIn' is disabled in settings");
-                if (arrival.Equals("EdgeDrop", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidArrival_EdgeDrop)
-                    return ActionResult.Failure("Raid arrival 'EdgeDrop' is disabled in settings");
-                if (arrival.Equals("EdgeWalkInGroups", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidArrival_EdgeWalkInGroups)
-                    return ActionResult.Failure("Raid arrival 'EdgeWalkInGroups' is disabled in settings");
-                if (arrival.Equals("RandomDrop", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidArrival_RandomDrop)
-                    return ActionResult.Failure("Raid arrival 'RandomDrop' is disabled in settings");
-                if (arrival.Equals("CenterDrop", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidArrival_CenterDrop)
-                    return ActionResult.Failure("Raid arrival 'CenterDrop' is disabled in settings");
-            }
-
-            // 检查relation: 必须是敌对
-            if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
-            {
-                return ActionResult.Failure("AI can only launch raids if the faction is hostile to the player");
-            }
-
-            // 检查faction独立冷却
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestRaid");
-            if (cooldownSeconds > 0)
-            {
-                return ActionResult.Failure($"RequestRaid is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
-            }
-
-            // 执行 (使用延迟mode, 点数自动计算为 -1)
-            var result = gameInterface.RequestRaid(faction, strategy, arrival, delayed: true);
-
-            if (result.Success)
-            {
-                return ActionResult.Success(result.Message, result.Data);
-            }
-            else
-            {
-                return ActionResult.Failure(result.Message);
-            }
-        }
-
-        /// <summary>/// 执行呼叫所有人袭击/支援
-        ///</summary>
-        private ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
-        {
-            // 1. 检查全局冷却 (15天)
-            int globalCooldown = gameInterface.GetRaidCallEveryoneRemainingCooldownSeconds();
-            if (globalCooldown > 0)
-            {
-                float days = globalCooldown / 86400f;
-                return ActionResult.Failure(
-                    $"request_raid_call_everyone is on global cooldown. Remaining: {days:F1} days");
-            }
-            
-            // 2. 获取所有非玩家派系（敌对+友好）
-            var allFactions = Find.FactionManager.AllFactions
-                .Where(f => !f.IsPlayer && !f.defeated && !f.def.hidden)
-                .ToList();
-            
-            if (allFactions.Count == 0)
-            {
-                return ActionResult.Failure("No factions available to call.");
-            }
-            
-            // 3. 分类派系
-            var hostileFactions = allFactions
-                .Where(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
-                .Where(f => DiplomacyEventManager.TryValidateRaidFaction(f, out _))
-                .ToList();
-
-            var allyFactions = allFactions
-                .Where(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Ally)
-                .ToList();
-
-            // 合并所有有效派系（友好派系只允许结盟派系，由调度器内部限制数量）
-            var validFactions = hostileFactions.Concat(allyFactions).ToList();
-            
-            if (validFactions.Count == 0)
-            {
-                return ActionResult.Failure("No factions available for raids or aid.");
-            }
-
-            // 4. 调用调度器
-            bool success = DiplomacyEventManager.ScheduleRaidCallEveryone(faction, validFactions);
-
-            if (success)
-            {
-                gameInterface.SetRaidCallEveryoneCooldown();
-                return ActionResult.Success(
-                    "Called factions for joint raid: arrivals in 16|30h window; ally participation is limited by hostile faction count and wealth-based caps.",
-                    new {
-                        HostileCount = hostileFactions.Count,
-                        AllyCount = allyFactions.Count,
-                        TotalPassedToScheduler = validFactions.Count
-                    });
-            }
-            else
-            {
-                return ActionResult.Failure("Failed to schedule call everyone.");
-            }
-        }
-
-        /// <summary>/// 执行袭击波次
-        ///</summary>
-        private ActionResult ExecuteRequestRaidWaves(AIAction action)
-        {
-            // 1. 解析参数
-            if (!TryReadIntParameter(action.Parameters, "waves", out int waves))
-            {
-                return ActionResult.Failure("request_raid_waves requires parameter waves (int, 2-6).");
-            }
-
-            if (waves < 2 || waves > 6)
-            {
-                return ActionResult.Failure($"request_raid_waves parameter waves out of range: {waves}. Expected 2-6.");
-            }
-            
-            // 2. 检查 faction 必须是敌对
-            if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
-            {
-                return ActionResult.Failure("AI can only launch raids if the faction is hostile to the player");
-            }
-            
-            // 3. 检查 faction 独立冷却 (5天)
-            int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestRaidWaves");
-            if (cooldownSeconds > 0)
-            {
-                float days = cooldownSeconds / 86400f;
-                return ActionResult.Failure(
-                    $"request_raid_waves is on cooldown for {faction.Name}. Remaining: {days:F1} days");
-            }
-            
-            // 4. 验证派系可以发动袭击
-            if (!DiplomacyEventManager.TryValidateRaidFaction(faction, out string reason))
-            {
-                return ActionResult.Failure(reason);
-            }
-            
-            // 5. 调用调度器
-            bool success = DiplomacyEventManager.ScheduleRaidWaves(faction, waves);
-            
-            if (success)
-            {
-                gameInterface.SetFactionCooldown(faction, "RequestRaidWaves");
-                return ActionResult.Success(
-                    $"Scheduled {waves} raid waves from {faction.Name}. Interval: 12-20 hours each.",
-                    new { Waves = waves });
-            }
-            else
-            {
-                return ActionResult.Failure("Failed to schedule raid waves.");
-            }
-        }
-
-        private static string ReadStringParameterOrDefault(Dictionary<string, object> parameters, string key, string defaultValue)
-        {
-            if (parameters == null || !parameters.TryGetValue(key, out object raw) || raw == null)
-            {
-                return defaultValue;
-            }
-
-            string value = raw.ToString()?.Trim();
-            return string.IsNullOrWhiteSpace(value) ? defaultValue : value;
-        }
-
-        private static int ReadIntParameterOrDefault(Dictionary<string, object> parameters, string key, int defaultValue)
-        {
-            return TryReadIntParameter(parameters, key, out int value) ? value : defaultValue;
-        }
-
-        private static bool TryReadIntParameter(Dictionary<string, object> parameters, string key, out int value)
-        {
-            value = 0;
-            if (parameters == null || !parameters.TryGetValue(key, out object raw) || raw == null)
-            {
-                return false;
-            }
-
-            switch (raw)
-            {
-                case int intValue:
-                    value = intValue;
-                    return true;
-                case long longValue when longValue <= int.MaxValue && longValue >= int.MinValue:
-                    value = (int)longValue;
-                    return true;
-                case short shortValue:
-                    value = shortValue;
-                    return true;
-                case byte byteValue:
-                    value = byteValue;
-                    return true;
-                case float floatValue when !float.IsNaN(floatValue) && !float.IsInfinity(floatValue):
-                    value = (int)Math.Round(floatValue, MidpointRounding.AwayFromZero);
-                    return true;
-                case double doubleValue when !double.IsNaN(doubleValue) && !double.IsInfinity(doubleValue):
-                    value = (int)Math.Round(doubleValue, MidpointRounding.AwayFromZero);
-                    return true;
-                case decimal decimalValue:
-                    value = decimal.ToInt32(decimal.Round(decimalValue, MidpointRounding.AwayFromZero));
-                    return true;
-            }
-
-            string text = raw.ToString();
-            if (int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
-            {
-                return true;
-            }
-
-            if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedInvariant))
-            {
-                value = (int)Math.Round(parsedInvariant, MidpointRounding.AwayFromZero);
-                return true;
-            }
-
-            if (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out double parsedCurrent))
-            {
-                value = (int)Math.Round(parsedCurrent, MidpointRounding.AwayFromZero);
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryReadFloatParameter(Dictionary<string, object> parameters, string key, out float value)
-        {
-            value = 0f;
-            if (parameters == null || !parameters.TryGetValue(key, out object raw) || raw == null)
-            {
-                return false;
-            }
-
-            switch (raw)
-            {
-                case float floatValue when !float.IsNaN(floatValue) && !float.IsInfinity(floatValue):
-                    value = floatValue;
-                    return true;
-                case double doubleValue when !double.IsNaN(doubleValue) && !double.IsInfinity(doubleValue):
-                    value = (float)doubleValue;
-                    return true;
-                case decimal decimalValue:
-                    value = (float)decimalValue;
-                    return true;
-                case int intValue:
-                    value = intValue;
-                    return true;
-                case long longValue:
-                    value = longValue;
-                    return true;
-                case short shortValue:
-                    value = shortValue;
-                    return true;
-                case byte byteValue:
-                    value = byteValue;
-                    return true;
-            }
-
-            string text = raw.ToString();
-            if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
-            {
-                return true;
-            }
-
-            return float.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            Owner = owner;
+            ItemAirdrop = new AIActionExecutorItemAirdrop(owner);
+            PrisonerRansom = new AIActionExecutorPrisonerRansom(owner);
+            Slice1 = new AIActionExecutorSlice1(owner);
+            Slice2 = new AIActionExecutorSlice2(owner);
         }
     }
+
 
     /// <summary>/// 动作执行result
  ///</summary>
@@ -973,4 +628,5 @@ namespace Ustas.RimAI.Communication.Relations.AI
         public object ApiData { get; set; }
         public GameAIInterface.DialogueApiGoodwillCostResult DialogueCost { get; set; }
     }
+
 }
