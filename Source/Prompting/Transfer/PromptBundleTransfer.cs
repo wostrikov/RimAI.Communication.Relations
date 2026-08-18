@@ -8,6 +8,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
 {
@@ -235,7 +236,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
                 return false;
             }
 
-            if (!File.Exists(filePath))
+            if (!LocalStorage.Current.FileExists(filePath))
             {
                 SetPromptBundleImportFailure(PromptBundleImportFailure.FileNotFound, PromptBundleImportErrorCodes.FileNotFound);
                 return false;
@@ -243,7 +244,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
 
             try
             {
-                string json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
+                string json = LocalStorage.Current.ReadAllText(filePath, System.Text.Encoding.UTF8);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.EmptyFile, PromptBundleImportErrorCodes.EmptyFile);
@@ -452,7 +453,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
 
                 PromptBundleConfig bundle = CreatePromptBundle(host.DomainStore.CachedConfig, selectedModules);
                 string json = PromptDomainJsonUtility.Serialize(bundle, prettyPrint: true);
-                File.WriteAllText(normalizedPath, json, Encoding.UTF8);
+                LocalStorage.Current.WriteAllText(normalizedPath, json, Encoding.UTF8);
                 Log.Message($"[RimAI.Relations] Exported config to: {normalizedPath}");
                 return true;
             }
@@ -480,14 +481,14 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
                     return false;
                 }
 
-                if (!File.Exists(filePath))
+                if (!LocalStorage.Current.FileExists(filePath))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.FileNotFound, PromptBundleImportErrorCodes.FileNotFound);
                     Log.Warning($"[RimAI.Relations][{PromptBundleImportErrorCodes.FileNotFound}] Import file not found: {filePath}");
                     return false;
                 }
 
-                string json = File.ReadAllText(filePath);
+                string json = LocalStorage.Current.ReadAllText(filePath);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     SetPromptBundleImportFailure(PromptBundleImportFailure.EmptyFile, PromptBundleImportErrorCodes.EmptyFile);
@@ -548,9 +549,9 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
             try
             {
                 string directory = Path.GetDirectoryName(normalizedPath);
-                if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+                if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
                 {
-                    Directory.CreateDirectory(directory);
+                    LocalStorage.Current.CreateDirectory(directory);
                 }
 
                 return true;

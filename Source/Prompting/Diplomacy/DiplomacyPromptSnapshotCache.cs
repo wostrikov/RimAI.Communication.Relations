@@ -12,6 +12,7 @@ using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting.Diplomacy
 {
@@ -409,12 +410,12 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Diplomacy
             long maxTicks = 0L;
             foreach (string path in EnumeratePromptFilePaths())
             {
-                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
                 {
                     continue;
                 }
 
-                long ticks = File.GetLastWriteTimeUtc(path).Ticks;
+                long ticks = LocalStorage.Current.GetLastWriteTimeUtc(path).Ticks;
                 if (ticks > maxTicks)
                 {
                     maxTicks = ticks;

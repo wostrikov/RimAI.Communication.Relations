@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -117,7 +118,7 @@ internal static PromptPresetStoreConfig ReadStoreFile(out bool readCorrupted)
 
             bool hasLegacy = !string.IsNullOrWhiteSpace(legacyPath) &&
                              !string.Equals(primaryPath, legacyPath, StringComparison.OrdinalIgnoreCase) &&
-                             File.Exists(legacyPath);
+                             LocalStorage.Current.FileExists(legacyPath);
             bool legacyCorrupted = false;
             PromptPresetStoreConfig legacyStore = null;
             if (hasLegacy)
@@ -155,14 +156,14 @@ internal static PromptPresetStoreConfig ReadStoreFile(out bool readCorrupted)
 internal static PromptPresetStoreConfig TryReadStoreFile(string path, out bool corrupted)
         {
             corrupted = false;
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return null;
             }
 
             try
             {
-                string json = File.ReadAllText(path);
+                string json = LocalStorage.Current.ReadAllText(path);
                 PromptPresetStoreConfig store = JsonUtility.FromJson<PromptPresetStoreConfig>(json);
                 if (store == null)
                 {
@@ -415,7 +416,7 @@ internal static PromptPresetStoreConfig ChooseRicherStore(
 
 internal static void QuarantineCorruptedStoreFile(string path, string reason)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return;
             }
@@ -423,7 +424,7 @@ internal static void QuarantineCorruptedStoreFile(string path, string reason)
             string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
             string corruptPath = path + CorruptStoreFileSuffix + "." + timestamp;
             int suffix = 1;
-            while (File.Exists(corruptPath))
+            while (LocalStorage.Current.FileExists(corruptPath))
             {
                 suffix++;
                 corruptPath = path + CorruptStoreFileSuffix + "." + timestamp + "." + suffix;
@@ -431,7 +432,7 @@ internal static void QuarantineCorruptedStoreFile(string path, string reason)
 
             try
             {
-                File.Move(path, corruptPath);
+                LocalStorage.Current.MoveFile(path, corruptPath);
                 Log.Error($"[RimAI.Relations] Quarantined corrupted preset store: {corruptPath}. reason={reason}");
             }
             catch (Exception ex)
@@ -444,9 +445,9 @@ internal static void EnsureStoreDirectory()
         {
             string path = PromptPresetService.GetStorePath();
             string dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+            if (!string.IsNullOrWhiteSpace(dir) && !LocalStorage.Current.DirectoryExists(dir))
             {
-                Directory.CreateDirectory(dir);
+                LocalStorage.Current.CreateDirectory(dir);
             }
         }
     }

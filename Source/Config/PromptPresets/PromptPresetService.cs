@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -323,9 +324,9 @@ public void SaveAll(PromptPresetStoreConfig store)
             {
                 try
                 {
-                    if (File.Exists(tempPath))
+                    if (LocalStorage.Current.FileExists(tempPath))
                     {
-                        File.Delete(tempPath);
+                        LocalStorage.Current.DeleteFile(tempPath);
                     }
                 }
                 catch
@@ -552,9 +553,9 @@ public bool ExportPreset(string filePath, PromptPresetConfig preset, out string 
                 }
 
                 string dir = Path.GetDirectoryName(normalizedPath);
-                if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+                if (!string.IsNullOrWhiteSpace(dir) && !LocalStorage.Current.DirectoryExists(dir))
                 {
-                    Directory.CreateDirectory(dir);
+                    LocalStorage.Current.CreateDirectory(dir);
                 }
 
                 string json = ReflectionJsonFieldSerializer.Serialize(preset, prettyPrint: true);
@@ -563,7 +564,7 @@ public bool ExportPreset(string filePath, PromptPresetConfig preset, out string 
                     throw new InvalidOperationException("[RimAI.Relations] Prompt preset export serialization dropped channel payloads.");
                 }
 
-                File.WriteAllText(normalizedPath, json);
+                LocalStorage.Current.WriteAllText(normalizedPath, json);
                 return true;
             }
             catch (Exception ex)
@@ -584,7 +585,7 @@ public bool ImportPreset(string filePath, PromptPresetStoreConfig store, out Pro
                 return false;
             }
 
-            if (!File.Exists(normalizedPath))
+            if (!LocalStorage.Current.FileExists(normalizedPath))
             {
                 error = "File not found.";
                 return false;
@@ -592,7 +593,7 @@ public bool ImportPreset(string filePath, PromptPresetStoreConfig store, out Pro
 
             try
             {
-                string json = File.ReadAllText(normalizedPath);
+                string json = LocalStorage.Current.ReadAllText(normalizedPath);
                 if (json.IndexOf("\"UnifiedPromptCatalog\"", StringComparison.Ordinal) < 0)
                 {
                     error = "Unsupported legacy preset format. Please export with unified preset schema.";

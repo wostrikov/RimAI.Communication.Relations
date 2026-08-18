@@ -7,6 +7,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -69,8 +70,8 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public static RpgPromptCustomConfig LoadOrDefault()
         {
             string path = GetCustomConfigPath();
-            bool exists = File.Exists(path);
-            DateTime writeTimeUtc = exists ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
+            bool exists = LocalStorage.Current.FileExists(path);
+            DateTime writeTimeUtc = exists ? LocalStorage.Current.GetLastWriteTimeUtc(path) : DateTime.MinValue;
             lock (CacheLock)
             {
                 if (cachedConfig != null &&
@@ -86,7 +87,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 {
                     try
                     {
-                        string json = File.ReadAllText(path);
+                        string json = LocalStorage.Current.ReadAllText(path);
                         RpgPromptCustomConfig custom = JsonUtility.FromJson<RpgPromptCustomConfig>(json);
                         MergeCustomIntoBase(config, custom);
                     }
@@ -122,32 +123,32 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
             string path = GetCustomConfigPath();
             string directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
             {
-                Directory.CreateDirectory(directory);
+                LocalStorage.Current.CreateDirectory(directory);
             }
 
             string json = ReflectionJsonFieldSerializer.Serialize(config, prettyPrint: true);
-            File.WriteAllText(path, json);
+            LocalStorage.Current.WriteAllText(path, json);
             lock (CacheLock)
             {
                 cachedConfig = CloneConfig(config);
-                cachedWriteTimeUtc = File.Exists(path) ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
-                cachedConfigExists = File.Exists(path);
+                cachedWriteTimeUtc = LocalStorage.Current.FileExists(path) ? LocalStorage.Current.GetLastWriteTimeUtc(path) : DateTime.MinValue;
+                cachedConfigExists = LocalStorage.Current.FileExists(path);
             }
         }
 
         public static bool CustomConfigExists()
         {
-            return File.Exists(GetCustomConfigPath());
+            return LocalStorage.Current.FileExists(GetCustomConfigPath());
         }
 
         public static void DeleteCustomConfig()
         {
             string path = GetCustomConfigPath();
-            if (File.Exists(path))
+            if (LocalStorage.Current.FileExists(path))
             {
-                File.Delete(path);
+                LocalStorage.Current.DeleteFile(path);
             }
 
             lock (CacheLock)
@@ -348,14 +349,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
         {
             RimTalkPromptEntryDefaultsConfig sections = RimTalkPromptEntryDefaultsProvider.GetDefaultsSnapshot();
             string path = GetCustomConfigPath();
-            if (!File.Exists(path))
+            if (!LocalStorage.Current.FileExists(path))
             {
                 return sections;
             }
 
             try
             {
-                string json = File.ReadAllText(path);
+                string json = LocalStorage.Current.ReadAllText(path);
                 LegacyRpgPromptSectionMirror legacy = JsonUtility.FromJson<LegacyRpgPromptSectionMirror>(json);
                 sections = PromptLegacyCompatMigration.NormalizePromptSections(legacy?.PromptSectionCatalog);
                 return PromptLegacyCompatMigration.ApplyLegacyPayloadToPromptSections(

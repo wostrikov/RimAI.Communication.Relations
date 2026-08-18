@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Ustas.RimAI.Communication.Relations.Module;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -70,9 +71,9 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         {
             string path = GetCustomPath(SystemPromptCustomFileName);
             string directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
             {
-                Directory.CreateDirectory(directory);
+                LocalStorage.Current.CreateDirectory(directory);
             }
         }
 
@@ -156,7 +157,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
 
             string promptDefault = Path.Combine(root, PromptFolderName, DefaultSubFolderName);
-            return Directory.Exists(promptDefault);
+            return LocalStorage.Current.DirectoryExists(promptDefault);
         }
     }
 }

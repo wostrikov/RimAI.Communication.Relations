@@ -10,6 +10,7 @@ using Verse;
 using Verse.Sound;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Core.UI;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -174,12 +175,12 @@ internal sealed class RelationsApiHeaderUx
             string languagesRoot = string.IsNullOrWhiteSpace(rootDir)
                 ? LanguagesRelativePath
                 : System.IO.Path.Combine(rootDir, LanguagesRelativePath);
-            if (!Directory.Exists(languagesRoot))
+            if (!LocalStorage.Current.DirectoryExists(languagesRoot))
             {
                 return languages;
             }
 
-            string[] dirs = Directory.GetDirectories(languagesRoot);
+            string[] dirs = LocalStorage.Current.GetDirectories(languagesRoot);
             for (int i = 0; i < dirs.Length; i++)
             {
                 string folder = System.IO.Path.GetFileName(dirs[i])?.Trim();
@@ -389,7 +390,7 @@ internal sealed class RelationsApiHeaderUx
             for (int i = 0; i < candidates.Count; i++)
             {
                 string path = candidates[i];
-                if (File.Exists(path))
+                if (LocalStorage.Current.FileExists(path))
                 {
                     if (i > 0)
                     {
@@ -418,14 +419,14 @@ internal sealed class RelationsApiHeaderUx
 
         internal string ReadVersionLogContent(string filePath)
         {
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(filePath) || !LocalStorage.Current.FileExists(filePath))
             {
                 return string.Empty;
             }
 
             try
             {
-                return File.ReadAllText(filePath, Encoding.UTF8);
+                return LocalStorage.Current.ReadAllText(filePath, Encoding.UTF8);
             }
             catch (Exception ex)
             {
@@ -448,7 +449,7 @@ internal sealed class RelationsApiHeaderUx
                 return "RimChat_VersionLogReadFailed".Translate(cachedVersionLogPath, cachedVersionReadError);
             }
 
-            if (!File.Exists(cachedVersionLogPath))
+            if (!LocalStorage.Current.FileExists(cachedVersionLogPath))
             {
                 return "RimChat_VersionLogMissing".Translate(cachedVersionLogPath);
             }
@@ -476,7 +477,7 @@ internal sealed class RelationsApiHeaderUx
                 return "RimChat_VersionLogReadFailed".Translate(path, readError);
             }
 
-            if (!File.Exists(path))
+            if (!LocalStorage.Current.FileExists(path))
             {
                 return "RimChat_VersionLogMissing".Translate(path);
             }
@@ -502,7 +503,7 @@ internal sealed class RelationsApiHeaderUx
                 return "RimChat_HelpReadFailed".Translate(path, readError);
             }
 
-            if (!File.Exists(path))
+            if (!LocalStorage.Current.FileExists(path))
             {
                 return "RimChat_HelpMissing".Translate(path);
             }
@@ -513,14 +514,14 @@ internal sealed class RelationsApiHeaderUx
         internal static string ReadVersionLogContentFromPath(string filePath, out string readError)
         {
             readError = string.Empty;
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(filePath) || !LocalStorage.Current.FileExists(filePath))
             {
                 return string.Empty;
             }
 
             try
             {
-                return File.ReadAllText(filePath, Encoding.UTF8);
+                return LocalStorage.Current.ReadAllText(filePath, Encoding.UTF8);
             }
             catch (Exception ex)
             {

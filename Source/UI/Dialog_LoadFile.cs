@@ -5,6 +5,7 @@ using System.Threading;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -87,7 +88,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 return false;
             }
 
-            if (!File.Exists(normalizedPath))
+            if (!LocalStorage.Current.FileExists(normalizedPath))
             {
                 Messages.Message("RimChat_FileNotFound".Translate(normalizedPath), MessageTypeDefOf.NegativeEvent);
                 return false;
@@ -214,10 +215,10 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 return;
             }
 
-            string initialDirectory = File.Exists(seedPath)
+            string initialDirectory = LocalStorage.Current.FileExists(seedPath)
                 ? Path.GetDirectoryName(seedPath)
-                : (Directory.Exists(seedPath) ? seedPath : Path.GetDirectoryName(seedPath));
-            if (!string.IsNullOrWhiteSpace(initialDirectory) && Directory.Exists(initialDirectory))
+                : (LocalStorage.Current.DirectoryExists(seedPath) ? seedPath : Path.GetDirectoryName(seedPath));
+            if (!string.IsNullOrWhiteSpace(initialDirectory) && LocalStorage.Current.DirectoryExists(initialDirectory))
             {
                 SetProperty(dialogType, dialog, "InitialDirectory", initialDirectory);
             }
@@ -254,18 +255,18 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private static string ResolveBrowseDirectory(string currentPath)
         {
             string seedPath = NormalizeInputPath(currentPath);
-            if (File.Exists(seedPath))
+            if (LocalStorage.Current.FileExists(seedPath))
             {
                 return Path.GetDirectoryName(seedPath) ?? GetDesktopDirectory();
             }
 
-            if (Directory.Exists(seedPath))
+            if (LocalStorage.Current.DirectoryExists(seedPath))
             {
                 return seedPath;
             }
 
             string parent = Path.GetDirectoryName(seedPath);
-            if (!string.IsNullOrWhiteSpace(parent) && Directory.Exists(parent))
+            if (!string.IsNullOrWhiteSpace(parent) && LocalStorage.Current.DirectoryExists(parent))
             {
                 return parent;
             }

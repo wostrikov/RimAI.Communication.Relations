@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -17,24 +18,9 @@ internal sealed class PromptPresetSlice3 : PromptPresetServiceCollaborator
 
 internal static void AtomicWriteText(string path, string tempPath, string content)
         {
-            File.WriteAllText(tempPath, content);
-            if (File.Exists(path))
-            {
-                try
-                {
-                    File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning($"[RimAI.Relations][PresetDiag] File.Replace failed, fallback to copy+delete. path={path}, error={ex.Message}");
-                    File.Copy(tempPath, path, overwrite: true);
-                    File.Delete(tempPath);
-                }
-            }
-            else
-            {
-                File.Move(tempPath, path);
-            }
+            // tempPath retained for call-site compatibility; AtomicFileWriter owns path+".tmp".
+            _ = tempPath;
+            AtomicFileWriter.WriteAllText(path, content);
         }
 
 internal static void SaveStoreToPath(string path, PromptPresetStoreConfig store)
@@ -45,9 +31,9 @@ internal static void SaveStoreToPath(string path, PromptPresetStoreConfig store)
             }
 
             string dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+            if (!string.IsNullOrWhiteSpace(dir) && !LocalStorage.Current.DirectoryExists(dir))
             {
-                Directory.CreateDirectory(dir);
+                LocalStorage.Current.CreateDirectory(dir);
             }
 
             string json = ReflectionJsonFieldSerializer.Serialize(store, prettyPrint: true);
@@ -58,9 +44,9 @@ internal static void SaveStoreToPath(string path, PromptPresetStoreConfig store)
             }
             finally
             {
-                if (File.Exists(tempPath))
+                if (LocalStorage.Current.FileExists(tempPath))
                 {
-                    File.Delete(tempPath);
+                    LocalStorage.Current.DeleteFile(tempPath);
                 }
             }
         }
@@ -70,7 +56,7 @@ internal static void MirrorStoreToLegacyPath(string primaryPath)
             string legacyPath = PromptPresetService.GetLegacyStorePath();
             if (string.IsNullOrWhiteSpace(legacyPath) ||
                 string.Equals(primaryPath, legacyPath, StringComparison.OrdinalIgnoreCase) ||
-                !File.Exists(primaryPath))
+                !LocalStorage.Current.FileExists(primaryPath))
             {
                 return;
             }
@@ -78,12 +64,12 @@ internal static void MirrorStoreToLegacyPath(string primaryPath)
             try
             {
                 string legacyDir = Path.GetDirectoryName(legacyPath);
-                if (!string.IsNullOrWhiteSpace(legacyDir) && !Directory.Exists(legacyDir))
+                if (!string.IsNullOrWhiteSpace(legacyDir) && !LocalStorage.Current.DirectoryExists(legacyDir))
                 {
-                    Directory.CreateDirectory(legacyDir);
+                    LocalStorage.Current.CreateDirectory(legacyDir);
                 }
 
-                File.Copy(primaryPath, legacyPath, overwrite: true);
+                LocalStorage.Current.CopyFile(primaryPath, legacyPath, overwrite: true);
             }
             catch (Exception ex)
             {
@@ -94,13 +80,13 @@ internal static void MirrorStoreToLegacyPath(string primaryPath)
 internal static void TryMigrateLegacyStoreToConfigPath()
         {
             string targetPath = PromptPresetService.GetStorePath();
-            if (File.Exists(targetPath))
+            if (LocalStorage.Current.FileExists(targetPath))
             {
                 return;
             }
 
             string legacyPath = PromptPresetService.GetLegacyStorePath();
-            if (string.IsNullOrWhiteSpace(legacyPath) || !File.Exists(legacyPath))
+            if (string.IsNullOrWhiteSpace(legacyPath) || !LocalStorage.Current.FileExists(legacyPath))
             {
                 return;
             }
@@ -108,7 +94,7 @@ internal static void TryMigrateLegacyStoreToConfigPath()
             try
             {
                 PromptPresetService.EnsureStoreDirectory();
-                File.Copy(legacyPath, targetPath, overwrite: false);
+                LocalStorage.Current.CopyFile(legacyPath, targetPath, overwrite: false);
                 Log.Message($"[RimAI.Relations] Migrated preset store to config path: {targetPath}");
             }
             catch (Exception ex)
@@ -389,11 +375,11 @@ internal static PromptUnifiedCatalog LoadCanonicalDefaultUnifiedCatalog()
         {
             PromptUnifiedCatalog loaded = null;
             string defaultPath = PromptDomainFileCatalog.GetDefaultPath(PromptDomainFileCatalog.PromptUnifiedDefaultFileName);
-            if (!string.IsNullOrWhiteSpace(defaultPath) && File.Exists(defaultPath))
+            if (!string.IsNullOrWhiteSpace(defaultPath) && LocalStorage.Current.FileExists(defaultPath))
             {
                 try
                 {
-                    string rawJson = File.ReadAllText(defaultPath);
+                    string rawJson = LocalStorage.Current.ReadAllText(defaultPath);
                     loaded = JsonUtility.FromJson<PromptUnifiedCatalog>(rawJson);
                 }
                 catch (Exception ex)

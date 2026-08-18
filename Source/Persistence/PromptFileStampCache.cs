@@ -4,6 +4,7 @@ using System.IO;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -92,7 +93,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             try
             {
                 string promptDir = ResolvePromptDirectory();
-                if (string.IsNullOrWhiteSpace(promptDir) || !Directory.Exists(promptDir))
+                if (string.IsNullOrWhiteSpace(promptDir) || !LocalStorage.Current.DirectoryExists(promptDir))
                 {
                     return;
                 }
@@ -148,12 +149,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             long maxTicks = 0L;
             foreach (string path in EnumeratePromptFilePaths())
             {
-                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
                 {
                     continue;
                 }
 
-                long ticks = File.GetLastWriteTimeUtc(path).Ticks;
+                long ticks = LocalStorage.Current.GetLastWriteTimeUtc(path).Ticks;
                 if (ticks > maxTicks)
                 {
                     maxTicks = ticks;

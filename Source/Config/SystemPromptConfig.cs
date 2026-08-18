@@ -5,6 +5,7 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Module;
 using UnityEngine;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -704,9 +705,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string defaultConfigPath = GetDefaultConfigPath();
-                if (System.IO.File.Exists(defaultConfigPath))
+                if (LocalStorage.Current.FileExists(defaultConfigPath))
                 {
-                    string json = System.IO.File.ReadAllText(defaultConfigPath);
+                    string json = LocalStorage.Current.ReadAllText(defaultConfigPath);
                     // 使用 PromptPersistenceService 的解析method
                     var config = PromptPersistenceService.Instance?.ParseJsonToConfigInternal(
                         json,
@@ -924,12 +925,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string defaultConfigPath = GetDefaultConfigPath();
-                if (string.IsNullOrWhiteSpace(defaultConfigPath) || !System.IO.File.Exists(defaultConfigPath))
+                if (string.IsNullOrWhiteSpace(defaultConfigPath) || !LocalStorage.Current.FileExists(defaultConfigPath))
                 {
                     return false;
                 }
 
-                string json = System.IO.File.ReadAllText(defaultConfigPath);
+                string json = LocalStorage.Current.ReadAllText(defaultConfigPath);
                 var payload = JsonUtility.FromJson<DefaultPromptHeaderPayload>(json);
                 if (!string.IsNullOrWhiteSpace(payload?.GlobalSystemPrompt))
                 {
@@ -969,12 +970,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string defaultPath = GetDefaultPromptResourcePath(DefaultDiplomacyPromptFileName);
-                if (string.IsNullOrWhiteSpace(defaultPath) || !System.IO.File.Exists(defaultPath))
+                if (string.IsNullOrWhiteSpace(defaultPath) || !LocalStorage.Current.FileExists(defaultPath))
                 {
                     return false;
                 }
 
-                string json = System.IO.File.ReadAllText(defaultPath);
+                string json = LocalStorage.Current.ReadAllText(defaultPath);
                 config = PromptPersistenceService.Instance?.ParseJsonToConfigInternal(
                     json,
                     $"default_diplomacy_prompt_file:{defaultPath}");

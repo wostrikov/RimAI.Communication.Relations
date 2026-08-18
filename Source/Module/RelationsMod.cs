@@ -14,6 +14,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Core.Handshake;
 using Ustas.RimAI.Core.Modules;
 using Ustas.RimAI.Core.Relations;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Module
 {
@@ -151,9 +152,9 @@ namespace Ustas.RimAI.Communication.Relations.Module
         public string GetSettingsFolderPath()
         {
             string path = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations");
-            if (!Directory.Exists(path))
+            if (!LocalStorage.Current.DirectoryExists(path))
             {
-                Directory.CreateDirectory(path);
+                LocalStorage.Current.CreateDirectory(path);
             }
             return path;
         }

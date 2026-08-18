@@ -5,6 +5,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -373,14 +374,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
         private static bool TryLoad(string path, RpgPromptDefaultsConfig fallback, out RpgPromptDefaultsConfig config)
         {
             config = null;
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return false;
             }
 
             try
             {
-                string json = File.ReadAllText(path);
+                string json = LocalStorage.Current.ReadAllText(path);
                 config = JsonUtility.FromJson<RpgPromptDefaultsConfig>(json);
                 if (config == null)
                 {

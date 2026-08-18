@@ -5,6 +5,7 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -256,7 +257,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
         private static bool TryGetThumbnail(string path, out Texture2D texture)
         {
             texture = null;
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return false;
             }
@@ -269,7 +270,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
             try
             {
-                byte[] bytes = File.ReadAllBytes(path);
+                byte[] bytes = LocalStorage.Current.ReadAllBytes(path);
                 if (bytes == null || bytes.Length == 0)
                 {
                     return false;

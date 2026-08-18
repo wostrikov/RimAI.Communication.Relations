@@ -9,6 +9,7 @@ using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using System.Text;
 using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -380,16 +381,16 @@ internal void DeletePromptDomainCustomFiles()
 internal void DeleteCustomPromptFile(string fileName)
         {
             string path = PromptDomainFileCatalog.GetCustomPath(fileName);
-            if (File.Exists(path))
+            if (LocalStorage.Current.FileExists(path))
             {
-                File.Delete(path);
+                LocalStorage.Current.DeleteFile(path);
             }
         }
 
 internal bool HasAnyCustomDomainFile()
         {
             return CustomPromptDomainFiles.Any(fileName =>
-                File.Exists(PromptDomainFileCatalog.GetCustomPath(fileName)));
+                LocalStorage.Current.FileExists(PromptDomainFileCatalog.GetCustomPath(fileName)));
         }
 
 internal bool TryGetDomainConfigLastWriteTimeUtc(out DateTime writeTimeUtc)
@@ -398,12 +399,12 @@ internal bool TryGetDomainConfigLastWriteTimeUtc(out DateTime writeTimeUtc)
             bool found = false;
             foreach (string path in Owner.GetTrackedPromptPaths())
             {
-                if (!File.Exists(path))
+                if (!LocalStorage.Current.FileExists(path))
                 {
                     continue;
                 }
 
-                DateTime current = File.GetLastWriteTimeUtc(path);
+                DateTime current = LocalStorage.Current.GetLastWriteTimeUtc(path);
                 if (!found || current > writeTimeUtc)
                 {
                     writeTimeUtc = current;

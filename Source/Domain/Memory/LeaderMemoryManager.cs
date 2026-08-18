@@ -106,9 +106,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     if (mod != null)
                     {
                         string path = Path.Combine(mod.RootDir, PromptFolderName, NpcPromptSubDir);
-                        if (!Directory.Exists(path))
+                        if (!LocalStorage.Current.DirectoryExists(path))
                         {
-                            Directory.CreateDirectory(path);
+                            LocalStorage.Current.CreateDirectory(path);
                         }
                         return path;
                     }
@@ -118,9 +118,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
 
                 string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, SaveRootDir, PromptFolderName, NpcPromptSubDir);
-                if (!Directory.Exists(fallback))
+                if (!LocalStorage.Current.DirectoryExists(fallback))
                 {
-                    Directory.CreateDirectory(fallback);
+                    LocalStorage.Current.CreateDirectory(fallback);
                 }
                 return fallback;
             }
@@ -222,7 +222,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         internal static bool DirectoryHasJsonFiles(string path)
         {
-            return Directory.Exists(path) && Directory.GetFiles(path, "*.json").Length > 0;
+            return LocalStorage.Current.DirectoryExists(path) && LocalStorage.Current.GetFiles(path, "*.json").Length > 0;
         }
 
         /// <summary>/// 从fileload指定faction的memory
@@ -420,9 +420,9 @@ public void EnsureDataDirectoryExists()
         {
             try
             {
-                if (!Directory.Exists(CurrentSaveDataPath))
+                if (!LocalStorage.Current.DirectoryExists(CurrentSaveDataPath))
                 {
-                    Directory.CreateDirectory(CurrentSaveDataPath);
+                    LocalStorage.Current.CreateDirectory(CurrentSaveDataPath);
                     DebugLogger.Debug($"Created memory data directory: {CurrentSaveDataPath}");
                 }
             }
@@ -720,14 +720,14 @@ internal void EnsureCacheLoaded()
 internal void LoadAllMemoriesFromFiles()
         {
             string sourceDir = Owner.ResolveMemorySourceDirectory();
-            if (!Directory.Exists(sourceDir)) return;
+            if (!LocalStorage.Current.DirectoryExists(sourceDir)) return;
 
-            var files = Directory.GetFiles(sourceDir, "*.json");
+            var files = LocalStorage.Current.GetFiles(sourceDir, "*.json");
             foreach (var file in files)
             {
                 try
                 {
-                    var json = File.ReadAllText(file);
+                    var json = LocalStorage.Current.ReadAllText(file);
                     var memory = Owner.ParseJsonToMemory(json);
                     
                     if (memory != null && !string.IsNullOrEmpty(memory.OwnerFactionId))
@@ -750,14 +750,14 @@ internal FactionLeaderMemory LoadMemoryFromFile(Faction faction)
             var fileName = Owner.GetMemoryFileName(faction);
             var filePath = Owner.ResolveMemoryFilePath(fileName);
 
-            if (!File.Exists(filePath))
+            if (!LocalStorage.Current.FileExists(filePath))
             {
                 return null;
             }
 
             try
             {
-                var json = File.ReadAllText(filePath);
+                var json = LocalStorage.Current.ReadAllText(filePath);
                 var memory = Owner.ParseJsonToMemory(json);
                 
                 if (memory != null)
@@ -813,7 +813,7 @@ public void CleanupInvalidSaveData()
         {
             // 暂时禁用清理功能, pending正确的 API 实现
             // Var baseDir = Path.Combine(GenFilePaths.SaveDataFolderPath, "Ustas.RimAI.Communication.Relations", "save_data");
-            // If (!Directory.Exists(baseDir)) return;
+            // If (!LocalStorage.Current.DirectoryExists(baseDir)) return;
             // ...清理逻辑
         }
 

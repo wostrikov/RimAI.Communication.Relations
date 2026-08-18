@@ -3,6 +3,7 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -107,7 +108,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         private void LoadTexture()
         {
-            if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+            if (string.IsNullOrWhiteSpace(imagePath) || !LocalStorage.Current.FileExists(imagePath))
             {
                 loadError = "RimChat_SelfiePreviewMissing".Translate();
                 return;
@@ -115,7 +116,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
             try
             {
-                byte[] bytes = File.ReadAllBytes(imagePath);
+                byte[] bytes = LocalStorage.Current.ReadAllBytes(imagePath);
                 if (bytes == null || bytes.Length == 0)
                 {
                     loadError = "RimChat_SelfiePreviewMissing".Translate();

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -104,7 +105,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         internal static Dictionary<int, RpgNpcDialogueArchive> LoadArchiveSnapshot(string sourceDir, string saveKey)
         {
             var snapshot = new Dictionary<int, RpgNpcDialogueArchive>();
-            if (!Directory.Exists(sourceDir))
+            if (!LocalStorage.Current.DirectoryExists(sourceDir))
             {
                 return snapshot;
             }
@@ -112,7 +113,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             string[] files;
             try
             {
-                files = Directory.GetFiles(sourceDir, "*.json");
+                files = LocalStorage.Current.GetFiles(sourceDir, "*.json");
             }
             catch
             {
@@ -123,7 +124,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             {
                 try
                 {
-                    string json = File.ReadAllText(files[i]);
+                    string json = LocalStorage.Current.ReadAllText(files[i]);
                     RpgNpcDialogueArchive archive = RpgNpcDialogueArchiveJsonCodec.ParseJson(json);
                     if (archive == null || archive.PawnLoadId <= 0)
                     {

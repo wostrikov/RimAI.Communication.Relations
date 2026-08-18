@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -20,13 +21,13 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         public bool Exists()
         {
             string path = ResolvePath();
-            return File.Exists(path);
+            return LocalStorage.Current.FileExists(path);
         }
 
         public string ReadAllText()
         {
             string path = ResolvePath();
-            return File.ReadAllText(path);
+            return LocalStorage.Current.ReadAllText(path);
         }
 
         public void WriteAllText(string content)
@@ -37,7 +38,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
         public static bool FileExists(string path)
         {
-            return !string.IsNullOrWhiteSpace(path) && File.Exists(path);
+            return !string.IsNullOrWhiteSpace(path) && LocalStorage.Current.FileExists(path);
         }
 
         public static string ReadAllText(string path)
@@ -47,7 +48,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 return string.Empty;
             }
 
-            return File.ReadAllText(path);
+            return LocalStorage.Current.ReadAllText(path);
         }
 
         public static void WriteAllText(string path, string content)
@@ -58,12 +59,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             }
 
             string directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
             {
-                Directory.CreateDirectory(directory);
+                LocalStorage.Current.CreateDirectory(directory);
             }
 
-            File.WriteAllText(path, content ?? string.Empty);
+            LocalStorage.Current.WriteAllText(path, content ?? string.Empty);
         }
 
         private string ResolvePath()

@@ -10,6 +10,7 @@ using Ustas.RimAI.Communication.Relations.Serialization;
 using LegacyPromptPresetChannelPayloads = Ustas.RimAI.Communication.Relations.Config.PromptPresetService.LegacyPromptPresetChannelPayloads;
 using LegacyPromptPresetStoreConfig = Ustas.RimAI.Communication.Relations.Config.PromptPresetService.LegacyPromptPresetStoreConfig;
 using LegacyPromptPresetConfig = Ustas.RimAI.Communication.Relations.Config.PromptPresetService.LegacyPromptPresetConfig;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -119,12 +120,12 @@ internal static void ApplyRimTalkCompatSettings(RelationsSettings settings, Prom
 
 internal static string ReadOrEmpty(string path)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return string.Empty;
             }
 
-            return File.ReadAllText(path);
+            return LocalStorage.Current.ReadAllText(path);
         }
 
 internal static void WriteIfNotNull(string path, string payload)
@@ -136,9 +137,9 @@ internal static void WriteIfNotNull(string path, string payload)
 
             if (string.IsNullOrWhiteSpace(payload))
             {
-                if (File.Exists(path))
+                if (LocalStorage.Current.FileExists(path))
                 {
-                    File.Delete(path);
+                    LocalStorage.Current.DeleteFile(path);
                 }
 
                 return;
@@ -153,12 +154,12 @@ internal static void WriteIfNotNull(string path, string payload)
             }
 
             string dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+            if (!string.IsNullOrWhiteSpace(dir) && !LocalStorage.Current.DirectoryExists(dir))
             {
-                Directory.CreateDirectory(dir);
+                LocalStorage.Current.CreateDirectory(dir);
             }
 
-            File.WriteAllText(path, payload);
+            LocalStorage.Current.WriteAllText(path, payload);
         }
 
 internal static RpgPromptCustomConfig ParseRpgPromptCustomConfig(string json)

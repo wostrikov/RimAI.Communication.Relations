@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -53,12 +54,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             string targetDir = CurrentSaveDataPath;
             string markerPath = Path.Combine(targetDir, $".migration_complete_{currentSaveKey}.marker");
-            if (File.Exists(markerPath))
+            if (LocalStorage.Current.FileExists(markerPath))
             {
                 return;
             }
 
-            Directory.CreateDirectory(targetDir);
+            LocalStorage.Current.CreateDirectory(targetDir);
             List<string> legacyDirs = Owner.CollectLegacyMemorySourceDirectories(targetDir);
             if (legacyDirs.Count == 0 || Owner.HasClaimedDefaultBucketForAnotherSave(currentSaveKey, legacyDirs))
             {
@@ -76,14 +77,14 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             {
                 string sourceDir = legacyDirs[i];
                 string backupDir = Path.Combine(backupRoot, $"source_{i}");
-                Directory.CreateDirectory(backupDir);
+                LocalStorage.Current.CreateDirectory(backupDir);
                 LeaderMemoryManager.CopyJsonFiles(sourceDir, backupDir, overwrite: true);
                 JsonCopyStats stats = LeaderMemoryManager.CopyJsonFiles(sourceDir, targetDir, overwrite: false);
                 copied += stats.Copied;
                 skippedExisting += stats.SkippedExisting;
             }
 
-            File.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+            LocalStorage.Current.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
             Owner.TryClaimDefaultBucket(currentSaveKey, legacyDirs);
             Log.Message(
                 "[RimAI.Relations] Migrated legacy leader memory files. " +
@@ -96,8 +97,8 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             string rootLevelLegacyDir = Path.Combine(CurrentPromptNpcRootPath, LeaderMemorySubDir);
             LeaderMemoryManager.TryAddLegacySourceDir(dirs, rootLevelLegacyDir, targetDir);
 
-            string[] saveDirs = Directory.Exists(CurrentPromptNpcRootPath)
-                ? Directory.GetDirectories(CurrentPromptNpcRootPath, "Save_*")
+            string[] saveDirs = LocalStorage.Current.DirectoryExists(CurrentPromptNpcRootPath)
+                ? LocalStorage.Current.GetDirectories(CurrentPromptNpcRootPath, "Save_*")
                 : Array.Empty<string>();
             for (int i = 0; i < saveDirs.Length; i++)
             {
@@ -142,19 +143,19 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 return stats;
             }
 
-            Directory.CreateDirectory(targetDir);
-            string[] files = Directory.GetFiles(sourceDir, "*.json");
+            LocalStorage.Current.CreateDirectory(targetDir);
+            string[] files = LocalStorage.Current.GetFiles(sourceDir, "*.json");
             for (int i = 0; i < files.Length; i++)
             {
                 string fileName = Path.GetFileName(files[i]);
                 string targetPath = Path.Combine(targetDir, fileName);
-                if (!overwrite && File.Exists(targetPath))
+                if (!overwrite && LocalStorage.Current.FileExists(targetPath))
                 {
                     stats.SkippedExisting++;
                     continue;
                 }
 
-                File.Copy(files[i], targetPath, overwrite);
+                LocalStorage.Current.CopyFile(files[i], targetPath, overwrite);
                 stats.Copied++;
             }
 
@@ -169,12 +170,12 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
 
             string claimPath = Path.Combine(CurrentPromptNpcRootPath, LegacyDefaultBucketClaimMarker);
-            if (!File.Exists(claimPath))
+            if (!LocalStorage.Current.FileExists(claimPath))
             {
                 return false;
             }
 
-            string claimedSaveKey = File.ReadAllText(claimPath).Trim();
+            string claimedSaveKey = LocalStorage.Current.ReadAllText(claimPath).Trim();
             if (string.IsNullOrWhiteSpace(claimedSaveKey))
             {
                 return false;
@@ -191,9 +192,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
 
             string claimPath = Path.Combine(CurrentPromptNpcRootPath, LegacyDefaultBucketClaimMarker);
-            if (!File.Exists(claimPath))
+            if (!LocalStorage.Current.FileExists(claimPath))
             {
-                File.WriteAllText(claimPath, currentSaveKey);
+                LocalStorage.Current.WriteAllText(claimPath, currentSaveKey);
             }
         }
 

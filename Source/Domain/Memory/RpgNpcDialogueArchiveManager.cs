@@ -174,9 +174,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     if (mod != null)
                     {
                         string path = Path.Combine(mod.RootDir, PromptFolderName, NpcPromptSubDir);
-                        if (!Directory.Exists(path))
+                        if (!LocalStorage.Current.DirectoryExists(path))
                         {
-                            Directory.CreateDirectory(path);
+                            LocalStorage.Current.CreateDirectory(path);
                         }
                         return path;
                     }
@@ -187,9 +187,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
 
                 string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, SaveRootDir, PromptFolderName, NpcPromptSubDir);
-                if (!Directory.Exists(fallback))
+                if (!LocalStorage.Current.DirectoryExists(fallback))
                 {
-                    Directory.CreateDirectory(fallback);
+                    LocalStorage.Current.CreateDirectory(fallback);
                 }
                 return fallback;
             }
@@ -208,7 +208,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         internal static bool DirectoryHasJsonFiles(string dir)
         {
-            return Directory.Exists(dir) && Directory.GetFiles(dir, "*.json").Length > 0;
+            return LocalStorage.Current.DirectoryExists(dir) && LocalStorage.Current.GetFiles(dir, "*.json").Length > 0;
         }
 
         
@@ -875,27 +875,27 @@ internal void EnsureCacheLoaded()
 
 internal void EnsureDataDirectoryExists()
         {
-            if (!Directory.Exists(CurrentArchiveDirPath))
+            if (!LocalStorage.Current.DirectoryExists(CurrentArchiveDirPath))
             {
-                Directory.CreateDirectory(CurrentArchiveDirPath);
+                LocalStorage.Current.CreateDirectory(CurrentArchiveDirPath);
             }
         }
 
 internal void LoadAllArchivesFromFiles()
         {
             string sourceDir = Owner.ResolveArchiveSourceDirectory();
-            if (!Directory.Exists(sourceDir))
+            if (!LocalStorage.Current.DirectoryExists(sourceDir))
             {
                 Owner.InvalidatePromptMemoryCacheLockless();
                 return;
             }
 
-            string[] files = Directory.GetFiles(sourceDir, "*.json");
+            string[] files = LocalStorage.Current.GetFiles(sourceDir, "*.json");
             for (int i = 0; i < files.Length; i++)
             {
                 try
                 {
-                    string json = File.ReadAllText(files[i]);
+                    string json = LocalStorage.Current.ReadAllText(files[i]);
                     RpgNpcDialogueArchive archive = RpgNpcDialogueArchiveJsonCodec.ParseJson(json);
                     if (archive != null && archive.PawnLoadId > 0 && Owner.IsArchiveOwnedByCurrentSave(archive))
                     {
@@ -964,12 +964,12 @@ internal void TryMigrateLegacyArchives(string currentSaveKey)
 
             string targetDir = CurrentArchiveDirPath;
             string markerPath = Path.Combine(targetDir, $".migration_complete_{currentSaveKey}.marker");
-            if (File.Exists(markerPath))
+            if (LocalStorage.Current.FileExists(markerPath))
             {
                 return;
             }
 
-            Directory.CreateDirectory(targetDir);
+            LocalStorage.Current.CreateDirectory(targetDir);
             List<string> legacyDirs = Owner.CollectLegacyArchiveSourceDirectories(targetDir);
             if (legacyDirs.Count == 0)
             {
@@ -991,14 +991,14 @@ internal void TryMigrateLegacyArchives(string currentSaveKey)
             {
                 string sourceDir = legacyDirs[i];
                 string backupDir = Path.Combine(backupRoot, $"source_{i}");
-                Directory.CreateDirectory(backupDir);
+                LocalStorage.Current.CreateDirectory(backupDir);
                 RpgNpcDialogueArchiveManager.CopyJsonFiles(sourceDir, backupDir, overwrite: true);
                 migratedCount += RpgNpcDialogueArchiveManager.CopyJsonFiles(sourceDir, targetDir, overwrite: false);
             }
 
             if (migratedCount > 0)
             {
-                File.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+                LocalStorage.Current.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
                 Owner.TryClaimDefaultBucket(currentSaveKey, legacyDirs);
                 Log.Message($"[RimAI.Relations] Migrated {migratedCount} legacy NPC archive file(s) to {currentSaveKey}.");
             }
@@ -1010,8 +1010,8 @@ internal List<string> CollectLegacyArchiveSourceDirectories(string targetDir)
             string rootLevelLegacyDir = Path.Combine(CurrentPromptNpcRootPath, NpcArchiveSubDir);
             RpgNpcDialogueArchiveManager.TryAddLegacySourceDir(dirs, rootLevelLegacyDir, targetDir);
 
-            string[] saveDirs = Directory.Exists(CurrentPromptNpcRootPath)
-                ? Directory.GetDirectories(CurrentPromptNpcRootPath, "Save_*")
+            string[] saveDirs = LocalStorage.Current.DirectoryExists(CurrentPromptNpcRootPath)
+                ? LocalStorage.Current.GetDirectories(CurrentPromptNpcRootPath, "Save_*")
                 : Array.Empty<string>();
             for (int i = 0; i < saveDirs.Length; i++)
             {
@@ -1055,19 +1055,19 @@ internal static int CopyJsonFiles(string sourceDir, string targetDir, bool overw
                 return 0;
             }
 
-            Directory.CreateDirectory(targetDir);
+            LocalStorage.Current.CreateDirectory(targetDir);
             int copied = 0;
-            string[] files = Directory.GetFiles(sourceDir, "*.json");
+            string[] files = LocalStorage.Current.GetFiles(sourceDir, "*.json");
             for (int i = 0; i < files.Length; i++)
             {
                 string fileName = Path.GetFileName(files[i]);
                 string targetPath = Path.Combine(targetDir, fileName);
-                if (!overwrite && File.Exists(targetPath))
+                if (!overwrite && LocalStorage.Current.FileExists(targetPath))
                 {
                     continue;
                 }
 
-                File.Copy(files[i], targetPath, overwrite);
+                LocalStorage.Current.CopyFile(files[i], targetPath, overwrite);
                 copied++;
             }
 
@@ -1082,12 +1082,12 @@ internal bool HasClaimedDefaultBucketForAnotherSave(string currentSaveKey, List<
             }
 
             string claimPath = Path.Combine(CurrentPromptNpcRootPath, LegacyDefaultBucketClaimMarker);
-            if (!File.Exists(claimPath))
+            if (!LocalStorage.Current.FileExists(claimPath))
             {
                 return false;
             }
 
-            string claimedSaveKey = File.ReadAllText(claimPath).Trim();
+            string claimedSaveKey = LocalStorage.Current.ReadAllText(claimPath).Trim();
             if (string.IsNullOrWhiteSpace(claimedSaveKey))
             {
                 return false;
@@ -1104,9 +1104,9 @@ internal void TryClaimDefaultBucket(string currentSaveKey, List<string> legacyDi
             }
 
             string claimPath = Path.Combine(CurrentPromptNpcRootPath, LegacyDefaultBucketClaimMarker);
-            if (!File.Exists(claimPath))
+            if (!LocalStorage.Current.FileExists(claimPath))
             {
-                File.WriteAllText(claimPath, currentSaveKey);
+                LocalStorage.Current.WriteAllText(claimPath, currentSaveKey);
             }
         }
 
@@ -2209,14 +2209,14 @@ internal static string BuildArchiveFileName(RpgNpcDialogueArchive archive)
 
 internal void CleanupLegacyArchiveFiles(int pawnLoadId, string keepFileName)
         {
-            if (!Directory.Exists(CurrentArchiveDirPath))
+            if (!LocalStorage.Current.DirectoryExists(CurrentArchiveDirPath))
             {
                 return;
             }
 
             string keepPath = Path.Combine(CurrentArchiveDirPath, keepFileName);
-            IEnumerable<string> candidates = Directory.GetFiles(CurrentArchiveDirPath, $"npc_{pawnLoadId}.json")
-                .Concat(Directory.GetFiles(CurrentArchiveDirPath, $"npc_{pawnLoadId}_*.json"))
+            IEnumerable<string> candidates = LocalStorage.Current.GetFiles(CurrentArchiveDirPath, $"npc_{pawnLoadId}.json")
+                .Concat(LocalStorage.Current.GetFiles(CurrentArchiveDirPath, $"npc_{pawnLoadId}_*.json"))
                 .Distinct(StringComparer.OrdinalIgnoreCase);
 
             foreach (string path in candidates)
@@ -2228,7 +2228,7 @@ internal void CleanupLegacyArchiveFiles(int pawnLoadId, string keepFileName)
 
                 try
                 {
-                    File.Delete(path);
+                    LocalStorage.Current.DeleteFile(path);
                 }
                 catch (Exception ex)
                 {

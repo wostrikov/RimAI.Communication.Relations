@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -65,7 +66,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             albumEntries.RemoveAll(item =>
                 item == null ||
                 string.IsNullOrWhiteSpace(item.AlbumPath) ||
-                !File.Exists(item.AlbumPath));
+                !LocalStorage.Current.FileExists(item.AlbumPath));
             return before - albumEntries.Count;
         }
 

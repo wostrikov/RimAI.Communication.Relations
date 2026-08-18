@@ -23,6 +23,7 @@ using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -36,9 +37,9 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         {
             try
             {
-                if (!Directory.Exists(BasePath))
+                if (!LocalStorage.Current.DirectoryExists(BasePath))
                 {
-                    Directory.CreateDirectory(BasePath);
+                    LocalStorage.Current.CreateDirectory(BasePath);
                     Log.Message($"[RimAI.Relations] Created prompt directory: {BasePath}");
                 }
             }
@@ -52,7 +53,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
         {
             try
             {
-                return Owner.EnumeratePromptDomainCustomOverridePaths().Any(File.Exists);
+                return Owner.EnumeratePromptDomainCustomOverridePaths().Any(LocalStorage.Current.FileExists);
             }
             catch
             {
@@ -122,7 +123,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
         internal string BuildPathSummary(string path)
         {
-            bool exists = !string.IsNullOrWhiteSpace(path) && File.Exists(path);
+            bool exists = !string.IsNullOrWhiteSpace(path) && LocalStorage.Current.FileExists(path);
             return $"{(exists ? "exists" : "missing")}:{path}";
         }
 

@@ -7,6 +7,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -217,9 +218,9 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 }
 
                 string directory = Path.GetDirectoryName(outputPath);
-                if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+                if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
                 {
-                    Directory.CreateDirectory(directory);
+                    LocalStorage.Current.CreateDirectory(directory);
                 }
 
                 outputPath = EnsureUniquePath(outputPath);
@@ -234,7 +235,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         private static string EnsureUniquePath(string path)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return path;
             }
@@ -248,7 +249,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             {
                 candidate = Path.Combine(directory, fileName + "_" + suffix + extension);
                 suffix++;
-            } while (File.Exists(candidate));
+            } while (LocalStorage.Current.FileExists(candidate));
 
             return candidate;
         }

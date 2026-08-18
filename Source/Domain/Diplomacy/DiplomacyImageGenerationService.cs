@@ -13,6 +13,7 @@ using RimWorld;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -439,9 +440,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             try
             {
                 string cacheDir = ResolveImageCacheDirectory();
-                if (!Directory.Exists(cacheDir))
+                if (!LocalStorage.Current.DirectoryExists(cacheDir))
                 {
-                    Directory.CreateDirectory(cacheDir);
+                    LocalStorage.Current.CreateDirectory(cacheDir);
                 }
 
                 string factionName = (faction?.Name ?? "UnknownFaction").SanitizeFileName();
@@ -449,7 +450,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 int salt = Rand.RangeInclusive(1000, 9999);
                 string fileName = $"{factionName}_{stamp}_{salt}.png";
                 string path = Path.Combine(cacheDir, fileName);
-                File.WriteAllBytes(path, imageBytes);
+                LocalStorage.Current.WriteAllBytes(path, imageBytes);
                 localPath = path;
                 return true;
             }
@@ -475,9 +476,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 if (mod?.Content != null)
                 {
                     string root = Path.Combine(mod.Content.RootDir, PromptNpcFolderName, PromptNpcSubFolderName);
-                    if (!Directory.Exists(root))
+                    if (!LocalStorage.Current.DirectoryExists(root))
                     {
-                        Directory.CreateDirectory(root);
+                        LocalStorage.Current.CreateDirectory(root);
                     }
                     return root;
                 }
@@ -487,9 +488,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptNpcFolderName, PromptNpcSubFolderName);
-            if (!Directory.Exists(fallback))
+            if (!LocalStorage.Current.DirectoryExists(fallback))
             {
-                Directory.CreateDirectory(fallback);
+                LocalStorage.Current.CreateDirectory(fallback);
             }
             return fallback;
         }

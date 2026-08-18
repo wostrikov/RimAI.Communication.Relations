@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -29,7 +30,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         {
             savedEntry = null;
             error = string.Empty;
-            if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
+            if (string.IsNullOrWhiteSpace(sourcePath) || !LocalStorage.Current.FileExists(sourcePath))
             {
                 error = "source image file not found";
                 return false;
@@ -38,15 +39,15 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             try
             {
                 string albumDir = ResolveAlbumDirectory();
-                if (!Directory.Exists(albumDir))
+                if (!LocalStorage.Current.DirectoryExists(albumDir))
                 {
-                    Directory.CreateDirectory(albumDir);
+                    LocalStorage.Current.CreateDirectory(albumDir);
                 }
 
                 string extension = NormalizeImageExtension(Path.GetExtension(sourcePath));
                 string fileName = BuildUniqueFileName(albumDir, metadata, extension);
                 string targetPath = Path.Combine(albumDir, fileName);
-                File.Copy(sourcePath, targetPath, false);
+                LocalStorage.Current.CopyFile(sourcePath, targetPath, false);
 
                 savedEntry = CreateEntry(metadata, sourcePath, targetPath);
                 return true;
@@ -69,7 +70,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             string directory = Path.GetDirectoryName(path);
-            if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+            if (string.IsNullOrWhiteSpace(directory) || !LocalStorage.Current.DirectoryExists(directory))
             {
                 error = "image directory not found";
                 return false;
@@ -115,7 +116,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             string baseName = BuildBaseFileName(metadata);
             string candidate = baseName + extension;
             int suffix = 1;
-            while (File.Exists(Path.Combine(folder, candidate)))
+            while (LocalStorage.Current.FileExists(Path.Combine(folder, candidate)))
             {
                 candidate = $"{baseName}_{suffix}{extension}";
                 suffix++;
@@ -167,9 +168,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 if (mod?.Content != null)
                 {
                     string root = Path.Combine(mod.Content.RootDir, PromptNpcFolderName, PromptNpcSubFolderName);
-                    if (!Directory.Exists(root))
+                    if (!LocalStorage.Current.DirectoryExists(root))
                     {
-                        Directory.CreateDirectory(root);
+                        LocalStorage.Current.CreateDirectory(root);
                     }
                     return root;
                 }
@@ -179,9 +180,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptNpcFolderName, PromptNpcSubFolderName);
-            if (!Directory.Exists(fallback))
+            if (!LocalStorage.Current.DirectoryExists(fallback))
             {
-                Directory.CreateDirectory(fallback);
+                LocalStorage.Current.CreateDirectory(fallback);
             }
             return fallback;
         }

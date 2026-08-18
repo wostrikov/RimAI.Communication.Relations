@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Serialization
 {
@@ -17,7 +18,7 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
         public static T LoadMerged<T>(string defaultPath, string customPath) where T : class, new()
         {
             T defaultPayload = LoadSingle<T>(defaultPath);
-            if (!string.IsNullOrWhiteSpace(customPath) && File.Exists(customPath))
+            if (!string.IsNullOrWhiteSpace(customPath) && LocalStorage.Current.FileExists(customPath))
             {
                 T customPayload = LoadSingle<T>(customPath);
                 if (customPayload != null)
@@ -31,14 +32,14 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 
         public static T LoadSingle<T>(string path) where T : class, new()
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return new T();
             }
 
             try
             {
-                string json = File.ReadAllText(path, Encoding.UTF8);
+                string json = LocalStorage.Current.ReadAllText(path, Encoding.UTF8);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     return new T();
@@ -60,14 +61,14 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 
         public static void OverwriteFromFile<T>(string path, T target) where T : class
         {
-            if (target == null || string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (target == null || string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return;
             }
 
             try
             {
-                string json = File.ReadAllText(path, Encoding.UTF8);
+                string json = LocalStorage.Current.ReadAllText(path, Encoding.UTF8);
                 if (!string.IsNullOrWhiteSpace(json))
                 {
                     JsonUtility.FromJsonOverwrite(json, target);
@@ -117,12 +118,12 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
             }
 
             string directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
             {
-                Directory.CreateDirectory(directory);
+                LocalStorage.Current.CreateDirectory(directory);
             }
 
-            File.WriteAllText(path, Serialize(payload, prettyPrint), Utf8NoBom);
+            LocalStorage.Current.WriteAllText(path, Serialize(payload, prettyPrint), Utf8NoBom);
         }
 
         public static T Clone<T>(T payload) where T : class, new()

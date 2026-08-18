@@ -3,6 +3,7 @@ using System.IO;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -107,13 +108,13 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string directory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+                if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
                 {
-                    Directory.CreateDirectory(directory);
+                    LocalStorage.Current.CreateDirectory(directory);
                 }
 
                 string json = PromptDomainJsonUtility.Serialize(report, prettyPrint: true) ?? "{}";
-                File.WriteAllText(path, json);
+                LocalStorage.Current.WriteAllText(path, json);
             }
             catch (Exception ex)
             {

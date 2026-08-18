@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -57,14 +58,14 @@ internal static bool TryGetInlineImageTexture(string path, out Texture2D texture
         return true;
     }
 
-    if (!File.Exists(path))
+    if (!LocalStorage.Current.FileExists(path))
     {
         return false;
     }
 
     try
     {
-        byte[] bytes = File.ReadAllBytes(path);
+        byte[] bytes = LocalStorage.Current.ReadAllBytes(path);
         if (bytes == null || bytes.Length == 0)
         {
             return false;

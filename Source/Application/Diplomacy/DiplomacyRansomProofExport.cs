@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -62,10 +63,10 @@ internal static bool TryExportRansomProofPortrait(Pawn pawn, out string imagePat
     try
     {
         string folder = Path.Combine(GenFilePaths.SaveDataFolderPath, "Ustas.RimAI.Communication.Relations", "Temp", "RansomProof");
-        Directory.CreateDirectory(folder);
+        LocalStorage.Current.CreateDirectory(folder);
         int tick = Find.TickManager?.TicksGame ?? 0;
         imagePath = Path.Combine(folder, $"ransom_proof_{pawn.thingIDNumber}_{tick}.png");
-        File.WriteAllBytes(imagePath, pngBytes);
+        LocalStorage.Current.WriteAllBytes(imagePath, pngBytes);
         return true;
     }
     catch (Exception ex)

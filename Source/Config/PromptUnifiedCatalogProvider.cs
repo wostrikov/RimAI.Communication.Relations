@@ -6,6 +6,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Communication.Relations.Serialization;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -31,7 +32,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 }
 
                 PromptUnifiedCatalog result = LoadDefault();
-                if (File.Exists(customPath))
+                if (LocalStorage.Current.FileExists(customPath))
                 {
                     PromptUnifiedCatalog custom = TryRead(customPath);
                     if (custom != null)
@@ -48,7 +49,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 result.NormalizeWith(PromptUnifiedCatalog.CreateFallback());
                 cached = result.Clone();
                 cachedPath = customPath;
-                cachedWriteTimeUtc = File.Exists(customPath) ? File.GetLastWriteTimeUtc(customPath) : DateTime.MinValue;
+                cachedWriteTimeUtc = LocalStorage.Current.FileExists(customPath) ? LocalStorage.Current.GetLastWriteTimeUtc(customPath) : DateTime.MinValue;
                 return result;
             }
         }
@@ -64,18 +65,18 @@ namespace Ustas.RimAI.Communication.Relations.Config
             {
                 string path = PromptDomainFileCatalog.GetCustomPath(PromptDomainFileCatalog.PromptUnifiedCustomFileName);
                 string dir = Path.GetDirectoryName(path);
-                if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+                if (!string.IsNullOrWhiteSpace(dir) && !LocalStorage.Current.DirectoryExists(dir))
                 {
-                    Directory.CreateDirectory(dir);
+                    LocalStorage.Current.CreateDirectory(dir);
                 }
 
                 PromptUnifiedCatalog normalized = catalog.Clone();
                 normalized.NormalizeWith(LoadDefault());
                 string json = ReflectionJsonFieldSerializer.Serialize(normalized, prettyPrint: true);
-                File.WriteAllText(path, json);
+                LocalStorage.Current.WriteAllText(path, json);
                 cached = normalized.Clone();
                 cachedPath = path;
-                cachedWriteTimeUtc = File.Exists(path) ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
+                cachedWriteTimeUtc = LocalStorage.Current.FileExists(path) ? LocalStorage.Current.GetLastWriteTimeUtc(path) : DateTime.MinValue;
             }
         }
 
@@ -94,14 +95,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         private static PromptUnifiedCatalog TryRead(string path)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return null;
             }
 
             try
             {
-                return JsonUtility.FromJson<PromptUnifiedCatalog>(File.ReadAllText(path));
+                return JsonUtility.FromJson<PromptUnifiedCatalog>(LocalStorage.Current.ReadAllText(path));
             }
             catch (Exception ex)
             {
@@ -117,12 +118,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 return false;
             }
 
-            if (!File.Exists(customPath))
+            if (!LocalStorage.Current.FileExists(customPath))
             {
                 return cachedWriteTimeUtc == DateTime.MinValue;
             }
 
-            return File.GetLastWriteTimeUtc(customPath) == cachedWriteTimeUtc;
+            return LocalStorage.Current.GetLastWriteTimeUtc(customPath) == cachedWriteTimeUtc;
         }
 
         private static void RestoreCustomNodeRegistrations(PromptUnifiedCatalog catalog)

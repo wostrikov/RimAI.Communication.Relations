@@ -6,6 +6,7 @@ using System.Xml;
 using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.Module;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
@@ -117,7 +118,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             }
 
             string xmlPath = Path.Combine(rootDir, "1.6", "Languages", "English", "Keyed", "RimChat_Keys.xml");
-            if (!File.Exists(xmlPath))
+            if (!LocalStorage.Current.FileExists(xmlPath))
             {
                 Log.Warning($"[RimAI.Relations] English keyed fallback initialization skipped: file not found at '{xmlPath}'.");
                 return map;

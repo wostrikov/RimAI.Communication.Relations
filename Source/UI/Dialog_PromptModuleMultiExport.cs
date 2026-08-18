@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -184,9 +185,9 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 }
 
                 string directory = Path.GetDirectoryName(outputPath);
-                if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+                if (!string.IsNullOrWhiteSpace(directory) && !LocalStorage.Current.DirectoryExists(directory))
                 {
-                    Directory.CreateDirectory(directory);
+                    LocalStorage.Current.CreateDirectory(directory);
                 }
 
                 return true;

@@ -7,6 +7,7 @@ using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config;
 
@@ -25,11 +26,11 @@ internal sealed class FactionPromptCatalogPersistence
         internal void LoadConfigs()
         {
             string sourcePath = Owner.ConfigFilePath;
-            if (!string.IsNullOrWhiteSpace(sourcePath) && File.Exists(sourcePath))
+            if (!string.IsNullOrWhiteSpace(sourcePath) && LocalStorage.Current.FileExists(sourcePath))
             {
                 try
                 {
-                    string json = File.ReadAllText(sourcePath);
+                    string json = LocalStorage.Current.ReadAllText(sourcePath);
                     Owner._configCollection = FactionPromptJsonUtility.FromJson(json);
                     Log.Message($"[RimAI.Relations] Loaded faction prompts from {sourcePath}");
                     
@@ -70,13 +71,13 @@ internal sealed class FactionPromptCatalogPersistence
 
                 // 确保目录presence
                 string directory = Path.GetDirectoryName(Owner.ConfigFilePath);
-                if (!Directory.Exists(directory))
+                if (!LocalStorage.Current.DirectoryExists(directory))
                 {
-                    Directory.CreateDirectory(directory);
+                    LocalStorage.Current.CreateDirectory(directory);
                 }
 
                 string json = FactionPromptJsonUtility.ToJson(Owner._configCollection, true);
-                File.WriteAllText(Owner.ConfigFilePath, json);
+                LocalStorage.Current.WriteAllText(Owner.ConfigFilePath, json);
                 Log.Message($"[RimAI.Relations] Saved faction prompts to {Owner.ConfigFilePath}");
             }
             catch (Exception ex)
@@ -162,9 +163,9 @@ internal sealed class FactionPromptCatalogPersistence
                 {
                     string customDir = Path.Combine(mod.Content.RootDir, FactionPromptManager.PromptFolderName, FactionPromptManager.CustomSubFolderName);
                     // 确保目录presence
-                    if (!Directory.Exists(customDir))
+                    if (!LocalStorage.Current.DirectoryExists(customDir))
                     {
-                        Directory.CreateDirectory(customDir);
+                        LocalStorage.Current.CreateDirectory(customDir);
                     }
                     return Path.Combine(customDir, FactionPromptManager.ConfigFileName);
                 }
@@ -292,7 +293,7 @@ internal sealed class FactionPromptCatalogPersistence
                 if (Owner._configCollection == null) return false;
 
                 string json = ExportConfigsToJson(prettyPrint: true);
-                File.WriteAllText(filePath, json);
+                LocalStorage.Current.WriteAllText(filePath, json);
                 return true;
             }
             catch (Exception ex)
@@ -308,9 +309,9 @@ internal sealed class FactionPromptCatalogPersistence
         {
             try
             {
-                if (!File.Exists(filePath)) return false;
+                if (!LocalStorage.Current.FileExists(filePath)) return false;
 
-                string json = File.ReadAllText(filePath);
+                string json = LocalStorage.Current.ReadAllText(filePath);
                 return ImportConfigsFromJson(json);
             }
             catch (Exception ex)
@@ -357,11 +358,11 @@ internal sealed class FactionPromptCatalogPersistence
 
             string defaultConfigPath = GetDefaultConfigFilePath();
             Log.Message($"[RimAI.Relations] Looking for default config at: {defaultConfigPath}");
-            if (!string.IsNullOrWhiteSpace(defaultConfigPath) && File.Exists(defaultConfigPath))
+            if (!string.IsNullOrWhiteSpace(defaultConfigPath) && LocalStorage.Current.FileExists(defaultConfigPath))
             {
                 try
                 {
-                    string json = File.ReadAllText(defaultConfigPath);
+                    string json = LocalStorage.Current.ReadAllText(defaultConfigPath);
                     FactionPromptConfigCollection collection = FactionPromptJsonUtility.FromJson(json);
                     if (TryPopulateDefaultCatalog(collection))
                     {

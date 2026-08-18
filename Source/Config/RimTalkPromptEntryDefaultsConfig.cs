@@ -6,6 +6,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -557,14 +558,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         private static RimTalkPromptEntryDefaultsConfig TryLoad(string path)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
             {
                 return null;
             }
 
             try
             {
-                string json = File.ReadAllText(path);
+                string json = LocalStorage.Current.ReadAllText(path);
                 return JsonUtility.FromJson<RimTalkPromptEntryDefaultsConfig>(json);
             }
             catch (Exception ex)
