@@ -8,8 +8,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
-    /// <summary>/// factionselectdialogue框 - used for通讯台拦截时display
- ///</summary>
     public class Dialog_SelectFactionForDialogue : Window
     {
         private List<Faction> availableFactions = new List<Faction>();
@@ -43,7 +41,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 }
             }
 
-            // 按goodwill排序
             availableFactions = availableFactions.OrderByDescending(f => f.PlayerGoodwill).ToList();
 
             if (availableFactions.Any())
@@ -71,13 +68,11 @@ namespace Ustas.RimAI.Communication.Relations.UI
             {
                 var factionRect = new Rect(10f, y + 5f, viewRect.width - 20f, 35f);
 
-                // 绘制faction背景
                 if (faction == selectedFaction)
                 {
                     Widgets.DrawHighlight(factionRect);
                 }
 
-                // 绘制faction图标和name
                 var iconRect = new Rect(factionRect.x, factionRect.y, 30f, 30f);
                 if (faction.def != null)
                 {
@@ -91,7 +86,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 var nameRect = new Rect(factionRect.x + 40f, factionRect.y, factionRect.width - 100f, 30f);
                 Widgets.Label(nameRect, faction.Name);
 
-                // 绘制goodwill
                 var goodwillRect = new Rect(factionRect.xMax - 80f, factionRect.y, 70f, 30f);
                 var goodwillColor = GetGoodwillColor(faction.PlayerGoodwill);
                 var oldColor = GUI.color;
@@ -99,7 +93,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 Widgets.Label(goodwillRect, faction.PlayerGoodwill.ToString("+##;-##;0"));
                 GUI.color = oldColor;
 
-                // 点击select
                 if (Widgets.ButtonInvisible(factionRect))
                 {
                     selectedFaction = faction;
@@ -110,7 +103,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
             Widgets.EndScrollView();
 
-            // 底部button
             var buttonRect = new Rect(inRect.x, inRect.y + inRect.height - 50f, inRect.width, 40f);
             var startButtonRect = new Rect(buttonRect.x, buttonRect.y, buttonRect.width / 2 - 10f, 40f);
             var cancelButtonRect = new Rect(buttonRect.x + buttonRect.width / 2 + 10f, buttonRect.y, buttonRect.width / 2 - 10f, 40f);
@@ -129,11 +121,11 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         private Color GetGoodwillColor(int goodwill)
         {
-            if (goodwill >= 80) return new Color(0.2f, 0.8f, 0.2f); // 盟友 - 绿色
-            if (goodwill >= 40) return new Color(0.4f, 0.6f, 0.9f); // 朋友 - 蓝色
-            if (goodwill >= -20) return new Color(0.8f, 0.8f, 0.3f); // 中立 - 黄色
-            if (goodwill >= -60) return new Color(0.9f, 0.4f, 0.3f); // 敌对 - 橙色
-            return new Color(0.9f, 0.2f, 0.2f); // 敌人 - 红色
+            if (goodwill >= 80) return new Color(0.2f, 0.8f, 0.2f);
+            if (goodwill >= 40) return new Color(0.4f, 0.6f, 0.9f);
+            if (goodwill >= -20) return new Color(0.8f, 0.8f, 0.3f);
+            if (goodwill >= -60) return new Color(0.9f, 0.4f, 0.3f);
+            return new Color(0.9f, 0.2f, 0.2f);
         }
 
         private static void TryOpenSelectedFactionDialogue(Faction faction)

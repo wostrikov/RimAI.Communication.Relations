@@ -52,7 +52,6 @@ public APIResult ExecuteDialogueAction(Faction faction, DialogueGoodwillCost.Dia
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 1. 检查冷却时间
             if (!CheckDialogueActionCooldown(faction, actionType))
             {
                 int remainingTicks = GetDialogueActionCooldownRemaining(faction, actionType);
@@ -60,16 +59,13 @@ public APIResult ExecuteDialogueAction(Faction faction, DialogueGoodwillCost.Dia
                 return APIResult.FailureResult($"Action is on cooldown. Remaining: {remainingHours:F1} hours");
             }
 
-            // 2. 检查每日限制
             if (!CheckDailyDialogueLimit(faction, actionType, out string limitReason))
             {
                 return APIResult.FailureResult($"Daily limit reached: {limitReason}");
             }
 
-            // 3. 计算实际goodwill变化
             int goodwillChange = DialogueGoodwillCost.GetBaseValue(actionType);
 
-            // 4. 执行goodwill变化
             if (goodwillChange != 0)
             {
                 int oldGoodwill = faction.PlayerGoodwill;
@@ -77,21 +73,17 @@ public APIResult ExecuteDialogueAction(Faction faction, DialogueGoodwillCost.Dia
                 int newGoodwill = faction.PlayerGoodwill;
                 int actualChange = newGoodwill - oldGoodwill;
 
-                // Record到今日调整
                 int currentDayAdjustment = _goodwillAdjustmentsToday.ContainsKey(faction) ? _goodwillAdjustmentsToday[faction] : 0;
                 _goodwillAdjustmentsToday[faction] = currentDayAdjustment + actualChange;
 
                 // Recordbehavior
                 RecordDialogueAction(faction, actionType, actualChange);
 
-                // Settings冷却
                 SetDialogueActionCooldown(faction, actionType);
 
-                // RecordAPI调用
                 Owner.Parts.CooldownOps.RecordAPICall("ExecuteDialogueAction", true, 
                     $"faction={faction.Name}, action={actionType}, change={actualChange}");
 
-                // 触发通知 (重大变化)
                 if (Math.Abs(actualChange) >= 5)
                 {
                     NotifyDialogueActionResult(faction, actionType, actualChange, goodwillChange);
@@ -112,7 +104,6 @@ public APIResult ExecuteDialogueAction(Faction faction, DialogueGoodwillCost.Dia
             }
             else
             {
-                // 无goodwill变化但仍recordbehavior
                 RecordDialogueAction(faction, actionType, 0);
                 SetDialogueActionCooldown(faction, actionType);
 
@@ -133,18 +124,14 @@ public APIResult PreviewDialogueActionCost(Faction faction, DialogueGoodwillCost
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查whether可执行
             bool canExecute = true;
             string reason = string.Empty;
 
-            // 计算消耗
             int cost = DialogueGoodwillCost.GetBaseValue(actionType);
 
-            // 检查冷却
             bool onCooldown = !CheckDialogueActionCooldown(faction, actionType);
             int remainingCooldown = onCooldown ? GetDialogueActionCooldownRemaining(faction, actionType) : 0;
 
-            // 检查每日限制
             bool withinLimit = CheckDailyDialogueLimit(faction, actionType, out string limitReason);
 
             return APIResult.SuccessResult(
@@ -220,7 +207,6 @@ internal bool CheckDailyDialogueLimit(Faction faction, DialogueGoodwillCost.Dial
             int baseValue = DialogueGoodwillCost.GetBaseValue(actionType);
             bool isCostAction = baseValue < 0;
 
-            // 计算今日该faction的累计消耗/收益
             int todayCost = 0;
             int todayGain = 0;
 
@@ -235,7 +221,6 @@ internal bool CheckDailyDialogueLimit(Faction faction, DialogueGoodwillCost.Dial
                 }
             }
 
-            // 检查whether超出限制
             if (isCostAction)
             {
                 int expectedCost = Math.Abs(DialogueGoodwillCost.GetBaseValue(actionType));

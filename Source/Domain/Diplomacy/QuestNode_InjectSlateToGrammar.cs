@@ -5,8 +5,6 @@ using Verse.Grammar;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>/// 将 Slate 中的变量注入到 Grammar Rules 中, 以便在任务text中使用 [variable] 引用
- ///</summary>
     public class QuestNode_InjectSlateToGrammar : QuestNode
     {
         public SlateRef<string> prefix;
@@ -21,21 +19,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Slate slate = QuestGen.slate;
             string p = prefix.GetValue(slate) ?? "";
 
-            // 注入 title
             if (slate.Exists("title"))
             {
                 string val = slate.Get<string>("title");
                 QuestGen.AddQuestNameRules(new List<Rule> { new Rule_String(p + "title", val) });
             }
 
-            // 注入 description
             if (slate.Exists("description"))
             {
                 string val = slate.Get<string>("description");
                 QuestGen.AddQuestDescriptionRules(new List<Rule> { new Rule_String(p + "description", val) });
             }
             
-            // 注入 rewardDescription
             if (slate.Exists("rewardDescription"))
             {
                 string val = slate.Get<string>("rewardDescription");

@@ -5,10 +5,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>
-    /// Dependencies: RimTalk prompt entry models and localized keyed labels.
-    /// Responsibility: centralize prompt-entry channel ids, labels, defaults, and runtime matching policy.
-    /// </summary>
     internal static class RimTalkPromptEntryChannelCatalog
     {
         internal const string Any = "any";

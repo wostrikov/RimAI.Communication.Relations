@@ -16,9 +16,6 @@ using System.Collections;
 
 namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
-    /// <summary>/// Dependencies: AIChatServiceAsync, RimChat settings, Verse.GameComponent.
- /// Responsibility: Orchestrate PawnRPG proactive trigger intake, queueing, throttling, generation and delivery.
- ///</summary>
     public class GameComponent_PawnRpgDialoguePushManager : GameComponent
     {
         internal GameComponent_PawnRpgDialoguePushManagerParts Parts;

@@ -40,20 +40,16 @@ public APIResult RequestAid(Faction faction, string aidType, bool delayed = true
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "RequestAid");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method RequestAid is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查relationwhether允许request援助
             if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Ally)
                 return APIResult.FailureResult("Can only request aid from allied factions");
 
-            // 检查goodwillwhether足够
             if (faction.PlayerGoodwill < settings.MinGoodwillForAid)
                 return APIResult.FailureResult($"Need at least {settings.MinGoodwillForAid} goodwill to request aid");
 
-            // 解析援助类型
             AidType type = DiplomacyEventManager.ParseAidType(aidType);
 
             Owner.Parts.CooldownOps.RecordAPICall("RequestAid", true, $"faction={faction.Name}, aidType={type}, delayed={delayed}");
@@ -100,7 +96,6 @@ public APIResult RequestRaid(Faction faction, string strategyDefName = "", strin
             strategyDefName = normalizedStrategyDefName;
             arrivalModeDefName = normalizedArrivalModeDefName;
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "RequestRaid");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method RequestRaid is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
@@ -167,16 +162,13 @@ public APIResult RequestTradeCaravan(Faction faction, string caravanType = "Gene
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "RequestTradeCaravan");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method RequestTradeCaravan is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查relation
             if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
                 return APIResult.FailureResult("Cannot request caravan from hostile faction");
 
-            // 解析商队类型
             CaravanType type = DiplomacyEventManager.ParseCaravanType(caravanType);
 
             Owner.Parts.CooldownOps.RecordAPICall("RequestTradeCaravan", true, $"faction={faction.Name}, caravanType={type}, delayed={delayed}");
@@ -220,12 +212,10 @@ public APIResult RequestVisitor(Faction faction, bool delayed = true)
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "RequestVisitor");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method RequestVisitor is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查relation
             if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
                 return APIResult.FailureResult("Cannot request visitor from hostile faction");
 

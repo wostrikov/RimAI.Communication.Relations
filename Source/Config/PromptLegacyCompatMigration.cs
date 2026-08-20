@@ -9,10 +9,6 @@ using Verse;
 namespace Ustas.RimAI.Communication.Relations.Config
 {
     using LegacyPromptCompatPayload = PromptLegacyCompatMigration.LegacyPromptCompatPayload;
-    /// <summary>
-    /// Dependencies: RimTalk channel compat models and prompt template rewrite service.
-    /// Responsibility: migrate legacy RimTalk prompt payloads into sanitized import-only channel configs.
-    /// </summary>
     internal static class PromptLegacyCompatMigration
     {
         [Serializable]

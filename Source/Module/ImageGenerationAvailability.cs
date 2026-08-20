@@ -3,10 +3,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Module
 {
-    /// <summary>
-    /// Dependencies: Verse translation service and RimChat settings.
-    /// Responsibility: centralize image-generation availability policy and user-facing message text.
-    /// </summary>
     internal static class ImageGenerationAvailability
     {
         internal const string InDevelopmentKey = "RimChat_ImageGenerationInDevelopment";

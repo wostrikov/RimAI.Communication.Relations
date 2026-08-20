@@ -4,9 +4,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
-    /// <summary>/// 依赖: RPG Action label映射 (GetRpgActionLabel) .
- /// 职责: 发送button旁问号提示与 RPG Actions Tooltip 渲染.
- ///</summary>
         internal sealed class RPGPawnDialogueActionHint : Dialog_RPGPawnDialogueCollaborator
     {
         internal RPGPawnDialogueActionHint(Dialog_RPGPawnDialogue owner) : base(owner)

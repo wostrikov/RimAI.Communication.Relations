@@ -9,10 +9,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>
-    /// Dependencies: RimWorld Pawn/Faction state and RimChat settings.
-    /// Responsibility: valuation formula and single-submit quote state for prisoner ransom.
-    /// </summary>
     internal sealed class PrisonerRansomService
     {
         private const float StartAskMultiplier = 1.10f;

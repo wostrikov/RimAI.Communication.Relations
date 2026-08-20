@@ -4,9 +4,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
-    /// <summary>/// 依赖: RimWorld.Faction, Verse.Scribe.
- /// 职责: 表示faction在diplomacydialogue中的在线state与缓存信息.
- ///</summary>
     public enum FactionPresenceStatus
     {
         Online = 0,
@@ -14,9 +11,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         DoNotDisturb = 2
     }
 
-    /// <summary>/// 依赖: RimWorld.Faction, Verse.IExposable.
-    /// 职责: store单个faction的在线state缓存、强制离线与DND到期信息.
- ///</summary>
     public class FactionPresenceState : IExposable
     {
         public Faction faction;

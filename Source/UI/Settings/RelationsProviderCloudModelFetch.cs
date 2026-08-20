@@ -183,7 +183,6 @@ internal sealed class RelationsProviderCloudModelFetch
 
         internal void FetchModelsCoroutine(string url, string providerFallbackUrl, string apiKey, AIProvider provider, string cacheKey, Action<List<string>> callback)
         {
-            // 绾喕绻欰IChatServiceAsync鐎圭偘绶ョ€涙ê婀?
             var service = AIChatServiceAsync.Instance;
             List<string> candidateUrls = BuildModelListRequestCandidates(url, providerFallbackUrl, provider);
             Log.Message($"[RimAI.Relations] FetchModelsCoroutine: provider={provider}, candidateUrls={string.Join(" | ", candidateUrls)}");

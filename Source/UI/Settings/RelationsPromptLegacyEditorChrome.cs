@@ -27,15 +27,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
     }
 
 
-
-
-
-
-
-
-
-
-
         internal void DrawDynamicDataEditor(Rect rect)
         {
             var dynConfig = Owner.SystemPromptConfigData.DynamicDataInjection;
@@ -138,40 +129,31 @@ internal sealed class RelationsPromptLegacyEditorChrome
 
         internal void DrawNavigationPanelWithButtons(Rect rect)
         {
-            // 鑳屾櫙
             Widgets.DrawBoxSolid(rect, new Color(0.12f, 0.12f, 0.14f));
 
 
             Rect innerRect = rect.ContractedBy(8f);
             float y = innerRect.y;
 
-            // 妯″紡鍒囨崲灏忔寜閽紙鏀惧湪宸︿笂瑙掞級
             Rect toggleRect = new Rect(innerRect.x, y, innerRect.width, 24f);
             DrawModeToggleSmall(toggleRect);
             y += 30f;
 
-            // 鍒嗛殧绾?
             Widgets.DrawLineHorizontal(innerRect.x, y, innerRect.width);
             y += 10f;
 
-            // 鏍规嵁妯″紡鑾峰彇鍒嗗尯鍒楄〃
             string[] sections = Owner._advancedPromptMode ? RelationsPromptLegacyEditors.AdvancedSectionNames : RelationsPromptLegacyEditors.SimpleSectionNames;
 
-            // 璁＄畻鍒嗗尯鍒楄〃鍖哄煙楂樺害锛堥鐣欐寜閽尯鍩燂級
             float buttonAreaHeight = 210f;
             float listHeight = innerRect.height - y - buttonAreaHeight;
 
-            // 鍒嗗尯鍒楄〃鍖哄煙锛堝甫婊氬姩锛?
             Rect listRect = new Rect(innerRect.x, y, innerRect.width, listHeight);
             
-            // 璁＄畻鍐呭楂樺害
             float contentHeight = sections.Length * 32f;
             Rect viewRect = new Rect(0f, 0f, listRect.width - 16f, Mathf.Max(contentHeight, listHeight));
             
-            // 浣跨敤鐙珛鐨勬粴鍔ㄤ綅缃?
             Owner._navigationSectionScroll = GUI.BeginScrollView(listRect, Owner._navigationSectionScroll, viewRect);
             
-            // 缁樺埗鍒嗗尯鎸夐挳
             for (int i = 0; i < sections.Length; i++)
             {
                 string sectionName = sections[i];
@@ -179,7 +161,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
 
                 Rect btnRect = new Rect(0f, i * 32f, viewRect.width, 28f);
 
-                // 閫変腑鐘舵€佽儗鏅?
                 if (isSelected)
                 {
                     Widgets.DrawBoxSolid(btnRect, new Color(0.25f, 0.35f, 0.55f));
@@ -189,14 +170,12 @@ internal sealed class RelationsPromptLegacyEditorChrome
                     Widgets.DrawBoxSolid(btnRect, new Color(0.2f, 0.22f, 0.28f));
                 }
 
-                // 宸﹁竟妗嗗己璋?
                 if (isSelected)
                 {
                     Rect accentRect = new Rect(btnRect.x, btnRect.y, 3f, btnRect.height);
                     Widgets.DrawBoxSolid(accentRect, new Color(0.4f, 0.7f, 1f));
                 }
 
-                // 鏂囧瓧
                 GUI.color = isSelected ? Color.white : new Color(0.7f, 0.7f, 0.75f);
                 TextAnchor oldAnchor = Text.Anchor;
                 Text.Anchor = TextAnchor.MiddleLeft;
@@ -206,7 +185,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
                 GUI.color = Color.white;
                 Owner.Pages.Tooltips.Register(btnRect, RelationsSettingsTooltips.GetPromptSectionTooltipKey(sectionName));
 
-                // 鐐瑰嚮澶勭悊
                 if (Widgets.ButtonInvisible(btnRect))
                 {
                     Owner._selectedSectionIndex = i;
@@ -217,39 +195,32 @@ internal sealed class RelationsPromptLegacyEditorChrome
             
             GUI.EndScrollView();
 
-            // 鎸夐挳鍖哄煙锛堝湪瀵艰埅鏍忓簳閮級
             y += listHeight + 10f;
             Rect buttonAreaRect = new Rect(innerRect.x, y, innerRect.width, buttonAreaHeight - 10f);
             
-            // 鍒嗛殧绾?
             Widgets.DrawLineHorizontal(innerRect.x, y - 5f, innerRect.width);
             
-            // 缁樺埗鎸夐挳
             DrawPromptActionButtonsVertical(buttonAreaRect);
         }
 
         internal void DrawEditorPanelWithPreview(Rect rect)
         {
-            // 鑳屾櫙
             Widgets.DrawBoxSolid(rect, new Color(0.1f, 0.1f, 0.12f));
 
 
             Rect innerRect = rect.ContractedBy(10f);
 
-            // 鑾峰彇褰撳墠鍒嗗尯
             string[] sections = Owner._advancedPromptMode ? RelationsPromptLegacyEditors.AdvancedSectionNames : RelationsPromptLegacyEditors.SimpleSectionNames;
             if (Owner._selectedSectionIndex >= sections.Length)
                 Owner._selectedSectionIndex = 0;
 
             string currentSection = sections[Owner._selectedSectionIndex];
 
-            // 璁＄畻甯冨眬锛氱紪杈戝尯 + 棰勮鍖?
             float titleHeight = 30f;
             float previewHeight = Owner._previewCollapsed ? 40f : 300f;
             float previewGap = 10f;
             float editorHeight = innerRect.height - titleHeight - previewGap - previewHeight;
 
-            // 鍒嗗尯鏍囬
             Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, titleHeight);
             GUI.color = RelationsPromptLegacyEditors.SectionHeaderColor;
             Text.Font = GameFont.Medium;
@@ -257,7 +228,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
             Text.Font = GameFont.Small;
             GUI.color = Color.white;
 
-            // 缂栬緫鍖哄煙锛堝埌搴曢儴锛?
             Rect contentRect = new Rect(innerRect.x, innerRect.y + titleHeight, innerRect.width, editorHeight);
             switch (currentSection)
             {
@@ -293,7 +263,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
                     break;
             }
 
-            // 棰勮鍖哄煙锛堝湪鍙充晶涓嬫柟锛屽缁堟樉绀猴級
             float previewY = innerRect.y + titleHeight + editorHeight + previewGap;
             Rect previewRect = new Rect(innerRect.x, previewY, innerRect.width, previewHeight);
             Owner.Pages.PromptLegacyPreview.DrawPreviewRight(previewRect);
@@ -303,7 +272,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
         {
             float btnWidth = rect.width / 2 - 2f;
 
-            // 绠€鍗曟ā寮忔寜閽?
             Rect simpleRect = new Rect(rect.x, rect.y, btnWidth, rect.height);
             bool isSimple = !Owner._advancedPromptMode;
 
@@ -323,7 +291,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
                 Owner.Pages.PromptLegacyPreview.SyncBuffersToData();
             }
 
-            // 楂樼骇妯″紡鎸夐挳
             Rect advancedRect = new Rect(rect.x + btnWidth + 4f, rect.y, btnWidth, rect.height);
             bool isAdvanced = Owner._advancedPromptMode;
 
@@ -378,24 +345,6 @@ internal sealed class RelationsPromptLegacyEditorChrome
                 Owner.Pages.PromptLegacyIo.ShowImportSystemPromptDialog();
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         internal static List<string> ParseSceneTagsCsv(string csv)

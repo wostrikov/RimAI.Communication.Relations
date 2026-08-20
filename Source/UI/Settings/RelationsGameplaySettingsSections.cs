@@ -200,26 +200,6 @@ internal sealed class RelationsGameplaySettingsSections
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         internal void NormalizeRaidPointSettings()
         {
             Owner.Settings.RaidPointsMultiplier = RaidPointsFactionOverride.ClampMultiplier(Owner.Settings.RaidPointsMultiplier);
@@ -245,10 +225,8 @@ internal sealed class RelationsGameplaySettingsSections
             Owner.Settings.RaidPointsFactionOverrides = normalized;
         }
 
-        /// <summary>/// 缂傚倸鍊烽悞锕傛晪闂佺硶鏅滈〃濠囧蓟閸涘瓨鍋勭€瑰嫰鍋婇崬娲⒒娓氬洤浜滄い锔炬暬婵℃潙顓兼径瀣珫闂佸壊鍋呯换鍌滅矆鐎ｎ喗鈷戞い鎰╁焺濡插綊鎮楅崹顐ょ煉闁?+ 闂備礁鎼崐绋棵洪敃鈧敃銏″鐎涙ɑ娅? ///</summary>
         internal void DrawSpeedOption(Rect rect, string label, bool isActive, System.Action onClick)
         {
-            // 缂傚倸鍊烽悞锕傛晪闂佺硶鏅滈〃濠囧箠濡ゅ啩娌柣鎰靛墰瑜版煡姊洪幐搴ｂ槈闁绘妫濋妴鍛邦樄鐎殿喚顭堥…銊╁醇濮橆兛澹曟繝銏ｆ硾椤︽娊宕㈤鍕厵閻庢稒顭囨晶顒勬煕鐎ｎ偅宕岀€规洘鍨甸…銊╁箛椤旂虎妲?
             if (isActive)
             {
                 Widgets.DrawBoxSolid(rect, new Color(0.25f, 0.45f, 0.7f, 0.3f));
@@ -291,7 +269,6 @@ internal sealed class RelationsGameplaySettingsSections
             }
         }
 
-        /// <summary>/// 缂傚倸鍊烽悞锕傛晪闂佺硶鏅滈〃濠傜暦濮樿泛骞㈡俊銈傚亾闂傚懏锕㈤弻鈥愁吋閸涱喖鏋犲銈忕导缁瑥顕ｉ崐鐔虹杸闁靛／鍜佹Х闂備礁鎲￠悧鏇㈠箠鎼淬劌绠氶柛顐犲劚閸愨偓闂佹悶鍎洪崜锕傚汲椤栫偞鐓曟繝濠傚暞濠€鏉棵归悪鈧崰妤€顕ラ崟顐悑濠㈣泛鑻粭锟犳煟閻橀亶妾烽柛濠冪墱閳ь剙鐏氱划鎾诲蓟? ///</summary>
         internal void DrawSectionHeader(Listing_Standard listing, string title, System.Action resetAction, Color? titleColor = null)
         {
             Rect headerRect = listing.GetRect(28f);
@@ -374,7 +351,6 @@ internal sealed class RelationsGameplaySettingsSections
             durationHours = Mathf.RoundToInt(listing.Slider(durationHours, 1f, 24f));
         }
 
-        /// <summary>/// AI 闂佽崵鍋炵粙鎴炵附閺冨倹瀚婚柣鏃傚帶缁犳垿鎮归崶顏勭毢缁炬儳顭烽弻? ///</summary>
         internal void DrawAIBehaviorToggles(Listing_Standard listing)
         {
             listing.CheckboxLabeled("RimChat_EnableAIGoodwillAdjustment".Translate(), ref Owner.Settings.EnableAIGoodwillAdjustment);

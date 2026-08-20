@@ -62,7 +62,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
         internal string aiResponseText = "";
         internal DialogueResponseEnvelope pendingResponseEnvelope = null;
 
-        // NPC离开session后, 进入冷却拒聊
         internal bool isDialogueEndedByNpc = false;
         internal string dialogueEndReason = "";
         internal bool sessionCloseSummaryCommitted = false;

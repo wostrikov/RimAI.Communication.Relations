@@ -30,7 +30,6 @@ internal sealed class DiplomacyDialoguePresenter : DiplomacyDialogueCollaborator
     internal DiplomacyDialoguePresenter(Dialog_DiplomacyDialogue owner) : base(owner) { }
 
 
-
 internal void BindActiveFactionState(
     Faction targetFaction,
     DialogueRuntimeContext targetRuntimeContext = null,
@@ -69,7 +68,6 @@ internal void BindActiveFactionState(
 }
 
 
-
 internal void ResetWindowUiStateForFactionSwitch()
 {
     GUI.FocusControl(null);
@@ -106,7 +104,6 @@ internal void ResetWindowUiStateForFactionSwitch()
 }
 
 
-
 internal bool SwitchFactionInPlace(Faction targetFaction)
 {
     if (targetFaction == null || targetFaction == faction || targetFaction.defeated)
@@ -137,35 +134,27 @@ internal bool SwitchFactionInPlace(Faction targetFaction)
 }
 
 
-
-       /// <summary>/// goodwill变化eventprocessing
-///</summary>
        internal void OnGoodwillChanged(Faction changedFaction, int changeAmount)
        {
            if (changedFaction == null) return;
            goodwillValueRevealUntil[changedFaction] = Time.realtimeSinceStartup + Dialog_DiplomacyDialogue.GOODWILL_VALUE_REVEAL_SECONDS;
 
-           // Lookupfaction在列表中的位置
            if (factionRowRects.TryGetValue(changedFaction, out Rect rowRect))
            {
-               // 计算动画起始位置 (在goodwill数values附近)
                Vector2 startPos = new Vector2(
                    rowRect.x + Dialog_DiplomacyDialogue.LayoutGoodwillAnimOffsetX,
                    rowRect.y + Dialog_DiplomacyDialogue.LayoutGoodwillAnimOffsetY
                );
 
-               // 创建动画
                GoodwillChangeAnimator.CreateAnimation(changedFaction, changeAmount, startPos);
            }
        }
-
 
 
 internal void MarkCloseAsFactionSwitch()
 {
     closeIntent = DialogueCloseIntent.SwitchFaction;
 }
-
 
 
 internal bool IsSwitchingFactionOnClose()

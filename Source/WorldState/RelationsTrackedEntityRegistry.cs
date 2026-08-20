@@ -5,10 +5,6 @@ using RimWorld.Planet;
 
 namespace Ustas.RimAI.Communication.Relations.WorldState
 {
-    /// <summary>
-    /// Dependencies: Verse current game objects and lightweight runtime hash sets.
-    /// Responsibility: keep an explicit registry of RimChat-tracked pawns/buildings/world objects so high-frequency patches only process relevant targets.
-    /// </summary>
     internal static class RelationsTrackedEntityRegistry
     {
         private static readonly HashSet<int> TrackedPawnIds = new HashSet<int>();

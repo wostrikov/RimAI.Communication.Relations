@@ -45,22 +45,18 @@ internal sealed class RelationsPromptLegacyPreview
                 Owner._previewFoldAnimTime -= Time.deltaTime;
             }
 
-            // 棰勮鏍囬鏍忚儗鏅?
             Rect titleBarRect = new Rect(rect.x, rect.y, rect.width, 22f);
             Widgets.DrawBoxSolid(titleBarRect, new Color(0.15f, 0.15f, 0.15f));
             
-            // 棰勮鏍囬
             Rect titleRect = new Rect(rect.x + 5f, rect.y + 2f, rect.width - 30f, 20f);
             GUI.color = new Color(0.5f, 0.8f, 0.5f);
             Text.Font = GameFont.Small;
             Widgets.Label(titleRect, "RimChat_PreviewTitleShort".Translate());
             GUI.color = Color.white;
 
-            // 鎶樺彔鎸夐挳锛堟爣棰樻爮鍙充晶锛?
             float foldBtnSize = 18f;
             Rect foldBtnRect = new Rect(rect.xMax - foldBtnSize - 5f, rect.y + 2f, foldBtnSize, foldBtnSize);
             
-            // 缁樺埗鎸夐挳鑳屾櫙
             GUI.color = new Color(0.25f, 0.25f, 0.25f);
             if (Mouse.IsOver(foldBtnRect))
             {
@@ -69,7 +65,6 @@ internal sealed class RelationsPromptLegacyPreview
             Widgets.DrawBoxSolid(foldBtnRect, GUI.color);
             Widgets.DrawBox(foldBtnRect);
             
-            // 鐐瑰嚮澶勭悊
             if (Widgets.ButtonInvisible(foldBtnRect))
             {
                 Owner._previewCollapsed = !Owner._previewCollapsed;
@@ -85,7 +80,6 @@ internal sealed class RelationsPromptLegacyPreview
             Text.Anchor = oldAnchor;
             GUI.color = Color.white;
 
-            // 棰勮鍐呭妗嗭紙甯︽姌鍙犲姩鐢伙級
             if (!Owner._previewCollapsed || Owner._previewFoldAnimTime > 0f)
             {
                 float contentHeightFactor = 1f;
@@ -133,7 +127,6 @@ internal sealed class RelationsPromptLegacyPreview
             }
             else if (Owner._previewCollapsed)
             {
-                // 鎶樺彔鏃舵樉绀烘渶灏忓寲鎸囩ず鏉?
                 Rect collapsedRect = new Rect(rect.x, rect.y + 24f, rect.width, 16f);
                 Widgets.DrawBoxSolid(collapsedRect, new Color(0.15f, 0.15f, 0.15f, 0.5f));
                 GUI.color = Color.gray;

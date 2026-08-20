@@ -143,9 +143,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return normalizedText.Contains(normalizedClaim);
             }
 
-            // Bigram overlap: compare 2-char sliding windows between claim and text.
-            // This tolerates AI paraphrasing where exact phrases differ but key
-            // entities/actions overlap (e.g. "萨托尔警告" → "萨托尔部落发出…通牒").
             HashSet<string> claimBigrams = ExtractBigrams(normalizedClaim);
             HashSet<string> textBigrams = ExtractBigrams(normalizedText);
             if (claimBigrams.Count == 0)

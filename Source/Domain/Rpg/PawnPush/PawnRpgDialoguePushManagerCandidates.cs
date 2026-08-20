@@ -12,9 +12,6 @@ using Verse.AI;
 
 namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
-    /// <summary>/// Dependencies: RimWorld pawn/map/job systems, RimChat settings, Verse utility APIs.
- /// Responsibility: Candidate discovery, relationship/availability gating, and busy-state checks for PawnRPG proactive flow.
- ///</summary>
         internal sealed class PawnRpgDialoguePushManagerCandidates : GameComponent_PawnRpgDialoguePushManagerCollaborator
     {
         internal PawnRpgDialoguePushManagerCandidates(GameComponent_PawnRpgDialoguePushManager owner) : base(owner)

@@ -115,11 +115,6 @@ internal static RequestedCountExtraction ExtractRequestedCount(string needText)
             }
 
             string trimmed = needText.Trim();
-            // Only extract a leading number as count when followed by:
-            // - non-ASCII text (CJK): "1000原木" → count=1000
-            // - whitespace then text: "5 医疗包" → count=5
-            // - end of string (pure number): "10" → count=10
-            // NOT when followed by ASCII letters/digits: "75x350mmR" → no count (item name)
             Match match = Regex.Match(trimmed, @"^(\d+)(?=[^\x00-\x7F]|\s+\S|\s*$)");
             if (!match.Success)
             {

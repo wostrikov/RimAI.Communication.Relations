@@ -118,7 +118,7 @@ internal static bool IsFeatureEnabled(string actionType)
                     return settings.EnableAIRaidRequest;
                 case "request_raid_call_everyone":
                 case "request_raid_waves":
-                    return settings.EnableAIRaidRequest; // 复用 raid 开关
+                    return settings.EnableAIRaidRequest;
                 case "request_item_airdrop":
                     return settings.EnableAIItemAirdrop;
                 case "request_info":

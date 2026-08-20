@@ -681,7 +681,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         public void InitializeDefaults()
         {
-            // 尝试从默认configurationfileload
             var defaultConfig = LoadDefaultConfigFromFile();
             if (IsDefaultConfigUsable(defaultConfig))
             {
@@ -694,12 +693,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 Log.Warning("[RimAI.Relations] Default system prompt file parsed but critical sections are missing; fallback to minimal defaults.");
             }
 
-            // 如果fileload失败, 使用最小化默认configuration
             InitializeMinimalDefaults();
         }
 
-        /// <summary>/// 从 SystemPrompt_Default.json fileload默认configuration
- ///</summary>
         private SystemPromptConfig LoadDefaultConfigFromFile()
         {
             try
@@ -708,7 +704,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 if (LocalStorage.Current.FileExists(defaultConfigPath))
                 {
                     string json = LocalStorage.Current.ReadAllText(defaultConfigPath);
-                    // 使用 PromptPersistenceService 的解析method
                     var config = PromptPersistenceService.Instance?.ParseJsonToConfigInternal(
                         json,
                         $"default_system_prompt_file:{defaultConfigPath}");
@@ -747,21 +742,13 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         public const string PromptFolderName = "Prompt";
 
-        /// <summary>/// 默认configuration子foldername
- ///</summary>
         public const string DefaultSubFolderName = "Default";
 
-        /// <summary>/// 自定义configuration子foldername
- ///</summary>
         public const string CustomSubFolderName = "Custom";
 
-        /// <summary>/// 默认systempromptconfigurationfile名
- ///</summary>
         public const string DefaultConfigFileName = "SystemPrompt_Default.json";
         private const string DefaultDiplomacyPromptFileName = "DiplomacyDialoguePrompt_Default.json";
 
-        /// <summary>/// get默认configurationfilepath (Mod目录下的Prompt/Defaultfolder)
- ///</summary>
         private string GetDefaultConfigPath()
         {
             return GetDefaultPromptResourcePath(DefaultConfigFileName);
@@ -769,7 +756,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         private string GetDefaultPromptResourcePath(string fileName)
         {
-            // 尝试从 Mod pathget
             try
             {
                 var mod = LoadedModManager.GetMod<RelationsMod>();
@@ -781,7 +767,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
             catch { }
 
-            // 后备: 使用程序集path
             try
             {
                 string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -798,8 +783,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return System.IO.Path.Combine(PromptFolderName, DefaultSubFolderName, fileName);
         }
 
-        /// <summary>/// 从另一个configuration复制数据
- ///</summary>
         private void CopyFrom(SystemPromptConfig source)
         {
             ConfigName = source.ConfigName;
@@ -831,8 +814,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             PromptPolicy = source.PromptPolicy?.Clone() ?? PromptPolicyConfig.CreateDefault();
         }
 
-        /// <summary>/// initialize最小化默认configuration (fileload失败时使用)
- ///</summary>
         private void InitializeMinimalDefaults()
         {
             if (!TryLoadDefaultGlobalSystemPromptText(out string defaultGlobalSystemPrompt))

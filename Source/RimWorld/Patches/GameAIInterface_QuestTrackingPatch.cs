@@ -4,9 +4,6 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
-    /// <summary>/// Dependencies: GameAIInterface.CreateQuest/ExposeData.
- /// Responsibility: persist and update RimChat create_quest publication tracking records.
- ///</summary>
     [HarmonyPatch]
     public static class GameAIInterface_QuestTrackingPatch
     {

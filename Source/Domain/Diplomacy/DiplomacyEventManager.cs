@@ -55,13 +55,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         
 
-        /// <summary>/// 触发军事支援事件（公共接口，用于 CallEveryone 友好派系支援）
-        ///</summary>
-        
-
-        /// <summary>
-        /// CallEveryone 专用军事支援：不依赖 RaidFriendly/FriendlyRaid，可用于中立派系援军。
-        /// </summary>
         
 
         
@@ -126,8 +119,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         
 
-        /// <summary>/// 调度"呼叫所有人"袭击：敌友统一 16-30 小时窗口；当敌对数量不足时优先剔除最低好感友中立
-        ///</summary>
         
 
         
@@ -152,8 +143,8 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         
 
-        /// <summary>/// 调度袭击波次：n 次袭击，每次间隔 12-20 小时
-        ///</summary>
+        
+
         
 
         #region Facade forwards
@@ -1353,10 +1344,8 @@ public static bool ScheduleRaidCallEveryone(Faction sourceFaction, System.Collec
                     }
                 }
 
-                // 收集目标派系 defName
                 var targetDefNames = effectiveFactions.Select(f => f.def?.defName).Where(n => !string.IsNullOrEmpty(n)).ToList();
                 
-                // 为每个派系创建延迟事件，统一随机分布在 16-30 小时窗口内
                 foreach (var targetFaction in effectiveFactions)
                 {
                     bool isNeutralOrBetter = targetFaction.PlayerGoodwill >= 0;
@@ -1365,8 +1354,8 @@ public static bool ScheduleRaidCallEveryone(Faction sourceFaction, System.Collec
                     
                     var evt = new DelayedDiplomacyEvent(DelayedEventType.RaidCallEveryone, targetFaction, executeTick)
                     {
-                        RaidPoints = -1, // 自动计算
-                        RaidStrategy = null, // 自动选择
+                        RaidPoints = -1,
+                        RaidStrategy = null,
                         ArrivalMode = null,
                         TargetFactionDefNames = targetDefNames,
                         CurrentTargetIndex = targetDefNames.IndexOf(targetFaction.def?.defName),
@@ -1384,7 +1373,6 @@ public static bool ScheduleRaidCallEveryone(Faction sourceFaction, System.Collec
                     GameComponent_DiplomacyManager.Instance?.AddDelayedEvent(announceEvt);
                 }
                 
-                // 统计敌对和友好派系数量
                 int hostileCount = effectiveFactions.Count(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile);
                 int friendlyCount = effectiveFactions.Count - hostileCount;
                 
@@ -1809,7 +1797,6 @@ public static bool ScheduleRaidWaves(Faction faction, int waves)
                 
                 for (int i = 0; i < waves; i++)
                 {
-                    // 每波间隔 12-20 小时
                     int intervalTicks = Rand.Range(12 * 2500, 20 * 2500);
                     accumulatedDelay += intervalTicks;
                     

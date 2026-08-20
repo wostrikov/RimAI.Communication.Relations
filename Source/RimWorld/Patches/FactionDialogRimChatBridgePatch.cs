@@ -8,12 +8,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
-    /// <summary>
-    /// Dependencies: RimWorld.FactionDialogMaker.FactionDialogFor, Verse.DiaNode/DiaOption,
-    /// Ustas.RimAI.Communication.Relations.Module.RelationsMod, Ustas.RimAI.Communication.Relations.UI.Dialog_DiplomacyDialogue.
-    /// Responsibility: add a vanilla negotiation root-node option that bridges to RimChat
-    /// diplomacy dialogue when comms-console replacement is disabled.
-    /// </summary>
     [HarmonyPatch(typeof(FactionDialogMaker), nameof(FactionDialogMaker.FactionDialogFor))]
     public static class FactionDialogRimChatBridgePatch
     {

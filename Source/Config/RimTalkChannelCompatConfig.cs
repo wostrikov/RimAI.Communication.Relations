@@ -56,10 +56,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
     }
 
-    /// <summary>
-    /// Dependencies: RimChat RimTalk compatibility constants.
-    /// Responsibility: represent and clamp one prompt-channel RimTalk compatibility payload.
-    /// </summary>
     [Serializable]
     internal sealed class RimTalkChannelCompatConfig
     {

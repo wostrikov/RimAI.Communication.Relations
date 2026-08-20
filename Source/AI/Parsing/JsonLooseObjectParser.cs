@@ -56,12 +56,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
             if (index < 0) return null;
 
             index += pattern.Length;
-            // 跳过空白字符
             while (index < json.Length && char.IsWhiteSpace(json[index])) index++;
 
             if (index >= json.Length) return null;
 
-            // 检查whether是字符串
             if (json[index] == '"')
             {
                 index++;
@@ -79,7 +77,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return UnescapeJsonString(sb.ToString());
             }
 
-            // 不是字符串, 提取到下一个逗号或括号
             var valueSb = new StringBuilder();
             while (index < json.Length && json[index] != ',' && json[index] != '}' && json[index] != ']')
             {
@@ -89,8 +86,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return valueSb.ToString().Trim();
         }
 
-        /// <summary>/// 从JSON中提取对象
- ///</summary>
         public static string ExtractJsonObject(string json, string key)
         {
             string pattern = $"\"{key}\":";
@@ -98,12 +93,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
             if (index < 0) return null;
 
             index += pattern.Length;
-            // 跳过空白字符
             while (index < json.Length && char.IsWhiteSpace(json[index])) index++;
 
             if (index >= json.Length || json[index] != '{') return null;
 
-            // 找到匹配的结束括号
             int braceCount = 1;
             int startIndex = index;
             index++;
@@ -190,18 +183,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return objects;
         }
 
-        /// <summary>/// 解析参数对象
- ///</summary>
         public static Dictionary<string, object> ParseParameters(string parametersJson)
         {
             var result = new Dictionary<string, object>();
 
-            // 移除外层花括号
             string content = parametersJson.Trim();
             if (content.StartsWith("{")) content = content.Substring(1);
             if (content.EndsWith("}")) content = content.Substring(0, content.Length - 1);
 
-            // 简单解析键values对
             var pairs = SplitJsonPairs(content);
             foreach (var pair in pairs)
             {
@@ -384,8 +373,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return result;
         }
 
-        /// <summary>/// 分割JSON键values对
- ///</summary>
         public static List<string> SplitJsonPairs(string content)
         {
             var result = new List<string>();
@@ -424,8 +411,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return result;
         }
 
-        /// <summary>/// 反转义JSON字符串
- ///</summary>
         public static string UnescapeJsonString(string str)
         {
             return str.Replace("\\\"", "\"")

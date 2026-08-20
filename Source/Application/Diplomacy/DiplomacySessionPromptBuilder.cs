@@ -30,7 +30,6 @@ internal sealed class DiplomacySessionPromptBuilder : DiplomacyDialogueCollabora
     internal DiplomacySessionPromptBuilder(Dialog_DiplomacyDialogue owner) : base(owner) { }
 
 
-
 internal void HandlePromptRenderFailure(PromptRenderException ex)
 {
     if (ex == null)
@@ -49,7 +48,6 @@ internal void HandlePromptRenderFailure(PromptRenderException ex)
         false,
         DialogueMessageType.System);
 }
-
 
 
 internal void HandlePromptBuildFailure(
@@ -72,19 +70,16 @@ internal void HandlePromptBuildFailure(
 }
 
 
-
 internal List<ChatMessageData> BuildChatMessages(string playerMessage)
 {
     return BuildChatMessages(playerMessage, session, playerMessage);
 }
 
 
-
 internal List<ChatMessageData> BuildChatMessages(string playerMessage, FactionDialogueSession currentSession)
 {
     return BuildChatMessages(playerMessage, currentSession, playerMessage);
 }
-
 
 
 internal List<ChatMessageData> BuildChatMessages(
@@ -94,7 +89,6 @@ internal List<ChatMessageData> BuildChatMessages(
 {
     return BuildChatMessages(playerMessage, currentSession, historyMatchMessage, false);
 }
-
 
 
 internal List<ChatMessageData> BuildChatMessages(
@@ -157,7 +151,6 @@ internal List<ChatMessageData> BuildChatMessages(
 }
 
 
-
 internal static List<DialogueMessageData> BuildAirdropTradeCardCleanHistory(List<DialogueMessageData> history)
 {
     if (history == null || history.Count == 0)
@@ -185,7 +178,6 @@ internal static List<DialogueMessageData> BuildAirdropTradeCardCleanHistory(List
         .Where(message => message != null && !message.IsSystemMessage())
         .ToList();
 }
-
 
 
 internal static string BuildAiUserMessage(string playerMessage, FactionDialogueSession currentSession)
@@ -234,7 +226,6 @@ internal static string BuildAiUserMessage(string playerMessage, FactionDialogueS
 
     return result;
 }
-
 
 
 internal static bool TryBuildRansomStateReference(FactionDialogueSession currentSession, out string referenceBlock)
@@ -292,7 +283,6 @@ internal static bool TryBuildRansomStateReference(FactionDialogueSession current
 }
 
 
-
 internal static string BuildPendingReleasePrisonerJsonList(
     List<RansomContractManager.PendingReleaseSnapshot> snapshots)
 {
@@ -316,7 +306,6 @@ internal static string BuildPendingReleasePrisonerJsonList(
 }
 
 
-
 internal static string EscapeJsonText(string value)
 {
     string text = value ?? string.Empty;
@@ -326,12 +315,10 @@ internal static string EscapeJsonText(string value)
 }
 
 
-
 internal static string ToLowerBool(bool value)
 {
     return value ? "true" : "false";
 }
-
 
 
 internal string BuildSystemPrompt()
@@ -346,7 +333,6 @@ internal string BuildSystemPrompt()
         tags,
         negotiator);
 }
-
 
 
 internal static List<string> ParseSceneTagsCsv(string csv)
@@ -365,11 +351,8 @@ internal static List<string> ParseSceneTagsCsv(string csv)
 }
 
 
-
-
 internal void AddAIResponseToSession(DialogueResponseEnvelope envelope, FactionDialogueSession currentSession, Faction currentFaction, string playerMessage = null)
 {
-    // 解析 AI response
     var parsedResponse = AIResponseParser.ParseResponse(envelope, currentFaction);
     parsedResponse = Owner.Parts.Policy.ApplyDiplomacyIntentDrivenActionMapping(parsedResponse, currentSession, playerMessage);
     bool hasAirdropAction = parsedResponse.Actions.Any(action =>
@@ -382,7 +365,6 @@ internal void AddAIResponseToSession(DialogueResponseEnvelope envelope, FactionD
 
     string dialogueText = parsedResponse.DialogueText;
 
-    // 如果没有dialoguetext但有成功 action, 生成默认回复
     if (string.IsNullOrWhiteSpace(dialogueText) && parsedResponse.Actions.Count > 0)
     {
         List<AIAction> successfulActions = actionOutcomes
@@ -461,7 +443,6 @@ internal void AddAIResponseToSession(DialogueResponseEnvelope envelope, FactionD
     Owner.Parts.SocialActions.TryGenerateDialogueKeywordSocialPost(playerMessage, dialogueText, parsedResponse.Actions, currentFaction, currentSession);
     Owner.Parts.StrategyRequest.ApplyStrategySuggestions(currentSession, parsedResponse.StrategySuggestions);
 
-    // Dialogue结束后savememory
     Owner.Parts.Session.SaveFactionMemory(currentSession, currentFaction);
 }
 }

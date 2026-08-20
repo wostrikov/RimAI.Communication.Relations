@@ -79,8 +79,6 @@ internal sealed class RelationsGameplaySettingsPage
             Widgets.EndScrollView();
         }
 
-        /// <summary>/// 闂佽崵濮崇欢銈囨閺囥垺鍋╃紒顐㈠殬闂備胶顢婇惌鍥礃閵娧冨箑闂傚倷绶￠崑鍕囬悽绋课ョ€广儱顦涵鈧梺鐐藉劚閸熷潡寮崼鏇熷€电痪顓炴媼濞兼劙鏌嶈閸撴瑩鈥﹂悜鑺ュ仧妞ゆ棁濮ら崕?
- ///</summary>
         internal float CalculateAIControlContentHeight(float width)
         {
             float headerHeight = 34f * 14f + 120f;
@@ -152,39 +150,16 @@ internal sealed class RelationsGameplaySettingsPage
         }
 
 
-        /// <summary>/// 缂傚倸鍊烽悞锕傛晪闂佺硶鏅滈〃濠囧蓟閸涘瓨鍋勭€瑰嫰鍋婇崬娲⒒娓氬洤浜滄い锔炬暬婵℃潙顓兼径瀣珫闂佸壊鍋呯换鍌滅矆鐎ｎ喗鈷戞い鎰╁焺濡插綊鎮楅崹顐ょ煉闁?+ 闂備礁鎼崐绋棵洪敃鈧敃銏″鐎涙ɑ娅? ///</summary>
         internal void DrawSpeedOption(Rect rect, string label, bool isActive, System.Action onClick)
         {
             Sections.DrawSpeedOption(rect, label, isActive, onClick);
         }
 
 
-        /// <summary>/// AI 闂佽崵鍋炵粙鎴炵附閺冨倹瀚婚柣鏃傚帶缁犳垿鎮归崶顏勭毢缁炬儳顭烽弻? ///</summary>
         internal void DrawAIBehaviorToggles(Listing_Standard listing)
         {
             Sections.DrawAIBehaviorToggles(listing);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         internal void NormalizeRaidPointSettings()
@@ -193,14 +168,12 @@ internal sealed class RelationsGameplaySettingsPage
         }
 
 
-        /// <summary>/// 缂傚倸鍊烽悞锕傛晪闂佺硶鏅滈〃濠傜暦濮樿泛骞㈡俊銈傚亾闂傚懏锕㈤弻鈥愁吋閸涱喖鏋犲銈忕导缁瑥顕ｉ崐鐔虹杸闁靛／鍜佹Х闂備礁鎲￠悧鏇㈠箠鎼淬劌绠氶柛顐犲劚閸愨偓闂佹悶鍎洪崜锕傚汲椤栫偞鐓曟繝濠傚暞濠€鏉棵归悪鈧崰妤€顕ラ崟顐悑濠㈣泛鑻粭锟犳煟閻橀亶妾烽柛濠冪墱閳ь剙鐏氱划鎾诲蓟? ///</summary>
         internal void DrawSectionHeader(Listing_Standard listing, string title, System.Action resetAction, Color? titleColor = null)
         {
             Sections.DrawSectionHeader(listing, title, resetAction, titleColor);
         }
 
 
-        /// <summary>/// 闂備礁鎼€氼剚鏅舵禒瀣︽慨妯挎硾缁犳帡鏌曡箛鏇烆€屾俊鑼额嚙椤鈽夊▎妯煎姼濡炪倖鎹佸畷闈涒槈閻㈠壊鏁婃繛鍡樺劤閹鏌ｆ惔锝嗘毄妞ゃ垹锕幆渚€鎸婃径妯荤? ///</summary>
         internal void ShowResetConfirmationDialog(string sectionName, System.Action resetAction)
         {
             Dialog_MessageBox dialog = Dialog_MessageBox.CreateConfirmation(
@@ -217,7 +190,6 @@ internal sealed class RelationsGameplaySettingsPage
         }
 
         #region 闂備礁鎲￠懝鍓р偓姘煎墴瀹曡鎯旈妸銉ь槺闂佺粯鍨剁湁闁告帗甯掗…璺ㄦ崉閾忓墣褏绱掗鍛仯闁瑰嘲顑夋俊鍫曞幢濡厧骞嶆繝?
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥儓濠甸亶鏌ｉ悙瀵糕槈濠靛倹姊婚幏褰掓偄閻戞ê顎涢梺鍛婃寙閸涱喚鈧厽绻涢幋鐐村鞍婵＄偟鏅崚鎺楊敍濠婂嫬顎涢梺闈涚墕閹冲宕? ///</summary>
         internal void ResetAIBehaviorToDefault()
         {
             Settings.EnableAIGoodwillAdjustment = true;
@@ -233,7 +205,6 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.ExpectedActionDenyLogLevel = ExpectedActionDenyLogLevel.Info;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥嚑椤掍礁浠忓銈嗘尵閸嬫稑袙婵犲洦鍋ｅù锝囶焾閳锋棃鏌ｉ妶鍛棡缂佸顦叅妞ゅ繐妫楃粭锟犳煟閻橀亶妾烽柛濠冩礋閸┾偓? ///</summary>
         internal void ResetRaidSettingsToDefault()
         {
             Settings.EnableRaidStrategy_ImmediateAttack = true;
@@ -256,7 +227,6 @@ internal sealed class RelationsGameplaySettingsPage
             raidOverrideSelectedMinPoints = 35f;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥矗婢跺矂妾梺鍏间航閸庤鲸淇婇幎钘夌閺夊牆澧介悾铏亜閺冣偓濞叉粎妲愰弮鍫晩闁哄嫬绻掗ˇ鐗堟叏閹烘挾鈯曟い顓炵墦椤㈡ɑ绻濆顒傦紮? ///</summary>
         internal void ResetGoodwillSettingsToDefault()
         {
             Settings.DialogueActionGoodwillCostMultiplier = 0.5f;
@@ -265,7 +235,6 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.GoodwillCooldownTicks = 2500;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥嚑椤掑倻鐒奸梺鍏肩ゴ閺呮盯鍩涢弽顓熷仯濞达絿顭堥埛鏃堟煟閵堝懏顥炵紒瀣槸鐓ゆい蹇撴缁楋繝鏌ｉ悩閬嶆闁稿﹥娲熼崺鈧? ///</summary>
         internal void ResetGiftSettingsToDefault()
         {
             Settings.MaxGiftSilverAmount = 1000;
@@ -273,7 +242,6 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.GiftCooldownTicks = 60000;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥蓟閵夈儳顔岄梺鍝勵槹閸ㄤ絻顤呴梺鑽ゅС缁€浣规櫠娴犲鍋柛鈩冾焽閳绘梹绻涘顔荤敖閻㈩垱鐩幃瑙勬媴闂堟稈鍋撻弴銏犵劦? ///</summary>
         internal void ResetAidRequestSettingsToDefault()
         {
             Settings.MinGoodwillForAid = 40;
@@ -326,7 +294,6 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.RansomPenaltyTimeout = -35;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥蓟閵夈儳顓哄┑鈽嗗灠濠€閬嶅箰閵娿儮妲堥柟鐐▕椤庢鏌熼摎鍌氬祮闁绘侗鍠氶埀顒€婀辨刊顓㈠疮鎼达絿纾介柛鎰劤閺嬫瑩鎮归幇顔兼瀾妞ゎ亖鍋撳┑鈽嗗灡椤戞瑩宕ラ崶顒佺厱? ///</summary>
         internal void ResetWarPeaceSettingsToDefault()
         {
             Settings.MaxGoodwillForWarDeclaration = -50;
@@ -336,28 +303,24 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.PeaceCooldownTicks = 60000;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥蓟閵夈儳鏌堥梺绯曞墲缁嬫帟顤傞梺鑽ゅС缁€浣规櫠娴犲鍋柛鈩冾焽閳绘梹绻涘顔荤敖閻㈩垱鐩幃瑙勬媴闂堟稈鍋撻弴銏犵劦? ///</summary>
         internal void ResetCaravanSettingsToDefault()
         {
             Settings.CaravanCooldownTicks = 90000;
             Settings.CaravanDelayBaseTicks = 135000;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥矗婢跺矈娴勯柣鐘叉处瑜板啴锝為妶澶嬪仯濞达絿顭堥埛鏃堟煟閵堝懏顥炵紒瀣槸鐓ゆい蹇撴缁楋繝鏌ｉ悩閬嶆闁稿﹥娲熼崺鈧? ///</summary>
         internal void ResetQuestSettingsToDefault()
         {
             Settings.MinQuestCooldownDays = 7;
             Settings.MaxQuestCooldownDays = 12;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥嚑椤戣棄浜鹃柣鐔煎亰濡叉悂鏌涘▎蹇曠闁瑰嘲顑夊畷婊嗩槾闁哄鍊搁埥澶愬箻鐎涙ǜ浠㈢紓渚囧櫘閸ㄦ娊骞忕€ｎ喖围闁告侗浜滄禍? ///</summary>
         internal void ResetSecuritySettingsToDefault()
         {
             Settings.EnableAPICallLogging = true;
             Settings.MaxAPICallsPerHour = 0;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵?UI 闂佽崵濮崇粈浣规櫠娴犲鍋柛鈩冾焽閳绘梹绻涘顔荤敖閻㈩垱鐩幃瑙勬媴闂堟稈鍋撻弴銏犵劦? ///</summary>
         internal void ResetUISettingsToDefault()
         {
             Settings.TypewriterSpeedMode = TypewriterSpeedMode.Standard;
@@ -365,7 +328,6 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.DialogueStyleMode = DialogueStyleMode.NaturalConcise;
         }
 
-        /// <summary>/// 闂備浇顕栭崢褰掑垂瑜版崵鍥蓟閵夈儲宓嶉梺闈浤涢崘鈺冩瀮闂備胶绮…鍫ュ春閺嶎厼鐒垫い鎴炲缁佺増銇勯弮鈧ú婊呮閺冨牜鏁婇柡鍕箳椤︾増鎱ㄩ幒鎾垛姇妞ゎ厼鐗撻, 妯荤節濮橆剛锛? ///</summary>
         internal void ResetPresenceSettingsToDefault()
         {
             Settings.EnableFactionPresenceStatus = true;
@@ -392,7 +354,6 @@ internal sealed class RelationsGameplaySettingsPage
             Settings.PresenceOnlineDuration_Archotech = 20;
         }
 
-        /// <summary>/// 闂傚倷鐒﹁ぐ鍐矓閸洘鍋柛鈩冪☉缁犮儵鏌嶈閸撶喎顕ｉ悽绋块唶缂佸搫瀚板濠氬礋椤掆偓婵洭鏌涢埡鍌ゆ畷缂佸顦叅妞ゅ繐妫楃粭锟犳煟閻橀亶妾烽柛濠冩礋閸┾偓妞ゆ帒鍊堕埀顒€顑囧Σ鎰枎閹邦喒鏀冲┑鐘绘涧閻楀﹤鈻撳畝鍕厽妞ゎ偒鍓欐俊铏圭磼椤垵澧寸€规洘顨婇幃鈩冩償椤斿吋娅嶉梻? ///</summary>
         internal void ResetGameplaySectionsToDefault()
         {
             ResetAILimitsToDefault();

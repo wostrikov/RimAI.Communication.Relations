@@ -131,8 +131,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         
 
-        /// <summary>/// get或创建指定faction的dialoguesession
- ///</summary>
         
 
         
@@ -173,12 +171,8 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         
 
-        /// <summary>/// 检查factionwhether有未读message
- ///</summary>
         
 
-        /// <summary>/// get所有有dialoguerecord的faction
- ///</summary>
         
 
         internal int lastDailyResetTick = 0;
@@ -336,7 +330,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 RebuildDialogueSessionIndex();
                 RebuildPresenceStateIndex();
 
-                // 修复延迟event的 ExecuteTick: 防止存档load后出现不合理的长延迟
                 if (delayedEvents != null && Find.TickManager != null)
                 {
                     int currentTick = Find.TickManager.TicksGame;
@@ -383,7 +376,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 }
             }
 
-            // 游戏loadcompleted后, 从fileloadmemory数据
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 LeaderMemoryManager.Instance.OnAfterGameLoad(dialogueSessions);

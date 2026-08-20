@@ -30,7 +30,6 @@ internal sealed class DiplomacyDialogueChrome : DiplomacyDialogueCollaborator
     internal DiplomacyDialogueChrome(Dialog_DiplomacyDialogue owner) : base(owner) { }
 
 
-
 internal void DrawTitleBar(Rect inRect)
 {
     Widgets.DrawBoxSolid(new Rect(inRect.x, inRect.y, inRect.width, Dialog_DiplomacyDialogue.LayoutTitleBarHeight), new Color(0.15f, 0.15f, 0.18f));
@@ -55,7 +54,6 @@ internal void DrawTitleBar(Rect inRect)
     Text.Font = GameFont.Small;
     GUI.color = Color.white;
 }
-
 
 
 internal void DrawVersionLine(Rect inRect, float centerX, float factionTitleWidth)
@@ -91,7 +89,6 @@ internal void DrawVersionLine(Rect inRect, float centerX, float factionTitleWidt
 }
 
 
-
 internal string GetDialogueHeaderVersionText()
 {
     var settings = RelationsMod.Instance?.InstanceSettings;
@@ -105,7 +102,6 @@ internal string GetDialogueHeaderVersionText()
 }
 
 
-
 internal void OpenVersionLogLanguageMenu()
 {
     var options = new List<FloatMenuOption>
@@ -117,19 +113,16 @@ internal void OpenVersionLogLanguageMenu()
 }
 
 
-
 internal void OpenChineseVersionLog()
 {
     OpenVersionLogForLanguage("ChineseSimplified", "RimChat_VersionLogLanguageChinese");
 }
 
 
-
 internal void OpenEnglishVersionLog()
 {
     OpenVersionLogForLanguage("English", "RimChat_VersionLogLanguageEnglish");
 }
-
 
 
 internal void OpenHelpLanguageMenu()
@@ -143,19 +136,16 @@ internal void OpenHelpLanguageMenu()
 }
 
 
-
 internal void OpenChineseHelp()
 {
     OpenHelpForLanguage("ChineseSimplified", "RimChat_VersionLogLanguageChinese");
 }
 
 
-
 internal void OpenEnglishHelp()
 {
     OpenHelpForLanguage("English", "RimChat_VersionLogLanguageEnglish");
 }
-
 
 
 internal void OpenHelpForLanguage(string languageFolder, string languageKey)
@@ -172,7 +162,6 @@ internal void OpenHelpForLanguage(string languageFolder, string languageKey)
 }
 
 
-
 internal void OpenVersionLogForLanguage(string languageFolder, string languageKey)
 {
     var settings = RelationsMod.Instance?.InstanceSettings;
@@ -187,17 +176,14 @@ internal void OpenVersionLogForLanguage(string languageFolder, string languageKe
 }
 
 
-
 internal string GetWeatherAndTimeText()
 {
     var map = Find.CurrentMap;
     if (map == null) return "";
 
-    // Get温度
     float temperature = map.mapTemperature?.OutdoorTemp ?? 0f;
     string tempText = $"{temperature:F0}°C";
 
-    // Get游戏时间
     int hour = GenLocalDate.HourOfDay(map);
     int minute = (int)((GenLocalDate.DayPercent(map) * 24f - hour) * 60f);
     string timeText = $"{hour:D2}:{minute:D2}";
@@ -236,7 +222,6 @@ internal static Texture2D TexCRTBezelSpacer;
 internal static Texture2D TexCRTBezelFallout;
 
 
-
 // Active bezel index: 0=Standard, 1=Spacer, 2=Fallout
 internal static int ActiveBezelIndex
 {
@@ -258,11 +243,9 @@ internal const int BezelIndexSpacer = 1;
 internal const int BezelIndexFallout = 2;
 
 
-
 // Texture switch hotspot — rect in original texture coords (1402x1122): (40,665)→(148,783)
 // Scaled to window 960x720: (27,404)→(101,480)
 internal static readonly Rect SwitchHotspotWindow = new Rect(27f, 404f, 74f, 76f);
-
 
 
 // Close button hotspot — rect in original texture coords (1402x1122): (1099,1036)→(1285,1110)
@@ -271,7 +254,6 @@ internal static readonly Rect CloseHotspotWindow = new Rect(724f, 632f, 127f, 47
 
 
 internal static bool _closeHotspotWasHovering;
-
 
 
 // Terminal UI scale override
@@ -284,10 +266,8 @@ internal bool _scaleOverridden;
 internal static bool _switchHotspotWasHovering;
 
 
-
 // CRT overlay material (barrel distortion + scanlines + green tint + vignette)
 internal static Material MatCRT;
-
 
 
 // Procedural scanline texture fallback (no shader needed)
@@ -303,7 +283,6 @@ internal static Texture2D ScanlineOverlay
         return _scanlineOverlay;
     }
 }
-
 
 
 /// <summary>
@@ -323,7 +302,6 @@ internal static void InitTerminalTheme()
 }
 
 
-
 /// <summary>
 /// Shrink a rect inward by the bezel frame insets (asymmetric).
 /// Content should be drawn inside this rect to avoid being covered by the bezel.
@@ -336,7 +314,6 @@ internal static Rect ShrinkForBezel(Rect rect)
         rect.width - BezelInsetLeft - BezelInsetRight,
         rect.height - BezelInsetTop - BezelInsetBottom);
 }
-
 
 
 /// <summary>
@@ -354,7 +331,6 @@ internal static void DrawCRTOverlay(Rect contentRect)
         DrawCRTProcedural(contentRect);
     }
 }
-
 
 
 /// <summary>
@@ -449,7 +425,6 @@ internal void DrawCRTBezelBackground(Rect windowRect)
 }
 
 
-
 internal static Texture2D GetActiveBezelTexture()
 {
     switch (ActiveBezelIndex)
@@ -462,7 +437,6 @@ internal static Texture2D GetActiveBezelTexture()
             return TexCRTBezel;
     }
 }
-
 
 
 internal static void CycleToNextBezel(bool hasSpacer, bool hasFallout)
@@ -482,13 +456,11 @@ internal static void CycleToNextBezel(bool hasSpacer, bool hasFallout)
 }
 
 
-
 internal static bool IsSpacerTechLevel()
 {
     return DefDatabase<ResearchProjectDef>.AllDefsListForReading
         .Any(r => r.techLevel >= TechLevel.Spacer && r.IsFinished);
 }
-
 
 
 internal static float GetDesiredScale()
@@ -507,7 +479,6 @@ internal static float GetDesiredScale()
 }
 
 
-
 internal void ApplyTerminalScale()
 {
     float desired = GetDesiredScale();
@@ -518,7 +489,6 @@ internal void ApplyTerminalScale()
 }
 
 
-
 internal void RestoreTerminalScale()
 {
     if (_scaleOverridden)
@@ -527,7 +497,6 @@ internal void RestoreTerminalScale()
         _scaleOverridden = false;
     }
 }
-
 
 
 /// <summary>
@@ -545,7 +514,6 @@ internal static void DrawCRTWithShader(Rect rect)
 
     Graphics.DrawTexture(rect, BaseContent.WhiteTex, new Rect(0, 0, 1, 1), 0, 0, 0, 0, MatCRT);
 }
-
 
 
 /// <summary>
@@ -568,7 +536,6 @@ internal static void DrawCRTProcedural(Rect rect)
 
     GUI.color = prevColor;
 }
-
 
 
 /// <summary>

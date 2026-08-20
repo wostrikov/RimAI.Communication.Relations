@@ -588,8 +588,6 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
             return sb.ToString();
         }
 
-        /// <summary>/// 解析 JSON 字符串为 SystemPromptConfig (内部使用)
- ///</summary>
         internal SystemPromptConfig ParseJsonToConfigInternal(string json, string sourceContext = "unknown")
         {
             string source = string.IsNullOrWhiteSpace(sourceContext) ? "unknown" : sourceContext.Trim();

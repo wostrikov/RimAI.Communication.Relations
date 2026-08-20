@@ -180,8 +180,6 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
 
         
 
-        /// <summary>/// 注册自定义触发器（用于袭击消息等场景）
-        ///</summary>
         
 
         

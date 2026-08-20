@@ -396,7 +396,6 @@ internal sealed class RelationsProviderCloudSection
 
             if (string.IsNullOrEmpty(listModelsUrl))
             {
-                // 婵″倹鐏塙RL娑撹櫣鈹栭敍宀€娲块幒銉︽▔缁€楦垮殰鐎规矮绠熼柅澶愩€?
                 Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
                 {
                     new FloatMenuOption("Custom", () => config.SelectedModel = "Custom")
@@ -430,32 +429,14 @@ internal sealed class RelationsProviderCloudSection
             }
             else
             {
-                // 娴ｈ法鏁ら崡蹇曗柤瀵�鍚岄嚋閸ф瑧鍞ユ俊閬╣ey
                 Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
                 {
                     new FloatMenuOption("RimChat_ModelList_Loading".Translate(), null)
                 }));
                 
-                // 娴ｈ法鏁ら崡蹇曗柤瀵倹顒為懢宄板絿濡€崇€烽崚妤勩€?
                 Pages.ProviderCloudFetch.FetchModelsCoroutine(requestUrl, providerFallbackUrl, config.ApiKey, config.Provider, cacheKey, OpenMenu);
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         internal void DrawLocalProviderSection(Listing_Standard listing)

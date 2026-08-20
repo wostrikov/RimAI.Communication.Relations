@@ -10,9 +10,6 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>/// factionPromptmanager
- /// 负责从外部fileload和管理各faction的Promptconfiguration
- ///</summary>
     public class FactionPromptManager
     {
         readonly FactionPromptCatalogPersistence Persistence;
@@ -42,32 +39,20 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         #region 常量
 
-        /// <summary>/// Promptconfigurationfile名
- ///</summary>
         public const string ConfigFileName = "FactionPrompts_Custom.json";
 
-        /// <summary>/// 默认Prompt资源path
- ///</summary>
         public const string DefaultPromptsResourcePath = "RimChat/DefaultFactionPrompts";
 
-        /// <summary>/// 默认Promptconfigurationfile名 (在Mod目录中)
- ///</summary>
         public const string DefaultConfigFileName = "FactionPrompts_Default.json";
 
         #endregion
 
         #region 字段
 
-        /// <summary>/// configuration集合
- ///</summary>
         internal FactionPromptConfigCollection _configCollection;
 
-        /// <summary>/// whether已initialize
- ///</summary>
         internal bool _initialized;
 
-        /// <summary>/// configurationfile完整path
- ///</summary>
         internal string _configFilePath;
 
         internal HashSet<string> _defaultFactionDefNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -77,8 +62,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         #region 属性
 
-        /// <summary>/// get所有configuration
- ///</summary>
         public List<FactionPromptConfig> AllConfigs
         {
             get
@@ -116,10 +99,8 @@ namespace Ustas.RimAI.Communication.Relations.Config
             {
                 BuildDefaultConfigCatalog();
 
-                // Load或创建configuration
                 LoadConfigs();
 
-                // 确保所有faction都有configuration
                 EnsureAllFactionsHaveConfigs();
 
                 _initialized = true;
@@ -128,7 +109,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             catch (Exception ex)
             {
                 Log.Error($"[RimAI.Relations] Failed to initialize FactionPromptManager: {ex}");
-                // 创建空configuration集合作为后备
                 _configCollection = new FactionPromptConfigCollection();
             }
         }
@@ -153,8 +133,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
 
 
-        /// <summary>/// load默认configuration (从 FactionPrompts_Default.json file)
- ///</summary>
         private void LoadDefaultConfigs()
         {
             Persistence.LoadDefaultConfigs();
@@ -165,24 +143,16 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         public const string PromptFolderName = "Prompt";
 
-        /// <summary>/// 默认configuration子foldername
- ///</summary>
         public const string DefaultSubFolderName = "Default";
 
-        /// <summary>/// 自定义configuration子foldername
- ///</summary>
         public const string CustomSubFolderName = "Custom";
 
-        /// <summary>/// get默认configurationfilepath (Mod目录下的Prompt/Defaultfolder)
- ///</summary>
         private string GetDefaultConfigFilePath()
         {
             return Persistence.GetDefaultConfigFilePath();
         }
 
 
-        /// <summary>/// get自定义configurationfilepath (Mod目录下的Prompt/Customfolder)
- ///</summary>
         public string GetCustomConfigFilePath()
         {
             return ConfigFilePath;
@@ -194,16 +164,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
 
 
-        /// <summary>/// load硬编码默认configuration (后备方案)
- ///</summary>
         private void LoadHardcodedDefaultConfigs()
         {
             Persistence.LoadHardcodedDefaultConfigs();
         }
 
 
-        /// <summary>/// 确保所有faction都有configuration
- ///</summary>
         private void EnsureAllFactionsHaveConfigs()
         {
             Persistence.EnsureAllFactionsHaveConfigs();
@@ -214,34 +180,25 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         #region 默认配置创建
 
-        /// <summary>/// get支持的factionDef列表
- ///</summary>
         private List<FactionDef> GetSupportedFactionDefs()
         {
             return Persistence.GetSupportedFactionDefs();
         }
 
 
-        /// <summary>/// 如果presence则添加factionDef
- ///</summary>
         private void AddFactionDefIfExists(List<FactionDef> list, string defName)
         {
             Persistence.AddFactionDefIfExists(list, defName);
         }
 
 
-        /// <summary>/// 创建默认configuration
- ///</summary>
         private FactionPromptConfig CreateDefaultConfig(FactionDef factionDef)
         {
             return Persistence.CreateDefaultConfig(factionDef);
         }
 
 
-        /// <summary>/// 为factionsettings默认template字段
- /// 注意: 默认configuration应从 FactionPrompts_Default.json file读取
- /// 此method仅在file读取失败时作为后备使用, 创建最小化configuration
- ///</summary>
+        // Non-obvious edge case — read carefully before changing. (summary factionsettings template configuration FactionPrompts_Default.json file method file configuration summary)
         internal void SetupDefaultTemplateFields(FactionPromptConfig config, string factionDefName)
         {
             Persistence.SetupDefaultTemplateFields(config, factionDefName);
@@ -332,8 +289,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
 
 
-        /// <summary>/// 更新configuration
- ///</summary>
         public void UpdateConfig(FactionPromptConfig config)
         {
             if (!_initialized) Initialize();
@@ -376,8 +331,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return DefDatabase<FactionDef>.GetNamedSilentFail(factionDefName.Trim()) == null;
         }
 
-        /// <summary>/// 重置configuration为默认
- ///</summary>
         public void ResetConfig(string factionDefName)
         {
             var config = GetConfig(factionDefName);
@@ -388,8 +341,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
         }
 
-        /// <summary>/// 重置所有configuration为默认
- ///</summary>
         public void ResetAllConfigs()
         {
             if (!_initialized) Initialize();
@@ -401,8 +352,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             SaveConfigs();
         }
 
-        /// <summary>/// apply自定义Prompt
- ///</summary>
         public void ApplyCustomPrompt(string factionDefName, string customPrompt)
         {
             var config = GetConfig(factionDefName);
@@ -413,16 +362,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
         }
 
-        /// <summary>/// 导出configuration到file
- ///</summary>
         public bool ExportConfigs(string filePath)
         {
             return Persistence.ExportConfigs(filePath);
         }
 
 
-        /// <summary>/// 从file导入configuration
- ///</summary>
         public bool ImportConfigs(string filePath)
         {
             return Persistence.ImportConfigs(filePath);
@@ -462,8 +407,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         #endregion
     }
 
-    /// <summary>/// 简单的JSON工具类 - 使用手动序列化
- ///</summary>
+    // Serialization / save-load constraint — keep field identity stable. (summary JSON summary)
     public static class FactionPromptJsonUtility
     {
         public static string ToJson(FactionPromptConfigCollection collection, bool prettyPrint = false)
@@ -491,7 +435,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 sb.Append($"\"FactionDefName\":\"{EscapeJson(config.FactionDefName)}\",");
                 sb.Append($"\"DisplayName\":\"{EscapeJson(config.DisplayName)}\",");
                 
-                // 序列化template字段
+                // Serialization / save-load constraint — keep field identity stable. (template)
                 sb.Append("\"TemplateFields\":[");
                 for (int j = 0; j < config.TemplateFields.Count; j++)
                 {
@@ -545,7 +489,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
             try
             {
-                // 解析 Configs 数组
                 int configsStart = json.IndexOf("\"Configs\":");
                 if (configsStart < 0) return collection;
 
@@ -557,7 +500,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
                 string arrayContent = json.Substring(arrayStart + 1, arrayEnd - arrayStart - 1);
 
-                // 分割对象
                 var objects = SplitJsonObjects(arrayContent);
 
                 foreach (var objStr in objects)
@@ -602,7 +544,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 }
                 else if (c == '"')
                 {
-                    // 跳过字符串contents
                     i++;
                     while (i < arrayContent.Length && arrayContent[i] != '"')
                     {

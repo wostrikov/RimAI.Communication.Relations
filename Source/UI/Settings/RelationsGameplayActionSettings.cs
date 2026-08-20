@@ -36,7 +36,6 @@ internal sealed class RelationsGameplayActionSettings
     internal RelationsSettingsPages Pages => Owner.Pages;
     internal RelationsSettings Settings => Owner.Settings;
 
-        /// <summary>/// 闂佽崵鍋為崙褰掑储婵傜鍚规い鏃傚亾婵ジ鏌涢幘妤€鎳忛悗? ///</summary>
         internal void DrawRaidSettings(Listing_Standard listing)
         {
             listing.CheckboxLabeled("RimChat_EnableRaidStrategy_ImmediateAttack".Translate(), ref Settings.EnableRaidStrategy_ImmediateAttack);
@@ -45,7 +44,6 @@ internal sealed class RelationsGameplayActionSettings
             listing.CheckboxLabeled("RimChat_EnableRaidStrategy_ImmediateAttackSappers".Translate(), ref Settings.EnableRaidStrategy_ImmediateAttackSappers);
             listing.CheckboxLabeled("RimChat_EnableRaidStrategy_Siege".Translate(), ref Settings.EnableRaidStrategy_Siege);
 
-            // 闂備礁鎲＄敮妤佸垔娴犲绠垫い蹇撶墕濡﹢鏌ｉ悢绋款棆缁绢厸鍋?
             listing.CheckboxLabeled("RimChat_EnableRaidArrival_EdgeWalkIn".Translate(), ref Settings.EnableRaidArrival_EdgeWalkIn);
             listing.CheckboxLabeled("RimChat_EnableRaidArrival_EdgeDrop".Translate(), ref Settings.EnableRaidArrival_EdgeDrop);
             listing.CheckboxLabeled("RimChat_EnableRaidArrival_EdgeWalkInGroups".Translate(), ref Settings.EnableRaidArrival_EdgeWalkInGroups);
@@ -246,7 +244,6 @@ internal sealed class RelationsGameplayActionSettings
             }
         }
 
-        /// <summary>/// 濠电娀娼ч崐鑺ユ叏閵堝绀夐柛娑卞枟閸庣喖鏌ㄩ弴姘冲厡婵炲牆鐖奸弻鈩冩媴娓氼垱顥撳銈嗘⒐濞叉粎妲? ///</summary>
         internal void DrawGoodwillSettings(Listing_Standard listing)
         {
             listing.Label("RimChat_DialogueActionGoodwillCostMultiplier".Translate(Settings.DialogueActionGoodwillCostMultiplier.ToString("F2")));
@@ -275,13 +272,11 @@ internal sealed class RelationsGameplayActionSettings
             }
         }
 
-        /// <summary>/// 缂傚倷璁查崑鎾绘煠濞村娅呴柍閿嬬墵閹鎷呯粙搴撴寖闂? ///</summary>
         internal void DrawGiftSettings(Listing_Standard listing)
         {
             listing.Label($"RimChat_MaxGiftSilverAmount".Translate(Settings.MaxGiftSilverAmount));
             Settings.MaxGiftSilverAmount = (int)listing.Slider(Settings.MaxGiftSilverAmount, 100, 5000);
 
-            // 闂備礁鎼悧鍐磻閹炬剚鐔嗛柛顐㈡閸熴劑宕戦妸鈺傜厵闁规鍠栭弸搴ㄦ倵鐟欏嫬鈻曠€殿喓鍔戝畷婊勬媴鐟欏嫬巍
             listing.Label($"RimChat_MaxGiftGoodwillGain".Translate(Settings.MaxGiftGoodwillGain));
             Settings.MaxGiftGoodwillGain = (int)listing.Slider(Settings.MaxGiftGoodwillGain, 1, 25);
 
@@ -291,7 +286,6 @@ internal sealed class RelationsGameplayActionSettings
             Settings.GiftCooldownTicks = (int)(cooldownDays * 60000);
         }
 
-        /// <summary>/// 闂備礁婀辩划顖氼焽濞嗘劖鍙忔い蹇撴婵ジ鏌涢幘妤€鎳忛悗? ///</summary>
         internal void DrawAidRequestSettings(Listing_Standard listing)
         {
             listing.Label($"RimChat_MinGoodwillForAid".Translate(Settings.MinGoodwillForAid));
@@ -412,7 +406,6 @@ internal sealed class RelationsGameplayActionSettings
             Settings.RansomPenaltyTimeout = -(int)listing.Slider(Mathf.Abs(Settings.RansomPenaltyTimeout), 0, 100);
         }
 
-        /// <summary>/// 闂備胶鎳撻悺銊ф箒缂備降鍔婇崐鏍矙婢跺鍎熼柍鈺佸暙椤忣垰螖閻橀潧浠滈柣銈呮喘椤㈡瑩寮撮悩鐢碉紴? ///</summary>
         internal void DrawWarPeaceSettings(Listing_Standard listing)
         {
             listing.Label($"RimChat_MaxGoodwillForWar".Translate(Settings.MaxGoodwillForWarDeclaration));
@@ -437,7 +430,6 @@ internal sealed class RelationsGameplayActionSettings
             Settings.PeaceCooldownTicks = (int)(peaceCooldownDays * 60000);
         }
 
-        /// <summary>/// 闂備礁鎽滈崰搴∥涘┑鍠綁鏁傞悙顒€顎涢梺鍛婃寙閸涱喚鈧? ///</summary>
         internal void DrawCaravanSettings(Listing_Standard listing)
         {
             float cooldownDays = Settings.CaravanCooldownTicks / 60000f;
@@ -451,7 +443,6 @@ internal sealed class RelationsGameplayActionSettings
             Settings.CaravanDelayBaseTicks = (int)(delayDays * 60000);
         }
 
-        /// <summary>/// 濠电偛顕慨楣冾敋瑜庨幈銊╂偄閻戞ê顎涢梺鍛婃寙閸涱喚鈧? ///</summary>
         internal void DrawQuestSettings(Listing_Standard listing)
         {
             listing.Label($"RimChat_MinQuestCooldown".Translate(Settings.MinQuestCooldownDays));
@@ -461,7 +452,6 @@ internal sealed class RelationsGameplayActionSettings
             Settings.MaxQuestCooldownDays = (int)listing.Slider(Settings.MaxQuestCooldownDays, Math.Max(Settings.MinQuestCooldownDays, 1), 60);
         }
 
-        /// <summary>/// 闂佽娴烽幊鎾凰囬鐐茬煑闊洦娲樻刊濂告煕閹炬鎳忛悗? ///</summary>
         internal void DrawSecuritySettings(Listing_Standard listing)
         {
             listing.CheckboxLabeled("RimChat_EnableAPICallLogging".Translate(), ref Settings.EnableAPICallLogging);

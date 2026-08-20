@@ -37,19 +37,16 @@ public APIResult AdjustGoodwill(Faction faction, int amount, string reason = "")
             if (settings == null)
                 return APIResult.FailureResult("Settings not initialized");
 
-            // 参数验证
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
             if (faction.IsPlayer)
                 return APIResult.FailureResult("Cannot adjust player faction goodwill");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "AdjustGoodwill");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method AdjustGoodwill is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查单次调整上限
             int maxSingleAdjustment = settings.MaxGoodwillAdjustmentPerCall;
             if (Math.Abs(amount) > maxSingleAdjustment)
             {
@@ -57,7 +54,6 @@ public APIResult AdjustGoodwill(Faction faction, int amount, string reason = "")
                 amount = Math.Sign(amount) * maxSingleAdjustment;
             }
 
-            // 检查每日累计调整上限
             int currentDayAdjustment = _goodwillAdjustmentsToday.ContainsKey(faction) ? _goodwillAdjustmentsToday[faction] : 0;
             int maxDailyAdjustment = settings.MaxDailyGoodwillAdjustment;
 
@@ -73,18 +69,15 @@ public APIResult AdjustGoodwill(Faction faction, int amount, string reason = "")
                 amount = allowedAdjustment;
             }
 
-            // 执行调整
             int oldGoodwill = faction.PlayerGoodwill;
             faction.TryAffectGoodwillWith(Faction.OfPlayer, amount, false, true, null);
             int newGoodwill = faction.PlayerGoodwill;
             int actualChange = newGoodwill - oldGoodwill;
 
-            // Record调整
             _goodwillAdjustmentsToday[faction] = currentDayAdjustment + actualChange;
             Owner.Parts.CooldownOps.RecordAPICall("AdjustGoodwill", true, $"faction={faction.Name}, amount={actualChange}, reason={reason}");
             Owner.Parts.CooldownOps.SetCooldown(faction, "AdjustGoodwill");
 
-            // 触发event通知
             if (Math.Abs(actualChange) >= 10)
             {
                 NotifySignificantGoodwillChange(faction, oldGoodwill, newGoodwill, reason);
@@ -136,16 +129,13 @@ public APIResult SendGift(Faction faction, int silverAmount, int goodwillGain)
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "SendGift");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method SendGift is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查礼物上限
             if (silverAmount > settings.MaxGiftSilverAmount)
                 return APIResult.FailureResult($"Gift amount {silverAmount} exceeds maximum {settings.MaxGiftSilverAmount}");
 
-            // 检查goodwill收益上限
             if (goodwillGain > settings.MaxGiftGoodwillGain)
                 return APIResult.FailureResult($"Goodwill gain {goodwillGain} exceeds maximum {settings.MaxGiftGoodwillGain}");
 

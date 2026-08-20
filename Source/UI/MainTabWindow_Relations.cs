@@ -21,7 +21,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
         internal Faction selectedFaction;
         internal List<Faction> allFactions = new List<Faction>();
 
-        // 颜色主题
         internal static readonly Color BackgroundColor = new Color(0.08f, 0.08f, 0.10f);
         internal static readonly Color PanelColor = new Color(0.12f, 0.12f, 0.15f);
         internal static readonly Color HeaderColor = new Color(0.15f, 0.15f, 0.18f);
@@ -30,7 +29,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
         internal static readonly Color TextSecondary = new Color(0.65f, 0.65f, 0.70f);
         internal static readonly Color BorderColor = new Color(0.20f, 0.20f, 0.25f);
 
-        // Faction位置映射 (used for动画定位)
         internal readonly Dictionary<Faction, Rect> factionRowRects = new Dictionary<Faction, Rect>();
         internal bool goodwillEventSubscribed;
         internal MainTabWindow_RelationsParts Parts;
@@ -50,8 +48,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
             ClearGoodwillEventSubscription();
         }
 
-        /// <summary>/// goodwill变化eventprocessing
- ///</summary>
         
 
         public override void PreOpen()
@@ -150,7 +146,6 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
 internal void DrawRelationCard(Faction faction, Rect rect)
         {
-            // 卡片背景
             int goodwill = faction.PlayerGoodwill;
             Color relationColor = Owner.GetGoodwillColor(goodwill);
             
@@ -168,7 +163,6 @@ internal void DrawRelationCard(Faction faction, Rect rect)
             GUI.color = relationColor;
             Widgets.Label(new Rect(x, y, 200f, 28f), relationLabel);
 
-            // Goodwill大数字
             Text.Font = GameFont.Medium;
             GUI.color = relationColor;
             string goodwillText = $"{goodwill}";
@@ -177,7 +171,6 @@ internal void DrawRelationCard(Faction faction, Rect rect)
 
             y += 35f;
 
-            // Goodwill条
             Rect barBgRect = new Rect(x, y, rect.width - 30f, 10f);
             Widgets.DrawBoxSolid(barBgRect, new Color(0.08f, 0.08f, 0.10f));
             
@@ -185,7 +178,6 @@ internal void DrawRelationCard(Faction faction, Rect rect)
             Rect barFillRect = new Rect(barBgRect.x, barBgRect.y, barBgRect.width * goodwillPercent, barBgRect.height);
             Widgets.DrawBoxSolid(barFillRect, relationColor);
 
-            // 刻度标记
             GUI.color = new Color(0.3f, 0.3f, 0.35f);
             for (int i = -100; i <= 100; i += 50)
             {
@@ -202,7 +194,6 @@ internal void DrawInfoGrid(Faction faction, Rect rect)
             float cardWidth = (rect.width - 15f) / 2f;
             float cardHeight = 90f;
 
-            // Leader信息卡片
             Rect leaderRect = new Rect(rect.x, rect.y, cardWidth, cardHeight);
             string leaderName = faction.leader?.Name?.ToStringFull ?? "RimChat_None".Translate();
             string leaderTraits = faction.leader?.story?.traits?.allTraits?.Count > 0
@@ -210,13 +201,11 @@ internal void DrawInfoGrid(Faction faction, Rect rect)
                 : "RimChat_NoTraits".Translate();
             Owner.DrawInfoCard(leaderRect, "RimChat_LeaderCard".Translate(), leaderName, leaderTraits);
 
-            // 科技等级卡片
             Rect techRect = new Rect(rect.x + cardWidth + 15f, rect.y, cardWidth, cardHeight);
             Owner.DrawInfoCard(techRect, "RimChat_TechLevelCard".Translate(),
                 faction.def?.techLevel.ToString() ?? "RimChat_Unknown".Translate(),
                 "RimChat_TechLevelDesc".Translate());
 
-            // 据点数量卡片
             int settlementCount = 0;
             if (Find.WorldObjects?.SettlementBases != null)
             {
@@ -226,7 +215,6 @@ internal void DrawInfoGrid(Faction faction, Rect rect)
             Owner.DrawInfoCard(settlementRect, "RimChat_SettlementsCard".Translate(), settlementCount.ToString(),
                 "RimChat_SettlementsDesc".Translate());
 
-            // 意识形态卡片
             Rect ideoRect = new Rect(rect.x + cardWidth + 15f, rect.y + cardHeight + 10f, cardWidth, cardHeight);
             string ideoName = faction.ideos?.PrimaryIdeo?.name ?? "RimChat_None".Translate();
             Owner.DrawInfoCard(ideoRect, "RimChat_IdeologyCard".Translate(), ideoName,
@@ -235,7 +223,6 @@ internal void DrawInfoGrid(Faction faction, Rect rect)
 
 internal void DrawInfoCard(Rect rect, string label, string value, string subtext)
         {
-            // 卡片背景
             Widgets.DrawBoxSolid(rect, new Color(0.10f, 0.10f, 0.13f));
             GUI.color = BorderColor;
             Widgets.DrawBox(rect);
@@ -250,13 +237,11 @@ internal void DrawInfoCard(Rect rect, string label, string value, string subtext
             Text.Anchor = TextAnchor.MiddleLeft;
             Widgets.Label(new Rect(x, y - 1f, rect.width - 20f, 20f), label.Translate().RawText.ToUpper());
 
-            // 数values
             y += 18f;
             Text.Font = GameFont.Small;
             GUI.color = TextPrimary;
             Widgets.Label(new Rect(x, y, rect.width - 20f, 22f), value);
 
-            // 副text
             y += 24f;
             Text.Font = GameFont.Tiny;
             GUI.color = TextSecondary * 0.8f;
@@ -281,7 +266,6 @@ internal void DrawModernAIStatus(Faction faction, Rect rect)
         {
             bool isAIControlled = GameComponent_DiplomacyManager.Instance?.IsAIControlled(faction) ?? false;
             
-            // 背景
             Color statusColor = isAIControlled 
                 ? new Color(0.2f, 0.6f, 0.9f, 0.15f)
                 : new Color(0.3f, 0.3f, 0.35f, 0.15f);
@@ -295,7 +279,6 @@ internal void DrawModernAIStatus(Faction faction, Rect rect)
             float x = rect.x + 15f;
             float y = rect.y + 12f;
 
-            // State图标
             string icon = isAIControlled ? "[AI]" : "[Std]";
             Text.Font = GameFont.Medium;
             GUI.color = isAIControlled ? new Color(0.4f, 0.8f, 1f) : TextSecondary;
@@ -303,13 +286,11 @@ internal void DrawModernAIStatus(Faction faction, Rect rect)
 
             x += 40f;
 
-            // State标题
             Text.Font = GameFont.Small;
             GUI.color = TextPrimary;
             string statusTitle = isAIControlled ? "RimChat_AIControlledStatus".Translate() : "RimChat_StandardBehaviorStatus".Translate();
             Widgets.Label(new Rect(x, y, rect.width - x + rect.x - 20f, 22f), statusTitle);
 
-            // State描述
             y += 22f;
             Text.Font = GameFont.Tiny;
             GUI.color = TextSecondary;
@@ -332,10 +313,8 @@ internal void DrawModernButton(Rect rect, string label, Action onClick, Color? c
                 GUI.color = new Color(0.5f, 0.5f, 0.55f);
             }
 
-            // Button背景
             Widgets.DrawBoxSolid(rect, buttonColor * (Mouse.IsOver(rect) && enabled ? 1.2f : 1f));
             
-            // Button文字
             TextAnchor oldAnchor = Text.Anchor;
             Text.Anchor = TextAnchor.MiddleCenter;
             GUI.color = enabled ? Color.white : new Color(0.5f, 0.5f, 0.55f);
@@ -343,7 +322,6 @@ internal void DrawModernButton(Rect rect, string label, Action onClick, Color? c
             Text.Anchor = oldAnchor;
             GUI.color = Color.white;
 
-            // 点击processing
             if (enabled && Widgets.ButtonInvisible(rect))
             {
                 onClick?.Invoke();
@@ -462,11 +440,11 @@ internal string GetRelationLabelShort(int goodwill)
 
 internal Color GetGoodwillColor(int goodwill)
         {
-            if (goodwill >= 80) return new Color(0.3f, 0.85f, 0.4f);   // 绿色
-            if (goodwill >= 40) return new Color(0.7f, 0.9f, 0.3f);    // 黄绿
-            if (goodwill >= 0) return new Color(0.95f, 0.85f, 0.3f);   // 黄色
-            if (goodwill >= -40) return new Color(0.95f, 0.6f, 0.25f); // 橙色
-            return new Color(0.95f, 0.35f, 0.35f);                      // 红色
+            if (goodwill >= 80) return new Color(0.3f, 0.85f, 0.4f);  
+            if (goodwill >= 40) return new Color(0.7f, 0.9f, 0.3f);   
+            if (goodwill >= 0) return new Color(0.95f, 0.85f, 0.3f);  
+            if (goodwill >= -40) return new Color(0.95f, 0.6f, 0.25f);
+            return new Color(0.95f, 0.35f, 0.35f);                     
         }
 
 internal void OpenDialogueWindow()

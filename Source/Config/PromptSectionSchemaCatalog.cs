@@ -5,10 +5,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>
-    /// Dependencies: RimTalk prompt-channel catalog.
-    /// Responsibility: define the canonical main-chain prompt section schema and stable workspace channels.
-    /// </summary>
     internal static class PromptSectionSchemaCatalog
     {
         // Cache for GetOrderedMainChainSections to avoid per-frame allocations (C optimization)

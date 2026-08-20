@@ -10,12 +10,9 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
-    /// <summary>/// 增强原版任务生成节点, 支持preset变量以解决 UNRESOLVABLE error
- ///</summary>
     public static class QuestGenPatch
     {
-        /// <summary>/// 锁定开关: 开启时, 禁止原版节点覆盖 asker/faction 等核心变量
- ///</summary>
+        // Hard constraint — changing this breaks an invariant. (summary asker/faction summary)
         public static bool LockSlateVariables = false;
 
         /// <summary>/// initialize Patch
@@ -87,13 +84,10 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             } catch (Exception ex) { DebugLogger.WarningGated($"Failed patch HasRoyalTitleInCurrentFaction: {ex.Message}"); }
         }
 
-        /// <summary>/// Slate.Set 前缀patch: 在 LockSlateVariables 为 true 时保护核心变量
- ///</summary>
         public static bool Prefix_SlateSet(Slate __instance, string name, object var)
         {
             if (LockSlateVariables)
             {
-                // 保护faction相关变量
                 if (name == "asker" || name == "faction" || name == "askerFaction" || name == "giverFaction" || name == "enemyFaction" || name == "siteFaction")
                 {
                     if (__instance.Exists(name))
@@ -112,8 +106,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     if (var == null) return false;
                 }
                 
-                // 保护数values变量 (如 colonistCount, requiredPawnCount 等)
-                // 如果已经settings了有效values, 不允许原版脚本覆盖为无效values
                 if (name == "colonistCount" || name == "requiredPawnCount")
                 {
                     if (__instance.Exists(name))
@@ -121,10 +113,8 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                         try
                         {
                             int current = __instance.Get<int>(name);
-                            // 如果当前values有效 (>0) , 阻止原版脚本覆盖
                             if (current > 0)
                             {
-                                // 检查新valueswhether为无效values (-1 或 0)
                                 if (var != null)
                                 {
                                     int newInt = -1;
@@ -134,13 +124,12 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                                     }
                                     else if (var.GetType().IsValueType)
                                     {
-                                        // 尝试转换其他数values类型
                                         try { newInt = Convert.ToInt32(var); } catch { }
                                     }
                                     
                                     if (newInt <= 0)
                                     {
-                                        return false; // 阻止覆盖为无效values
+                                        return false;
                                     }
                                 }
                             }
@@ -152,8 +141,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             return true;
         }
 
-        /// <summary>/// 强制settings奖励faction, 防止 Royalty 任务默认指向帝国
- ///</summary>
         public static bool Prefix_ForceGiverFaction(QuestNode __instance)
         {
             if (!LockSlateVariables) return true;
@@ -206,8 +193,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             return true;
         }
 
-        /// <summary>/// 通用前缀patch: 防止生产者节点覆盖已有的重要变量
- ///</summary>
         public static bool Prefix_PreventOverwrite(QuestNode __instance)
         {
             if (!LockSlateVariables) return true;
@@ -262,9 +247,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             return true;
         }
 
-        /// <summary>/// Patch QuestNode_GetNearbySettlement.RunInt
- /// 如果 Slate 中已经presence有效的 settlement, 则跳过搜索逻辑, 防止被覆盖为 null
- ///</summary>
         public static bool Prefix_GetNearbySettlement(QuestNode_GetNearbySettlement __instance)
         {
             if (!LockSlateVariables) return true;
@@ -276,7 +258,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                 object existing = slate.Get<object>(storeAs);
                 if (existing is Settlement s && s.Spawned)
                 {
-                    // 顺便processing一下 askerFaction 逻辑, 因为原版节点也会尝试settings它
                     string storeFactionLeaderAs = __instance.storeFactionLeaderAs.GetValue(slate);
                     if (!string.IsNullOrEmpty(storeFactionLeaderAs) && !slate.Exists(storeFactionLeaderAs))
                     {
@@ -284,15 +265,12 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                             slate.Set(storeFactionLeaderAs, s.Faction.leader);
                     }
 
-                    return false; // 拦截原版逻辑
+                    return false;
                 }
             }
             return true;
         }
 
-        /// <summary>/// Patch QuestNode_GetFactionOf.RunInt
- /// 如果 Slate 中已经presence有效的 faction, 则跳过逻辑
- ///</summary>
         public static bool Prefix_GetFactionOf(QuestNode_GetFactionOf __instance)
         {
             if (!LockSlateVariables) return true;
@@ -310,11 +288,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             return true;
         }
 
-        /// <summary>/// Patch QuestNode_HasRoyalTitleInCurrentFaction.RunInt
- /// 原版逻辑: 检查 $asker whether有皇家头衔, 有则走 node 分支 (goodwill+声望) , 无则走 elseNode 分支 (仅物品)
- /// 问题: 非帝国faction发起任务时, $asker 没有皇家头衔, 走 elseNode 分支, 不发放goodwill!
- /// 解决: 当 faction 不是帝国时, 强制走 node 分支, 但禁用 allowRoyalFavor
- ///</summary>
         public static bool Prefix_HasRoyalTitleInCurrentFaction(QuestNode __instance)
         {
             if (!LockSlateVariables) return true;
@@ -363,8 +336,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             }
         }
 
-        /// <summary>/// 修改 QuestNode_GiveRewards 节点, 禁用 allowRoyalFavor 但保留 allowGoodwill
- ///</summary>
         private static void PatchGiveRewardsNodeForNonEmpireFaction(QuestNode node, Faction faction)
         {
             if (node == null) return;
@@ -411,10 +382,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             }
         }
 
-        /// <summary>/// Patch QuestNode_Root_Mission_BanditCamp.RunInt
- /// 如果发起faction不是帝国, 文明外来者或粗鲁外来者, 原版逻辑会直接报错并跳过.
- /// 我们通过 Patch 允许任何faction发起此任务.
- ///</summary>
         public static bool Prefix_Mission_BanditCamp(QuestNode __instance)
         {
             try
@@ -444,11 +411,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             return true;
         }
 
-        /// <summary>/// Postfix For QuestNode_Root_Mission.GetRequiredPawnCount
- /// 原版逻辑会根据 population 来决定需要多少人出任务. 如果 population 较小(如3), 则返回 -1.
- /// 对于 AI 弹出的任务, 如果 GameAIInterface settings了合理的 requiredPawnCount (如3甚至2) ,
- /// 我们应该尊重 slate 的settings, 而不是返回 -1 导致立刻报错 "invalid required pawn count".
- ///</summary>
         public static void Postfix_GetRequiredPawnCount(ref int __result)
         {
             if (!LockSlateVariables) return;
@@ -456,7 +418,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             if (slate != null && slate.Exists("requiredPawnCount"))
             {
                 int slateCount = slate.Get<int>("requiredPawnCount");
-                // 如果 GameAIInterface 等外部强行赋予了有效的人数需求, 覆盖原版的 -1
                 if (slateCount > 0)
                 {
                     __result = slateCount;

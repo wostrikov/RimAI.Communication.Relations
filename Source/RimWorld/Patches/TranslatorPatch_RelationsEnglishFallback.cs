@@ -10,11 +10,6 @@ using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
-    /// <summary>
-    /// Dependencies: Verse.Translator.TryTranslate, RimChat mod content root path.
-    /// Responsibility: provide a strict English fallback for RimChat keyed texts when
-    /// the active language pack does not contain RimChat translation files.
-    /// </summary>
     [HarmonyPatch]
     public static class TranslatorPatch_RelationsEnglishFallback
     {

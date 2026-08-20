@@ -3,10 +3,6 @@ using System.Collections.Generic;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>
-    /// Dependencies: channel catalog ids/seed definitions and RimTalk prompt entry config models.
-    /// Responsibility: normalize per-channel prompt entries and safely seed missing built-in channels.
-    /// </summary>
     internal static class RimTalkPromptEntrySeedSynchronizer
     {
         internal static bool EnsureCoverage(RimTalkPromptChannel channel, RimTalkChannelCompatConfig config)

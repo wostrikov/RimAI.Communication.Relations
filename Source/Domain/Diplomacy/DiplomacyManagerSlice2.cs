@@ -173,7 +173,6 @@ internal void FlushPendingDelayedEvents()
 
 internal void DailyReset()
         {
-            // 重置 GameAIInterface 的每日限制
             GameAIInterface.Instance?.DailyReset();
             Owner.OnSocialCircleDailyReset();
 
@@ -182,8 +181,6 @@ internal void DailyReset()
 
 internal void ProcessAIDecisions()
         {
-            // 这里将调用 AI API 进行决策
-            // 暂时留空, pending AI client实现
         }
 
 internal int GetPresenceCacheTicks()

@@ -6,54 +6,28 @@ using RimWorld;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
-    /// <summary>/// factionleader的memory数据结构
- /// record该leader对其他所有faction的认知和交互历史
- /// 包含跨派系互动的持久化记忆
- ///</summary>
     public class FactionLeaderMemory : IExposable
     {
-        /// <summary>/// leader所属faction的 ID
- ///</summary>
         public string OwnerFactionId { get; set; }
         
-        /// <summary>/// leader所属faction的name
- ///</summary>
         public string OwnerFactionName { get; set; }
         
-        /// <summary>/// leader的名字 (如果有)
- ///</summary>
         public string LeaderName { get; set; }
         
-        /// <summary>/// 对其他faction的memory列表
- ///</summary>
         public List<FactionMemoryEntry> FactionMemories = new List<FactionMemoryEntry>();
         
-        /// <summary>/// 重要eventmemory (宣战, 议和, 重大贸易等)
- ///</summary>
         public List<SignificantEventMemory> SignificantEvents = new List<SignificantEventMemory>();
         
-        /// <summary>/// dialogue历史record
- ///</summary>
         public List<DialogueRecord> DialogueHistory = new List<DialogueRecord>();
 
-        /// <summary>/// RPG channel: 非玩家faction Pawn 离图摘要池
- ///</summary>
         public List<CrossChannelSummaryRecord> RpgDepartSummaries = new List<CrossChannelSummaryRecord>();
 
-        /// <summary>/// diplomacychannel: session结束摘要池
- ///</summary>
         public List<CrossChannelSummaryRecord> DiplomacySessionSummaries = new List<CrossChannelSummaryRecord>();
         
-        /// <summary>/// 最后更新时间 tick
- ///</summary>
         public int LastUpdatedTick { get; set; }
         
-        /// <summary>/// 创建时间戳
- ///</summary>
         public long CreatedTimestamp { get; set; }
         
-        /// <summary>/// 最后save时间戳
- ///</summary>
         public long LastSavedTimestamp { get; set; }
         
         public FactionLeaderMemory()
@@ -68,12 +42,8 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             LeaderName = ownerFaction.leader?.Name?.ToStringFull ?? "Unknown";
             LastUpdatedTick = Find.TickManager.TicksGame;
             
-            // 不再预先initialize所有factionmemory, 改为按需创建
-            // InitializeFactionMemories(ownerFaction);
         }
 
-        /// <summary>/// initialize对所有其他faction的memory
- ///</summary>
         private void InitializeFactionMemories(Faction ownerFaction)
         {
             var allFactions = Find.FactionManager.AllFactions;
@@ -92,8 +62,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        /// <summary>/// get或创建对指定faction的memory
- ///</summary>
         public FactionMemoryEntry GetOrCreateMemory(Faction targetFaction)
         {
             var factionId = GetUniqueFactionId(targetFaction);
@@ -114,8 +82,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return memory;
         }
 
-        /// <summary>/// 添加重要eventmemory
- ///</summary>
         public void AddSignificantEvent(SignificantEventType eventType, Faction involvedFaction, string description)
         {
             SignificantEvents.Add(new SignificantEventMemory
@@ -131,24 +97,18 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             LastUpdatedTick = Find.TickManager.TicksGame;
         }
 
-        /// <summary>/// 从dialoguerecord更新memory
- ///</summary>
         public void UpdateFromDialogue(List<DialogueMessageData> messages)
         {
             foreach (var message in messages)
             {
-                // 分析dialoguecontents, 提取关键信息
                 AnalyzeDialogueMessage(message);
             }
             
             LastUpdatedTick = Find.TickManager.TicksGame;
         }
 
-        /// <summary>/// 分析单条dialoguemessage
- ///</summary>
         private void AnalyzeDialogueMessage(DialogueMessageData message)
         {
-            // 检测dialogue中whether提到其他faction
             var allFactions = Find.FactionManager.AllFactions;
             foreach (var faction in allFactions)
             {
@@ -158,7 +118,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     memory.LastMentionedTick = Find.TickManager.TicksGame;
                     memory.MentionCount++;
                     
-                    // 根据context判断情感倾向
                     if (IsNegativeContext(message.message, faction.Name))
                     {
                         memory.NegativeInteractions++;
@@ -171,8 +130,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        /// <summary>/// 检测负面context
- ///</summary>
         private bool IsNegativeContext(string message, string factionName)
         {
             var negativeWords = new[] { "enemy", "attack", "war", "hostile", "threat", "destroy", "hate", "敌", "战争", "攻击", "威胁" };
@@ -186,8 +143,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return false;
         }
 
-        /// <summary>/// 检测正面context
- ///</summary>
         private bool IsPositiveContext(string message, string factionName)
         {
             var positiveWords = new[] { "ally", "friend", "peace", "trade", "help", "support", "友好", "和平", "贸易", "盟友", "帮助" };
@@ -201,8 +156,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return false;
         }
 
-        /// <summary>/// 更新对某faction的relation快照
- ///</summary>
         public void UpdateRelationSnapshot(Faction targetFaction)
         {
             var memory = GetOrCreateMemory(targetFaction);
@@ -215,7 +168,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 Goodwill = targetFaction.PlayerGoodwill
             });
             
-            // 限制历史record数量
             if (memory.RelationHistory.Count > 50)
             {
                 memory.RelationHistory.RemoveAt(0);
@@ -224,8 +176,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             LastUpdatedTick = Find.TickManager.TicksGame;
         }
 
-        /// <summary>/// get唯一faction ID (used for跨存档识别)
- ///</summary>
         private static string GetUniqueFactionId(Faction faction)
         {
             if (faction.def != null && !string.IsNullOrEmpty(faction.def.defName))
@@ -235,8 +185,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return $"custom_{faction.loadID}";
         }
 
-        /// <summary>/// 刷新leadername
- ///</summary>
         public void RefreshLeaderInfo()
         {
             var faction = Find.FactionManager.AllFactions.Where(f => GetUniqueFactionId(f) == OwnerFactionId).FirstOrDefault();
@@ -293,8 +241,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        /// <summary>/// [新增]序列化数据
- ///</summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary summary)
         public void ExposeData()
         {
             string ownerFactionId = OwnerFactionId;
@@ -335,8 +282,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         }
     }
 
-    /// <summary>/// 对单个faction的memoryentry
- ///</summary>
     public class FactionMemoryEntry : IExposable
     {
         public string FactionId = "";
@@ -365,8 +310,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         }
     }
 
-    /// <summary>/// relation快照
- ///</summary>
     public class RelationSnapshot : IExposable
     {
         public int Tick = 0;
@@ -381,8 +324,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         }
     }
 
-    /// <summary>/// 重要eventmemory
- ///</summary>
     public class SignificantEventMemory : IExposable
     {
         public SignificantEventType EventType = SignificantEventType.GoodwillChanged;
@@ -403,19 +344,17 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         }
     }
 
-    /// <summary>/// 重要event类型
- ///</summary>
     public enum SignificantEventType
     {
-        WarDeclared,      // 宣战
-        PeaceMade,        // 议和
-        TradeCaravan,     // 贸易商队
-        GiftSent,         // 发送礼物
-        AidRequested,     // Request援助
-        QuestIssued,      // 发布任务
-        GoodwillChanged,  // Goodwill重大变化
-        AllianceFormed,   // 结盟
-        Betrayal          // 背叛
+        WarDeclared,     
+        PeaceMade,       
+        TradeCaravan,    
+        GiftSent,        
+        AidRequested,    
+        QuestIssued,     
+        GoodwillChanged, 
+        AllianceFormed,  
+        Betrayal         
     }
 
     /// <summary>/// dialoguerecord

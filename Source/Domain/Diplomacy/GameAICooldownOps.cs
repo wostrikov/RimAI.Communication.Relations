@@ -125,7 +125,7 @@ internal void CleanupOldRecords()
             if (Find.TickManager == null) return;
             
             int currentTick = Find.TickManager.TicksGame;
-            int maxAgeTicks = 60000 * 7; // 保留 7 天的record
+            int maxAgeTicks = 60000 * 7;
 
             _apiCallHistory.RemoveAll(r => currentTick - r.TickCalled > maxAgeTicks);
         }
@@ -238,7 +238,7 @@ internal void SetCooldown(Faction faction, string methodName, float offerPercent
                     "RequestTradeCaravan" => GetTradeCaravanCooldownTicks(faction),
                     "RequestVisitor" => GetTradeCaravanCooldownTicks(faction),
                     "RequestRaid" => settings?.RaidCooldownTicks ?? 180000,
-                    "RequestRaidWaves" => 5 * 60000, // 5天冷却
+                    "RequestRaidWaves" => 5 * 60000,
                     "RequestItemAirdrop" => GetItemAirdropCooldownTicks(faction, offerPercentMultiplier),
                     _ => 2500
                 };
@@ -265,7 +265,7 @@ public int GetRemainingCooldownSeconds(Faction faction, string methodName)
             if (Find.TickManager == null) return 0;
 
             int remainingTicks = nextAvailableTick - Find.TickManager.TicksGame;
-            return Math.Max(0, remainingTicks / 60); // 转换为秒
+            return Math.Max(0, remainingTicks / 60);
         }
 
 public Dictionary<string, int> GetFactionCooldownOverview(Faction faction)
@@ -284,7 +284,7 @@ public Dictionary<string, int> GetFactionCooldownOverview(Faction faction)
             foreach (var kvp in factionCooldowns)
             {
                 int remainingTicks = kvp.Value - currentTick;
-                result[kvp.Key] = Math.Max(0, remainingTicks / 60); // 转换为秒
+                result[kvp.Key] = Math.Max(0, remainingTicks / 60);
             }
 
             return result;
@@ -319,10 +319,8 @@ internal void RecordAPICall(string methodName, bool success, string parameters, 
             {
                 EnsureInitialized();
                 
-                // 检查游戏whether已initialize
                 if (Find.TickManager == null)
                 {
-                    // 游戏未完全initialize, 跳过record
                     return;
                 }
 
@@ -337,7 +335,6 @@ internal void RecordAPICall(string methodName, bool success, string parameters, 
 
                 _apiCallHistory.Add(record);
 
-                // 调试log
                 if (RelationsMod.Instance != null && (RelationsMod.Instance.InstanceSettings?.EnableDebugLogging ?? false))
                 {
                     string status = success ? "SUCCESS" : "FAILED";
@@ -346,7 +343,6 @@ internal void RecordAPICall(string methodName, bool success, string parameters, 
             }
             catch (Exception ex)
             {
-                // 防止record过程中的任何异常影响主流程
                 DebugLogger.Error($"Failed to record API call: {ex.Message}");
             }
         }

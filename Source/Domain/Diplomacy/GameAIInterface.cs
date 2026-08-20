@@ -49,23 +49,21 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Scribe_Values.Look(ref _lastResetTick, "lastResetTick", 0);
             Scribe_Collections.Look(ref _apiCallHistory, "apiCallHistory", LookMode.Deep);
             
-            // 序列化goodwill调整record
+            // Serialization / save-load constraint — keep field identity stable. (goodwill record)
             ExposeGoodwillAdjustments();
             
-            // 序列化faction独立冷却数据
+            // Serialization / save-load constraint — keep field identity stable. (faction)
             ExposeFactionCooldowns();
             ExposeRaidCooldowns();
             ExposeAirdropTradeTotals();
             Scribe_Values.Look(ref _lastSuccessfulAirdropFactionId, "lastSuccessfulAirdropFactionId", -1);
             Scribe_Values.Look(ref _lastSuccessfulCaravanFactionId, "lastSuccessfulCaravanFactionId", -1);
 
-            // 序列化派系特殊商品数据
+            // Serialization / save-load constraint — keep field identity stable.
             ExposeFactionSpecialItems();
         }
 
-        /// <summary>
-        /// 序列化派系特殊商品数据
-        /// </summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary summary)
         internal void ExposeFactionSpecialItems()
         {
             if (Scribe.mode == LoadSaveMode.Saving)
@@ -82,16 +80,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>/// 序列化全局袭击冷却状态
-        ///</summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary summary)
         internal void ExposeRaidCooldowns()
         {
             Scribe_Values.Look(ref _raidCallEveryoneNextAvailableTick, "raidCallEveryoneNextAvailableTick", 0);
             Scribe_Collections.Look(ref _raidWavesState, "raidWavesState", LookMode.Deep);
         }
 
-        /// <summary>/// 序列化goodwill调整record
- ///</summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary goodwill record summary)
         internal void ExposeGoodwillAdjustments()
         {
             List<Faction> goodwillKeys = null;
@@ -165,13 +161,10 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>
-        /// 序列化faction独立冷却数据
-        /// 结构: Dictionary<Faction, Dictionary<string, int>>
-        /// </summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary faction Dictionary Faction Dictionary string int summary)
         internal void ExposeFactionCooldowns()
         {
-            // 使用列表来序列化嵌套字典
+            // Serialization / save-load constraint — keep field identity stable.
             List<FactionCooldownEntry> cooldownEntries = null;
 
             if (Scribe.mode == LoadSaveMode.Saving)
@@ -216,42 +209,24 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         #region 数据结构
 
-        /// <summary>/// API 调用record
- ///</summary>
         internal List<APICallRecord> _apiCallHistory;
 
-        /// <summary>/// 今日goodwill调整record (faction -> 调整values)
- ///</summary>
         internal Dictionary<Faction, int> _goodwillAdjustmentsToday;
 
-        /// <summary>/// faction独立冷却时间 (faction -> (method名 -> 下次可用 tick))
- ///</summary>
         internal Dictionary<Faction, Dictionary<string, int>> _factionCooldowns;
 
-        /// <summary>/// dialoguebehavior冷却时间 (behavior类型 -> faction -> 下次可用 tick)
- ///</summary>
         internal Dictionary<DialogueGoodwillCost.DialogueActionType, Dictionary<Faction, int>> _dialogueActionCooldowns;
 
-        /// <summary>/// dialoguebehaviorrecord (used for每日限制)
- ///</summary>
         internal List<DialogueActionRecord> _dialogueActionRecords;
 
-        /// <summary>/// 上次重置 tick
- ///</summary>
         internal int _lastResetTick = 0;
         internal const int MakePeaceTargetGoodwill = 0;
         internal const int DeclareWarTargetGoodwill = -80;
 
-        /// <summary>/// request_raid_call_everyone 全局冷却 (下次可用 tick)
-        ///</summary>
         internal int _raidCallEveryoneNextAvailableTick = 0;
 
-        /// <summary>/// 袭击波次状态列表 (用于跟踪持续袭击)
-        ///</summary>
         internal List<RaidWaveState> _raidWavesState;
 
-        /// <summary>/// initialize所有字段
- ///</summary>
         internal void EnsureInitialized()
         {
             if (_apiCallHistory == null)
@@ -268,8 +243,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 _raidWavesState = new List<RaidWaveState>();
         }
 
-        /// <summary>/// API调用record结构
- ///</summary>
         public class APICallRecord : IExposable
         {
             public string MethodName;
@@ -288,8 +261,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
         }
 
-        /// <summary>/// API调用result
- ///</summary>
         public class APIResult
         {
             public bool Success { get; set; }
@@ -318,8 +289,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             public int NewGoodwill { get; set; }
         }
 
-        /// <summary>/// faction冷却entry (used for序列化)
- ///</summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary faction entry used for summary)
         public class FactionCooldownEntry : IExposable
         {
             public Faction Faction;
@@ -337,7 +307,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     }
                 }
                 
-                // 序列化method冷却列表
+                // Serialization / save-load constraint — keep field identity stable. (method)
                 List<string> methodNames = null;
                 List<int> cooldownTicks = null;
                 
@@ -368,15 +338,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         #region 袭击波次状态
 
-        /// <summary>/// 袭击波次状态，用于序列化持续袭击调度
-        ///</summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary summary)
         public class RaidWaveState : IExposable
         {
             public string SourceFactionDefName;
             public int WavesRemaining;
             public int NextWaveTick;
-            public int MinIntervalTicks = 12 * 2500;  // 12小时
-            public int MaxIntervalTicks = 20 * 2500;  // 20小时
+            public int MinIntervalTicks = 12 * 2500; 
+            public int MaxIntervalTicks = 20 * 2500; 
 
             public void ExposeData()
             {

@@ -3,10 +3,6 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
-    /// <summary>
-    /// Dependencies: filesystem name normalization, RPG persistent slot identity, and StringExtensions.SanitizeFileName.
-    /// Responsibility: retain latest observed save filename for diagnostics while exposing the stable RimChat binding id as the primary save context.
-    /// </summary>
     public static class SaveContextTracker
     {
         private static string currentSaveName = string.Empty;

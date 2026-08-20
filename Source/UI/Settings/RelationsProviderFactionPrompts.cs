@@ -51,7 +51,6 @@ internal sealed class RelationsProviderFactionPrompts
             Text.Font = GameFont.Small;
             listing.Gap(5f);
 
-            // 闁板秶鐤嗛弬鍥︽鐠侯垰绶為弰鍓с仛
             string configPath = FactionPromptManager.Instance.ConfigFilePath;
             Text.Font = GameFont.Tiny;
             GUI.color = new Color(0.6f, 0.6f, 0.6f);
@@ -61,7 +60,6 @@ internal sealed class RelationsProviderFactionPrompts
             Text.Font = GameFont.Small;
             listing.Gap(5f);
 
-            // 閺勫墽銇氶梾鎰濞插墽閮撮柅澶愩€?
             Rect toggleRect = listing.GetRect(24f);
             Widgets.CheckboxLabeled(toggleRect, "RimChat_ShowHiddenFactions".Translate(), ref showHiddenFactions);
             listing.Gap(10f);
@@ -75,14 +73,12 @@ internal sealed class RelationsProviderFactionPrompts
             Rect leftRect = new Rect(mainRect.x, mainRect.y, leftWidth, totalHeight);
             Rect rightRect = new Rect(mainRect.x + leftWidth + 10f, mainRect.y, rightWidth, totalHeight);
 
-            // 缂佹ê鍩楀ú鍓ч兇閸掓銆?
             DrawFactionPromptList(leftRect);
 
             DrawFactionPromptEditor(rightRect);
 
             listing.Gap(10f);
 
-            // 鎼存洟鍎撮幙宥勭稊閹稿鎸?
             DrawFactionPromptActionButtons(listing);
         }
 
@@ -90,7 +86,6 @@ internal sealed class RelationsProviderFactionPrompts
         {
             Rect innerRect = rect.ContractedBy(4f);
 
-            // 閺嶅洭顣?
             Text.Font = GameFont.Small;
             Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, 24f);
             Widgets.Label(titleRect, "RimChat_FactionList".Translate());
@@ -127,7 +122,6 @@ internal sealed class RelationsProviderFactionPrompts
 
                 Rect rowRect = new Rect(0, y, viewRect.width, rowHeight);
 
-                // 闁鑵戞妯瑰瘨
                 if (selectedFactionDefName == config.FactionDefName)
                 {
                     Widgets.DrawHighlightSelected(rowRect);
@@ -137,7 +131,6 @@ internal sealed class RelationsProviderFactionPrompts
                     Widgets.DrawLightHighlight(rowRect);
                 }
 
-                // 閻愮懓鍤柅澶嬪
                 if (Widgets.ButtonInvisible(rowRect))
                 {
                     selectedFactionDefName = config.FactionDefName;
@@ -147,7 +140,6 @@ internal sealed class RelationsProviderFactionPrompts
 
                 float xOffset = 4f;
 
-                // 閼奉亜鐣炬稊澶嬪瘹缁€鍝勬珤
                 if (config.UseCustomPrompt)
                 {
                     Rect customRect = new Rect(xOffset, y + 8f, 14f, 14f);
@@ -157,7 +149,6 @@ internal sealed class RelationsProviderFactionPrompts
                     xOffset += 20f;
                 }
 
-                // 濞插墽閮撮崥宥囆?
                 Rect nameRect = new Rect(xOffset, y, viewRect.width - xOffset - 10f, rowHeight);
                 Text.Anchor = TextAnchor.MiddleLeft;
                 string displayName = string.IsNullOrEmpty(config.DisplayName) ? config.FactionDefName : config.DisplayName;
@@ -213,7 +204,6 @@ internal sealed class RelationsProviderFactionPrompts
 
             float y = innerRect.y;
 
-            // 濞插墽閮撮崥宥囆為弽鍥暯
             Text.Font = GameFont.Medium;
             Rect headerRect = new Rect(innerRect.x, y, innerRect.width, 28f);
             string displayName = string.IsNullOrEmpty(config.DisplayName) ? config.FactionDefName : config.DisplayName;
@@ -221,7 +211,6 @@ internal sealed class RelationsProviderFactionPrompts
             Text.Font = GameFont.Small;
             y += 32f;
 
-            // 娴ｈ法鏁ら懛顏勭暰娑斿rompt闁銆?
             Rect checkboxRect = new Rect(innerRect.x, y, innerRect.width, 24f);
             bool prevUseCustom = editingUseCustomPrompt;
             Widgets.CheckboxLabeled(checkboxRect, "RimChat_UseCustomPrompt".Translate(), ref editingUseCustomPrompt);
@@ -238,12 +227,10 @@ internal sealed class RelationsProviderFactionPrompts
 
             if (editingUseCustomPrompt)
             {
-                // 缂傛牞绶懛顏勭暰娑斿rompt
                 DrawCustomPromptEditor(innerRect, ref y, config);
             }
             else
             {
-                // 閺勫墽銇氭妯款吇Prompt鐠囷附鍎?
                 DrawDefaultPromptViewer(innerRect, ref y, config);
             }
         }
@@ -258,7 +245,6 @@ internal sealed class RelationsProviderFactionPrompts
             }
             factionPromptTextArea.MaxLength = Settings.MaxFactionPromptLength;
 
-            // 閺傚洦婀扮紓鏍帆閸栧搫鐓?
             float textHeight = innerRect.yMax - y - 70f;
             Rect textRect = new Rect(innerRect.x, y, innerRect.width, textHeight);
             factionPromptTextArea.Draw(textRect);
@@ -267,7 +253,6 @@ internal sealed class RelationsProviderFactionPrompts
 
             float btnWidth = (innerRect.width - 20f) / 3;
 
-            // 娣囨繂鐡ㄩ幐澶愭尦
             Rect saveRect = new Rect(innerRect.x, y, btnWidth, 28f);
             bool canSave = !factionPromptTextArea.HasExceededLimit;
             GUI.color = canSave ? new Color(0.3f, 0.8f, 0.3f) : Color.gray;
@@ -285,7 +270,6 @@ internal sealed class RelationsProviderFactionPrompts
                 ShowResetPromptConfirmation(config);
             }
 
-            // 閺屻儳婀呮妯款吇閹稿鎸?
             Rect viewRect = new Rect(innerRect.x + btnWidth * 2 + 20f, y, btnWidth, 28f);
             if (Widgets.ButtonText(viewRect, "RimChat_ViewDefault".Translate()))
             {
@@ -309,32 +293,25 @@ internal sealed class RelationsProviderFactionPrompts
         {
             float sectionHeight = 60f;
 
-            // 閺嶇绺炬搴㈢壐
             DrawPromptFeature(innerRect, ref y, "RimChat_CoreStyle".Translate(), config.GetFieldValue("閺嶇绺炬搴㈢壐"), sectionHeight);
 
-            // 閻劏鐦濋悧鐟扮窙
             DrawPromptFeature(innerRect, ref y, "RimChat_VocabularyFeatures".Translate(), config.GetFieldValue("閻劏鐦濋悧鐟扮窙"), sectionHeight);
 
-            // 鐠囶厽鐨甸悧鐟扮窙
             DrawPromptFeature(innerRect, ref y, "RimChat_ToneFeatures".Translate(), config.GetFieldValue("鐠囶厽鐨甸悧鐟扮窙"), sectionHeight);
 
-            // 閸欍儱绱￠悧鐟扮窙
             DrawPromptFeature(innerRect, ref y, "RimChat_SentenceFeatures".Translate(), config.GetFieldValue("閸欍儱绱￠悧鐟扮窙"), sectionHeight);
 
-            // 鐞涖劏鎻粋浣哥箟
             DrawPromptFeature(innerRect, ref y, "RimChat_Taboos".Translate(), config.GetFieldValue("鐞涖劏鎻粋浣哥箟"), sectionHeight);
 
             float btnWidth = (innerRect.width - 20f) / 2;
             float btnY = innerRect.yMax - 34f;
 
-            // 缂傛牞绶Ο鈩冩緲閹稿鎸?
             Rect editTemplateRect = new Rect(innerRect.x, btnY, btnWidth, 28f);
             if (Widgets.ButtonText(editTemplateRect, "RimChat_EditTemplate".Translate()))
             {
                 Find.WindowStack.Add(new Dialog_FactionPromptEditor(config));
             }
 
-            // 妫板嫯顫嶉幐澶愭尦
             Rect previewRect = new Rect(innerRect.x + btnWidth + 10f, btnY, btnWidth, 28f);
             if (Widgets.ButtonText(previewRect, "RimChat_PreviewPrompt".Translate()))
             {
@@ -356,7 +333,6 @@ internal sealed class RelationsProviderFactionPrompts
 
         internal void DrawPromptFeature(Rect innerRect, ref float y, string label, string content, float height)
         {
-            // 閺嶅洨顒?
             Text.Font = GameFont.Tiny;
             GUI.color = new Color(0.7f, 0.7f, 0.7f);
             Rect labelRect = new Rect(innerRect.x, y, innerRect.width, Text.LineHeight);
@@ -401,14 +377,12 @@ internal sealed class RelationsProviderFactionPrompts
             Rect buttonRowRect = listing.GetRect(28f);
             float btnWidth = (buttonRowRect.width - 20f) / 3;
 
-            // 鐎电厧鍤柊宥囩枂閹稿鎸?
             Rect exportRect = new Rect(buttonRowRect.x, buttonRowRect.y, btnWidth, buttonRowRect.height);
             if (Widgets.ButtonText(exportRect, "RimChat_ExportPrompts".Translate()))
             {
                 ShowExportPromptsDialog();
             }
 
-            // 鐎电厧鍙嗛柊宥囩枂閹稿鎸?
             Rect importRect = new Rect(buttonRowRect.x + btnWidth + 10f, buttonRowRect.y, btnWidth, buttonRowRect.height);
             if (Widgets.ButtonText(importRect, "RimChat_ImportPrompts".Translate()))
             {
@@ -486,7 +460,6 @@ internal sealed class RelationsProviderFactionPrompts
         internal int EstimateTokenCount(string text)
         {
             if (string.IsNullOrEmpty(text)) return 0;
-            // 缁鏆愭导鎵暬閿涙矮鑵戦懟杈ㄦ瀮濞ｅ嘲鎮庣痪?鐎涙顑?Token
             return text.Length / 4;
         }
 }

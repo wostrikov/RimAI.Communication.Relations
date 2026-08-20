@@ -58,46 +58,38 @@ internal sealed class RelationsRpgPromptEditorsPage
 
         internal void DrawTab_RPGDialogue(Rect rect)
         {
-            // 固定高度, 无滚动条
             float totalHeight = 520f;
             Rect mainRect = new Rect(rect.x, rect.y, rect.width, totalHeight);
 
-            // 主布局: 左侧导航 + 右侧edit区
             float navWidth = mainRect.width / 3.5f;
             float editorWidth = mainRect.width - navWidth - 10f;
 
             Rect navRect = new Rect(mainRect.x, mainRect.y, navWidth, totalHeight);
             Rect editorRect = new Rect(mainRect.x + navWidth + 10f, mainRect.y, editorWidth, totalHeight);
 
-            // 绘制左侧导航
             DrawRPGNavigationPanel(navRect);
 
-            // 绘制右侧edit区
             DrawRPGEditorPanel(editorRect);
         }
 
         internal void DrawRPGNavigationPanel(Rect rect)
         {
-            // 背景
             Widgets.DrawBoxSolid(rect, new Color(0.12f, 0.12f, 0.14f));
             
 
             Rect innerRect = rect.ContractedBy(8f);
             float y = innerRect.y;
 
-            // 标题
             Text.Font = GameFont.Small;
             GUI.color = Color.gray;
             Widgets.Label(new Rect(innerRect.x, y, innerRect.width, 24f), "RimChat_RPGDialogueSettings".Translate());
             GUI.color = Color.white;
             y += 30f;
 
-            // 分隔线
             Widgets.DrawLineHorizontal(innerRect.x, y, innerRect.width);
             y += 10f;
 
-            // 分区列表区域
-            float listHeight = innerRect.height - y - 40f; // 预留底部savebutton
+            float listHeight = innerRect.height - y - 40f;
             Rect listRect = new Rect(innerRect.x, y, innerRect.width, listHeight);
             
             float contentHeight = RPGSectionNames.Length * 32f;
@@ -139,7 +131,6 @@ internal sealed class RelationsRpgPromptEditorsPage
             
             GUI.EndScrollView();
 
-            // 底部savebutton
             Rect saveBtnRect = new Rect(innerRect.x, innerRect.yMax - 30f, innerRect.width, 28f);
             if (Widgets.ButtonText(saveBtnRect, "RimChat_SaveRPGPrompt".Translate()))
             {
@@ -150,7 +141,6 @@ internal sealed class RelationsRpgPromptEditorsPage
 
         internal void DrawRPGEditorPanel(Rect rect)
         {
-            // 背景
             Widgets.DrawBoxSolid(rect, new Color(0.1f, 0.1f, 0.12f));
             
 
@@ -158,13 +148,11 @@ internal sealed class RelationsRpgPromptEditorsPage
 
             string currentSection = RPGSectionNames[_selectedRPGSectionIndex];
 
-            // 布局: edit区 + 预览区
             float titleHeight = 30f;
             float previewHeight = _rpgPreviewCollapsed ? 40f : 240f;
             float previewGap = 10f;
             float editorHeight = innerRect.height - titleHeight - previewGap - previewHeight;
 
-            // 分区标题
             Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, titleHeight);
             GUI.color = RelationsPromptLegacyEditors.SectionHeaderColor;
             Text.Font = GameFont.Medium;
@@ -172,7 +160,6 @@ internal sealed class RelationsRpgPromptEditorsPage
             Text.Font = GameFont.Small;
             GUI.color = Color.white;
 
-            // Edit区域
             Rect contentRect = new Rect(innerRect.x, innerRect.y + titleHeight, innerRect.width, editorHeight);
             
             switch (currentSection)
@@ -200,7 +187,6 @@ internal sealed class RelationsRpgPromptEditorsPage
                     break;
             }
 
-            // 预览区域
             float previewY = innerRect.y + titleHeight + editorHeight + previewGap;
             Rect previewRect = new Rect(innerRect.x, previewY, innerRect.width, previewHeight);
             DrawRPGPreviewFoldable(previewRect);
@@ -218,15 +204,12 @@ internal sealed class RelationsRpgPromptEditorsPage
             GUI.color = Color.white;
             Pages.Tooltips.Register(labelRect, RelationsSettingsTooltips.GetRpgFieldTooltipKey(labelKey));
 
-            // Get剩余高度
             float textHeight = rect.height - listing.CurHeight - 5f;
             Rect textRect = listing.GetRect(textHeight);
             
-            // 限制长度
             if (text != null && text.Length > maxLength)
                 text = text.Substring(0, maxLength);
 
-            // 计算实际contents高度
             float contentHeight = Mathf.Max(textRect.height, Text.CalcHeight(text, textRect.width - 16f) + 10f);
             Rect viewRect = new Rect(0f, 0f, textRect.width - 16f, contentHeight);
             _rpgEditorScroll = GUI.BeginScrollView(textRect, _rpgEditorScroll, viewRect);
@@ -480,10 +463,8 @@ internal sealed class RelationsRpgPromptEditorsPage
         }
         internal void DrawRPGPreviewFoldable(Rect rect)
         {
-            // 动画processing
             if (_rpgPreviewFoldAnimTime > 0f) _rpgPreviewFoldAnimTime -= Time.deltaTime;
 
-            // 标题栏
             Rect titleBarRect = new Rect(rect.x, rect.y, rect.width, 22f);
             Widgets.DrawBoxSolid(titleBarRect, new Color(0.15f, 0.15f, 0.15f));
             
@@ -492,7 +473,6 @@ internal sealed class RelationsRpgPromptEditorsPage
             Widgets.Label(titleRect, "RimChat_PreviewTitleShort".Translate());
             GUI.color = Color.white;
 
-            // 折叠button
             float foldBtnSize = 18f;
             Rect foldBtnRect = new Rect(rect.xMax - foldBtnSize - 5f, rect.y + 2f, foldBtnSize, foldBtnSize);
             
@@ -512,7 +492,6 @@ internal sealed class RelationsRpgPromptEditorsPage
             Widgets.Label(foldBtnRect, _rpgPreviewCollapsed ? "▶" : "▼");
             Text.Anchor = oldAnchor;
 
-            // Contents区
             if (!_rpgPreviewCollapsed || _rpgPreviewFoldAnimTime > 0f)
             {
                 float factor = 1f;

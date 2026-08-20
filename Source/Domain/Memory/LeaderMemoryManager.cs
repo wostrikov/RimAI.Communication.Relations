@@ -12,10 +12,6 @@ using JsonCopyStats = Ustas.RimAI.Communication.Relations.Memory.LeaderMemoryMan
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
-    /// <summary>/// factionleadermemorymanager
- /// 负责管理所有factionleadermemory的save和load
- /// 每个存档有独立的folder, 每个leader单独一个 JSON file
- ///</summary>
     public class LeaderMemoryManager
     {
         internal LeaderMemoryManagerParts Parts;
@@ -74,8 +70,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        /// <summary>/// 当前存档的memory数据目录
- ///</summary>
         internal string CurrentSaveDataPath
         {
             get
@@ -126,8 +120,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             }
         }
 
-        /// <summary>/// 内存中的memory缓存
- ///</summary>
         internal Dictionary<string, FactionLeaderMemory> _memoryCache = new Dictionary<string, FactionLeaderMemory>();
         internal readonly Dictionary<string, int> diplomacyMemoryRevisions = new Dictionary<string, int>(StringComparer.Ordinal);
         public event Action<DiplomacyMemoryChangedEventArgs> DiplomacyMemoryChanged;
@@ -136,8 +128,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             DiplomacyMemoryChanged?.Invoke(args);
         }
 
-        /// <summary>/// 缓存whether已load
- ///</summary>
         internal bool _cacheLoaded = false;
         internal readonly object _summarySyncRoot = new object();
         internal readonly object _cacheSyncRoot = new object();
@@ -149,30 +139,18 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         
 
-        /// <summary>/// 确保数据目录presence
- ///</summary>
         
 
         
 
-        /// <summary>/// get指定factionleader的memory
- ///</summary>
         
 
-        /// <summary>/// save指定factionleader的memory
- ///</summary>
         
 
-        /// <summary>/// save所有factionleader的memory
- ///</summary>
         
 
-        /// <summary>/// 从dialogue更新memory (但不save到file, 只更新内存)
- ///</summary>
         
 
-        /// <summary>/// record重要event (只更新内存)
- ///</summary>
         
 
         public void AddRpgDepartSummary(Faction faction, CrossChannelSummaryRecord record, int maxEntries)
@@ -207,12 +185,8 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         
 
-        /// <summary>/// load缓存
- ///</summary>
         
 
-        /// <summary>/// 从fileload所有memory
- ///</summary>
         
 
         internal string ResolveMemorySourceDirectory()
@@ -225,8 +199,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return LocalStorage.Current.DirectoryExists(path) && LocalStorage.Current.GetFiles(path, "*.json").Length > 0;
         }
 
-        /// <summary>/// 从fileload指定faction的memory
- ///</summary>
         
 
         internal string ResolveMemoryFilePath(string fileName)
@@ -234,57 +206,35 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             return Path.Combine(CurrentSaveDataPath, fileName);
         }
 
-        /// <summary>/// savememory到file
- ///</summary>
         
 
-        /// <summary>/// getmemoryfile名
- ///</summary>
         
 
-        /// <summary>/// get唯一faction ID
- ///</summary>
         
 
-        /// <summary>/// 将memory对象转换为 JSON 字符串
- ///</summary>
         internal string ConvertMemoryToJson(FactionLeaderMemory memory)
         {
             return LeaderMemoryJsonCodec.ConvertMemoryToJson(memory);
         }
 
-        /// <summary>/// 从 JSON 字符串解析memory对象
- ///</summary>
         internal FactionLeaderMemory ParseJsonToMemory(string json)
         {
             return LeaderMemoryJsonCodec.ParseJsonToMemory(json);
         }
 
-        /// <summary>/// 清理无效存档的memory数据 (暂时禁用)
- ///</summary>
         
 
-        /// <summary>/// 新游戏启动时的initialize
- ///</summary>
         
 
-        /// <summary>/// 游戏load时的initialize
- ///</summary>
         
 
-        /// <summary>/// 游戏loadcompleted后, 从fileloadmemory数据
- ///</summary>
         public void OnAfterGameLoad()
         {
             OnAfterGameLoad(null);
         }
 
-        /// <summary>/// 游戏loadcompleted后, 从fileloadmemory数据并回填存档已有session数据
- ///</summary>
         
 
-        /// <summary>/// 游戏save前调用, save所有memory数据
- ///</summary>
         
 
         #region Facade forwards
@@ -477,15 +427,12 @@ public void SaveMemory(Faction faction)
                 return;
             }
 
-            // 刷新信息
             memory.RefreshLeaderInfo();
             LeaderMemoryManager.NormalizeMemoryData(memory);
             memory.LastSavedTimestamp = DateTime.UtcNow.Ticks;
             
-            // Save到file
             Owner.SaveMemoryToFile(faction, memory);
             
-            // 调试log
             DebugLogger.Debug($"Saved memory for {faction.Name}: {memory.DialogueHistory.Count} dialogues, {memory.FactionMemories.Count} factions, {memory.SignificantEvents.Count} events");
         }
 
@@ -519,8 +466,6 @@ public void UpdateFromDialogue(Faction faction, List<DialogueMessageData> messag
                 memory.UpdateFromDialogue(messages);
                 memory.UpdateRelationSnapshot(faction);
                 
-                // 只添加新的dialoguerecord (检查whether已presence)
-                // 通过比较 GameTick 来判断whether是新message
                 int lastSavedTick = memory.DialogueHistory.Count > 0 
                     ? memory.DialogueHistory[memory.DialogueHistory.Count - 1].GameTick 
                     : -1;
@@ -528,7 +473,6 @@ public void UpdateFromDialogue(Faction faction, List<DialogueMessageData> messag
                 foreach (var msg in messages)
                 {
                     int msgTick = msg.GetGameTick();
-                    // 只save之前未save过的message
                     if (msgTick > lastSavedTick)
                     {
                         memory.DialogueHistory.Add(new DialogueRecord
@@ -540,13 +484,12 @@ public void UpdateFromDialogue(Faction faction, List<DialogueMessageData> messag
                     }
                 }
                 
-                // 限制dialoguerecord数量, 避免file过大
                 if (memory.DialogueHistory.Count > 200)
                 {
                     memory.DialogueHistory.RemoveRange(0, memory.DialogueHistory.Count - 200);
                 }
                 
-                // 注意: 这里不save到file, 只在存档save时统一save
+                // Non-obvious edge case — read carefully before changing. (save file save save)
             }
         }
 
@@ -556,7 +499,7 @@ public void RecordSignificantEvent(Faction faction, SignificantEventType eventTy
             if (memory != null)
             {
                 memory.AddSignificantEvent(eventType, involvedFaction, description);
-                // 注意: 这里不save到file, 只在存档save时统一save
+                // Non-obvious edge case — read carefully before changing. (save file save save)
             }
         }
 
@@ -795,7 +738,6 @@ internal void SaveMemoryToFile(Faction faction, FactionLeaderMemory memory)
 
 internal string GetMemoryFileName(Faction faction)
         {
-            // 使用faction ID 和name生成file名
             var safeName = faction.Name.SanitizeFileName();
             return $"{safeName}_{faction.loadID}.json";
         }
@@ -811,10 +753,6 @@ internal string GetUniqueFactionId(Faction faction)
 
 public void CleanupInvalidSaveData()
         {
-            // 暂时禁用清理功能, pending正确的 API 实现
-            // Var baseDir = Path.Combine(GenFilePaths.SaveDataFolderPath, "Ustas.RimAI.Communication.Relations", "save_data");
-            // If (!LocalStorage.Current.DirectoryExists(baseDir)) return;
-            // ...清理逻辑
         }
 
 public void OnNewGame()
@@ -824,7 +762,6 @@ public void OnNewGame()
             _resolvedSaveKey = string.Empty;
             Owner.EnsureDataDirectoryExists();
             
-            // 为新游戏的所有faction创建初始memory
             var allFactions = LeaderMemoryManager.GetActiveFactions();
 
             foreach (var faction in allFactions)

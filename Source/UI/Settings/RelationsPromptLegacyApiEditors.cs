@@ -65,15 +65,12 @@ internal sealed class RelationsPromptLegacyApiEditors
                 return;
             }
 
-            // 宸︿晶鍒楄〃鍖哄煙锛堝浐瀹氬搴︼級
             float listWidth = 220f;
             float buttonHeight = 32f;
             Rect listRect = new Rect(contentRect.x, contentRect.y, listWidth, contentRect.height - buttonHeight);
             
-            // 鍙充晶缂栬緫鍖哄煙
             Rect editRect = new Rect(contentRect.x + listWidth + 10f, contentRect.y, contentRect.width - listWidth - 10f, contentRect.height - buttonHeight);
 
-            // 缁樺埗鍔ㄤ綔鍒楄〃锛堝甫婊氬姩锛?
             float itemHeight = 30f;
             float listContentHeight = actions.Count * itemHeight;
             Rect listContentRect = new Rect(0f, 0f, listWidth - 16f, Mathf.Max(listContentHeight, listRect.height));
@@ -110,50 +107,42 @@ internal sealed class RelationsPromptLegacyApiEditors
             }
             GUI.EndScrollView();
 
-            // 鏂板鎸夐挳锛堝垪琛ㄥ簳閮級
             Rect addBtnRect = new Rect(contentRect.x, contentRect.yMax - buttonHeight, listWidth, buttonHeight - 4f);
             if (Widgets.ButtonText(addBtnRect, "RimChat_AddNew".Translate()))
             {
                 AddNewApiAction();
             }
 
-            // 缁樺埗鍙充晶缂栬緫鍖哄煙
             if (Owner._selectedApiActionIndex >= 0 && Owner._selectedApiActionIndex < actions.Count)
             {
                 var action = actions[Owner._selectedApiActionIndex];
                 float y = editRect.y;
 
-                // 鏍囬
                 GUI.color = RelationsPromptLegacyEditors.SectionHeaderColor;
                 Widgets.Label(new Rect(editRect.x, y, editRect.width, 24f), "RimChat_EditApiAction".Translate());
                 GUI.color = Color.white;
                 y += 28f;
 
-                // 鍚嶇О
                 Widgets.Label(new Rect(editRect.x, y, editRect.width, 20f), "RimChat_ActionName".Translate());
                 y += 22f;
                 Owner._editingApiActionName = Widgets.TextField(new Rect(editRect.x, y, editRect.width, 24f), Owner._editingApiActionName);
                 y += 28f;
 
-                // 鍙傛暟
                 Widgets.Label(new Rect(editRect.x, y, editRect.width, 20f), "RimChat_ParametersLabel".Translate());
                 y += 22f;
                 Owner._editingApiActionParams = Widgets.TextField(new Rect(editRect.x, y, editRect.width, 24f), Owner._editingApiActionParams);
                 y += 28f;
 
-                // 闄愬埗鏉′欢
                 Widgets.Label(new Rect(editRect.x, y, editRect.width, 20f), "RimChat_RequirementLabel".Translate());
                 y += 22f;
                 Owner._editingApiActionReq = Widgets.TextField(new Rect(editRect.x, y, editRect.width, 24f), Owner._editingApiActionReq);
                 y += 28f;
 
-                // 鎻忚堪锛堝ぇ鏂囨湰妗嗭紝甯︽粴鍔紝濉弧鍓╀綑绌洪棿锛?
                 Widgets.Label(new Rect(editRect.x, y, editRect.width, 20f), "RimChat_DescriptionLabel".Translate());
                 y += 22f;
-                float descHeight = editRect.yMax - y - 40f; // 涓哄簳閮ㄦ寜閽暀鍑虹┖闂?
+                float descHeight = editRect.yMax - y - 40f;
                 Rect descRect = new Rect(editRect.x, y, editRect.width - 16f, descHeight);
                 
-                // 璁＄畻瀹為檯鍐呭楂樺害锛岀‘淇濆畬鏁存樉绀?
                 float descContentHeight = Mathf.Max(descRect.height, Text.CalcHeight(Owner._editingApiActionDesc, descRect.width - 16f) + 10f);
                 Rect descViewRect = new Rect(0f, 0f, descRect.width - 16f, descContentHeight);
                 Owner._apiActionDescScroll = GUI.BeginScrollView(descRect, Owner._apiActionDescScroll, descViewRect);
@@ -165,17 +154,14 @@ internal sealed class RelationsPromptLegacyApiEditors
                 action.Parameters = Owner._editingApiActionParams;
                 action.Requirement = Owner._editingApiActionReq;
 
-                // 鎸夐挳鍖哄煙锛堝浐瀹氬湪搴曢儴锛?
                 float btnWidth = 100f;
                 float btnGap = 10f;
                 float btnStartX = editRect.x;
                 
-                // 鍚敤/绂佺敤鎸夐挳
                 Rect enableBtnRect = new Rect(btnStartX, contentRect.yMax - buttonHeight, btnWidth, buttonHeight - 4f);
                 if (Widgets.ButtonText(enableBtnRect, action.IsEnabled ? "RimChat_Disable".Translate() : "RimChat_Enable".Translate()))
                     action.IsEnabled = !action.IsEnabled;
                 
-                // 鍒犻櫎鎸夐挳
                 Rect deleteBtnRect = new Rect(btnStartX + btnWidth + btnGap, contentRect.yMax - buttonHeight, btnWidth, buttonHeight - 4f);
                 if (Widgets.ButtonText(deleteBtnRect, "RimChat_DeleteSelected".Translate()))
                 {
@@ -184,7 +170,6 @@ internal sealed class RelationsPromptLegacyApiEditors
             }
             else
             {
-                // 鏈€変腑浠讳綍椤规椂鏄剧ず鎻愮ず
                 GUI.color = Color.gray;
                 Text.Font = GameFont.Medium;
                 Widgets.Label(editRect.ContractedBy(20f), "RimChat_SelectApiAction".Translate());

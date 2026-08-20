@@ -30,10 +30,8 @@ internal sealed class DiplomacyDialogueFactionList : DiplomacyDialogueCollaborat
     internal DiplomacyDialogueFactionList(Dialog_DiplomacyDialogue owner) : base(owner) { }
 
 
-
 internal void DrawFactionList(Rect rect)
 {
-    // 清空位置映射
     factionRowRects.Clear();
 
     Widgets.DrawBoxSolid(rect, new Color(0.085f, 0.085f, 0.11f, 0.98f));
@@ -138,10 +136,8 @@ internal void DrawFactionList(Rect rect)
 
     GUI.EndScrollView();
 
-    // 检查goodwill变化
     GoodwillChangeAnimator.CheckGoodwillChanges(allFactions);
 }
-
 
 
 internal List<Faction> GetAvailableFactions(bool refreshPresence = false)
@@ -183,14 +179,12 @@ internal List<Faction> GetAvailableFactions(bool refreshPresence = false)
 }
 
 
-
 internal static bool IsFactionEligibleForDialogueList(Faction factionEntry)
 {
     return factionEntry != null &&
            !factionEntry.IsPlayer &&
            !factionEntry.defeated;
 }
-
 
 
 internal void HandleFactionEditorLink()
@@ -210,7 +204,6 @@ internal void HandleFactionEditorLink()
         Application.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=3670833973");
     }
 }
-
 
 
 internal void OpenHiddenFactionVisibilitySelector()
@@ -233,7 +226,6 @@ internal void OpenHiddenFactionVisibilitySelector()
 }
 
 
-
 internal static bool IsSelectableHiddenFactionCandidate(Faction factionEntry)
 {
     return IsFactionEligibleForDialogueList(factionEntry) &&
@@ -241,12 +233,10 @@ internal static bool IsSelectableHiddenFactionCandidate(Faction factionEntry)
 }
 
 
-
 internal static void OnHiddenFactionSelectionConfirmed(List<Faction> selectedFactions)
 {
     GameComponent_DiplomacyManager.Instance?.SetManuallyVisibleHiddenFactions(selectedFactions);
 }
-
 
 
 internal int GetPresenceSortWeight(Faction factionToSort)
@@ -262,7 +252,6 @@ internal int GetPresenceSortWeight(Faction factionToSort)
             return 2;
     }
 }
-
 
 
 internal void DrawFactionListItem(Faction f, Rect rect)
@@ -342,7 +331,6 @@ internal void DrawFactionListItem(Faction f, Rect rect)
 }
 
 
-
         internal static bool TryOpenDiplomacyDirectFallback(Faction faction, Pawn negotiator, bool muteOpenSound, string source) => DiplomacyDialogueNegotiatorOps.TryOpenDiplomacyDirectFallback(faction, negotiator, muteOpenSound, source);
         internal static Pawn ResolveAutoNegotiator(Pawn preferredNegotiator) => DiplomacyDialogueNegotiatorOps.ResolveAutoNegotiator(preferredNegotiator);
         internal static Pawn ResolveHighestSocialNegotiator() => DiplomacyDialogueNegotiatorOps.ResolveHighestSocialNegotiator();
@@ -362,7 +350,6 @@ internal float UpdateGoodwillHoverAlpha(Faction faction, bool isHovering)
 }
 
 
-
 internal void CleanupGoodwillHoverAlpha(List<Faction> activeFactions)
 {
     if (activeFactions == null) return;
@@ -377,14 +364,12 @@ internal void CleanupGoodwillHoverAlpha(List<Faction> activeFactions)
 }
 
 
-
 internal TradeShip GetTradeShip()
 {
     if (faction == null || Find.CurrentMap == null) return null;
     return Find.CurrentMap.passingShipManager?.passingShips
         .FirstOrDefault(x => x.Faction == faction && x is TradeShip) as TradeShip;
 }
-
 
 
 internal void DrawOrbitalTraderCard(Rect rect, TradeShip tradeShip)
@@ -436,8 +421,6 @@ internal void DrawOrbitalTraderCard(Rect rect, TradeShip tradeShip)
         }
     }
 }
-
-
 
 
 internal float DrawFactionQuests(Rect rect, Faction targetFaction)
@@ -492,7 +475,6 @@ internal float DrawFactionQuests(Rect rect, Faction targetFaction)
 }
 
 
-
 internal Color GetGoodwillColor(int goodwill)
 {
     if (goodwill >= 80) return new Color(0.3f, 0.9f, 0.3f);
@@ -501,7 +483,6 @@ internal Color GetGoodwillColor(int goodwill)
     if (goodwill >= -40) return new Color(0.9f, 0.6f, 0.2f);
     return new Color(0.9f, 0.3f, 0.3f);
 }
-
 
 
 internal string GetRelationLabelShort(int goodwill)

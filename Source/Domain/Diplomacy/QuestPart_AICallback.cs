@@ -7,8 +7,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>/// 自定义任务部分: processing任务state变更并回调给 AI system
- ///</summary>
     public class QuestPart_AICallback : QuestPart
     {
         public string callbackId;
@@ -70,8 +68,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         }
     }
 
-    /// <summary>/// QuestNode: used for在 XML 中方便地添加 AICallback
- ///</summary>
     public class QuestNode_AddAICallback : QuestNode
     {
         public SlateRef<string> callbackId;

@@ -12,7 +12,6 @@ using RaidWaveState = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAI
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>RimChat quest publication tracking.</summary>
     internal sealed class GameAIQuestTracking : GameAIInterfaceCollaborator
     {
         internal GameAIQuestTracking(GameAIInterface owner) : base(owner)

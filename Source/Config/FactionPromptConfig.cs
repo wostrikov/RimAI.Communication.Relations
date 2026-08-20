@@ -4,20 +4,14 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    // Prompt template字段定义
-    //描述一个可edit的 Prompt 维度
     public class PromptTemplateField
     {
-        /// <summary>/// 字段name (如: 核心风格, 用词特征等)
         public string FieldName;
 
-        /// <summary>/// 字段values (具体的描述contents)
         public string FieldValue;
 
-        /// <summary>/// 字段说明 (used for UI 提示)
         public string FieldDescription;
 
-        /// <summary>/// whetherenable该字段
         public bool IsEnabled;
 
         public PromptTemplateField()
@@ -45,9 +39,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
     }
 
-    /// <summary>/// faction Prompt configuration
- /// 定义单个faction的 LLM dialogue风格和behavior特征
- ///</summary>
     [Obsolete("Use PromptTemplatePreset with flat PromptTemplateEntry list instead. Retained only for in-memory reads of legacy preset shapes.")]
     public class FactionPromptConfig : IExposable
     {
@@ -59,20 +50,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
  ///</summary>
         public string DisplayName;
 
-        /// <summary>/// Prompt template字段集合
- ///</summary>
         public List<PromptTemplateField> TemplateFields;
 
-        /// <summary>/// whetherenable自定义 Prompt (完全覆盖mode)
- ///</summary>
         public bool UseCustomPrompt;
 
-        /// <summary>/// 自定义 Prompt contents (如果enable完全覆盖mode)
- ///</summary>
         public string CustomPrompt;
 
-        /// <summary>/// 最后修改时间
- ///</summary>
         public long LastModifiedTicks;
 
         public FactionPromptConfig()
@@ -88,8 +71,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             TemplateFields = new List<PromptTemplateField>();
         }
 
-        /// <summary>/// get实际使用的 Prompt contents
- ///</summary>
         public string GetEffectivePrompt()
         {
             if (UseCustomPrompt && !string.IsNullOrEmpty(CustomPrompt))
@@ -99,8 +80,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return BuildPromptFromTemplate();
         }
 
-        /// <summary>/// 从template构建 Prompt
- ///</summary>
         public string BuildPromptFromTemplate()
         {
             var parts = new List<string>();
@@ -116,8 +95,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return string.Join("\n\n", parts);
         }
 
-        /// <summary>/// get或创建字段
- ///</summary>
         public PromptTemplateField GetOrCreateField(string fieldName, string defaultValue = "", string description = "")
         {
             var field = TemplateFields.Find(f => f.FieldName == fieldName);
@@ -129,8 +106,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             return field;
         }
 
-        /// <summary>/// settings字段values
- ///</summary>
         public void SetFieldValue(string fieldName, string value)
         {
             var field = GetOrCreateField(fieldName);
@@ -139,16 +114,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
             LastModifiedTicks = DateTime.Now.Ticks;
         }
 
-        /// <summary>/// get字段values
- ///</summary>
         public string GetFieldValue(string fieldName)
         {
             var field = TemplateFields.Find(f => f.FieldName == fieldName);
             return field?.FieldValue ?? "";
         }
 
-        /// <summary>/// 重置为初始state
- ///</summary>
         public void ResetToDefault()
         {
             UseCustomPrompt = false;
@@ -156,8 +127,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             LastModifiedTicks = DateTime.Now.Ticks;
         }
 
-        /// <summary>/// apply自定义 Prompt (完全覆盖mode)
- ///</summary>
         public void ApplyCustomPrompt(string customPrompt)
         {
             CustomPrompt = customPrompt;
@@ -165,8 +134,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             LastModifiedTicks = DateTime.Now.Ticks;
         }
 
-        /// <summary>/// 序列化/反序列化
- ///</summary>
+        // Serialization / save-load constraint — keep field identity stable. (summary summary)
         public void ExposeData()
         {
             Scribe_Values.Look(ref FactionDefName, "factionDefName", "");
@@ -177,8 +145,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
             Scribe_Values.Look(ref LastModifiedTicks, "lastModifiedTicks", 0);
         }
 
-        /// <summary>/// 创建副本
- ///</summary>
         public FactionPromptConfig Clone()
         {
             var clone = new FactionPromptConfig
@@ -200,8 +166,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
     }
 
-    /// <summary>/// factionPromptconfiguration集合
- ///</summary>
     public class FactionPromptConfigCollection : IExposable
     {
         public List<FactionPromptConfig> Configs = new List<FactionPromptConfig>();
@@ -211,15 +175,11 @@ namespace Ustas.RimAI.Communication.Relations.Config
             Scribe_Collections.Look(ref Configs, "configs", LookMode.Deep);
         }
 
-        /// <summary>/// get指定faction的configuration
- ///</summary>
         public FactionPromptConfig GetConfig(string factionDefName)
         {
             return Configs.Find(c => c.FactionDefName == factionDefName);
         }
 
-        /// <summary>/// 添加或更新configuration
- ///</summary>
         public void SetConfig(FactionPromptConfig config)
         {
             var existing = GetConfig(config.FactionDefName);

@@ -5,11 +5,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
-    /// <summary>
-    /// Dependencies: Verse.LoadedObjectDirectory, RimChat ChoiceLetter subclasses.
-    /// Responsibility: Fix legacy ChoiceLetter objects that have loadID=0 by assigning
-    /// unique IDs and manually registering them, preventing "Letter_0" duplicate key crashes.
-    /// </summary>
     [HarmonyPatch(typeof(LoadedObjectDirectory), "RegisterLoaded")]
     public static class LoadedObjectDirectoryPatch_FixLegacyLetterLoadID
     {

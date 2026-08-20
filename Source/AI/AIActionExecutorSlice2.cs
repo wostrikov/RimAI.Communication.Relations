@@ -19,16 +19,13 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
 internal ActionResult ExecuteRequestAid(AIAction action)
         {
-            // Get参数
             string aidType = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "type", "Military");
 
-            // 检查relation
             if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Ally)
             {
                 return ActionResult.Failure("Can only request aid from allied factions");
             }
 
-            // 检查goodwill
             if (RelationsMod.Instance == null) return ActionResult.Failure("Mod not initialized");
             var settings = RelationsMod.Instance.InstanceSettings;
             if (faction.PlayerGoodwill < settings?.MinGoodwillForAid)
@@ -36,14 +33,12 @@ internal ActionResult ExecuteRequestAid(AIAction action)
                 return ActionResult.Failure($"Need at least {settings.MinGoodwillForAid} goodwill to request aid");
             }
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestAid");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"RequestAid is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行 (使用延迟mode)
             var result = gameInterface.RequestAid(faction, aidType, delayed: true);
 
             if (result.Success)
@@ -60,13 +55,11 @@ internal ActionResult ExecuteDeclareWar(AIAction action)
         {
             string reason = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "reason", "Diplomatic conflict");
 
-            // 检查whether已经是敌对
             if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
             {
                 return ActionResult.Failure("Already at war with this faction");
             }
 
-            // 检查goodwill
             if (RelationsMod.Instance == null) return ActionResult.Failure("Mod not initialized");
             var settings = RelationsMod.Instance.InstanceSettings;
             if (faction.PlayerGoodwill > settings?.MaxGoodwillForWarDeclaration)
@@ -74,14 +67,12 @@ internal ActionResult ExecuteDeclareWar(AIAction action)
                 return ActionResult.Failure($"Cannot declare war with goodwill above {settings.MaxGoodwillForWarDeclaration}");
             }
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "DeclareWar");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"DeclareWar is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行
             var result = gameInterface.DeclareWar(faction, reason);
 
             if (result.Success)
@@ -99,13 +90,11 @@ internal ActionResult ExecuteMakePeace(AIAction action)
         {
             int peaceCost = AIActionExecutor.ReadIntParameterOrDefault(action.Parameters, "cost", 0);
 
-            // 检查whether处于敌对state
             if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
             {
                 return ActionResult.Failure("Not at war with this faction");
             }
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "MakePeace");
             if (cooldownSeconds > 0)
             {
@@ -128,20 +117,17 @@ internal ActionResult ExecuteRequestCaravan(AIAction action)
                 caravanType = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "goods", "General");
             }
 
-            // 检查relation
             if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
             {
                 return ActionResult.Failure("Cannot request caravan from hostile faction");
             }
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestTradeCaravan");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"RequestTradeCaravan is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行 (使用延迟mode)
             var result = gameInterface.RequestTradeCaravan(faction, caravanType, delayed: true);
 
             if (result.Success)
@@ -156,20 +142,17 @@ internal ActionResult ExecuteRequestCaravan(AIAction action)
 
 internal ActionResult ExecuteRequestVisitor(AIAction action)
         {
-            // 检查relation
             if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
             {
                 return ActionResult.Failure("Cannot request visitor from hostile faction");
             }
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestVisitor");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"RequestVisitor is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行 (使用延迟mode)
             var result = gameInterface.RequestVisitor(faction, delayed: true);
 
             if (result.Success)
@@ -184,7 +167,6 @@ internal ActionResult ExecuteRequestVisitor(AIAction action)
 
 internal ActionResult ExecuteRejectRequest(AIAction action)
         {
-            // 拒绝request不需要调用API, 只是返回dialogue
             string reason = AIActionExecutor.ReadStringParameterOrDefault(
                 action.Parameters,
                 "reason",
@@ -199,12 +181,10 @@ internal ActionResult ExecuteRequestRaid(AIAction action)
             if (RelationsMod.Instance == null) return ActionResult.Failure("Mod not initialized");
             var settings = RelationsMod.Instance.InstanceSettings;
 
-            // Get参数
             string rawStrategy = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "strategy", string.Empty);
             string rawArrival = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "arrival", string.Empty);
             RaidDefNameNormalizer.NormalizeRaidRequestParameters(rawStrategy, rawArrival, out string strategy, out string arrival);
 
-            // 验证策略whetherenable
             if (!string.IsNullOrEmpty(strategy))
             {
                 if (strategy.Equals("ImmediateAttack", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidStrategy_ImmediateAttack)
@@ -219,7 +199,6 @@ internal ActionResult ExecuteRequestRaid(AIAction action)
                     return ActionResult.Failure("Raid strategy 'Siege' is disabled in settings");
             }
 
-            // 验证到达方式whetherenable
             if (!string.IsNullOrEmpty(arrival))
             {
                 if (arrival.Equals("EdgeWalkIn", StringComparison.OrdinalIgnoreCase) && !settings.EnableRaidArrival_EdgeWalkIn)
@@ -234,20 +213,18 @@ internal ActionResult ExecuteRequestRaid(AIAction action)
                     return ActionResult.Failure("Raid arrival 'CenterDrop' is disabled in settings");
             }
 
-            // 检查relation: 必须是敌对
+            // Hard constraint — changing this breaks an invariant. (relation:)
             if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
             {
                 return ActionResult.Failure("AI can only launch raids if the faction is hostile to the player");
             }
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestRaid");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"RequestRaid is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行 (使用延迟mode, 点数自动计算为 -1)
             var result = gameInterface.RequestRaid(faction, strategy, arrival, delayed: true);
 
             if (result.Success)
@@ -262,7 +239,6 @@ internal ActionResult ExecuteRequestRaid(AIAction action)
 
 internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
         {
-            // 1. 检查全局冷却 (15天)
             int globalCooldown = gameInterface.GetRaidCallEveryoneRemainingCooldownSeconds();
             if (globalCooldown > 0)
             {
@@ -271,7 +247,6 @@ internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
                     $"request_raid_call_everyone is on global cooldown. Remaining: {days:F1} days");
             }
             
-            // 2. 获取所有非玩家派系（敌对+友好）
             var allFactions = Find.FactionManager.AllFactions
                 .Where(f => !f.IsPlayer && !f.defeated && !f.def.hidden)
                 .ToList();
@@ -281,7 +256,6 @@ internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
                 return ActionResult.Failure("No factions available to call.");
             }
             
-            // 3. 分类派系
             var hostileFactions = allFactions
                 .Where(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
                 .Where(f => DiplomacyEventManager.TryValidateRaidFaction(f, out _))
@@ -291,7 +265,6 @@ internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
                 .Where(f => f.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Ally)
                 .ToList();
 
-            // 合并所有有效派系（友好派系只允许结盟派系，由调度器内部限制数量）
             var validFactions = hostileFactions.Concat(allyFactions).ToList();
             
             if (validFactions.Count == 0)
@@ -299,7 +272,6 @@ internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
                 return ActionResult.Failure("No factions available for raids or aid.");
             }
 
-            // 4. 调用调度器
             bool success = DiplomacyEventManager.ScheduleRaidCallEveryone(faction, validFactions);
 
             if (success)
@@ -321,7 +293,6 @@ internal ActionResult ExecuteRequestRaidCallEveryone(AIAction action)
 
 internal ActionResult ExecuteRequestRaidWaves(AIAction action)
         {
-            // 1. 解析参数
             if (!AIActionExecutor.TryReadIntParameter(action.Parameters, "waves", out int waves))
             {
                 return ActionResult.Failure("request_raid_waves requires parameter waves (int, 2-6).");
@@ -332,13 +303,12 @@ internal ActionResult ExecuteRequestRaidWaves(AIAction action)
                 return ActionResult.Failure($"request_raid_waves parameter waves out of range: {waves}. Expected 2-6.");
             }
             
-            // 2. 检查 faction 必须是敌对
+            // Hard constraint — changing this breaks an invariant. (faction)
             if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
             {
                 return ActionResult.Failure("AI can only launch raids if the faction is hostile to the player");
             }
             
-            // 3. 检查 faction 独立冷却 (5天)
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "RequestRaidWaves");
             if (cooldownSeconds > 0)
             {
@@ -347,13 +317,11 @@ internal ActionResult ExecuteRequestRaidWaves(AIAction action)
                     $"request_raid_waves is on cooldown for {faction.Name}. Remaining: {days:F1} days");
             }
             
-            // 4. 验证派系可以发动袭击
             if (!DiplomacyEventManager.TryValidateRaidFaction(faction, out string reason))
             {
                 return ActionResult.Failure(reason);
             }
             
-            // 5. 调用调度器
             bool success = DiplomacyEventManager.ScheduleRaidWaves(faction, waves);
             
             if (success)

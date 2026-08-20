@@ -18,10 +18,6 @@ using PendingPersonaGenerationContext = Ustas.RimAI.Communication.Relations.Dipl
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>
-    /// Dependencies: PromptPersistenceService, PromptTemplateRenderer, ModDependencyProbe, RimTalk reflection bridge, and pawn persona storage in this component.
-    /// Responsibility: bootstrap/runtime RimTalk persona copy-sync flow for dialogue-eligible colony pawns with capability gating, without external persona-bootstrap requests.
-    /// </summary>
         internal sealed class RPGManagerPersonaBootstrap : GameComponent_RPGManagerCollaborator
     {
         internal RPGManagerPersonaBootstrapParts Parts;

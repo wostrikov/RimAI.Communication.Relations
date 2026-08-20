@@ -34,10 +34,6 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
             return HasPersonaSubsystems(pawn);
         }
 
-        /// <summary>
-        /// Check if a pawn can use RimTalk persona sync.
-        /// Animals remain dialogue-eligible but are excluded from RimTalk persona sync by design.
-        /// </summary>
         internal static bool IsPersonaSyncEligible(Pawn pawn)
         {
             if (!IsRpgDialogueEligibleRace(pawn) || pawn?.RaceProps == null)

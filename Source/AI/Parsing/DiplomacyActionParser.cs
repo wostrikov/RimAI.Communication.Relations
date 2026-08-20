@@ -82,8 +82,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         
 
-        /// <summary>/// 从JSON中提取字符串values
- ///</summary>
     
         #region Cluster forwards
         public static List<AIAction> ParseActionsFromJson(string json, string visibleDialogue = null) => DiplomacyActionParserSlice1.ParseActionsFromJson(json, visibleDialogue);

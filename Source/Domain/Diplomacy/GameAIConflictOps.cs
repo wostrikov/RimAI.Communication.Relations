@@ -40,16 +40,13 @@ public APIResult DeclareWar(Faction faction, string reason = "")
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "DeclareWar");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method DeclareWar is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查whether已经是敌对relation
             if (faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile)
                 return APIResult.FailureResult("Already at war with this faction");
 
-            // 检查goodwillwhether允许宣战
             if (faction.PlayerGoodwill > settings.MaxGoodwillForWarDeclaration)
                 return APIResult.FailureResult($"Cannot declare war with goodwill above {settings.MaxGoodwillForWarDeclaration}");
 
@@ -71,7 +68,6 @@ public APIResult DeclareWar(Faction faction, string reason = "")
                 $"faction={faction.Name}, reason={reason}, targetGoodwill={GameAIInterface.DeclareWarTargetGoodwill}, appliedGoodwill={appliedGoodwill}");
             Owner.Parts.CooldownOps.SetCooldown(faction, "DeclareWar");
 
-            // 发送通知
             Find.LetterStack.ReceiveLetter(
                 "RimChat_DeclareWarLetterTitle".Translate(),
                 "RimChat_DeclareWarLetterBody".Translate(faction.Name, reason ?? string.Empty),
@@ -95,16 +91,13 @@ public APIResult MakePeace(Faction faction, int peaceCost = 0)
             if (faction == null)
                 return APIResult.FailureResult("Faction cannot be null");
 
-            // 检查faction独立冷却
             int remainingCooldown = Owner.Parts.CooldownOps.GetRemainingCooldownSeconds(faction, "MakePeace");
             if (remainingCooldown > 0)
                 return APIResult.FailureResult($"Method MakePeace is on cooldown for {faction.Name}. Remaining: {remainingCooldown} seconds");
 
-            // 检查whether处于敌对state
             if (faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile)
                 return APIResult.FailureResult("Not at war with this faction");
 
-            // 检查和平代价上限
             if (peaceCost > settings.MaxPeaceCost)
                 return APIResult.FailureResult($"Peace cost {peaceCost} exceeds maximum {settings.MaxPeaceCost}");
 
@@ -126,7 +119,6 @@ public APIResult MakePeace(Faction faction, int peaceCost = 0)
                 $"faction={faction.Name}, cost={peaceCost}, targetGoodwill={GameAIInterface.MakePeaceTargetGoodwill}, appliedGoodwill={appliedGoodwill}");
             Owner.Parts.CooldownOps.SetCooldown(faction, "MakePeace");
 
-            // 发送通知
             Find.LetterStack.ReceiveLetter(
                 "RimChat_MakePeaceLetterTitle".Translate(),
                 "RimChat_MakePeaceLetterBody".Translate(faction.Name),

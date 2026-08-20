@@ -14,10 +14,10 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         RaidCallEveryone,
         RaidCallEveryoneSocialPost,
         RaidWave,
-        RaidCallEveryoneAnnounce,    // 宣布即将来袭的主动消息
-        RaidDepartureMessage,        // 袭击离开后的主动消息
-        RaidWaveEndMessage,          // 最终波次结束的主动消息
-        Visitor                      // 访客到达事件（追加，保持旧存档枚举序号兼容）
+        RaidCallEveryoneAnnounce,   
+        RaidDepartureMessage,       
+        RaidWaveEndMessage,         
+        Visitor                     
     }
 
     public enum CallEveryoneActionKind
@@ -274,7 +274,6 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         {
             if (Faction == null || Faction.defeated) return true;
             
-            // 根据派系关系决定消息类型
             bool isFriendly = Faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Ally;
             bool isNeutralOrBetter = Faction.PlayerGoodwill >= 0;
             

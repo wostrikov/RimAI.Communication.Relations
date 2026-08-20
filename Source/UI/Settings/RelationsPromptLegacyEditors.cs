@@ -46,13 +46,11 @@ internal sealed class RelationsPromptLegacyEditors
         internal string _editingRuleName = "";
         internal string _editingRuleContent = "";
 
-        // 鏂囨湰缂撳啿鍖?
         internal string _globalPromptBuffer = "";
         internal string _globalDialoguePromptBuffer = "";
         internal string _jsonTemplateBuffer = "";
         internal string _importantRulesBuffer = "";
 
-        // 婊氬姩浣嶇疆
         internal Vector2 _globalPromptScroll = Vector2.zero;
         internal Vector2 _globalDialoguePromptScroll = Vector2.zero;
         internal Vector2 _navigationSectionScroll = Vector2.zero;
@@ -75,7 +73,6 @@ internal sealed class RelationsPromptLegacyEditors
 
         internal static readonly Color SectionHeaderColor = new Color(0.9f, 0.7f, 0.4f);
 
-        // 鍒嗗尯瀹氫箟 - 绠€鍗曟ā寮忓拰楂樼骇妯″紡鍏辩敤
         internal static readonly string[] SimpleSectionNames = new string[]
         {
             "GlobalPrompt",
@@ -225,10 +222,6 @@ internal sealed class RelationsPromptLegacyEditors
         }
 
 
-
-
-
-
         internal void DrawResponseFormatEditorScrollable(Rect rect)
         {
             var format = SystemPromptConfigData.ResponseFormat;
@@ -240,14 +233,12 @@ internal sealed class RelationsPromptLegacyEditors
 
             float y = rect.y;
 
-            // JSON 妯℃澘 - 甯︽粴鍔ㄦ潯锛堝～婊″墿浣欑┖闂达級
             Widgets.Label(new Rect(rect.x, y, rect.width, 20f), "RimChat_JsonTemplateLabel".Translate());
             y += 22f;
 
-            float textHeight = rect.yMax - y - 29f; // 棰勭暀澶嶉€夋绌洪棿
+            float textHeight = rect.yMax - y - 29f;
             Rect textRect = new Rect(rect.x, y, rect.width - 16f, textHeight);
 
-            // 璁＄畻瀹為檯鍐呭楂樺害锛岀‘淇濆畬鏁存樉绀?
             float contentHeight = Mathf.Max(textRect.height, Text.CalcHeight(_jsonTemplateBuffer, textRect.width - 16f) + 10f);
             Rect viewRect = new Rect(0f, 0f, textRect.width - 16f, contentHeight);
             _jsonTemplateScroll = GUI.BeginScrollView(textRect, _jsonTemplateScroll, viewRect);
@@ -267,10 +258,8 @@ internal sealed class RelationsPromptLegacyEditors
                 SystemPromptConfigData.ResponseFormat = format;
             }
 
-            // 鏍囬
             Widgets.Label(new Rect(rect.x, rect.y, rect.width, 20f), "RimChat_JsonTemplateLabel".Translate());
 
-            // 甯︽粴鍔ㄦ潯鐨勬枃鏈锛堝～婊″墿浣欑┖闂达級
             float textY = rect.y + 22f;
             float textHeight = rect.yMax - textY;
             Rect textRect = new Rect(rect.x, textY, rect.width, textHeight);
@@ -296,10 +285,8 @@ internal sealed class RelationsPromptLegacyEditors
                 SystemPromptConfigData.ResponseFormat = format;
             }
 
-            // 鏍囬
             Widgets.Label(new Rect(rect.x, rect.y, rect.width, 20f), "RimChat_ImportantRulesLabel".Translate());
 
-            // 甯︽粴鍔ㄦ潯鐨勬枃鏈锛堝～婊″墿浣欑┖闂达級
             float textY = rect.y + 22f;
             float textHeight = rect.yMax - textY;
             Rect textRect = new Rect(rect.x, textY, rect.width, textHeight);
@@ -315,14 +302,6 @@ internal sealed class RelationsPromptLegacyEditors
             GUI.EndScrollView();
             format.ImportantRules = _importantRulesBuffer;
         }
-
-
-
-
-
-
-
-
 
 
         internal void DrawDynamicDataEditor(Rect rect)
@@ -349,35 +328,10 @@ internal sealed class RelationsPromptLegacyEditors
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         internal static List<string> ParseSceneTagsCsv(string csv)
         {
             return RelationsPromptLegacyEditorChrome.ParseSceneTagsCsv(csv);
         }
-
-
-
-
-
-
-
 
 
     

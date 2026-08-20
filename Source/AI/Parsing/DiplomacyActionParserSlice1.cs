@@ -387,8 +387,6 @@ public static int TryInferSilverCountFromDialogue(string visibleDialogue)
                 return 0;
             }
 
-            // Match patterns like "收你220银币", "220银", "一共370银币".
-            // Take the last match — it's typically the final quoted price.
             var matches = System.Text.RegularExpressions.Regex.Matches(
                 visibleDialogue,
                 @"(?:(?:收你|算你|收|仅收|只需|只要|一共|合计|总计|总共|抹零|折后|实付|应付|给你|作价|报价|要价|开价)\s*)?(\d{1,9})\s*(?:银|银币|块)");

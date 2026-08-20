@@ -244,7 +244,6 @@ internal sealed class RelationsPromptWorkspaceChrome
                 $"[{kindTag}] {label}".Truncate(rect.width - 190f));
             Text.WordWrap = oldWrap;
 
-            // Enabled checkbox (RimTalk-style)
             List<PromptSectionLayoutConfig> sectionLayouts = Pages.PromptNodeLayout.GetPromptWorkspaceSectionLayouts();
             List<PromptUnifiedNodeLayoutConfig> nodeLayouts = Pages.PromptNodeLayout.GetPromptWorkspaceNodeLayouts();
             bool isEnabled;

@@ -2,10 +2,6 @@ using System;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {
-    /// <summary>
-    /// Dependencies: none (pure data model).
-    /// Responsibility: flat prompt template entry, inspired by RimTalk PromptEntry.
-    /// </summary>
     public enum PromptEntryRole
     {
         System = 0,

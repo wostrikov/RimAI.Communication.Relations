@@ -6,131 +6,76 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Relation
 {
-    /// <summary>/// LLMdialoguebehaviorgoodwill消耗configuration
- /// 定义各种diplomacybehavior的基础消耗和relationvalues修正系数
- ///</summary>
     public static class DialogueGoodwillCost
     {
-        // ========== 基础消耗values ==========
         
-        /// <summary>/// request商队基础消耗
- ///</summary>
         public const int BaseCost_RequestCaravan = -15;
         
-        /// <summary>/// request军事援助基础消耗
- ///</summary>
         public const int BaseCost_RequestMilitaryAid = -25;
         
-        /// <summary>/// request医疗援助基础消耗
- ///</summary>
         public const int BaseCost_RequestMedicalAid = -25;
         
-        /// <summary>/// request资源援助基础消耗
- ///</summary>
         public const int BaseCost_RequestResourceAid = -25;
 
-        /// <summary>/// 创建任务固定消耗
- ///</summary>
         public const int BaseCost_CreateQuest = -10;
         
-        /// <summary>/// 要求faction离开基础消耗
- ///</summary>
         public const int BaseCost_DemandLeave = -20;
         
-        /// <summary>/// 要求支付赎金/赔偿基础消耗
- ///</summary>
         public const int BaseCost_DemandPayment = -15;
         
-        /// <summary>/// 分享情报基础收益
- ///</summary>
         public const int BaseGain_ShareIntel = 5;
         
-        /// <summary>/// 赠送礼物基础收益
- ///</summary>
         public const int BaseGain_SendGift = 8;
         
-        /// <summary>/// 履行承诺基础收益
- ///</summary>
         public const int BaseGain_FulfillPromise = 10;
         
-        /// <summary>/// 接受要求基础收益
- ///</summary>
         public const int BaseGain_AcceptDemand = 5;
         
-        /// <summary>/// 道歉基础收益
- ///</summary>
         public const int BaseGain_Apologize = 3;
 
-        // ========== relationvalues修正系数 ==========
         
-        /// <summary>/// 信任values修正系数 (高信任减少消耗)
- /// 每10点信任减少消耗的比例
- ///</summary>
         public const float TrustModifier = 0.05f;
         
-        /// <summary>/// 亲密度修正系数 (高亲密减少消耗)
- ///</summary>
         public const float IntimacyModifier = 0.03f;
         
-        /// <summary>/// 互惠values修正系数 (正互惠减少消耗, 负互惠增加消耗)
- ///</summary>
         public const float ReciprocityModifier = 0.04f;
         
-        /// <summary>/// 尊重values修正系数 (高尊重减少消耗)
- ///</summary>
         public const float RespectModifier = 0.02f;
         
-        /// <summary>/// 影响values修正系数 (高影响减少消耗)
- ///</summary>
         public const float InfluenceModifier = 0.03f;
 
-        // ========== 限制常量 ==========
         
-        /// <summary>/// 单次消耗最大限制 (防止过度消耗)
- ///</summary>
         public const int MaxSingleCost = -25;
         
-        /// <summary>/// 单次收益最大限制
- ///</summary>
         public const int MaxSingleGain = 15;
         
-        /// <summary>/// 每日消耗上限
- ///</summary>
         public const int DailyCostLimit = -50;
         
-        /// <summary>/// 每日收益上限
- ///</summary>
         public const int DailyGainLimit = 30;
 
-        // ========== behavior类型枚举 ==========
         
-        /// <summary>/// dialoguebehavior类型
- ///</summary>
         public enum DialogueActionType
         {
-            RequestCaravan,      // Request商队
-            RequestMilitaryAid,  // Request军事援助
-            RequestMedicalAid,   // Request医疗援助
-            RequestResourceAid,  // Request资源援助
-            CreateQuest,         // 创建任务
-            DemandLeave,         // 要求离开
-            DemandPayment,       // 要求支付
-            ShareIntel,          // 分享情报
-            SendGift,            // 赠送礼物
-            FulfillPromise,      // 履行承诺
-            AcceptDemand,        // 接受要求
-            Apologize,           // 道歉
-            FriendlyChat,        // 友好闲聊
-            Threaten,            // 威胁
-            Insult,              // 侮辱
-            Compliment,          // 赞美
-            MakePromise,         // 做出承诺
+            RequestCaravan,     
+            RequestMilitaryAid, 
+            RequestMedicalAid,  
+            RequestResourceAid, 
+            CreateQuest,        
+            DemandLeave,        
+            DemandPayment,      
+            ShareIntel,         
+            SendGift,           
+            FulfillPromise,     
+            AcceptDemand,       
+            Apologize,          
+            FriendlyChat,       
+            Threaten,           
+            Insult,             
+            Compliment,         
+            MakePromise,        
         }
 
-        // ========== get基础values ==========
         
-        /// <summary>/// getbehavior的基础goodwill变化values
- ///</summary>
         public static int GetBaseValue(DialogueActionType actionType)
         {
             int baseValue = actionType switch
@@ -170,19 +115,14 @@ namespace Ustas.RimAI.Communication.Relations.Relation
             return Mathf.Clamp(configured, 0f, 1f);
         }
 
-        /// <summary>/// 判断behavior是消耗型还是收益型
- ///</summary>
         public static bool IsCostAction(DialogueActionType actionType)
         {
             int baseValue = GetBaseValue(actionType);
             return baseValue < 0;
         }
 
-        /// <summary>/// 判断behaviorwhether受relationvalues影响
- ///</summary>
         public static bool IsRelationModified(DialogueActionType actionType)
         {
-            // 闲聊, 侮辱, 赞美等简单dialogue不受relationvalues修正
             return actionType switch
             {
                 DialogueActionType.FriendlyChat => false,
@@ -192,35 +132,31 @@ namespace Ustas.RimAI.Communication.Relations.Relation
             };
         }
 
-        /// <summary>/// getbehavior的冷却时间 (tick)
- ///</summary>
         public static int GetCooldownTicks(DialogueActionType actionType)
         {
             return actionType switch
             {
-                DialogueActionType.RequestCaravan => 60000,      // 1天
-                DialogueActionType.RequestMilitaryAid => 180000, // 3天
-                DialogueActionType.RequestMedicalAid => 120000,  // 2天
-                DialogueActionType.RequestResourceAid => 120000, // 2天
-                DialogueActionType.CreateQuest => 0,            // API 自身冷却生效
-                DialogueActionType.DemandLeave => 90000,         // 1.5天
-                DialogueActionType.DemandPayment => 60000,       // 1天
-                DialogueActionType.ShareIntel => 30000,          // 0.5天
-                DialogueActionType.SendGift => 60000,            // 1天
-                DialogueActionType.FulfillPromise => 0,          // 无冷却
-                DialogueActionType.AcceptDemand => 0,            // 无冷却
-                DialogueActionType.Apologize => 30000,           // 0.5天
-                DialogueActionType.FriendlyChat => 0,            // 无冷却
-                DialogueActionType.Threaten => 60000,            // 1天
-                DialogueActionType.Insult => 30000,              // 0.5天
-                DialogueActionType.Compliment => 0,              // 无冷却
-                DialogueActionType.MakePromise => 0,             // 无冷却
+                DialogueActionType.RequestCaravan => 60000,     
+                DialogueActionType.RequestMilitaryAid => 180000,
+                DialogueActionType.RequestMedicalAid => 120000, 
+                DialogueActionType.RequestResourceAid => 120000,
+                DialogueActionType.CreateQuest => 0,           
+                DialogueActionType.DemandLeave => 90000,        
+                DialogueActionType.DemandPayment => 60000,      
+                DialogueActionType.ShareIntel => 30000,         
+                DialogueActionType.SendGift => 60000,           
+                DialogueActionType.FulfillPromise => 0,         
+                DialogueActionType.AcceptDemand => 0,           
+                DialogueActionType.Apologize => 30000,          
+                DialogueActionType.FriendlyChat => 0,           
+                DialogueActionType.Threaten => 60000,           
+                DialogueActionType.Insult => 30000,             
+                DialogueActionType.Compliment => 0,             
+                DialogueActionType.MakePromise => 0,            
                 _ => 60000
             };
         }
 
-        /// <summary>/// getbehavior的displayname
- ///</summary>
         public static string GetActionLabel(DialogueActionType actionType)
         {
             return actionType switch
@@ -274,8 +210,6 @@ namespace Ustas.RimAI.Communication.Relations.Relation
             };
         }
 
-        /// <summary>/// getbehavior的描述
- ///</summary>
         public static string GetActionDescription(DialogueActionType actionType)
         {
             return actionType switch
@@ -302,8 +236,6 @@ namespace Ustas.RimAI.Communication.Relations.Relation
         }
     }
 
-    /// <summary>/// behavior消耗record (used for每日限制)
- ///</summary>
     public class DialogueActionRecord : IExposable
     {
         public DialogueGoodwillCost.DialogueActionType ActionType;

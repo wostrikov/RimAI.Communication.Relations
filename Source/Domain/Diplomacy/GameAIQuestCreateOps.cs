@@ -53,7 +53,6 @@ public APIResult CreateQuest(string questDefName, Dictionary<string, object> par
 
             bool isItemStashQuest = string.Equals(questDefName, "OpportunitySite_ItemStash", StringComparison.Ordinal);
 
-            // 1. get目标factioncontext (预先解析以确保后续逻辑可用)
             Faction faction = null;
             if (parameters.TryGetValue("askerFaction", out object fObj))
             {
@@ -76,7 +75,6 @@ public APIResult CreateQuest(string questDefName, Dictionary<string, object> par
                 DebugLogger.Debug($"CreateQuest: Using faction context '{faction.Name}' (Def: {faction.def.defName})");
             }
 
-            // 2. 严格校验: 不再做任务重定向, 失败直接返回
             var questValidation = ApiActionEligibilityService.Instance.ValidateCreateQuest(faction, questDefName, parameters);
             if (!questValidation.Allowed)
             {
@@ -148,24 +146,20 @@ internal object ResolveParameter(string key, object value)
         {
             if (value == null) return null;
 
-            // 如果已经是目标类型, 直接返回
             if (!(value is string strValue)) return value;
 
-            // Processing Faction 解析
             if (key.ToLower().Contains("faction"))
             {
                 Faction faction = Find.FactionManager.AllFactions.FirstOrDefault(f => f.Name == strValue || f.def.defName == strValue);
                 if (faction != null) return faction;
             }
 
-            // Processing Pawn 解析 (通过名字)
             if (key.ToLower().Contains("pawn") || key.ToLower() == "asker")
             {
                 Pawn pawn = PawnsFinder.AllMapsWorldAndTemporary_Alive.FirstOrDefault(p => p.Name != null && p.Name.ToStringFull == strValue);
                 if (pawn != null) return pawn;
             }
 
-            // Processing数字解析 (防御性)
             if (float.TryParse(strValue, out float fResult)) return fResult;
 
             return value;

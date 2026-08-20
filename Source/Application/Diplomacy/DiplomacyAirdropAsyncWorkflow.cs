@@ -38,7 +38,6 @@ internal static bool IsAirdropAsyncRequestPending(FactionDialogueSession current
 }
 
 
-
 internal static void BindAirdropAsyncRequest(
     FactionDialogueSession currentSession,
     DialogueRequestLease lease,
@@ -62,7 +61,6 @@ internal static void BindAirdropAsyncRequest(
 }
 
 
-
 internal static void ClearAirdropAsyncRequestState(FactionDialogueSession currentSession, bool disposeLease)
 {
     if (currentSession == null)
@@ -81,7 +79,6 @@ internal static void ClearAirdropAsyncRequestState(FactionDialogueSession curren
     currentSession.pendingAirdropRequestStartedRealtime = -1f;
     currentSession.pendingAirdropRequestTimeoutSeconds = 0;
 }
-
 
 
 internal void HandleAirdropAsyncPrepareCompleted(
@@ -163,7 +160,6 @@ internal void HandleAirdropAsyncPrepareCompleted(
 }
 
 
-
 internal static bool IsAirdropAsyncContextValid(
     FactionDialogueSession currentSession,
     Faction currentFaction,
@@ -230,7 +226,6 @@ internal static bool IsAirdropAsyncContextValid(
 }
 
 
-
 internal void CancelPendingAirdropSelectionRequest()
 {
     if (session == null || string.IsNullOrWhiteSpace(session.pendingAirdropRequestId))
@@ -246,7 +241,6 @@ internal void CancelPendingAirdropSelectionRequest()
 }
 
 
-
 internal bool TryGetPendingAirdropRequestStatus(out AIRequestResult status)
 {
     status = null;
@@ -258,7 +252,6 @@ internal bool TryGetPendingAirdropRequestStatus(out AIRequestResult status)
     status = AIChatServiceAsync.Instance.GetRequestStatus(session.pendingAirdropRequestId);
     return status != null;
 }
-
 
 
 internal bool TryBuildAirdropAsyncStatusText(out string statusText)
@@ -309,7 +302,6 @@ internal static bool TryInjectPendingAirdropTradeCardMetadata(
 }
 
 
-
 internal static bool TryInjectPendingAirdropTradeCardMetadata(
     AIAction action,
     FactionDialogueSession currentSession,
@@ -329,7 +321,6 @@ internal static bool TryInjectPendingAirdropTradeCardMetadata(
 
     return TryInjectPendingAirdropTradeCardMetadata(action.Parameters, currentSession, out failureMessage);
 }
-
 
 
 internal static bool TryInjectPendingAirdropTradeCardMetadata(
@@ -360,7 +351,6 @@ internal static bool TryInjectPendingAirdropTradeCardMetadata(
 }
 
 
-
 internal static string BuildPendingAirdropTradeCardStateLostMessage()
 {
     return "RimChat_ItemAirdropBoundNeedStateLostSystem".Translate().ToString();
@@ -377,7 +367,6 @@ internal static readonly Regex AirdropCounterofferChineseNaturalPattern = new Re
     RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
 
-// Fallback: simple pricing without an explicit item count — e.g. "收你220银币".
 internal static readonly Regex AirdropCounterofferChineseSimplePricePattern = new Regex(
     @"(?is)(?:收你|算你|收|仅收|只需|只要|一共|合计|总计|总共|抹零|折后|实付|应付|给你|作价|报价|要价)[^0-9\n\r]{0,8}(?<silver>\d{1,9})\s*(?:银|银币|块)?",
     RegexOptions.CultureInvariant | RegexOptions.Compiled);
@@ -391,7 +380,6 @@ internal static readonly Regex AirdropCounterofferEnglishNaturalPattern = new Re
 internal static readonly Regex AirdropCounterofferReasonPattern = new Regex(
     @"(?is)(?:原因|理由|因为|due to|because|since)\s*[:：,，]?\s*(?<reason>[^\r\n]+)",
     RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
-
 
 
 internal static bool TryCaptureAndCacheAirdropCounteroffer(string dialogueText, FactionDialogueSession currentSession)
@@ -409,7 +397,6 @@ internal static bool TryCaptureAndCacheAirdropCounteroffer(string dialogueText, 
     currentSession.CacheAirdropCounteroffer(item, count, silver, reason);
     return true;
 }
-
 
 
 internal static bool TryExtractAirdropCounteroffer(
@@ -453,8 +440,6 @@ internal static bool TryExtractAirdropCounteroffer(
         }
     }
 
-    // Simple-price fallback: e.g. "收你220银币" — captures only silver,
-    // infer count from the session's pending trade card.
     Match simpleMatch = AirdropCounterofferChineseSimplePricePattern.Match(dialogueText);
     if (simpleMatch.Success &&
         int.TryParse(simpleMatch.Groups["silver"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out silver))
@@ -470,7 +455,6 @@ internal static bool TryExtractAirdropCounteroffer(
 
     return false;
 }
-
 
 
 internal static bool TryReadCounterofferMatch(
@@ -504,7 +488,6 @@ internal static bool TryReadCounterofferMatch(
 }
 
 
-
 internal static int ResolveCounterofferCountFallback(FactionDialogueSession currentSession)
 {
     if (currentSession == null)
@@ -528,7 +511,6 @@ internal static int ResolveCounterofferCountFallback(FactionDialogueSession curr
         .LastOrDefault(m => m != null && m.IsAirdropTradeCard());
     return lastTradeCard?.airdropRequestedCount ?? 0;
 }
-
 
 
 internal static string ResolveCounterofferItemFallback(string rawItem, FactionDialogueSession currentSession)
@@ -555,7 +537,6 @@ internal static string ResolveCounterofferItemFallback(string rawItem, FactionDi
         .Select(message => message.airdropNeedDefName?.Trim() ?? string.Empty)
         .LastOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
 }
-
 
 
 internal static string ExtractCounterofferReason(string dialogueText)

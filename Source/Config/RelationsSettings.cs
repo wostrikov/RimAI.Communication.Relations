@@ -10,8 +10,6 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>/// 闁劕鐡ф潏鎾冲毉闁喎瀹冲Ο鈥崇础
- ///</summary>
     public enum TypewriterSpeedMode
     {
         Fast = 0,
@@ -96,7 +94,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public List<FactionPromptVariableRuleConfig> UserDefinedPromptVariableFactionRules = new List<FactionPromptVariableRuleConfig>();
         public List<PawnPromptVariableRuleConfig> UserDefinedPromptVariablePawnRules = new List<PawnPromptVariableRuleConfig>();
         public List<FactionScopedPromptVariableOverrideConfig> FactionScopedPromptVariableOverrides = new List<FactionScopedPromptVariableOverrideConfig>();
-
 
 
         // AI Behavior Limits
@@ -211,7 +208,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         public bool EnableAPICallLogging = true;
         public int MaxAPICallsPerHour = 0;
-
 
 
         // Debug Settings

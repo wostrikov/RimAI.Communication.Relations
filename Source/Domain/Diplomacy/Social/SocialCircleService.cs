@@ -9,9 +9,6 @@ using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>/// Dependencies: RimWorld faction/goodwill APIs and RimChat settings.
- /// Responsibility: provide social-circle utility helpers for news categorization, post assembly, and lightweight intent updates.
- ///</summary>
     public static class SocialCircleService
     {
         private static readonly HashSet<string> DevGuardWarningKeys = new HashSet<string>();

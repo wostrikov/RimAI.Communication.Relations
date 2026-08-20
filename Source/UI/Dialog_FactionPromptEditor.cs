@@ -312,13 +312,11 @@ namespace Ustas.RimAI.Communication.Relations.UI
             }
             factionConfig.LastModifiedTicks = System.DateTime.Now.Ticks;
             
-            // Save到file
             FactionPromptManager.Instance.UpdateConfig(factionConfig);
         }
 
         private void ResetToDefaults()
         {
-            // 重新load默认configuration
             var defaultConfig = FactionPromptManager.Instance.GetConfig(factionConfig.FactionDefName);
             if (defaultConfig != null)
             {

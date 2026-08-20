@@ -176,7 +176,6 @@ public class Dialog_DiplomacyDialogue : Window
         internal const float FallbackRetryButtonMargin = 8f;
 
 
-        // Faction位置映射 (used for动画定位)
         internal readonly Dictionary<Faction, Rect> factionRowRects = new Dictionary<Faction, Rect>();
 
         internal readonly Dictionary<Faction, float> goodwillValueRevealUntil = new Dictionary<Faction, float>();
@@ -186,7 +185,6 @@ public class Dialog_DiplomacyDialogue : Window
         internal const float GOODWILL_VALUE_REVEAL_SECONDS = 2.5f;
 
 
-        // 逐字output效果
         internal Dictionary<DialogueMessageData, TypewriterState> typewriterStates = new Dictionary<DialogueMessageData, TypewriterState>();
 
         internal float lastTypewriterUpdate = 0f;
@@ -201,17 +199,14 @@ public class Dialog_DiplomacyDialogue : Window
         internal const float MaxTypewriterWaitSeconds = 8f;
 
 
-        // 等逐字完成后稳定调度的空投确认弹窗状态
         internal PendingAirdropDialogState pendingAirdropDialogState;
 
 
-        // Social经验浮动动画state
         internal float socialExpAnimStartTime = -100f;
 
         internal int lastExpAmount = 0;
 
 
-        // 通讯台environment音效
         internal Sustainer sustainer;
 
 
@@ -244,7 +239,6 @@ public class Dialog_DiplomacyDialogue : Window
             // Apply terminal scale override (non-Auto modes modify Prefs.UIScale directly)
             Parts.Chrome.ApplyTerminalScale();
 
-            // Settings打开和关闭音效
             if (!muteOpenSound)
             {
                 this.soundAppear = DefDatabase<SoundDef>.GetNamed("CommsWindow_Open");
@@ -257,7 +251,6 @@ public class Dialog_DiplomacyDialogue : Window
             // Pause once on open; player can manually unpause (forcePause=false)
             Find.TickManager.Pause();
 
-            // 订阅goodwill变化event
             GoodwillChangeAnimator.OnGoodwillChanged += Parts.Presenter.OnGoodwillChanged;
 
             Log.Message($"[RimAI.Relations] Dialogue opened with {faction.Name}, messages: {session?.messages.Count ?? 0}, AI configured: {AIChatServiceAsync.Instance.IsConfigured()}");
@@ -302,10 +295,8 @@ public class Dialog_DiplomacyDialogue : Window
                 this.sustainer = null;
             }
             base.PreClose();
-            // 取消订阅event
             GoodwillChangeAnimator.OnGoodwillChanged -= Parts.Presenter.OnGoodwillChanged;
 
-            // 清理逐字state
             typewriterStates.Clear();
             Parts.Airdrop.ClearPendingAirdropDialogState("window_closed", false);
             DiplomacyDialogueImageCache.ClearInlineImageTextureCache();

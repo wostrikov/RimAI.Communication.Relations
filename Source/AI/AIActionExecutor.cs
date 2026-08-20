@@ -11,9 +11,6 @@ using Ustas.RimAI.Communication.Relations.Relation;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
-    /// <summary>/// AI动作executor
- /// 执行LLM解析出的API调用动作
- ///</summary>
     public class AIActionExecutor
     {
         internal AIActionExecutorParts Parts;
@@ -33,10 +30,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
         internal ActionResult ExecuteRequestItemAirdrop(AIAction action) => Parts.ItemAirdrop.ExecuteRequestItemAirdrop(action);
         internal ActionResult ExecutePayPrisonerRansom(AIAction action) => Parts.PrisonerRansom.ExecutePayPrisonerRansom(action);
 
-        /// <summary>/// 执行AI动作
- ///</summary>
-        /// <param name="action">要执行的动作</param>
-        /// <returns>执行result</returns>
         public ActionResult ExecuteAction(AIAction action)
         {
             return ActionResult.Failure("AIActionExecutor is retired. Use RelationsInteractionAdapter.");
@@ -57,64 +50,36 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         
 
-        /// <summary>/// 检查功能whetherenable
- ///</summary>
-        
-
-        /// <summary>/// 执行触发event
- ///</summary>
-        
-
-        /// <summary>/// 执行创建任务
- ///</summary>
         
 
         
 
-        /// <summary>/// 执行goodwill调整
- ///</summary>
         
 
         
 
-        /// <summary>/// 执行发送礼物
- ///</summary>
         
 
-        /// <summary>/// 执行request援助
- ///</summary>
         
 
-        /// <summary>/// 执行宣战
- ///</summary>
         
 
-        /// <summary>/// 执行议和
- ///</summary>
         
 
-        /// <summary>/// 执行request商队
- ///</summary>
         
 
-        /// <summary>/// 执行request访客
- ///</summary>
         
 
-        /// <summary>/// 执行拒绝request
- ///</summary>
         
 
-        /// <summary>/// 执行request袭击
- ///</summary>
         
 
-        /// <summary>/// 执行呼叫所有人袭击/支援
-        ///</summary>
         
 
-        /// <summary>/// 执行袭击波次
-        ///</summary>
+        
+
+        
+
         
 
         
@@ -176,13 +141,11 @@ internal ActionResult ExecuteActionLegacy(AIAction action)
                 action.Parameters = new Dictionary<string, object>();
             }
 
-            // 检查AIwhether有权限操作此faction
             if (!gameInterface.ValidateAIPermission(faction))
             {
                 return ActionResult.Failure("AI does not have permission to interact with this faction");
             }
 
-            // 检查该功能whether被enable
             if (!ApiActionEligibilityService.IsFeatureEnabled(action.ActionType))
             {
                 return ActionResult.Failure($"Feature {action.ActionType} is disabled in settings");
@@ -436,9 +399,9 @@ internal bool IsFeatureEnabled(string actionType)
                 AIActionNames.RequestItemAirdrop => settings.EnableAIItemAirdrop,
                 AIActionNames.RequestInfo => settings.EnablePrisonerRansom,
                 AIActionNames.PayPrisonerRansom => settings.EnablePrisonerRansom,
-                AIActionNames.RejectRequest => true, // 拒绝request总是允许
-                AIActionNames.TriggerIncident => true, // 默认允许触发event, 可以通过prompt控制
-                AIActionNames.CreateQuest => true, // 默认允许创建任务
+                AIActionNames.RejectRequest => true,
+                AIActionNames.TriggerIncident => true,
+                AIActionNames.CreateQuest => true,
                 AIActionNames.SendImage => false,
                 AIActionNames.ExitDialogue => settings.EnableFactionPresenceStatus,
                 AIActionNames.GoOffline => settings.EnableFactionPresenceStatus,
@@ -506,7 +469,6 @@ internal string BuildCreateQuestFailureMessage(QuestValidationResult validation,
 
 internal ActionResult ExecuteAdjustGoodwill(AIAction action)
         {
-            // Get参数
             if (!AIActionExecutor.TryReadIntParameter(action.Parameters, "amount", out int amount))
             {
                 return ActionResult.Failure("Missing or invalid 'amount' parameter");
@@ -514,14 +476,12 @@ internal ActionResult ExecuteAdjustGoodwill(AIAction action)
 
             string reason = AIActionExecutor.ReadStringParameterOrDefault(action.Parameters, "reason", "Diplomatic dialogue");
 
-            // 检查faction独立冷却
             int cooldownSeconds = gameInterface.GetRemainingCooldownSeconds(faction, "AdjustGoodwill");
             if (cooldownSeconds > 0)
             {
                 return ActionResult.Failure($"AdjustGoodwill is on cooldown for {faction.Name}. Remaining: {cooldownSeconds} seconds");
             }
 
-            // 执行调整
             var result = gameInterface.AdjustGoodwill(faction, amount, reason);
 
             if (result.Success)
@@ -604,8 +564,6 @@ internal ActionResult ExecuteSendGift(AIAction action)
     }
 
 
-    /// <summary>/// 动作执行result
- ///</summary>
     public class ActionResult
     {
         public bool IsSuccess { get; set; }

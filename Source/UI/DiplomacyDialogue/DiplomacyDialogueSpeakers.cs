@@ -63,7 +63,6 @@ internal Pawn sessionFallbackFactionSpeaker;
 internal readonly Dictionary<Faction, Pawn> factionSpeakerCache = new Dictionary<Faction, Pawn>();
 
 
-
 internal void EnsureSessionMessageSpeakers(FactionDialogueSession currentSession)
 {
     if (currentSession?.messages == null)
@@ -81,7 +80,6 @@ internal void EnsureSessionMessageSpeakers(FactionDialogueSession currentSession
         EnsureMessageSpeaker(currentSession, currentSession.messages[i]);
     }
 }
-
 
 
 internal void EnsureMessageSpeaker(FactionDialogueSession currentSession, DialogueMessageData message)
@@ -107,7 +105,6 @@ internal void EnsureMessageSpeaker(FactionDialogueSession currentSession, Dialog
 }
 
 
-
 internal void EnsurePlayerMessageSpeaker(DialogueMessageData message)
 {
     Pawn playerPawn = message.ResolveSpeakerPawn() ?? ResolvePlayerSpeakerPawn();
@@ -120,7 +117,6 @@ internal void EnsurePlayerMessageSpeaker(DialogueMessageData message)
 }
 
 
-
 internal void EnsureOutboundPrisonInfoSpeaker(DialogueMessageData message)
 {
     Pawn playerPawn = ResolvePlayerSpeakerPawn();
@@ -129,7 +125,6 @@ internal void EnsureOutboundPrisonInfoSpeaker(DialogueMessageData message)
         message.SetSpeakerPawn(playerPawn);
     }
 }
-
 
 
 internal void EnsureFactionMessageSpeaker(FactionDialogueSession currentSession, DialogueMessageData message)
@@ -155,7 +150,6 @@ internal void EnsureFactionMessageSpeaker(FactionDialogueSession currentSession,
 }
 
 
-
 internal Pawn ResolvePlayerSpeakerPawn()
 {
     if (IsEligibleSpeakerPawn(negotiator))
@@ -166,7 +160,6 @@ internal Pawn ResolvePlayerSpeakerPawn()
     Pawn fallback = PromptPersistenceService.Instance.ResolveBestPlayerNegotiator(negotiator);
     return IsEligibleSpeakerPawn(fallback) ? fallback : null;
 }
-
 
 
 internal Pawn ResolveFactionSpeakerPawn(FactionDialogueSession currentSession, Faction currentFaction)
@@ -216,7 +209,6 @@ internal Pawn ResolveFactionSpeakerPawn(FactionDialogueSession currentSession, F
 }
 
 
-
 internal static bool TryGetSessionFactionSpeaker(
     FactionDialogueSession currentSession,
     Faction currentFaction,
@@ -248,7 +240,6 @@ internal static bool TryGetSessionFactionSpeaker(
 }
 
 
-
         internal static bool TryGetExistingFactionSpeakerPawn(Faction currentFaction, out Pawn speakerPawn) => DiplomacyDialogueSpeakerPawnOps.TryGetExistingFactionSpeakerPawn(currentFaction, out speakerPawn);
         internal static bool TryGenerateFactionSpeakerPawn(Faction currentFaction, out Pawn speakerPawn) => DiplomacyDialogueSpeakerPawnOps.TryGenerateFactionSpeakerPawn(currentFaction, out speakerPawn);
         internal static Pawn GenerateFactionSpeakerPawn(Faction currentFaction, PawnKindDef kindDef) => DiplomacyDialogueSpeakerPawnOps.GenerateFactionSpeakerPawn(currentFaction, kindDef);
@@ -259,7 +250,6 @@ internal string ResolvePlayerSenderName(Pawn playerPawn)
     string name = ResolvePawnLabel(playerPawn);
     return string.IsNullOrWhiteSpace(name) ? "RimChat_You".Translate().ToString() : name;
 }
-
 
 
         internal static string ResolveFactionSenderName(Faction currentFaction, Pawn factionSpeaker) => DiplomacyDialogueSpeakerLabelOps.ResolveFactionSenderName(currentFaction, factionSpeaker);
@@ -285,7 +275,6 @@ internal string GetDisplaySenderName(DialogueMessageData message)
         ? ResolvePlayerSenderName(speakerPawn)
         : ResolveFactionSenderName(faction, speakerPawn);
 }
-
 
 
 internal Pawn ResolveMessageSpeakerPawn(DialogueMessageData message)
@@ -327,7 +316,6 @@ internal Pawn ResolveMessageSpeakerPawn(DialogueMessageData message)
 }
 
 
-
 internal Pawn ResolveVisualSpeakerPawn(DialogueMessageData message)
 {
     if (message == null)
@@ -349,13 +337,11 @@ internal Pawn ResolveVisualSpeakerPawn(DialogueMessageData message)
 }
 
 
-
         internal static bool IsOutboundPrisonerInfoMessage(DialogueMessageData message) => DiplomacyDialogueSpeakerLabelOps.IsOutboundPrisonerInfoMessage(message);
 internal bool IsPlayerVisualMessage(DialogueMessageData message)
 {
     return message?.isPlayer == true || IsOutboundPrisonerInfoMessage(message);
 }
-
 
 
         internal static string ResolvePawnLabel(Pawn pawn) => DiplomacyDialogueSpeakerLabelOps.ResolvePawnLabel(pawn);
@@ -369,11 +355,8 @@ internal float GetBubbleXForMessage(DialogueMessageData message, float viewportW
         return leftEdge;
     }
 
-    // 右对齐气泡在 1.25x 缩放下会落到半像素，导致右上/右下圆角采样整体右偏 1px。
-    // 这里只对右侧气泡做像素对齐，避免影响左侧 AI 气泡与整体高度布局。
     return Mathf.Round(maxX);
 }
-
 
 
 internal void TryLogBubbleLayoutOutOfTrackOnce(DialogueMessageData message, Rect bubbleRect, float viewportWidth)
@@ -401,19 +384,16 @@ internal void TryLogBubbleLayoutOutOfTrackOnce(DialogueMessageData message, Rect
 }
 
 
-
 internal float GetMaxBubbleWidth(float viewportWidth)
 {
     return Mathf.Clamp(GetMessageBubbleTrackWidth(viewportWidth) * MessageMaxWidthPercent, 140f, viewportWidth);
 }
 
 
-
 internal float GetMaxSystemMessageWidth(float viewportWidth)
 {
     return Mathf.Max(140f, viewportWidth - 60f);
 }
-
 
 
         internal static float GetMessageBubbleTrackWidth(float viewportWidth) => DiplomacyDialogueSpeakerLabelOps.GetMessageBubbleTrackWidth(viewportWidth);
@@ -464,7 +444,6 @@ internal void DrawMessageAvatar(DialogueMessageData message, Rect bubbleRect)
 }
 
 
-
 internal Rect BuildAvatarRect(DialogueMessageData message, Rect bubbleRect)
 {
     float x = IsPlayerVisualMessage(message)
@@ -473,7 +452,6 @@ internal Rect BuildAvatarRect(DialogueMessageData message, Rect bubbleRect)
     float y = bubbleRect.y + MessageAvatarTopInset;
     return new Rect(x, y, MessageAvatarSize, MessageAvatarSize);
 }
-
 
 
         internal static Texture ResolveSpeakerPortrait(Pawn pawn) => DiplomacyDialogueSpeakerLabelOps.ResolveSpeakerPortrait(pawn);

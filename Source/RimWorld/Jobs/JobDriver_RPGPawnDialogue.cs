@@ -10,8 +10,6 @@ using Ustas.RimAI.Communication.Relations.Module;
 
 namespace Ustas.RimAI.Communication.Relations.Jobs
 {
-    // Responsibility: drive pawn-to-pawn RPG dialogue approach/open flow safely.
-    // Dependencies: Verse.AI JobDriver/Toils, RimWorld Messages, RimChat RPG UI and cooldown manager.
     public class JobDriver_RPGPawnDialogue : JobDriver
     {
         private const float InteractionDistanceThreshold = 1.5f;

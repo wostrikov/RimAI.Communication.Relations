@@ -13,9 +13,6 @@ using Ustas.RimAI.Communication.Relations.UI;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
-    /// <summary>/// 拦截原版通讯台, 替换为边缘diplomacydialoguewindow
- /// 使用dynamicmethodlookup来确保compatibility性
- ///</summary>
     public static class CommsConsolePatch
     {
         private static int lastNoPatchLogTick = int.MinValue;
@@ -42,7 +39,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             {
                 Log.Message("[RimAI.Relations] === Initializing CommsConsole Patch ===");
 
-                // Lookup Building_CommsConsole 类型
                 var commsConsoleType = AccessTools.TypeByName("RimWorld.Building_CommsConsole");
                 if (commsConsoleType == null)
                 {
@@ -57,7 +53,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
                 }
 
-                // Lookup CompUsable 类型
                 var compUsableType = AccessTools.TypeByName("Verse.CompUsable");
                 if (compUsableType != null)
                 {
@@ -69,7 +64,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     }
                 }
 
-                // Lookup JobDriver_UseCommsConsole 类型
                 var jobDriverType = AccessTools.TypeByName("RimWorld.JobDriver_UseCommsConsole");
                 if (jobDriverType != null)
                 {
@@ -81,7 +75,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     }
                 }
 
-                // 尝试 Patch Building_CommsConsole 的所有method
                 PatchCommsConsoleMethods(harmony, commsConsoleType);
             }
             catch (Exception ex)
@@ -102,8 +95,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             }
         }
 
-        /// <summary>/// GetFloatMenuOptions method的后缀 Patch
- ///</summary>
         private static IEnumerable<FloatMenuOption> GetFloatMenuOptionsPostfix(IEnumerable<FloatMenuOption> __result, Building_CommsConsole __instance, Pawn myPawn)
         {
             if (!RelationsMod.Instance?.InstanceSettings?.ReplaceCommsConsole ?? false)
@@ -179,8 +170,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             }
         }
 
-        /// <summary>/// 从 FloatMenuOption 中提取faction信息
- ///</summary>
         private static Faction ExtractFactionFromOption(FloatMenuOption option, Building_CommsConsole console, Pawn myPawn)
         {
             if (option == null || console == null || myPawn == null)
@@ -381,8 +370,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
         }
     }
 
-    /// <summary>/// 通讯台回调component, used for在小人到达通讯台后displaydiplomacydialogue
- ///</summary>
     public class CommsConsoleCallback : MapComponent
     {
         private sealed class PendingCommsOpenRequest

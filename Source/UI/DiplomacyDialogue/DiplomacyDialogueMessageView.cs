@@ -30,7 +30,6 @@ internal sealed class DiplomacyDialogueMessageView : DiplomacyDialogueCollaborat
     internal DiplomacyDialogueMessageView(Dialog_DiplomacyDialogue owner) : base(owner) { }
 
 
-
 internal void DrawChatArea(Rect rect)
 {
     Widgets.DrawBoxSolid(rect, new Color(0.08f, 0.08f, 0.1f));
@@ -47,32 +46,26 @@ internal void DrawChatArea(Rect rect)
         messagesHeight = 60f;
     }
 
-    // Message区域
     Rect messagesRect = new Rect(innerRect.x, innerRect.y, innerRect.width, messagesHeight);
     DrawMessages(messagesRect);
 
-    // 分隔线1 - message与控制区之间
     float line1Y = innerRect.y + messagesHeight + 5f;
     Color oldLineColor = GUI.color;
     GUI.color = new Color(0.55f, 0.58f, 0.66f, 0.35f);
     Widgets.DrawLineHorizontal(innerRect.x, line1Y, innerRect.width);
 
-    // 单行控制区: 策略button
     float controlsY = line1Y + 5f;
     Rect controlsRect = new Rect(innerRect.x, controlsY, innerRect.width, controlsHeight);
     Owner.Parts.StrategyUi.DrawControlsRow(controlsRect);
 
-    // 分隔线2 - 控制区与input框之间
     float line2Y = controlsY + controlsHeight + 5f;
     Widgets.DrawLineHorizontal(innerRect.x, line2Y, innerRect.width);
     GUI.color = oldLineColor;
 
-    // Input区域
     float inputY = line2Y + 5f;
     Rect inputRect = new Rect(innerRect.x, inputY, innerRect.width, inputHeight);
     Owner.Parts.Input.DrawInputArea(inputRect);
 }
-
 
 
 internal void DrawMessages(Rect rect)
@@ -173,14 +166,12 @@ internal void DrawMessages(Rect rect)
 }
 
 
-
 internal bool ShouldShowTimeGap(int prevGameTick, int currentGameTick)
 {
     int tickDiff = currentGameTick - prevGameTick;
     float minutes = tickDiff / 2500f;
     return minutes >= Dialog_DiplomacyDialogue.TIME_GAP_THRESHOLD_MINUTES;
 }
-
 
 
 internal static float ResolveMessageBottomGap(DialogueMessageData msg)
@@ -192,7 +183,6 @@ internal static float ResolveMessageBottomGap(DialogueMessageData msg)
 
     return 6f;
 }
-
 
 
 internal void DrawTimeGapLine(int prevGameTick, int currentGameTick, float width, float y)
@@ -218,7 +208,6 @@ internal void DrawTimeGapLine(int prevGameTick, int currentGameTick, float width
 }
 
 
-
 internal string FormatGameTimeGap(int tickDiff)
 {
     float minutes = tickDiff / 2500f;
@@ -238,7 +227,6 @@ internal string FormatGameTimeGap(int tickDiff)
         return "RimChat_DaysAgo".Translate(Mathf.RoundToInt(days));
     }
 }
-
 
 
 internal void DrawRoundedMessageBubble(DialogueMessageData msg, Rect rect)
@@ -262,7 +250,6 @@ internal void DrawRoundedMessageBubble(DialogueMessageData msg, Rect rect)
 }
 
 
-
 internal void DrawSystemMessage(DialogueMessageData msg, Rect rect)
 {
     float padding = 3f;
@@ -279,7 +266,6 @@ internal void DrawSystemMessage(DialogueMessageData msg, Rect rect)
     GUI.color = Color.white;
     Text.Font = GameFont.Small;
 }
-
 
 
 internal void DrawNormalMessageBubble(DialogueMessageData msg, Rect rect)
@@ -301,11 +287,9 @@ internal void DrawNormalMessageBubble(DialogueMessageData msg, Rect rect)
         senderColor = new Color(0.75f, 0.8f, 0.9f);
     }
 
-    // 绘制阴影 (更柔和, 现代的下拉阴影)
     Rect shadowRect = new Rect(rect.x + 1f, rect.y + 3f, rect.width, rect.height);
     DrawRoundedRect(shadowRect, new Color(0f, 0f, 0f, 0.12f), Dialog_DiplomacyDialogue.BUBBLE_CORNER_RADIUS);
 
-    // 绘制气泡背景 (圆角)
     DrawRoundedRect(rect, bubbleColor, Dialog_DiplomacyDialogue.BUBBLE_CORNER_RADIUS);
 
     float padding = 10f;
@@ -313,7 +297,6 @@ internal void DrawNormalMessageBubble(DialogueMessageData msg, Rect rect)
     float contentY = rect.y + 8f;
     float contentWidth = rect.width - padding * 2f;
 
-    // 发送者name与时间戳 (头部)
     Text.Font = GameFont.Tiny;
     float headerHeight = 18f; // Ensure enough vertical space for text
     
@@ -327,13 +310,11 @@ internal void DrawNormalMessageBubble(DialogueMessageData msg, Rect rect)
     GUI.color = new Color(senderColor.r, senderColor.g, senderColor.b, 0.65f);
     Widgets.Label(timeRect, timeStr);
 
-    // Contents区域起始位置
     contentY += headerHeight + 2f;
     
     Text.Font = GameFont.Small;
     GUI.color = textColor;
 
-    // Messagecontents (使用真正的逐字outputtext进行排版渲染)
     string displayText = GetDisplayText(msg);
     float retryReservedWidth = ShouldShowFallbackRetryButton(msg)
         ? Dialog_DiplomacyDialogue.FallbackRetryButtonSize + Dialog_DiplomacyDialogue.FallbackRetryButtonMargin
@@ -349,32 +330,23 @@ internal void DrawNormalMessageBubble(DialogueMessageData msg, Rect rect)
 }
 
 
-
 internal void DrawRoundedRect(Rect rect, Color color, float radius)
 {
     GUI.color = color;
     float r = Mathf.Min(radius, rect.width / 2f, rect.height / 2f);
 
-    // 绘制中心rectangle及十字区域
     GUI.DrawTexture(new Rect(rect.x + r, rect.y, rect.width - r * 2f, rect.height), Dialog_DiplomacyDialogue.WhiteTexture);
     GUI.DrawTexture(new Rect(rect.x, rect.y + r, rect.width, rect.height - r * 2f), Dialog_DiplomacyDialogue.WhiteTexture);
 
-    // 左侧圆角沿用原始坐标，右侧圆角单独做像素对齐，修复 1.25x 缩放下稳定右移 1px 的问题。
     float rightCornerX = Mathf.Floor(rect.x + rect.width - r);
 
-    // 使用高清抗锯齿圆角纹理进行圆滑边角绘制 (Unity GUI texCoords 中 0,0 为左下角)
-    // 左上角
     GUI.DrawTextureWithTexCoords(new Rect(rect.x, rect.y, r, r), Dialog_DiplomacyDialogue.CircleTexture, new Rect(0f, 0.5f, 0.5f, 0.5f));
-    // 右上角
     GUI.DrawTextureWithTexCoords(new Rect(rightCornerX, rect.y, r, r), Dialog_DiplomacyDialogue.CircleTexture, new Rect(0.5f, 0.5f, 0.5f, 0.5f));
-    // 左下角
     GUI.DrawTextureWithTexCoords(new Rect(rect.x, rect.yMax - r, r, r), Dialog_DiplomacyDialogue.CircleTexture, new Rect(0f, 0f, 0.5f, 0.5f));
-    // 右下角
     GUI.DrawTextureWithTexCoords(new Rect(rightCornerX, rect.yMax - r, r, r), Dialog_DiplomacyDialogue.CircleTexture, new Rect(0.5f, 0f, 0.5f, 0.5f));
 
     GUI.color = Color.white;
 }
-
 
 
 internal float CalculateMessageHeight(DialogueMessageData msg, float width)
@@ -401,18 +373,15 @@ internal float CalculateMessageHeight(DialogueMessageData msg, float width)
         return Owner.Parts.AirdropCards.CalculateAirdropTradeCardBubbleHeight(msg, width);
     }
 
-    // 精确计算text高度: based ondynamicoutput的字符重新计算
     float contentWidth = width - 20f; // padding 10f * 2
     float retryReserved = (msg != null && msg.allowFallbackRetry && !msg.isPlayer)
         ? Dialog_DiplomacyDialogue.FallbackRetryButtonSize + Dialog_DiplomacyDialogue.FallbackRetryButtonMargin : 0f;
     float effectiveWidth = Mathf.Max(40f, contentWidth - retryReserved);
     float textHeight = Text.CalcHeight(displayText, effectiveWidth);
 
-    // 总高度 = 上内边距(8f) + 头高度(18f) + 间距(2f) + contents高度 + 下内边距(6f) = 34f + textHeight
     float totalHeight = 34f + textHeight;
     return Mathf.Max(50f, totalHeight);
 }
-
 
 
 internal float CalculateBubbleWidth(DialogueMessageData msg, float maxWidth)
@@ -448,7 +417,6 @@ internal float CalculateBubbleWidth(DialogueMessageData msg, float maxWidth)
         return Mathf.Clamp(maxWidth * 0.65f, 280f, 420f);
     }
 
-    // Get头部名字和日期的自然宽度
     GameFont oldFont = Text.Font;
     Text.Font = GameFont.Tiny;
     float headerWidth = Text.CalcSize(Owner.Parts.Speakers.GetDisplaySenderName(msg)).x + Text.CalcSize(GetTimestampString(msg)).x + 25f;
@@ -469,7 +437,6 @@ internal float CalculateBubbleWidth(DialogueMessageData msg, float maxWidth)
     float estimatedWidth = compactContentWidth + 32f;
     return Mathf.Clamp(estimatedWidth, minBubbleWidth, maxWidth);
 }
-
 
 
 internal string GetTimestampString(DialogueMessageData msg)
@@ -501,9 +468,6 @@ internal string GetTimestampString(DialogueMessageData msg)
 }
 
 
-
-       /// <summary>/// 更新逐字output效果
-///</summary>
        internal void UpdateTypewriterEffect()
        {
            if (session == null || session.messages == null) return;
@@ -568,7 +532,6 @@ internal string GetTimestampString(DialogueMessageData msg)
        }
 
 
-
 internal string GetDisplayText(DialogueMessageData msg)
 {
     if (msg.isPlayer || msg.IsSystemMessage()) return msg.message;
@@ -579,7 +542,6 @@ internal string GetDisplayText(DialogueMessageData msg)
     }
     return msg.message;
 }
-
 
 
 internal bool ShouldShowFallbackRetryButton(DialogueMessageData msg)
@@ -593,7 +555,6 @@ internal bool ShouldShowFallbackRetryButton(DialogueMessageData msg)
            !fallbackRetryRequestedThisFrame &&
            string.Equals(msg.message ?? string.Empty, "RimChat_ImmersionFallback_Diplomacy".Translate().ToString(), StringComparison.Ordinal);
 }
-
 
 
 internal void DrawFallbackRetryButton(DialogueMessageData msg, Rect bubbleRect, float contentY, float headerHeight)

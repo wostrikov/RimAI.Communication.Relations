@@ -35,8 +35,6 @@ internal sealed class DiplomacyDialogueInputComposer : DiplomacyDialogueCollabor
     }
 
 
-
-
 internal void DrawInputArea(Rect rect)
 {
     Widgets.DrawBoxSolid(rect, new Color(0.12f, 0.12f, 0.15f));
@@ -190,18 +188,15 @@ internal void DrawInputArea(Rect rect)
         }
     }
 
-    // 绘制social经验上浮动画
     if (Time.time - socialExpAnimStartTime < 2f && negotiator != null)
     {
         float progress = (Time.time - socialExpAnimStartTime) / 2f;
-        // 前20%淡入, 后80%淡出
         float alpha = progress < 0.2f ? progress * 5f : (1f - (progress - 0.2f) / 0.8f);
         float yOffset = progress * 40f;
         
-        // 在发送button上方区域
         Rect expRect = new Rect(rect.xMax - 180f, rect.y - 15f - yOffset, 170f, 25f);
         
-        GUI.color = new Color(0.9f, 0.8f, 0.2f, alpha); // 金色
+        GUI.color = new Color(0.9f, 0.8f, 0.2f, alpha);
         Text.Font = GameFont.Tiny;
         Text.Anchor = TextAnchor.MiddleRight;
         Widgets.Label(expRect, "RimChat_SocialExpGained".Translate(negotiator.LabelShort, lastExpAmount));
@@ -210,7 +205,6 @@ internal void DrawInputArea(Rect rect)
         GUI.color = Color.white;
     }
 }
-
 
 
 internal void OpenSendInfoMenu()
@@ -257,7 +251,6 @@ internal void OpenSendInfoMenu()
 }
 
 
-
 internal void DrawSendInfoEntry(Rect sendRect, SendGateState sendGate)
 {
     Rect entryRect = new Rect(sendRect.x, sendRect.yMax + 2f, sendRect.width, 16f);
@@ -295,7 +288,6 @@ internal void DrawSendInfoEntry(Rect sendRect, SendGateState sendGate)
 }
 
 
-
 internal void HandleInputEvents(SendGateState sendGate)
 {
     Event current = Event.current;
@@ -331,7 +323,6 @@ internal void HandleInputEvents(SendGateState sendGate)
     current.Use();
     Input.SendMessage();
 }
-
 
 
 internal void NavigateInputHistory(int direction)
@@ -378,7 +369,6 @@ internal void NavigateInputHistory(int direction)
 }
 
 
-
 internal bool TryHandleInputHistoryNavigation(Event current)
 {
     if (current.type != EventType.KeyDown)
@@ -402,7 +392,6 @@ internal bool TryHandleInputHistoryNavigation(Event current)
 
     return false;
 }
-
 
 
 internal bool HasActiveNpcTypewriter()
@@ -431,7 +420,6 @@ internal bool HasActiveNpcTypewriter()
 
     return false;
 }
-
 
 
 internal bool IsInputLockedByAiTurn(out string reason)

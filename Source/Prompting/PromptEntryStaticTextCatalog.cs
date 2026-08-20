@@ -3,10 +3,6 @@ using Ustas.RimAI.Communication.Relations.Module;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {
-    /// <summary>
-    /// Dependencies: RimChat settings prompt section catalog.
-    /// Responsibility: resolve long-lived prompt section text from the native section catalog with safe fallbacks.
-    /// </summary>
     internal static class PromptEntryStaticTextCatalog
     {
         internal static class DiplomacyDialogueRequest

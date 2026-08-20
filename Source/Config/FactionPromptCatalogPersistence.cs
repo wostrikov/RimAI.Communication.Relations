@@ -34,12 +34,11 @@ internal sealed class FactionPromptCatalogPersistence
                     Owner._configCollection = FactionPromptJsonUtility.FromJson(json);
                     Log.Message($"[RimAI.Relations] Loaded faction prompts from {sourcePath}");
                     
-                    // 如果configurationfileempty, 从默认configurationload
                     if (Owner._configCollection == null || Owner._configCollection.Configs.Count == 0)
                     {
                         Log.Warning($"[RimAI.Relations] Config file exists but contains no configs, loading defaults");
                         LoadDefaultConfigs();
-                        SaveConfigs(); // Save默认configuration到file
+                        SaveConfigs();
                     }
                 }
                 catch (Exception ex)
@@ -52,7 +51,7 @@ internal sealed class FactionPromptCatalogPersistence
             {
                 Log.Message($"[RimAI.Relations] Prompt config file not found, loading defaults");
                 LoadDefaultConfigs();
-                SaveConfigs(); // Save默认configuration到file
+                SaveConfigs();
             }
 
             if (Owner._configCollection == null)
@@ -69,7 +68,6 @@ internal sealed class FactionPromptCatalogPersistence
             {
                 if (Owner._configCollection == null) return;
 
-                // 确保目录presence
                 string directory = Path.GetDirectoryName(Owner.ConfigFilePath);
                 if (!LocalStorage.Current.DirectoryExists(directory))
                 {
@@ -86,8 +84,6 @@ internal sealed class FactionPromptCatalogPersistence
             }
         }
 
-        /// <summary>/// load默认configuration (从 FactionPrompts_Default.json file)
- ///</summary>
         internal void LoadDefaultConfigs()
         {
             Owner._configCollection = new FactionPromptConfigCollection();
@@ -107,11 +103,8 @@ internal sealed class FactionPromptCatalogPersistence
             }
         }
 
-        /// <summary>/// get默认configurationfilepath (Mod目录下的Prompt/Defaultfolder)
- ///</summary>
         internal string GetDefaultConfigFilePath()
         {
-            // 尝试从当前Mod的pathget
             try
             {
                 var mod = LoadedModManager.GetMod<RelationsMod>();
@@ -128,12 +121,10 @@ internal sealed class FactionPromptCatalogPersistence
                 Log.Warning($"[RimAI.Relations] Failed to get mod path: {ex.Message}");
             }
 
-            // 后备1: 使用程序集所在目录的上级目录 (通常在 1.6/Assemblies 中)
             try
             {
                 string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string assemblyDir = Path.GetDirectoryName(assemblyPath);
-                // 尝试从 Assemblies 目录向上找到 Mod 根目录
                 string modDir = Directory.GetParent(assemblyDir)?.Parent?.FullName;
                 if (!string.IsNullOrEmpty(modDir))
                 {
@@ -155,14 +146,12 @@ internal sealed class FactionPromptCatalogPersistence
 
         internal string GetCustomConfigFilePathInternal()
         {
-            // 尝试从当前Mod的pathget
             try
             {
                 var mod = LoadedModManager.GetMod<RelationsMod>();
                 if (mod?.Content != null)
                 {
                     string customDir = Path.Combine(mod.Content.RootDir, FactionPromptManager.PromptFolderName, FactionPromptManager.CustomSubFolderName);
-                    // 确保目录presence
                     if (!LocalStorage.Current.DirectoryExists(customDir))
                     {
                         LocalStorage.Current.CreateDirectory(customDir);
@@ -175,17 +164,13 @@ internal sealed class FactionPromptCatalogPersistence
                 Log.Warning($"[RimAI.Relations] Failed to get custom config path: {ex.Message}");
             }
 
-            // 后备: 使用userconfiguration目录
             return Path.Combine(RelationsMod.Instance?.GetSettingsFolderPath() ?? "", FactionPromptManager.ConfigFileName);
         }
 
-        /// <summary>/// load硬编码默认configuration (后备方案)
- ///</summary>
         internal void LoadHardcodedDefaultConfigs()
         {
             Owner._configCollection = new FactionPromptConfigCollection();
 
-            // 创建所有faction的默认configuration
             foreach (var factionDef in GetSupportedFactionDefs())
             {
                 var config = CreateDefaultConfig(factionDef);
@@ -193,8 +178,6 @@ internal sealed class FactionPromptCatalogPersistence
             }
         }
 
-        /// <summary>/// 确保所有faction都有configuration
- ///</summary>
         internal void EnsureAllFactionsHaveConfigs()
         {
             bool addedNew = false;
@@ -219,13 +202,10 @@ internal sealed class FactionPromptCatalogPersistence
             }
         }
 
-        /// <summary>/// get支持的factionDef列表
- ///</summary>
         internal List<FactionDef> GetSupportedFactionDefs()
         {
             var supportedDefs = new List<FactionDef>();
 
-            // 主要faction
             AddFactionDefIfExists(supportedDefs, "OutlanderCivil");
             AddFactionDefIfExists(supportedDefs, "OutlanderRough");
             AddFactionDefIfExists(supportedDefs, "TribeCivil");
@@ -240,8 +220,6 @@ internal sealed class FactionPromptCatalogPersistence
             return supportedDefs;
         }
 
-        /// <summary>/// 如果presence则添加factionDef
- ///</summary>
         internal void AddFactionDefIfExists(List<FactionDef> list, string defName)
         {
             var def = DefDatabase<FactionDef>.GetNamedSilentFail(defName);
@@ -251,32 +229,24 @@ internal sealed class FactionPromptCatalogPersistence
             }
         }
 
-        /// <summary>/// 创建默认configuration
- ///</summary>
         internal FactionPromptConfig CreateDefaultConfig(FactionDef factionDef)
         {
             var config = new FactionPromptConfig(factionDef.defName, factionDef.label);
 
-            // 根据faction类型settings默认 Prompt template
             SetupDefaultTemplateFields(config, factionDef.defName);
 
             return config;
         }
 
-        /// <summary>/// 为factionsettings默认template字段
- /// 注意: 默认configuration应从 FactionPrompts_Default.json file读取
- /// 此method仅在file读取失败时作为后备使用, 创建最小化configuration
- ///</summary>
+        // Non-obvious edge case — read carefully before changing. (summary factionsettings template configuration FactionPrompts_Default.json file method file configuration summary)
         internal void SetupDefaultTemplateFields(FactionPromptConfig config, string factionDefName)
         {
-            // 定义标准字段
             const string coreStyleName = "核心风格";
             const string vocabName = "用词特征";
             const string toneName = "语气特征";
             const string sentenceName = "句式特征";
             const string taboosName = "表达禁忌";
 
-            // 创建最小化默认configuration (提示user需要从fileload完整configuration)
             config.GetOrCreateField(coreStyleName, $"请从 {FactionPromptManager.DefaultConfigFileName} 文件加载 {factionDefName} 的默认配置，或手动编辑此模板。", "描述派系的核心对话风格");
             config.GetOrCreateField(vocabName, "请配置用词特征。", "描述用词习惯和特征");
             config.GetOrCreateField(toneName, "请配置语气特征。", "描述语气和情感特征");
@@ -284,8 +254,6 @@ internal sealed class FactionPromptCatalogPersistence
             config.GetOrCreateField(taboosName, "请配置表达禁忌。", "描述表达禁忌和限制");
         }
 
-        /// <summary>/// 导出configuration到file
- ///</summary>
         public bool ExportConfigs(string filePath)
         {
             try
@@ -303,8 +271,6 @@ internal sealed class FactionPromptCatalogPersistence
             }
         }
 
-        /// <summary>/// 从file导入configuration
- ///</summary>
         public bool ImportConfigs(string filePath)
         {
             try

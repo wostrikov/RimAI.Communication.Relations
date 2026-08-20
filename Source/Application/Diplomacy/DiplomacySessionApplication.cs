@@ -30,17 +30,13 @@ internal sealed class DiplomacySessionApplication : DiplomacyDialogueCollaborato
     internal DiplomacySessionApplication(Dialog_DiplomacyDialogue owner) : base(owner) { }
 
 
-
-// 玩家message气泡颜色 #91ed61
 internal static readonly Color PlayerBubbleColor = new Color(0.58f, 0.88f, 0.43f, 1f);
 
 
 internal static readonly Color PlayerBubbleColorDark = new Color(0.52f, 0.81f, 0.38f, 1f);
 
 
-// AImessage气泡颜色
 internal static readonly Color AIBubbleColor = new Color(0.25f, 0.26f, 0.3f, 0.95f);
-
 
 
 internal void TryCommitDiplomacySessionSummaryOnClose()
@@ -76,7 +72,6 @@ internal void TryCommitDiplomacySessionSummaryOnClose()
 
     session.lastSummarizedMessageIndex = session.messages.Count;
 }
-
 
 
 internal void SendPreparedMessage(
@@ -234,12 +229,10 @@ internal void SendPreparedMessage(
 }
 
 
-
 internal void AddDroppedRequestSystemMessage(string primaryReason, string secondaryReason = null)
 {
     Owner.Parts.Feedback.HandleDroppedRequest(primaryReason, secondaryReason);
 }
-
 
 
 internal string GenerateSimulatedResponse(string playerMessage, Faction f)
@@ -279,9 +272,6 @@ internal string GenerateSimulatedResponse(string playerMessage, Faction f)
 }
 
 
-
-       /// <summary>/// 根据动作生成responsetext
-///</summary>
        internal string GenerateResponseFromActions(List<AIAction> actions)
        {
            var sb = new System.Text.StringBuilder();
@@ -342,7 +332,6 @@ internal string GenerateSimulatedResponse(string playerMessage, Faction f)
        }
 
 
-
 internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, List<ActionExecutionOutcome> outcomes)
 {
     // Action failures are displayed as separate system messages via AppendFailedActionSystemMessages.
@@ -351,9 +340,6 @@ internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, 
 }
 
 
-
-       /// <summary>/// 执行 AI 动作
-///</summary>
        internal List<ActionExecutionOutcome> ExecuteAIActions(
            List<AIAction> actions,
            FactionDialogueSession currentSession,
@@ -475,7 +461,6 @@ internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, 
                    }
                    outcomes.Add(ActionExecutionOutcome.Success(action, result.Message, result.Data));
                    
-                   // Record重要event到memory
                    RecordSignificantEventForAction(action, currentFaction, result);
                }
                else
@@ -502,7 +487,6 @@ internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, 
        }
 
 
-
 internal static void InjectExplicitChallengeRequestHint(AIAction action, string playerMessage)
 {
     if (action == null ||
@@ -515,7 +499,6 @@ internal static void InjectExplicitChallengeRequestHint(AIAction action, string 
     action.Parameters ??= new Dictionary<string, object>(StringComparer.Ordinal);
     action.Parameters["explicit_challenge_request"] = true;
 }
-
 
 
 internal static bool LooksLikeExplicitCallEveryoneChallenge(string playerMessage)
@@ -537,9 +520,6 @@ internal static bool LooksLikeExplicitCallEveryoneChallenge(string playerMessage
 }
 
 
-
-       /// <summary>/// 为执行的 AI 动作record重要event (只更新内存)
-///</summary>
        internal void RecordSignificantEventForAction(AIAction action, Faction currentFaction, ActionResult result)
        {
            SignificantEventType? eventType = action.ActionType switch
@@ -558,11 +538,9 @@ internal static bool LooksLikeExplicitCallEveryoneChallenge(string playerMessage
            if (eventType.HasValue)
            {
                string description = BuildSignificantEventDescription(action, result);
-               // 只更新内存, 不save到file
                LeaderMemoryManager.Instance.RecordSignificantEvent(currentFaction, eventType.Value, Faction.OfPlayer, description);
            }
        }
-
 
 
 internal static string BuildSignificantEventDescription(AIAction action, ActionResult result)
@@ -584,7 +562,6 @@ internal static string BuildSignificantEventDescription(AIAction action, ActionR
 }
 
 
-
 internal static string BuildFixedCostText(GameAIInterface.DialogueApiGoodwillCostResult cost)
 {
     if (cost == null)
@@ -594,7 +571,6 @@ internal static string BuildFixedCostText(GameAIInterface.DialogueApiGoodwillCos
 
     return $" Fixed goodwill cost applied: base {cost.BaseCost}, actual {cost.ActualChange}.";
 }
-
 
 
 internal static int ReadInt(AIAction action, string key, int fallback)
@@ -614,7 +590,6 @@ internal static int ReadInt(AIAction action, string key, int fallback)
 
     return fallback;
 }
-
 
 
 internal static string ReadText(AIAction action, string key, string fallbackA, string fallbackB)
@@ -637,13 +612,10 @@ internal static string ReadText(AIAction action, string key, string fallbackA, s
 }
 
 
-
 internal void SaveFactionMemory(FactionDialogueSession currentSession, Faction currentFaction)
 {
     if (currentSession == null || currentSession.messages == null) return;
 
-    // 只更新内存中的memory, 不save到file
-    // Filesave由存档save时统一processing
     LeaderMemoryManager.Instance.UpdateFromDialogue(currentFaction, currentSession.messages);
 }
 }

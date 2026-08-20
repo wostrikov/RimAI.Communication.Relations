@@ -19,8 +19,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         Cancelled = 6
     }
 
-    /// <summary>/// store单个factiondialoguesession的数据
- ///</summary>
     public class FactionDialogueSession : IExposable
     {
         public Faction faction;
@@ -33,7 +31,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         public int conversationEndedTick = 0;
         public int reinitiateAvailableTick = 0;
 
-        // AI requeststate (不save到存档, 重启后需要重新request)
         public string pendingRequestId = null;
         public DialogueRequestLease pendingRequestLease = null;
         public bool isWaitingForResponse = false;
@@ -90,11 +87,9 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         public string lastAirdropCounterofferReason = string.Empty;
         public int lastAirdropCounterofferTick = 0;
         
-        // 策略建议运行态 (不save到存档)
         public List<PendingStrategySuggestion> pendingStrategySuggestions = new List<PendingStrategySuggestion>();
         public int strategyUsesConsumed = 0;
 
-        // 外交延迟动作意图运行态 (不save到存档)
         public PendingDelayedActionIntent pendingDelayedActionIntent;
         public PendingDelayedActionIntent lastDelayedActionIntent;
         public string lastDelayedActionExecutionSignature = string.Empty;
@@ -148,7 +143,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 reinitiateAvailableTick = 0;
             }
             
-            // 限制message数量, 避免存档过大
             if (messages.Count > 100)
             {
                 messages.RemoveAt(0);
@@ -521,18 +515,14 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         }
     }
 
-    /// <summary>/// message类型枚举
- ///</summary>
     public enum DialogueMessageType
     {
-        Normal,       // 普通message (玩家/AI dialogue)
-        System,       // Systemmessage (通知, error提示等)
+        Normal,      
+        System,      
         Image,        // Inline image card message
-        AirdropTradeCard  // 物资空投交易卡片消息
+        AirdropTradeCard 
     }
 
-    /// <summary>/// 运行态策略建议 (来自 LLM)
- ///</summary>
     public class PendingStrategySuggestion
     {
         public string StrategyName = string.Empty;
@@ -541,8 +531,6 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         public string Content = string.Empty;
     }
 
-    /// <summary>/// 外交延迟动作运行态意图（不持久化）。
-    ///</summary>
     public class PendingDelayedActionIntent
     {
         public string ActionType = string.Empty;
@@ -578,8 +566,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
         }
     }
 
-    /// <summary>/// 可序列化的dialoguemessage数据
- ///</summary>
+    // Serialization / save-load constraint — keep field identity stable. (summary dialoguemessage summary)
     public class DialogueMessageData : IExposable
     {
         public string sender;
