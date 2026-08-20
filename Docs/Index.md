@@ -259,7 +259,7 @@
   - `tools/hotfix/apply-gitnexus-csharp-imports-hotfix.ps1`
   - `tools/hotfix/apply-gitnexus-process-coverage-hotfix.ps1`
 - Каталог виводу звіту:
-  - `doc/reports/`
+  - `Docs/reports/`
 - Спосіб використання:
   - Спочатку виконайте локальний виклик для вилучення патча: `./tools/hotfix/apply-gitnexus-csharp-calls-hotfix.ps1`
   - Виконайте точний патч C# IMPORTS: `./tools/hotfix/apply-gitnexus-csharp-imports-hotfix.ps1`
@@ -562,8 +562,8 @@
   - `RimChat/AI/AIActionExecutor.cs`
   - `1.6/Defs/SoundDefs/Diplomacy_Sounds.xml`
   - `build.ps1`
-  - `doc/Api.md`
-  - `doc/config.md`
+  - `Docs/Api.md`
+  - `Docs/config.md`
 - Зміни в ланцюжку:
   - Після успішного виконання `ExecuteRequestRaidCallEveryone(...)` звук `RimChat_RequestRaidCallEveryone` більше не відтворюється; для спільної атаки залишаються лише текстовий і системний зворотний зв’язок.
   - Видалити `RimChat_RequestRaidCallEveryone` `SoundDef` і `1.6/Sounds/sound_request_raid_call_everyone.wav` ресурси, більше не зберігати окремий аудіовхід.
@@ -591,7 +591,7 @@
   - `RimChat/Config/PromptTextConstants.cs`
   - `RimChat/Persistence/PromptPersistenceService.DomainStorage.cs`
   - `RimChat/Persistence/PromptPersistenceService.cs`
-  - `doc/Api.md`
+  - `Docs/Api.md`
 - Зміни в ланцюжку:
   - Типовий опис `request_raid_call_everyone` і доповнювальний опис під час виконання узгоджено переписати як «міжфракційний спільний наступ» і чітко зазначити, що `call everyone / 联合袭击 / 都叫来 / 全都叫来 / everyone attack / all in` є командою для ініціювання загального наступу.
   - На рівні промпту `AppendBlockedActionHints(...)` приховує `call_everyone_requires_post_raid_escalation`, щоб модель за замовчуванням не вважала спільний рейд blocked-дією; фактична перевірка права доступу та причина blocked для UI залишаються без змін.
@@ -1028,10 +1028,10 @@
 - Мета: усунути проблему прямого виведення назв ключів RimChat або некоректного кодування під час перемикання на мову, відмінну від китайської чи англійської.
 - Ключові модулі:
   - `RimChat/Patches/TranslatorPatch_RimChatEnglishFallback.cs`
-  - `doc/Api.md`
-  - `doc/config.md`
-  - `doc/VersionLog.txt`
-  - `doc/VersionLog_en.txt`
+  - `Docs/Api.md`
+  - `Docs/config.md`
+  - `Docs/VersionLog.txt`
+  - `Docs/VersionLog_en.txt`
 - Зміни в ланцюжку:
   - Додати до `Translator.TryTranslate` суворий постпроцесинговий патч, який вмикає таблицю англійських ключів для відкату лише в разі помилки перекладу `RimChat_*`.
   - Під час першого спрацювання відкату один раз вивести чітке попередження в журналі, щоб полегшити виявлення відсутнього мовного пакета в `Player.log`.
@@ -1041,10 +1041,10 @@
 - Мета: вилучити жорстко закодований поділ на «китайську/інші», натомість безпосередньо читати каталог поточної активної мови та в разі відсутності негайно переходити до English.
 - Ключові модулі:
   - `RimChat/Config/RimChatSettings_APIHeader.UX.cs`
-  - `doc/Api.md`
-  - `doc/config.md`
-  - `doc/VersionLog.txt`
-  - `doc/VersionLog_en.txt`
+  - `Docs/Api.md`
+  - `Docs/config.md`
+  - `Docs/VersionLog.txt`
+  - `Docs/VersionLog_en.txt`
 - Зміни ланцюжка:
   - `AvailableLanguages` змінено на динамічне сканування підкаталогів першого рівня `1.6/Languages`.
   - Порядок аналізу мовних каталогів: пряме читання `activeLanguage.folderName` -> зіставлення після нормалізації -> зіставлення псевдонімів -> аварійне повернення fail-fast до `English`.
@@ -2213,10 +2213,10 @@
   - `Prompt/Default/RimTalkPromptEntries_Default.json`
   - `Prompt/Default/PromptUnifiedCatalog_Default.json`
 - Із документації розробника вилучити старий протокол одного об’єкта `{\"action\":...}`, натомість всюди оголосити `{\"actions\":[...]}`:
-  - `doc/Api.md`
-  - `doc/config.md`
-  - `doc/VersionLog.txt`
-  - `doc/VersionLog_en.txt`
+  - `Docs/Api.md`
+  - `Docs/config.md`
+  - `Docs/VersionLog.txt`
+  - `Docs/VersionLog_en.txt`
 
 ## Уніфікація заповнювачів вузлів контракту відповіді (v0.7.35)
 - Стандартний шаблон вузла контракту відповіді всюди має бути лише заповнювачем середовища виконання `{{ dialogue.response_contract_body }}`:

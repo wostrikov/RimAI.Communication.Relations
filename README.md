@@ -155,3 +155,5 @@
 [B 站视频：当我让 AI 接管了游戏外交](https://bilibili.com/video/BV11FRqBJEZG)
 
 感谢 欲擒故纵、pcjjos 对 RimChat 的大力支持
+
+Module documentation: [Docs/](Docs/).
