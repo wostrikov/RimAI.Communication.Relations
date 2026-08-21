@@ -14,6 +14,6 @@ Player-facing and developer configuration for Relations lives primarily in:
 
 ## Compatibility notes
 
-Legacy RimTalk/RimChat naming may still appear in serialization keys, PackageId-adjacent bridges, or historical setting field names. Those identities are contracts; changing them is a shared-contract change, not documentation cleanup.
+Legacy PackageId / serialization / bridge field names from absorbed products may still appear. Those identities are contracts; changing them is a shared-contract change, not documentation cleanup.
 
 For a current action list, see [help_en.md](help_en.md).

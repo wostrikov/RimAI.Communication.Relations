@@ -188,8 +188,7 @@ public ActionValidationResult ValidateActionExecution(Faction faction, string ac
 
                         if (lightweight)
                         {
-                            // Skip expensive QuestGenerationProbe (world scan + distance sort)
-                            // for tooltip hints. Actual execution still does full validation.
+                            // Skip expensive QuestGenerationProbe (world scan + distance sort) on tooltip hints; execution still fully validates.
                             return ActionValidationResult.AllowedResult();
                         }
 
