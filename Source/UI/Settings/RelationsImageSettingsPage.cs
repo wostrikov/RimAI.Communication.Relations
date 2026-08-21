@@ -72,20 +72,31 @@ internal sealed class RelationsImageSettingsPage
 
         internal float CalculateImageApiContentHeight(float width)
         {
-            float estimatedHeight = 720f;
-            return Mathf.Max(estimatedHeight, 760f);
+            float estimatedHeight = Settings.DiplomacyImageApi != null && Settings.DiplomacyImageApi.IsNativeOpenAi()
+                ? 980f
+                : 760f;
+            return estimatedHeight;
         }
 
         internal void DrawImageApiConnectionSection(Listing_Standard listing)
         {
-            listing.CheckboxLabeled("RimChat_ImageApiEnabled".Translate(), ref Settings.DiplomacyImageApi.IsEnabled);
+            listing.CheckboxLabeled("RimAI.Relations.ImageApi.Enabled".Translate(), ref Settings.DiplomacyImageApi.IsEnabled);
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
-            listing.Label("这里应填写支持图生图的图片 API；自拍功能会把游戏中小人的渲染图作为输入图发送。普通纯文生图接口可能无法用于自拍。");
+            listing.Label("RimAI.Relations.ImageApi.EnabledHint".Translate());
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
 
             DrawImageProviderPresetSelector(listing);
+            if (Settings.DiplomacyImageApi.IsNativeOpenAi())
+            {
+                RelationsOpenAiImageSettingsUi.DrawNative(listing, Settings.DiplomacyImageApi, Pages);
+                listing.Label("RimChat_ImageApiTimeout".Translate(Settings.DiplomacyImageApi.TimeoutSeconds));
+                Settings.DiplomacyImageApi.TimeoutSeconds = Mathf.RoundToInt(listing.Slider(Settings.DiplomacyImageApi.TimeoutSeconds, 10f, 300f));
+                DrawImageConnectionTestButton(listing);
+                return;
+            }
+
             DrawImageApiTextField(listing, "RimChat_ImageApiEndpoint", ref Settings.DiplomacyImageApi.Endpoint, "https://...");
             if (string.Equals(Settings.DiplomacyImageApi.AuthMode, DiplomacyImageApiConfig.AuthModeNone, StringComparison.OrdinalIgnoreCase))
             {
@@ -108,11 +119,11 @@ internal sealed class RelationsImageSettingsPage
             listing.CheckboxLabeled("RimChat_ImageApiDefaultWatermark".Translate(), ref Settings.DiplomacyImageApi.DefaultWatermark);
             if (string.Equals(Settings.DiplomacyImageApi.ProviderPreset, DiplomacyImageApiConfig.ProviderPresetComfyUiLocal, StringComparison.OrdinalIgnoreCase))
             {
-                listing.Label("ComfyUI 图生图加载节点名");
+                listing.Label("RimChat_ImageApiComfyLoaderNode".Translate());
                 Settings.DiplomacyImageApi.ComfyUiImageLoaderNode = Pages.ProviderCloud.DrawTextFieldWithPlaceholder(listing.GetRect(26f), Settings.DiplomacyImageApi.ComfyUiImageLoaderNode ?? string.Empty, "LoadImageBase64");
                 Text.Font = GameFont.Tiny;
                 GUI.color = Color.gray;
-                listing.Label("填写你本地 ComfyUI 用于接收 base64 输入图的节点 class_type，例如 LoadImageBase64。这里只改节点名，不改其他 workflow 结构。");
+                listing.Label("RimChat_ImageApiComfyLoaderHint".Translate());
                 GUI.color = Color.white;
                 Text.Font = GameFont.Small;
             }
@@ -159,8 +170,9 @@ internal sealed class RelationsImageSettingsPage
             {
                 var options = new List<FloatMenuOption>
                 {
+                    new FloatMenuOption("RimChat_ImageApiProviderOpenAI".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetOpenAINative)),
+                    new FloatMenuOption("RimChat_ImageApiProviderOpenAICompatible".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetOpenAI)),
                     new FloatMenuOption("RimChat_ImageApiProviderArk".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetArk)),
-                    new FloatMenuOption("RimChat_ImageApiProviderOpenAI".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetOpenAI)),
                     new FloatMenuOption("RimChat_ImageApiProviderSiliconFlow".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetSiliconFlow)),
                     new FloatMenuOption("RimChat_ImageApiProviderComfyUiLocal".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetComfyUiLocal)),
                     new FloatMenuOption("RimChat_ImageApiProviderCustom".Translate(), () => ApplyImageProviderPreset(DiplomacyImageApiConfig.ProviderPresetCustom))
@@ -189,6 +201,15 @@ internal sealed class RelationsImageSettingsPage
                 Settings.DiplomacyImageApi.ShowAdvanced = false;
                 Settings.DiplomacyImageApi.Endpoint = string.Empty;
                 Settings.DiplomacyImageApi.Model = string.Empty;
+            }
+
+            if (string.Equals(normalized, DiplomacyImageApiConfig.ProviderPresetOpenAINative, StringComparison.OrdinalIgnoreCase))
+            {
+                Settings.DiplomacyImageApi.ApiKey = string.Empty;
+                Settings.DiplomacyImageApi.DefaultSize = DiplomacyOpenAiImageContract.SizeAuto;
+                Settings.DiplomacyImageApi.Quality = DiplomacyOpenAiImageContract.QualityAuto;
+                Settings.DiplomacyImageApi.OutputFormat = DiplomacyOpenAiImageContract.FormatPng;
+                Settings.DiplomacyImageApi.Background = DiplomacyOpenAiImageContract.BackgroundAuto;
             }
 
             Settings.DiplomacyImageApi.ApplyProviderPresetDefaults();
@@ -262,7 +283,9 @@ internal sealed class RelationsImageSettingsPage
             Rect buttonRect = listing.GetRect(30f);
             string label = _isTestingImageConnection
                 ? "RimChat_TestingConnection".Translate()
-                : "RimChat_TestConnectionButton".Translate();
+                : (Settings.DiplomacyImageApi.IsNativeOpenAi()
+                    ? "RimAI.Relations.ImageApi.ProbeAuthCheck".Translate()
+                    : "RimChat_TestConnectionButton".Translate());
 
             GUI.color = _isTestingImageConnection ? Color.gray : Color.white;
             bool clicked = Widgets.ButtonText(buttonRect, label, active: !_isTestingImageConnection);
@@ -299,6 +322,12 @@ internal sealed class RelationsImageSettingsPage
         internal System.Collections.IEnumerator TestImageConnectionCoroutine()
         {
             Settings.DiplomacyImageApi.Normalize();
+            if (Settings.DiplomacyImageApi.IsNativeOpenAi())
+            {
+                yield return ProbeOpenAiAuthCoroutine();
+                yield break;
+            }
+
             if (!Settings.DiplomacyImageApi.IsConfigured())
             {
                 _imageConnectionTestStatus = "RimChat_ConnectionFailed".Translate("RimChat_SendImageConfigInvalid".Translate());
@@ -320,31 +349,46 @@ internal sealed class RelationsImageSettingsPage
             _isTestingImageConnection = false;
         }
 
+        internal System.Collections.IEnumerator ProbeOpenAiAuthCoroutine()
+        {
+            if (!OpenAIProviderAdapter.CredentialPresent)
+            {
+                _imageConnectionTestStatus = "RimChat_ConnectionFailed".Translate(
+                    "RimAI.Relations.ImageApi.ErrorMissingCredential".Translate());
+                _isTestingImageConnection = false;
+                yield break;
+            }
+
+            string url = DiplomacyOpenAiImageContract.ResolveModelsProbeUrl(Settings.DiplomacyImageApi.Model);
+            var probeRequest = new DiplomacyImageGenerationRequest
+            {
+                TimeoutSeconds = Mathf.Clamp(Settings.DiplomacyImageApi.TimeoutSeconds, 10, 60)
+            };
+            DiplomacyImageRequestBinder.Bind(Settings.DiplomacyImageApi, probeRequest);
+            ProbeResult probe = default;
+            yield return SendImageProbeRequestCoroutine(url, "GET", string.Empty, probeRequest, result => probe = result);
+            OpenAiImageProbeOutcome outcome = DiplomacyOpenAiImageContract.ClassifyProbe(
+                OpenAIProviderAdapter.CredentialPresent,
+                probe.ResponseCode,
+                probe.ResponseBody);
+            string detail = RelationsOpenAiImageSettingsUi.ProbeOutcomeKey(outcome).Translate();
+            _imageConnectionTestStatus = outcome == OpenAiImageProbeOutcome.Success
+                ? "RimChat_ConnectionSuccess".Translate()
+                : "RimChat_ConnectionFailed".Translate(detail);
+            _isTestingImageConnection = false;
+        }
+
         internal DiplomacyImageGenerationRequest BuildImageProbeRequest()
         {
-            return new DiplomacyImageGenerationRequest
+            var request = new DiplomacyImageGenerationRequest
             {
-                Endpoint = Settings.DiplomacyImageApi.Endpoint,
-                ApiKey = Settings.DiplomacyImageApi.ApiKey,
-                Model = Settings.DiplomacyImageApi.Model,
                 Prompt = "Connectivity test image. Keep it simple.",
-                Size = Settings.DiplomacyImageApi.DefaultSize,
-                Watermark = Settings.DiplomacyImageApi.DefaultWatermark,
-                TimeoutSeconds = Mathf.Clamp(Settings.DiplomacyImageApi.TimeoutSeconds, 10, 60),
-                Mode = Settings.DiplomacyImageApi.Mode,
-                SchemaPreset = Settings.DiplomacyImageApi.SchemaPreset,
-                AuthMode = Settings.DiplomacyImageApi.AuthMode,
-                ApiKeyHeaderName = Settings.DiplomacyImageApi.ApiKeyHeaderName,
-                ApiKeyQueryName = Settings.DiplomacyImageApi.ApiKeyQueryName,
-                ResponseUrlPath = Settings.DiplomacyImageApi.ResponseUrlPath,
-                ResponseB64Path = Settings.DiplomacyImageApi.ResponseB64Path,
-                AsyncSubmitPath = Settings.DiplomacyImageApi.AsyncSubmitPath,
-                AsyncStatusPathTemplate = Settings.DiplomacyImageApi.AsyncStatusPathTemplate,
-                AsyncImageFetchPath = Settings.DiplomacyImageApi.AsyncImageFetchPath,
-                ComfyUiImageLoaderNode = Settings.DiplomacyImageApi.ComfyUiImageLoaderNode,
-                PollIntervalMs = Settings.DiplomacyImageApi.PollIntervalMs,
-                PollMaxAttempts = Settings.DiplomacyImageApi.PollMaxAttempts
+                TimeoutSeconds = Mathf.Clamp(Settings.DiplomacyImageApi.TimeoutSeconds, 10, 60)
             };
+            DiplomacyImageRequestBinder.Bind(Settings.DiplomacyImageApi, request);
+            request.Prompt = "Connectivity test image. Keep it simple.";
+            request.TimeoutSeconds = Mathf.Clamp(Settings.DiplomacyImageApi.TimeoutSeconds, 10, 60);
+            return request;
         }
 
         internal System.Collections.IEnumerator ProbeImageConnectionCoroutine(
@@ -541,9 +585,13 @@ internal sealed class RelationsImageSettingsPage
         internal static string GetImageProviderPresetLabel(string preset)
         {
             string normalized = DiplomacyImageApiConfig.NormalizeProviderPreset(preset);
-            if (string.Equals(normalized, DiplomacyImageApiConfig.ProviderPresetOpenAI, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(normalized, DiplomacyImageApiConfig.ProviderPresetOpenAINative, StringComparison.OrdinalIgnoreCase))
             {
                 return "RimChat_ImageApiProviderOpenAI".Translate();
+            }
+            if (string.Equals(normalized, DiplomacyImageApiConfig.ProviderPresetOpenAI, StringComparison.OrdinalIgnoreCase))
+            {
+                return "RimChat_ImageApiProviderOpenAICompatible".Translate();
             }
             if (string.Equals(normalized, DiplomacyImageApiConfig.ProviderPresetSiliconFlow, StringComparison.OrdinalIgnoreCase))
             {

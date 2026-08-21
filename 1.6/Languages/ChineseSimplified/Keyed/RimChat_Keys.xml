@@ -25,13 +25,43 @@
     <RimChat_Tab_ImageApi_Tooltip>功能：配置独立外交发图接口与模板。作用域：仅 send_image 动作。</RimChat_Tab_ImageApi_Tooltip>
     <RimChat_PromptWorkbenchLauncherTitle>提示词工作台</RimChat_PromptWorkbenchLauncherTitle>
     <RimChat_PromptWorkbenchLauncherHint>在“提示词工作台”页中直接编辑原生 `channel -> section` 内容。</RimChat_PromptWorkbenchLauncherHint>
-    <RimChat_ImageApiEnabled>启用外交图片 API</RimChat_ImageApiEnabled>
+    <RimChat_ImageApiEnabled>启用外交图片生成</RimChat_ImageApiEnabled>
+    <RimAI.Relations.ImageApi.Enabled>启用外交图片生成</RimAI.Relations.ImageApi.Enabled>
+    <RimAI.Relations.ImageApi.EnabledHint>启用后，外交可以通过所选图片服务生成图像。OpenAI 使用 RimAI 游戏凭据，无需再粘贴第二把密钥。</RimAI.Relations.ImageApi.EnabledHint>
+    <RimAI.Relations.ImageApi.Credentials>凭据：{0}</RimAI.Relations.ImageApi.Credentials>
+    <RimAI.Relations.ImageApi.ModelRecommended>gpt-image-2</RimAI.Relations.ImageApi.ModelRecommended>
+    <RimAI.Relations.ImageApi.ModelCustom>自定义模型</RimAI.Relations.ImageApi.ModelCustom>
+    <RimAI.Relations.ImageApi.Size>尺寸</RimAI.Relations.ImageApi.Size>
+    <RimAI.Relations.ImageApi.SizeAuto>自动</RimAI.Relations.ImageApi.SizeAuto>
+    <RimAI.Relations.ImageApi.SizeCustom>自定义</RimAI.Relations.ImageApi.SizeCustom>
+    <RimAI.Relations.ImageApi.SizeInvalid>GPT Image 2 尺寸无效。最长边不超过 3840，须为 16 的倍数，长宽比不超过 3:1，像素 655360–8294400。</RimAI.Relations.ImageApi.SizeInvalid>
+    <RimAI.Relations.ImageApi.Quality>质量</RimAI.Relations.ImageApi.Quality>
+    <RimAI.Relations.ImageApi.QualityAuto>自动</RimAI.Relations.ImageApi.QualityAuto>
+    <RimAI.Relations.ImageApi.QualityLow>低</RimAI.Relations.ImageApi.QualityLow>
+    <RimAI.Relations.ImageApi.QualityMedium>中</RimAI.Relations.ImageApi.QualityMedium>
+    <RimAI.Relations.ImageApi.QualityHigh>高</RimAI.Relations.ImageApi.QualityHigh>
+    <RimAI.Relations.ImageApi.OutputFormat>格式</RimAI.Relations.ImageApi.OutputFormat>
+    <RimAI.Relations.ImageApi.FormatPng>PNG</RimAI.Relations.ImageApi.FormatPng>
+    <RimAI.Relations.ImageApi.FormatJpeg>JPEG</RimAI.Relations.ImageApi.FormatJpeg>
+    <RimAI.Relations.ImageApi.FormatWebp>WebP</RimAI.Relations.ImageApi.FormatWebp>
+    <RimAI.Relations.ImageApi.Background>背景</RimAI.Relations.ImageApi.Background>
+    <RimAI.Relations.ImageApi.BackgroundAuto>自动</RimAI.Relations.ImageApi.BackgroundAuto>
+    <RimAI.Relations.ImageApi.BackgroundOpaque>不透明</RimAI.Relations.ImageApi.BackgroundOpaque>
+    <RimAI.Relations.ImageApi.BackgroundTransparent>透明</RimAI.Relations.ImageApi.BackgroundTransparent>
+    <RimAI.Relations.ImageApi.ProbeAuthCheck>检查凭据与模型访问</RimAI.Relations.ImageApi.ProbeAuthCheck>
+    <RimAI.Relations.ImageApi.ErrorMissingCredential>缺少 OPENAI_RIMAI 凭据</RimAI.Relations.ImageApi.ErrorMissingCredential>
+    <RimAI.Relations.ImageApi.ErrorUnauthorized>未授权</RimAI.Relations.ImageApi.ErrorUnauthorized>
+    <RimAI.Relations.ImageApi.ErrorModelUnavailable>模型不可用</RimAI.Relations.ImageApi.ErrorModelUnavailable>
+    <RimAI.Relations.ImageApi.ErrorRateLimited>请求过于频繁</RimAI.Relations.ImageApi.ErrorRateLimited>
+    <RimAI.Relations.ImageApi.ErrorModeration>被审核拦截</RimAI.Relations.ImageApi.ErrorModeration>
+    <RimAI.Relations.ImageApi.ErrorTransport>传输或服务器失败</RimAI.Relations.ImageApi.ErrorTransport>
     <RimChat_ImageApiEndpoint>图片接口地址</RimChat_ImageApiEndpoint>
     <RimChat_ImageApiKey>图片 API 密钥</RimChat_ImageApiKey>
     <RimChat_ImageApiModel>图片模型</RimChat_ImageApiModel>
     <RimChat_ImageApiProviderPreset>图片服务商</RimChat_ImageApiProviderPreset>
     <RimChat_ImageApiProviderArk>火山方舟 ARK</RimChat_ImageApiProviderArk>
-    <RimChat_ImageApiProviderOpenAI>OpenAI 兼容</RimChat_ImageApiProviderOpenAI>
+    <RimChat_ImageApiProviderOpenAI>OpenAI</RimChat_ImageApiProviderOpenAI>
+    <RimChat_ImageApiProviderOpenAICompatible>自定义 / OpenAI 兼容</RimChat_ImageApiProviderOpenAICompatible>
     <RimChat_ImageApiProviderSiliconFlow>SiliconFlow</RimChat_ImageApiProviderSiliconFlow>
     <RimChat_ImageApiProviderComfyUiLocal>本地 ComfyUI</RimChat_ImageApiProviderComfyUiLocal>
     <RimChat_ImageApiProviderCustom>自定义</RimChat_ImageApiProviderCustom>
@@ -66,6 +96,8 @@
     <RimChat_ImageApiAsyncFetchPath>异步图片获取路径</RimChat_ImageApiAsyncFetchPath>
     <RimChat_ImageApiPollInterval>异步轮询间隔（毫秒）：{0}</RimChat_ImageApiPollInterval>
     <RimChat_ImageApiPollAttempts>异步最大轮询次数：{0}</RimChat_ImageApiPollAttempts>
+    <RimChat_ImageApiComfyLoaderNode>ComfyUI 图生图加载节点名</RimChat_ImageApiComfyLoaderNode>
+    <RimChat_ImageApiComfyLoaderHint>填写本地 ComfyUI 用于接收 base64 输入图的节点 class_type，例如 LoadImageBase64。这里只改节点名。</RimChat_ImageApiComfyLoaderHint>
     <RimChat_ImageApiExperimentalHint>实验性功能：默认使用火山引擎（Volcengine）图片接口。默认关闭，请按需启用。</RimChat_ImageApiExperimentalHint>
     <RimChat_SendImageCaptionStylePromptLabel>发图 Caption 风格提示词</RimChat_SendImageCaptionStylePromptLabel>
     <RimChat_SendImageCaptionStylePromptHint>作用：指导 AI 生成更生动的 caption。语言默认跟随当前游戏语言。</RimChat_SendImageCaptionStylePromptHint>

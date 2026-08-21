@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Ustas.RimAI.Communication.Relations.AI;
 using Verse;
 
 namespace Ustas.RimAI.Communication.Relations.Config
@@ -27,7 +28,8 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const string AuthModeQueryKey = "query_key";
         public const string AuthModeNone = "none";
         public const string ProviderPresetArk = "ark_volcengine";
-        public const string ProviderPresetOpenAI = "openai_compatible";
+        public const string ProviderPresetOpenAINative = DiplomacyOpenAiImageContract.ProviderPresetNative;
+        public const string ProviderPresetOpenAI = DiplomacyOpenAiImageContract.ProviderPresetCompatible;
         public const string ProviderPresetSiliconFlow = "siliconflow";
         public const string ProviderPresetComfyUiLocal = "comfyui_local";
         public const string ProviderPresetCustom = "custom";
@@ -37,6 +39,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public string ApiKey = string.Empty;
         public string Model = string.Empty;
         public string DefaultSize = DefaultImageSize;
+        public string Quality = DiplomacyOpenAiImageContract.QualityAuto;
+        public string OutputFormat = DiplomacyOpenAiImageContract.FormatPng;
+        public string Background = DiplomacyOpenAiImageContract.BackgroundAuto;
         public bool DefaultWatermark = false;
         public int TimeoutSeconds = 120;
         public string Mode = ModeSyncUrl;
@@ -62,6 +67,9 @@ namespace Ustas.RimAI.Communication.Relations.Config
             Scribe_Values.Look(ref ApiKey, "apiKey", string.Empty);
             Scribe_Values.Look(ref Model, "model", string.Empty);
             Scribe_Values.Look(ref DefaultSize, "defaultSize", DefaultImageSize);
+            Scribe_Values.Look(ref Quality, "quality", DiplomacyOpenAiImageContract.QualityAuto);
+            Scribe_Values.Look(ref OutputFormat, "outputFormat", DiplomacyOpenAiImageContract.FormatPng);
+            Scribe_Values.Look(ref Background, "background", DiplomacyOpenAiImageContract.BackgroundAuto);
             Scribe_Values.Look(ref DefaultWatermark, "defaultWatermark", false);
             Scribe_Values.Look(ref TimeoutSeconds, "timeoutSeconds", 120);
             Scribe_Values.Look(ref Mode, "mode", ModeSyncUrl);
@@ -95,7 +103,17 @@ namespace Ustas.RimAI.Communication.Relations.Config
             Endpoint = NormalizeText(Endpoint);
             ApiKey = NormalizeText(ApiKey);
             Model = NormalizeText(Model);
-            DefaultSize = NormalizeImageSize(DefaultSize, DefaultImageSize);
+            ApplyNativeOpenAiMigration();
+            if (IsNativeOpenAi())
+            {
+                DefaultSize = string.IsNullOrWhiteSpace(DiplomacyOpenAiImageContract.CanonicalizeSizeToken(DefaultSize))
+                    ? DiplomacyOpenAiImageContract.SizeAuto
+                    : DiplomacyOpenAiImageContract.CanonicalizeSizeToken(DefaultSize);
+            }
+            else
+            {
+                DefaultSize = NormalizeImageSize(DefaultSize, DefaultImageSize);
+            }
             Mode = NormalizeMode(Mode);
             SchemaPreset = NormalizeSchemaPreset(SchemaPreset, Endpoint);
             AuthMode = NormalizeAuthMode(AuthMode, SchemaPreset);
@@ -114,6 +132,62 @@ namespace Ustas.RimAI.Communication.Relations.Config
             PollMaxAttempts = Math.Max(1, Math.Min(600, PollMaxAttempts));
             ApplyProviderPresetDefaults();
             ApplyPresetDefaults();
+            if (IsNativeOpenAi())
+            {
+                ApplyNativeOpenAiMigration();
+            }
+        }
+
+        public bool IsNativeOpenAi()
+        {
+            return DiplomacyOpenAiImageContract.IsNativeProvider(ProviderPreset);
+        }
+
+        public DiplomacyOpenAiImageFields ToOpenAiFields()
+        {
+            return new DiplomacyOpenAiImageFields
+            {
+                IsEnabled = IsEnabled,
+                ProviderPreset = ProviderPreset,
+                Endpoint = Endpoint,
+                ApiKey = ApiKey,
+                Model = Model,
+                Size = DefaultSize,
+                Quality = Quality,
+                OutputFormat = OutputFormat,
+                Background = Background,
+                SchemaPreset = SchemaPreset,
+                Mode = Mode,
+                AuthMode = AuthMode
+            };
+        }
+
+        public void ApplyOpenAiFields(DiplomacyOpenAiImageFields fields)
+        {
+            if (fields == null)
+            {
+                return;
+            }
+
+            IsEnabled = fields.IsEnabled;
+            ProviderPreset = fields.ProviderPreset;
+            Endpoint = fields.Endpoint;
+            ApiKey = fields.ApiKey;
+            Model = fields.Model;
+            DefaultSize = fields.Size;
+            Quality = fields.Quality;
+            OutputFormat = fields.OutputFormat;
+            Background = fields.Background;
+            SchemaPreset = fields.SchemaPreset;
+            Mode = fields.Mode;
+            AuthMode = fields.AuthMode;
+        }
+
+        private void ApplyNativeOpenAiMigration()
+        {
+            DiplomacyOpenAiImageFields fields = ToOpenAiFields();
+            DiplomacyOpenAiImageContract.NormalizeNativeFields(fields);
+            ApplyOpenAiFields(fields);
         }
 
         public void ApplyFallbackDefaults(string preferredEndpoint, string preferredModel)
@@ -143,10 +217,18 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         public bool IsConfigured()
         {
-            return IsEnabled &&
-                !string.IsNullOrWhiteSpace(Endpoint) &&
-                (string.Equals(AuthMode, AuthModeNone, StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(ApiKey)) &&
-                !string.IsNullOrWhiteSpace(Model);
+            if (!IsEnabled || string.IsNullOrWhiteSpace(Model))
+            {
+                return false;
+            }
+
+            if (IsNativeOpenAi())
+            {
+                return OpenAIProviderAdapter.CredentialPresent;
+            }
+
+            return !string.IsNullOrWhiteSpace(Endpoint) &&
+                (string.Equals(AuthMode, AuthModeNone, StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(ApiKey));
         }
 
         public static string NormalizeMode(string mode)
@@ -193,6 +275,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         {
             string normalized = NormalizeText(preset).ToLowerInvariant();
             if (normalized == ProviderPresetArk
+                || normalized == ProviderPresetOpenAINative
                 || normalized == ProviderPresetOpenAI
                 || normalized == ProviderPresetSiliconFlow
                 || normalized == ProviderPresetComfyUiLocal
@@ -301,6 +384,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 return;
             }
 
+            if (string.Equals(preset, ProviderPresetOpenAINative, StringComparison.OrdinalIgnoreCase))
+            {
+                ApplyNativeOpenAiMigration();
+                return;
+            }
+
             if (string.Equals(preset, ProviderPresetComfyUiLocal, StringComparison.OrdinalIgnoreCase))
             {
                 SchemaPreset = SchemaPresetComfyUi;
@@ -344,14 +433,16 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
             if (string.Equals(preset, ProviderPresetOpenAI, StringComparison.OrdinalIgnoreCase))
             {
-                if (string.IsNullOrWhiteSpace(Endpoint))
-                {
-                    Endpoint = "https://api.openai.com/v1/images/generations";
-                }
+                SchemaPreset = SchemaPresetOpenAI;
+                Mode = ModeSyncPayload;
+                AuthMode = AuthModeBearer;
+                ResponseUrlPath = "url,data[0].url,images[0].url,output[0].url";
+                ResponseB64Path = "b64_json,data[0].b64_json,images[0].b64_json,data[0].b64";
                 if (string.IsNullOrWhiteSpace(Model))
                 {
-                    Model = "gpt-image-1";
+                    Model = DiplomacyOpenAiImageContract.RecommendedModel;
                 }
+
                 return;
             }
 

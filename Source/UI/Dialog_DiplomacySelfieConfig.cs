@@ -122,8 +122,15 @@ namespace Ustas.RimAI.Communication.Relations.UI
             captionText = Widgets.TextField(new Rect(120f, y, viewRect.width - 120f, 24f), captionText);
             y += 30f;
 
-            Widgets.CheckboxLabeled(new Rect(0f, y, viewRect.width, 24f), "RimChat_SelfieWatermark".Translate(), ref watermark);
-            y += 32f;
+            if (Module.RelationsMod.Settings?.DiplomacyImageApi == null || !Module.RelationsMod.Settings.DiplomacyImageApi.IsNativeOpenAi())
+            {
+                Widgets.CheckboxLabeled(new Rect(0f, y, viewRect.width, 24f), "RimChat_SelfieWatermark".Translate(), ref watermark);
+                y += 32f;
+            }
+            else
+            {
+                watermark = false;
+            }
 
             y += DrawInjectionSwitches(new Rect(0f, y, viewRect.width, 360f));
             y += 10f;
@@ -278,31 +285,28 @@ namespace Ustas.RimAI.Communication.Relations.UI
             var request = new DiplomacyImageGenerationRequest
             {
                 Faction = faction,
-                Endpoint = imageConfig.Endpoint,
-                ApiKey = imageConfig.ApiKey,
-                Model = imageConfig.Model,
                 Prompt = BuildSelfiePrompt(),
                 Caption = string.IsNullOrWhiteSpace(captionText) ? "RimChat_SelfieDefaultCaption".Translate(selectedColonist?.LabelShort ?? "Pawn") : captionText.Trim(),
-                Size = DiplomacyImageApiConfig.NormalizeImageSize(sizeText, imageConfig.DefaultSize),
-                Watermark = watermark,
-                TimeoutSeconds = imageConfig.TimeoutSeconds,
-                Mode = imageConfig.Mode,
-                SchemaPreset = imageConfig.SchemaPreset,
-                AuthMode = imageConfig.AuthMode,
-                ApiKeyHeaderName = imageConfig.ApiKeyHeaderName,
-                ApiKeyQueryName = imageConfig.ApiKeyQueryName,
-                ResponseUrlPath = imageConfig.ResponseUrlPath,
-                ResponseB64Path = imageConfig.ResponseB64Path,
-                AsyncSubmitPath = imageConfig.AsyncSubmitPath,
-                AsyncStatusPathTemplate = imageConfig.AsyncStatusPathTemplate,
-                AsyncImageFetchPath = imageConfig.AsyncImageFetchPath,
-                ComfyUiImageLoaderNode = imageConfig.ComfyUiImageLoaderNode,
-                PollIntervalMs = imageConfig.PollIntervalMs,
-                PollMaxAttempts = imageConfig.PollMaxAttempts,
                 SourceImageBytes = sourceImageBytes,
                 SourceImageMimeType = "image/png",
                 PreferImageToImage = sourceImageBytes != null && sourceImageBytes.Length > 0
             };
+            DiplomacyImageRequestBinder.Bind(imageConfig, request);
+            request.Prompt = BuildSelfiePrompt();
+            request.Caption = string.IsNullOrWhiteSpace(captionText) ? "RimChat_SelfieDefaultCaption".Translate(selectedColonist?.LabelShort ?? "Pawn") : captionText.Trim();
+            request.Size = imageConfig.IsNativeOpenAi()
+                ? DiplomacyOpenAiImageContract.CanonicalizeSizeToken(sizeText)
+                : DiplomacyImageApiConfig.NormalizeImageSize(sizeText, imageConfig.DefaultSize);
+            request.SourceImageBytes = sourceImageBytes;
+            request.PreferImageToImage = sourceImageBytes != null && sourceImageBytes.Length > 0;
+            if (imageConfig.IsNativeOpenAi())
+            {
+                request.Watermark = false;
+            }
+            else
+            {
+                request.Watermark = watermark;
+            }
 
             DiplomacyImageGenerationService.Instance.GenerateImage(request, OnGenerated);
         }

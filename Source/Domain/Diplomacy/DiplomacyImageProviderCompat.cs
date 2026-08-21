@@ -27,6 +27,18 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Func<DiplomacyImageGenerationRequest, string> arkBuilder,
             Func<DiplomacyImageGenerationRequest, string> arkWithoutSizeBuilder)
         {
+            if (DiplomacyOpenAiImageContract.IsNativeProvider(request.ProviderPreset) ||
+                DiplomacyOpenAiImageContract.IsCanonicalEndpoint(request.Endpoint))
+            {
+                return DiplomacyOpenAiImageContract.BuildGenerationRequestJson(
+                    request.Model,
+                    request.Prompt,
+                    request.Size,
+                    request.Quality,
+                    request.OutputFormat,
+                    request.Background);
+            }
+
             if (string.Equals(request.SchemaPreset, DiplomacyImageApiConfig.SchemaPresetOpenAI, StringComparison.OrdinalIgnoreCase))
             {
                 return BuildOpenAICompatibleBody(request, includeSize);
@@ -93,6 +105,21 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         {
             imageUrl = string.Empty;
             inlineBytes = null;
+
+            if (DiplomacyOpenAiImageContract.TryParseGenerationResponse(responseBody, out string nativeB64, out string nativeUrl))
+            {
+                if (!string.IsNullOrWhiteSpace(nativeB64) && TryDecodeBase64Image(nativeB64, out inlineBytes))
+                {
+                    imageUrl = "inline://base64";
+                    return true;
+                }
+
+                if (!string.IsNullOrWhiteSpace(nativeUrl))
+                {
+                    imageUrl = nativeUrl;
+                    return true;
+                }
+            }
 
             List<string> urlKeys = BuildKeyCandidates(request.ResponseUrlPath, new[] { "url" });
             if (TryExtractValueByKeys(responseBody, urlKeys, out string urlValue))

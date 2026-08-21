@@ -695,13 +695,43 @@
     <RimChat_Tab_ImageApi_Tooltip>Function: configure standalone diplomacy image generation endpoint and prompt templates. Scope: send_image action only.</RimChat_Tab_ImageApi_Tooltip>
     <RimChat_PromptWorkbenchLauncherTitle>Prompt Workbench</RimChat_PromptWorkbenchLauncherTitle>
     <RimChat_PromptWorkbenchLauncherHint>Use the Prompt Workbench tab to edit native channel -> section content directly.</RimChat_PromptWorkbenchLauncherHint>
-    <RimChat_ImageApiEnabled>Enable diplomacy image API</RimChat_ImageApiEnabled>
+    <RimChat_ImageApiEnabled>Enable diplomatic image generation</RimChat_ImageApiEnabled>
+    <RimAI.Relations.ImageApi.Enabled>Enable diplomatic image generation</RimAI.Relations.ImageApi.Enabled>
+    <RimAI.Relations.ImageApi.EnabledHint>When enabled, diplomacy can generate images through the configured image provider. OpenAI uses the canonical RimAI gameplay credential and does not need a second API key.</RimAI.Relations.ImageApi.EnabledHint>
+    <RimAI.Relations.ImageApi.Credentials>Credentials: {0}</RimAI.Relations.ImageApi.Credentials>
+    <RimAI.Relations.ImageApi.ModelRecommended>gpt-image-2</RimAI.Relations.ImageApi.ModelRecommended>
+    <RimAI.Relations.ImageApi.ModelCustom>Custom model</RimAI.Relations.ImageApi.ModelCustom>
+    <RimAI.Relations.ImageApi.Size>Size</RimAI.Relations.ImageApi.Size>
+    <RimAI.Relations.ImageApi.SizeAuto>Auto</RimAI.Relations.ImageApi.SizeAuto>
+    <RimAI.Relations.ImageApi.SizeCustom>Custom</RimAI.Relations.ImageApi.SizeCustom>
+    <RimAI.Relations.ImageApi.SizeInvalid>Invalid GPT Image 2 size. Max edge 3840, multiples of 16, ratio at most 3:1, 655360–8294400 pixels.</RimAI.Relations.ImageApi.SizeInvalid>
+    <RimAI.Relations.ImageApi.Quality>Quality</RimAI.Relations.ImageApi.Quality>
+    <RimAI.Relations.ImageApi.QualityAuto>Auto</RimAI.Relations.ImageApi.QualityAuto>
+    <RimAI.Relations.ImageApi.QualityLow>Low</RimAI.Relations.ImageApi.QualityLow>
+    <RimAI.Relations.ImageApi.QualityMedium>Medium</RimAI.Relations.ImageApi.QualityMedium>
+    <RimAI.Relations.ImageApi.QualityHigh>High</RimAI.Relations.ImageApi.QualityHigh>
+    <RimAI.Relations.ImageApi.OutputFormat>Format</RimAI.Relations.ImageApi.OutputFormat>
+    <RimAI.Relations.ImageApi.FormatPng>PNG</RimAI.Relations.ImageApi.FormatPng>
+    <RimAI.Relations.ImageApi.FormatJpeg>JPEG</RimAI.Relations.ImageApi.FormatJpeg>
+    <RimAI.Relations.ImageApi.FormatWebp>WebP</RimAI.Relations.ImageApi.FormatWebp>
+    <RimAI.Relations.ImageApi.Background>Background</RimAI.Relations.ImageApi.Background>
+    <RimAI.Relations.ImageApi.BackgroundAuto>Auto</RimAI.Relations.ImageApi.BackgroundAuto>
+    <RimAI.Relations.ImageApi.BackgroundOpaque>Opaque</RimAI.Relations.ImageApi.BackgroundOpaque>
+    <RimAI.Relations.ImageApi.BackgroundTransparent>Transparent</RimAI.Relations.ImageApi.BackgroundTransparent>
+    <RimAI.Relations.ImageApi.ProbeAuthCheck>Check credential and model access</RimAI.Relations.ImageApi.ProbeAuthCheck>
+    <RimAI.Relations.ImageApi.ErrorMissingCredential>Missing OPENAI_RIMAI credential</RimAI.Relations.ImageApi.ErrorMissingCredential>
+    <RimAI.Relations.ImageApi.ErrorUnauthorized>Unauthorized</RimAI.Relations.ImageApi.ErrorUnauthorized>
+    <RimAI.Relations.ImageApi.ErrorModelUnavailable>Model unavailable</RimAI.Relations.ImageApi.ErrorModelUnavailable>
+    <RimAI.Relations.ImageApi.ErrorRateLimited>Rate limited</RimAI.Relations.ImageApi.ErrorRateLimited>
+    <RimAI.Relations.ImageApi.ErrorModeration>Moderation blocked</RimAI.Relations.ImageApi.ErrorModeration>
+    <RimAI.Relations.ImageApi.ErrorTransport>Transport or server failure</RimAI.Relations.ImageApi.ErrorTransport>
     <RimChat_ImageApiEndpoint>Image API endpoint</RimChat_ImageApiEndpoint>
     <RimChat_ImageApiKey>Image API key</RimChat_ImageApiKey>
     <RimChat_ImageApiModel>Image model</RimChat_ImageApiModel>
     <RimChat_ImageApiProviderPreset>Image provider</RimChat_ImageApiProviderPreset>
     <RimChat_ImageApiProviderArk>Volcengine ARK</RimChat_ImageApiProviderArk>
-    <RimChat_ImageApiProviderOpenAI>OpenAI Compatible</RimChat_ImageApiProviderOpenAI>
+    <RimChat_ImageApiProviderOpenAI>OpenAI</RimChat_ImageApiProviderOpenAI>
+    <RimChat_ImageApiProviderOpenAICompatible>Custom / OpenAI-compatible</RimChat_ImageApiProviderOpenAICompatible>
     <RimChat_ImageApiProviderSiliconFlow>SiliconFlow</RimChat_ImageApiProviderSiliconFlow>
     <RimChat_ImageApiProviderComfyUiLocal>ComfyUI Local</RimChat_ImageApiProviderComfyUiLocal>
     <RimChat_ImageApiProviderCustom>Custom</RimChat_ImageApiProviderCustom>
@@ -736,6 +766,8 @@
     <RimChat_ImageApiAsyncFetchPath>Async image fetch path</RimChat_ImageApiAsyncFetchPath>
     <RimChat_ImageApiPollInterval>Async poll interval (ms): {0}</RimChat_ImageApiPollInterval>
     <RimChat_ImageApiPollAttempts>Async max poll attempts: {0}</RimChat_ImageApiPollAttempts>
+    <RimChat_ImageApiComfyLoaderNode>ComfyUI image-to-image loader node</RimChat_ImageApiComfyLoaderNode>
+    <RimChat_ImageApiComfyLoaderHint>Set the local ComfyUI class_type that receives the base64 input image, for example LoadImageBase64. This changes only the node name.</RimChat_ImageApiComfyLoaderHint>
     <RimChat_ImageApiExperimentalHint>Experimental feature: defaults to Volcengine image API. Disabled by default; enable only when needed.</RimChat_ImageApiExperimentalHint>
     <RimChat_SendImageCaptionStylePromptLabel>Send-image caption style prompt</RimChat_SendImageCaptionStylePromptLabel>
     <RimChat_SendImageCaptionStylePromptHint>Used to guide AI caption tone for generated images. Caption language follows current game language.</RimChat_SendImageCaptionStylePromptHint>

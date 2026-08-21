@@ -72,6 +72,16 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return;
             }
 
+            if (DiplomacyOpenAiImageContract.IsNativeProvider(request.ProviderPreset) ||
+                DiplomacyOpenAiImageContract.IsCanonicalEndpoint(request.Endpoint))
+            {
+                if (!DiplomacyOpenAiImageContract.TryNormalizeSize(request.Size, out _))
+                {
+                    onCompleted?.Invoke(DiplomacyImageGenerationResult.Fail("GPT Image 2 size is invalid."));
+                    return;
+                }
+            }
+
             AIChatServiceAsync.Instance.StartCoroutine(GenerateImageCoroutine(request, onCompleted));
         }
 
@@ -353,6 +363,12 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return false;
             }
 
+            if (DiplomacyOpenAiImageContract.IsNativeProvider(request?.ProviderPreset) ||
+                DiplomacyOpenAiImageContract.IsCanonicalEndpoint(request?.Endpoint))
+            {
+                return false;
+            }
+
             if (IsSizeValidationError(responseCode, requestError, responseBody))
             {
                 return true;
@@ -594,10 +610,14 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         public string Prompt = string.Empty;
         public string Caption = string.Empty;
         public string Size = DiplomacyImageApiConfig.DefaultImageSize;
+        public string Quality = DiplomacyOpenAiImageContract.QualityAuto;
+        public string OutputFormat = DiplomacyOpenAiImageContract.FormatPng;
+        public string Background = DiplomacyOpenAiImageContract.BackgroundAuto;
         public bool Watermark;
         public int TimeoutSeconds = 120;
         public string Mode = DiplomacyImageApiConfig.ModeSyncUrl;
         public string SchemaPreset = DiplomacyImageApiConfig.SchemaPresetArk;
+        public string ProviderPreset = DiplomacyImageApiConfig.ProviderPresetArk;
         public string AuthMode = DiplomacyImageApiConfig.AuthModeBearer;
         public string ApiKeyHeaderName = "X-API-Key";
         public string ApiKeyQueryName = "api_key";
@@ -621,9 +641,36 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Model = DiplomacyImageApiConfig.NormalizeText(Model);
             Prompt = (Prompt ?? string.Empty).Trim();
             Caption = (Caption ?? string.Empty).Trim();
-            Size = DiplomacyImageApiConfig.NormalizeImageSize(Size, DiplomacyImageApiConfig.DefaultImageSize);
-            Mode = DiplomacyImageApiConfig.NormalizeMode(Mode);
             SchemaPreset = DiplomacyImageApiConfig.NormalizeSchemaPreset(SchemaPreset, Endpoint);
+            ProviderPreset = DiplomacyImageApiConfig.NormalizeProviderPreset(ProviderPreset);
+            if (DiplomacyOpenAiImageContract.IsNativeProvider(ProviderPreset) ||
+                DiplomacyOpenAiImageContract.IsCanonicalEndpoint(Endpoint))
+            {
+                Endpoint = DiplomacyOpenAiImageContract.CanonicalEndpoint;
+                ProviderPreset = DiplomacyOpenAiImageContract.ProviderPresetNative;
+                Quality = DiplomacyOpenAiImageContract.NormalizeQuality(Quality);
+                OutputFormat = DiplomacyOpenAiImageContract.NormalizeOutputFormat(OutputFormat);
+                Background = DiplomacyOpenAiImageContract.NormalizeBackground(Background, OutputFormat);
+                Size = DiplomacyOpenAiImageContract.CanonicalizeSizeToken(Size);
+                if (string.IsNullOrWhiteSpace(Size))
+                {
+                    Size = DiplomacyOpenAiImageContract.SizeAuto;
+                }
+
+                Watermark = false;
+                SchemaPreset = DiplomacyImageApiConfig.SchemaPresetOpenAI;
+                Mode = DiplomacyImageApiConfig.ModeSyncPayload;
+                AuthMode = DiplomacyImageApiConfig.AuthModeBearer;
+                if (string.IsNullOrWhiteSpace(ApiKey))
+                {
+                    ApiKey = OpenAIProviderAdapter.ResolveCredential();
+                }
+            }
+            else
+            {
+                Size = DiplomacyImageApiConfig.NormalizeImageSize(Size, DiplomacyImageApiConfig.DefaultImageSize);
+            }
+            Mode = DiplomacyImageApiConfig.NormalizeMode(Mode);
             AuthMode = DiplomacyImageApiConfig.NormalizeAuthMode(AuthMode, SchemaPreset);
             ApiKeyHeaderName = DiplomacyImageApiConfig.NormalizeText(ApiKeyHeaderName);
             ApiKeyQueryName = DiplomacyImageApiConfig.NormalizeText(ApiKeyQueryName);

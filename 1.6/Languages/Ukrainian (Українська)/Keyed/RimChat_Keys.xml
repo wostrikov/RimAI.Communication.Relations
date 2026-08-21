@@ -656,13 +656,43 @@
   <RimChat_Tab_ImageApi_Tooltip>Функція: налаштування окремої кінцевої точки генерації зображень дипломатії та шаблонів промптів. Область: лише дія send_image.</RimChat_Tab_ImageApi_Tooltip>
   <RimChat_PromptWorkbenchLauncherTitle>Редактор промптів</RimChat_PromptWorkbenchLauncherTitle>
   <RimChat_PromptWorkbenchLauncherHint>Використовуйте вкладку «Редактор промптів», щоб безпосередньо редагувати вміст нативного каналу → розділу.</RimChat_PromptWorkbenchLauncherHint>
-  <RimChat_ImageApiEnabled>Увімкнути API зображень дипломатії</RimChat_ImageApiEnabled>
+  <RimChat_ImageApiEnabled>Увімкнути генерацію дипломатичних зображень</RimChat_ImageApiEnabled>
+  <RimAI.Relations.ImageApi.Enabled>Увімкнути генерацію дипломатичних зображень</RimAI.Relations.ImageApi.Enabled>
+  <RimAI.Relations.ImageApi.EnabledHint>Коли ввімкнено, дипломатія може генерувати зображення через налаштованого провайдера. OpenAI використовує канонічні ігрові облікові дані RimAI і не потребує другого ключа API.</RimAI.Relations.ImageApi.EnabledHint>
+  <RimAI.Relations.ImageApi.Credentials>Облікові дані: {0}</RimAI.Relations.ImageApi.Credentials>
+  <RimAI.Relations.ImageApi.ModelRecommended>gpt-image-2</RimAI.Relations.ImageApi.ModelRecommended>
+  <RimAI.Relations.ImageApi.ModelCustom>Власна модель</RimAI.Relations.ImageApi.ModelCustom>
+  <RimAI.Relations.ImageApi.Size>Розмір</RimAI.Relations.ImageApi.Size>
+  <RimAI.Relations.ImageApi.SizeAuto>Авто</RimAI.Relations.ImageApi.SizeAuto>
+  <RimAI.Relations.ImageApi.SizeCustom>Власний</RimAI.Relations.ImageApi.SizeCustom>
+  <RimAI.Relations.ImageApi.SizeInvalid>Недійсний розмір GPT Image 2. Максимальна сторона 3840, кратність 16, співвідношення не більше 3:1, 655360–8294400 пікселів.</RimAI.Relations.ImageApi.SizeInvalid>
+  <RimAI.Relations.ImageApi.Quality>Якість</RimAI.Relations.ImageApi.Quality>
+  <RimAI.Relations.ImageApi.QualityAuto>Авто</RimAI.Relations.ImageApi.QualityAuto>
+  <RimAI.Relations.ImageApi.QualityLow>Низька</RimAI.Relations.ImageApi.QualityLow>
+  <RimAI.Relations.ImageApi.QualityMedium>Середня</RimAI.Relations.ImageApi.QualityMedium>
+  <RimAI.Relations.ImageApi.QualityHigh>Висока</RimAI.Relations.ImageApi.QualityHigh>
+  <RimAI.Relations.ImageApi.OutputFormat>Формат</RimAI.Relations.ImageApi.OutputFormat>
+  <RimAI.Relations.ImageApi.FormatPng>PNG</RimAI.Relations.ImageApi.FormatPng>
+  <RimAI.Relations.ImageApi.FormatJpeg>JPEG</RimAI.Relations.ImageApi.FormatJpeg>
+  <RimAI.Relations.ImageApi.FormatWebp>WebP</RimAI.Relations.ImageApi.FormatWebp>
+  <RimAI.Relations.ImageApi.Background>Тло</RimAI.Relations.ImageApi.Background>
+  <RimAI.Relations.ImageApi.BackgroundAuto>Авто</RimAI.Relations.ImageApi.BackgroundAuto>
+  <RimAI.Relations.ImageApi.BackgroundOpaque>Непрозоре</RimAI.Relations.ImageApi.BackgroundOpaque>
+  <RimAI.Relations.ImageApi.BackgroundTransparent>Прозоре</RimAI.Relations.ImageApi.BackgroundTransparent>
+  <RimAI.Relations.ImageApi.ProbeAuthCheck>Перевірити облікові дані та доступ до моделі</RimAI.Relations.ImageApi.ProbeAuthCheck>
+  <RimAI.Relations.ImageApi.ErrorMissingCredential>Відсутні облікові дані OPENAI_RIMAI</RimAI.Relations.ImageApi.ErrorMissingCredential>
+  <RimAI.Relations.ImageApi.ErrorUnauthorized>Неавторизовано</RimAI.Relations.ImageApi.ErrorUnauthorized>
+  <RimAI.Relations.ImageApi.ErrorModelUnavailable>Модель недоступна</RimAI.Relations.ImageApi.ErrorModelUnavailable>
+  <RimAI.Relations.ImageApi.ErrorRateLimited>Обмеження частоти запитів</RimAI.Relations.ImageApi.ErrorRateLimited>
+  <RimAI.Relations.ImageApi.ErrorModeration>Заблоковано модерацією</RimAI.Relations.ImageApi.ErrorModeration>
+  <RimAI.Relations.ImageApi.ErrorTransport>Збій транспорту або сервера</RimAI.Relations.ImageApi.ErrorTransport>
   <RimChat_ImageApiEndpoint>Кінцева точка API зображень</RimChat_ImageApiEndpoint>
   <RimChat_ImageApiKey>Ключ API зображень</RimChat_ImageApiKey>
   <RimChat_ImageApiModel>Модель зображень</RimChat_ImageApiModel>
   <RimChat_ImageApiProviderPreset>Провайдер зображень</RimChat_ImageApiProviderPreset>
   <RimChat_ImageApiProviderArk>Volcengine ARK</RimChat_ImageApiProviderArk>
-  <RimChat_ImageApiProviderOpenAI>Сумісний з OpenAI</RimChat_ImageApiProviderOpenAI>
+  <RimChat_ImageApiProviderOpenAI>OpenAI</RimChat_ImageApiProviderOpenAI>
+  <RimChat_ImageApiProviderOpenAICompatible>Власний / сумісний з OpenAI</RimChat_ImageApiProviderOpenAICompatible>
   <RimChat_ImageApiProviderSiliconFlow>SiliconFlow</RimChat_ImageApiProviderSiliconFlow>
   <RimChat_ImageApiProviderComfyUiLocal>Локальний ComfyUI</RimChat_ImageApiProviderComfyUiLocal>
   <RimChat_ImageApiProviderCustom>Власний</RimChat_ImageApiProviderCustom>
@@ -697,6 +727,8 @@
   <RimChat_ImageApiAsyncFetchPath>Шлях отримання асинхронного зображення</RimChat_ImageApiAsyncFetchPath>
   <RimChat_ImageApiPollInterval>Інтервал опитування асинхронного запиту (мс): {0}</RimChat_ImageApiPollInterval>
   <RimChat_ImageApiPollAttempts>Максимальна кількість спроб опитування асинхронного запиту: {0}</RimChat_ImageApiPollAttempts>
+  <RimChat_ImageApiComfyLoaderNode>Вузол завантаження img2img ComfyUI</RimChat_ImageApiComfyLoaderNode>
+  <RimChat_ImageApiComfyLoaderHint>Вкажіть class_type локального ComfyUI, який приймає вхідне зображення в base64, наприклад LoadImageBase64. Змінюється лише назва вузла.</RimChat_ImageApiComfyLoaderHint>
   <RimChat_ImageApiExperimentalHint>Експериментальна функція: за замовчуванням використовує API зображень Volcengine. Вимкнено за замовчуванням; вмикайте лише за потреби.</RimChat_ImageApiExperimentalHint>
   <RimChat_SendImageCaptionStylePromptLabel>Промпт стилю підпису до надісланого зображення</RimChat_SendImageCaptionStylePromptLabel>
   <RimChat_SendImageCaptionStylePromptHint>Використовується для визначення тону підписів до зображень, створених ШІ. Мова підпису відповідає поточній мові гри.</RimChat_SendImageCaptionStylePromptHint>

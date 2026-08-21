@@ -90,7 +90,16 @@ internal bool TryHandleSendImageAction(
     string extraPrompt = ReadStringParameter(parameters, "extra_prompt");
     string caption = ReadStringParameter(parameters, "caption");
     string size = ReadStringParameter(parameters, "size");
-    size = DiplomacyImageApiConfig.NormalizeImageSize(size, imageConfig.DefaultSize);
+    if (imageConfig.IsNativeOpenAi())
+    {
+        size = string.IsNullOrWhiteSpace(size)
+            ? imageConfig.DefaultSize
+            : DiplomacyOpenAiImageContract.CanonicalizeSizeToken(size);
+    }
+    else
+    {
+        size = DiplomacyImageApiConfig.NormalizeImageSize(size, imageConfig.DefaultSize);
+    }
 
     bool watermark = imageConfig.DefaultWatermark;
     if (TryReadBoolParameter(parameters, "watermark", out bool watermarkOverride))
@@ -110,27 +119,20 @@ internal bool TryHandleSendImageAction(
     var request = new DiplomacyImageGenerationRequest
     {
         Faction = currentFaction,
-        Endpoint = imageConfig.Endpoint,
-        ApiKey = imageConfig.ApiKey,
-        Model = imageConfig.Model,
         Prompt = finalPrompt,
         Caption = caption,
         Size = size,
-        Watermark = watermark,
-        TimeoutSeconds = imageConfig.TimeoutSeconds,
-        Mode = imageConfig.Mode,
-        SchemaPreset = imageConfig.SchemaPreset,
-        AuthMode = imageConfig.AuthMode,
-        ApiKeyHeaderName = imageConfig.ApiKeyHeaderName,
-        ApiKeyQueryName = imageConfig.ApiKeyQueryName,
-        ResponseUrlPath = imageConfig.ResponseUrlPath,
-        ResponseB64Path = imageConfig.ResponseB64Path,
-        AsyncSubmitPath = imageConfig.AsyncSubmitPath,
-        AsyncStatusPathTemplate = imageConfig.AsyncStatusPathTemplate,
-        AsyncImageFetchPath = imageConfig.AsyncImageFetchPath,
-        PollIntervalMs = imageConfig.PollIntervalMs,
-        PollMaxAttempts = imageConfig.PollMaxAttempts
+        TimeoutSeconds = imageConfig.TimeoutSeconds
     };
+    DiplomacyImageRequestBinder.Bind(imageConfig, request);
+    request.Size = size;
+    request.Prompt = finalPrompt;
+    request.Caption = caption;
+    if (imageConfig.IsNativeOpenAi())
+    {
+        watermark = false;
+        request.Watermark = false;
+    }
     DateTime sendImageStartedAtUtc = DateTime.UtcNow;
     string debugRequestText = BuildSendImageDebugRequestText(
         currentFaction,

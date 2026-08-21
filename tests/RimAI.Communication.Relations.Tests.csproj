@@ -11,6 +11,7 @@
     <Compile Include="..\Source\AI\AIRequestDebugModels.cs" Link="AIRequestDebugModels.cs" />
     <Compile Include="..\Source\AI\RelationsAiRequestModels.cs" Link="RelationsAiRequestModels.cs" />
     <Compile Include="..\Source\AI\OpenAIProviderAdapter.cs" Link="OpenAIProviderAdapter.cs" />
+    <Compile Include="..\Source\Config\DiplomacyOpenAiImageContract.cs" Link="DiplomacyOpenAiImageContract.cs" />
     <Compile Include="..\Source\AI\AIJsonContentExtractor.cs" Link="AIJsonContentExtractor.cs" />
     <Compile Include="..\Source\AI\RelationsProviderTextExtractor.cs" Link="RelationsProviderTextExtractor.cs" />
     <Compile Include="..\Source\AI\RelationsParseModels.cs" Link="RelationsParseModels.cs" />
