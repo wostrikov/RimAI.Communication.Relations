@@ -3,6 +3,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Core.Diagnostics;
 using Ustas.RimAI.Core.Handshake;
 using Ustas.RimAI.Core.Modules;
 using Ustas.RimAI.Core.Storage;
@@ -20,6 +21,7 @@ namespace Ustas.RimAI.Communication.Relations.Module
         {
             Instance = this;
             Settings = GetSettings<RelationsSettings>();
+            MigratePersistedIdentityIfNeeded();
             RimAiHandshake.TryActivate(
                 RimAiHandshakeDescriptor.Current(RimAiModuleIds.Relations, HandshakeModuleVersion, isOptional: true),
                 RelationsComposition.Current.Start);
@@ -85,6 +87,46 @@ namespace Ustas.RimAI.Communication.Relations.Module
                 LocalStorage.Current.CreateDirectory(path);
             }
             return path;
+        }
+
+        void MigratePersistedIdentityIfNeeded()
+        {
+            string path = PersistedSettingsPath();
+            if (string.IsNullOrEmpty(path) || !LocalStorage.Current.FileExists(path))
+                return;
+
+            string xml = LocalStorage.Current.ReadAllText(path);
+            if (!RelationsSettingsPersistedIdentity.NeedsMigration(xml))
+                return;
+
+            WriteSettings();
+
+            if (LocalStorage.Current.FileExists(path))
+            {
+                xml = LocalStorage.Current.ReadAllText(path);
+                if (RelationsSettingsPersistedIdentity.NeedsMigration(xml))
+                {
+                    LocalStorage.Current.WriteAllTextAtomic(
+                        path,
+                        RelationsSettingsPersistedIdentity.RewriteRootClass(
+                            xml,
+                            RelationsSettingsPersistedIdentity.CurrentClrType));
+                }
+            }
+
+            RimAiLog.Info(
+                RimAiLogCategory.Relations,
+                "[RimAI.Relations] Migrated persisted ModSettings Class to " +
+                RelationsSettingsPersistedIdentity.CurrentClrType);
+        }
+
+        string PersistedSettingsPath()
+        {
+            if (Content == null)
+                return null;
+            return Path.Combine(
+                GenFilePaths.ConfigFolderPath,
+                "Mod_" + Content.FolderName + "_" + GetType().Name + ".xml");
         }
     }
 }
