@@ -1,3 +1,4 @@
+using RimAI.Core.Runtime;
 using Verse;
 using Verse.AI.Group;
 
@@ -72,6 +73,13 @@ namespace Ustas.RimAI.Communication.Relations.Dialogue
             if (!IsRpgDialogueEligibleRace(target))
             {
                 reason = "target_race_ineligible";
+                return false;
+            }
+
+            var policy = RimAiRuntimeGateway.ResolveRelationsDialoguePolicy("rpg");
+            if (!policy.AllowRpg)
+            {
+                reason = "runtime_policy_skip";
                 return false;
             }
 
