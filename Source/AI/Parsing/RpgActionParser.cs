@@ -36,7 +36,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     CoalesceActionName(
                         ExtractStringField(actionObject, "action"),
                         ExtractStringField(actionObject, "name")));
-                if (string.IsNullOrEmpty(normalizedAction))
+                if (string.IsNullOrEmpty(normalizedAction) || !RpgActionCatalog.IsValidAction(normalizedAction))
                 {
                     continue;
                 }
@@ -85,7 +85,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
             foreach (Match match in matches)
             {
                 string actionName = NormalizeActionName(match.Groups[1].Value);
-                if (string.IsNullOrWhiteSpace(actionName) || HasAction(actions, actionName))
+                if (string.IsNullOrWhiteSpace(actionName) ||
+                    !RpgActionCatalog.IsValidAction(actionName) ||
+                    HasAction(actions, actionName))
                 {
                     continue;
                 }
@@ -372,90 +374,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         public static string NormalizeActionName(string actionName)
         {
-            if (string.IsNullOrWhiteSpace(actionName))
-            {
-                return null;
-            }
-
-            string normalized = actionName.Trim().Replace("-", "_").ToLowerInvariant();
-            switch (normalized)
-            {
-                case "romanceattempt":
-                case "romance_attempt":
-                case "romance":
-                case "fall_in_love":
-                case "start_romance":
-                case "恋爱":
-                    return "RomanceAttempt";
-                case "marriageproposal":
-                case "marriage_proposal":
-                case "propose_marriage":
-                case "marry":
-                case "结婚":
-                    return "MarriageProposal";
-                case "breakup":
-                case "break_up":
-                case "split_up":
-                case "分手":
-                    return "Breakup";
-                case "divorce":
-                case "离婚":
-                    return "Divorce";
-                case "date":
-                case "dating":
-                case "约会":
-                    return "Date";
-                case "trygainmemory":
-                case "try_gain_memory":
-                    return "TryGainMemory";
-                case "tryaffectsocialgoodwill":
-                case "try_affect_social_goodwill":
-                    return "TryAffectSocialGoodwill";
-                case "reduceresistance":
-                case "reduce_resistance":
-                    return "ReduceResistance";
-                case "reducewill":
-                case "reduce_will":
-                    return "ReduceWill";
-                case "recruit":
-                case "action4":
-                case "action_4":
-                case "action 4":
-                case "第4个动作":
-                case "第四个动作":
-                    return "Recruit";
-                case "trytakeorderedjob":
-                case "try_take_ordered_job":
-                    return "TryTakeOrderedJob";
-                case "triggerincident":
-                case "trigger_incident":
-                    return "TriggerIncident";
-                case "grantinspiration":
-                case "grant_inspiration":
-                    return "GrantInspiration";
-                case "exitdialoguecooldown":
-                case "exit_dialogue_cooldown":
-                case "exit_dialogue_with_cooldown":
-                    return "ExitDialogueCooldown";
-                case "exitdialogue":
-                case "exit_dialogue":
-                    return "ExitDialogue";
-                case "convertideology":
-                case "convert_ideology":
-                case "change_ideology":
-                case "改变意识形态":
-                case "皈依":
-                case "改变信仰":
-                    return "ConvertIdeology";
-                case "adjustcertainty":
-                case "adjust_certainty":
-                case "change_certainty":
-                case "调整信仰度":
-                case "动摇信仰":
-                    return "AdjustCertainty";
-                default:
-                    return actionName.Trim();
-            }
+            return RpgActionCatalog.NormalizeActionName(actionName);
         }
 
         public static string UnescapeJson(string str)

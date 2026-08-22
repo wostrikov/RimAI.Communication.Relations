@@ -1,6 +1,7 @@
 using System;
 using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.Comp;
+using Ustas.RimAI.Communication.Relations.Integration;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Core.Composition;
@@ -46,6 +47,7 @@ public sealed class RelationsComposition : IRimAiModuleComposition
         LongEventHandler.ExecuteWhenFinished(PawnDialogueCompDefInjector.EnsureInjected);
 
         RelationsApplicationAccess.Register(new RelationsApplication());
+        RelationsPipelineProbe.Register();
         RimAIModuleRegistry.Current.Register(new RimAIModuleDescriptor(
             "relations",
             "RimAI.Communication.Relations",

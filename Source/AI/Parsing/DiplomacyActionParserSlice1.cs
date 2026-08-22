@@ -18,51 +18,20 @@ public static List<AIAction> ParseActionsFromJson(string json, string visibleDia
             var droppedDuplicateRansomTargetIds = new List<int>();
             int keptRansomWithoutTargetCount = 0;
 
-            string trimmedJson = (json ?? string.Empty).Trim();
-            string actionsArray = trimmedJson.StartsWith("[", StringComparison.Ordinal)
-                ? trimmedJson
-                : JsonLooseObjectParser.ExtractJsonArray(trimmedJson, "actions");
-            if (string.IsNullOrEmpty(actionsArray))
+            foreach (DiplomacyActionJsonReader.Candidate candidate in DiplomacyActionJsonReader.Read(json))
             {
-                return actions;
-            }
-
-            foreach (string actionObj in JsonLooseObjectParser.SplitJsonObjects(actionsArray))
-            {
-                string actionType = JsonLooseObjectParser.ExtractJsonString(actionObj, "action");
-                if (string.IsNullOrEmpty(actionType))
+                if (string.Equals(candidate.NormalizedActionType, AIActionNames.CreateQuest, StringComparison.Ordinal) &&
+                    candidate.Parameters != null &&
+                    !candidate.Parameters.ContainsKey("questDefName"))
                 {
-                    continue;
-                }
-                string reason = JsonLooseObjectParser.ExtractJsonString(actionObj, "reason");
-                string parametersJson = JsonLooseObjectParser.ExtractJsonObject(actionObj, "parameters");
-                var parameters = string.IsNullOrEmpty(parametersJson)
-                    ? new Dictionary<string, object>()
-                    : JsonLooseObjectParser.ParseParameters(parametersJson);
-
-                string normalizedAction = DiplomacyActionParser.NormalizeActionName(actionType);
-                if (string.Equals(normalizedAction, AIActionNames.CreateQuest, StringComparison.Ordinal))
-                {
-                    string questDefName = JsonLooseObjectParser.ExtractJsonString(actionObj, "questDefName");
-                    if (string.IsNullOrEmpty(questDefName))
-                    {
-                        questDefName = JsonLooseObjectParser.ExtractJsonString(actionObj, "defName");
-                    }
-                    if (!string.IsNullOrEmpty(questDefName) && !parameters.ContainsKey("questDefName"))
-                    {
-                        parameters["questDefName"] = questDefName;
-                    }
-                    if (!parameters.ContainsKey("questDefName"))
-                    {
-                        DebugLogger.WarningGated($"create_quest action missing questDefName. Raw actionObj: {actionObj}");
-                    }
+                    DebugLogger.WarningGated($"create_quest action missing questDefName. Raw actionObj: {candidate.RawObject}");
                 }
 
                 DiplomacyActionParser.AddActionIfValid(
                     actions,
-                    actionType,
-                    parameters,
-                    reason,
+                    candidate.RawActionType,
+                    candidate.Parameters,
+                    candidate.Reason,
                     keptRansomTargetIds,
                     droppedDuplicateRansomTargetIds,
                     ref keptRansomWithoutTargetCount,

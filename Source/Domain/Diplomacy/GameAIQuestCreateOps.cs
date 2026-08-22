@@ -51,16 +51,17 @@ public APIResult CreateQuest(string questDefName, Dictionary<string, object> par
             if (string.IsNullOrEmpty(questDefName))
                 return APIResult.FailureResult("Quest defName cannot be null");
 
-            bool isItemStashQuest = string.Equals(questDefName, "OpportunitySite_ItemStash", StringComparison.Ordinal);
-
             Faction faction = null;
-            if (parameters.TryGetValue("askerFaction", out object fObj))
+            try
+            {
+            bool isItemStashQuest = string.Equals(questDefName, "OpportunitySite_ItemStash", StringComparison.Ordinal);
+            if (parameters != null && parameters.TryGetValue("askerFaction", out object fObj))
             {
                 if (fObj is Faction f) faction = f;
                 else if (fObj is string s) faction = ResolveParameter("faction", s) as Faction;
             }
             
-            if (faction == null && parameters.TryGetValue("faction", out object fObj2))
+            if (faction == null && parameters != null && parameters.TryGetValue("faction", out object fObj2))
             {
                 if (fObj2 is Faction f2) faction = f2;
                 else if (fObj2 is string s2) faction = ResolveParameter("faction", s2) as Faction;
@@ -87,8 +88,6 @@ public APIResult CreateQuest(string questDefName, Dictionary<string, object> par
             if (questDef == null)
                 return APIResult.FailureResult($"Quest template '{questDefName}' missing");
 
-            try
-            {
                 if (!QuestSlatePrebuilder.TryBuild(faction, questDef, parameters, out global::RimWorld.QuestGen.Slate slate, out string prebuildCode, out string prebuildMessage))
                 {
                     DebugLogger.WarningGated($"CreateQuest prebuild failed. def='{questDefName}', faction='{faction?.Name ?? "Unknown"}', code='{prebuildCode}', message='{prebuildMessage}'");

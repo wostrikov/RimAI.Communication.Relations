@@ -23,6 +23,8 @@
     <Compile Include="..\Source\AI\Parsing\JsonBoundedExtractor.cs" Link="JsonBoundedExtractor.cs" />
     <Compile Include="..\Source\AI\Parsing\JsonLooseObjectParser.cs" Link="JsonLooseObjectParser.cs" />
     <Compile Include="..\Source\AI\Parsing\DiplomacyActionCatalog.cs" Link="DiplomacyActionCatalog.cs" />
+    <Compile Include="..\Source\AI\Parsing\DiplomacyActionJsonReader.cs" Link="DiplomacyActionJsonReader.cs" />
+    <Compile Include="..\Source\AI\Parsing\RpgActionCatalog.cs" Link="RpgActionCatalog.cs" />
     <Compile Include="..\Source\AI\Parsing\DiplomacyStrategySuggestionParser.cs" Link="DiplomacyStrategySuggestionParser.cs" />
     <Compile Include="..\Source\AI\RelationsLocalProviderRetry.cs" Link="RelationsLocalProviderRetry.cs" />
     <Compile Include="..\Source\AI\DialogueTokenUsageTracker.cs" Link="DialogueTokenUsageTracker.cs" />
