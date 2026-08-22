@@ -90,6 +90,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         internal ApiActionEligibilityService()
         {
+            Parts = new ApiActionEligibilityServiceParts(this);
         }
 
         

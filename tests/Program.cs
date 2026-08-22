@@ -92,6 +92,7 @@ internal static class Program
             DiplomacyDialoguePolicyTests.Run(Check);
             DiplomacyOpenAiImageTests.Run(Check);
             HallucinationGuardTests.Run(Check);
+            QuestEligibilityInitTests.Run(Check);
 
             Console.WriteLine($"OPENAI_FOCUSED_TESTS_OK passed={passed}");
             Console.WriteLine($"TESTS total={passed} failed={failed}");

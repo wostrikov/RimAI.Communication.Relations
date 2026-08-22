@@ -65,5 +65,6 @@
     <Compile Include="..\Source\Application\Diplomacy\DiplomacyActionPolicyText.cs" Link="Diplomacy\DiplomacyActionPolicyText.cs" />
     <Compile Include="..\Source\Application\Diplomacy\DiplomacyAirdropPendingParse.cs" Link="Diplomacy\DiplomacyAirdropPendingParse.cs" />
     <Compile Include="..\Source\Application\Diplomacy\DiplomacyParameterParse.cs" Link="Diplomacy\DiplomacyParameterParse.cs" />
+    <None Include="..\Source\Domain\Diplomacy\ApiActionEligibilityService.cs" Link="ApiActionEligibilityService.cs.src" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
