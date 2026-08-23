@@ -10,7 +10,7 @@ Features:
 • Dynamic world news
 • Storyteller-compatible event triggering
 
-Gameplay text AI uses the shared RimAI configuration. PackageId is unchanged for save compatibility.</description>
+Gameplay text AI uses the shared RimAI configuration.</description>
     <modVersion>1.5.9</modVersion>
     <supportedVersions>
         <li>1.6</li>
