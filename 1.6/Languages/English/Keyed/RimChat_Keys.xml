@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
     <!-- Mod Settings Category -->
-    <RimChat_SettingsCategory>RimChat</RimChat_SettingsCategory>
+    <RimChat_SettingsCategory>RimAI.Communication.Relations</RimChat_SettingsCategory>
     <RimChat_ReturnToSettings>← Back to Settings</RimChat_ReturnToSettings>
 
     <!-- Settings -->

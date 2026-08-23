@@ -3,8 +3,14 @@
     <name>RimAI.Communication.Relations</name>
     <author>yancy</author>
     <packageId>ustas.rimai.communication.relations</packageId>
-    <description>Bring AI-driven diplomacy to RimWorld! This mod allows factions to be controlled by AI, enabling dynamic interactions with players. Features include AI-controlled faction diplomacy, intelligent dialogue system, dynamic world news, and smart event triggering that complements the vanilla storyteller.</description>
-    <modIconPath>UI/RimChat/Logo</modIconPath>
+    <description>RimAI.Communication.Relations adds AI-driven faction diplomacy and pawn dialogue to the RimAI family.
+
+Features:
+• Faction diplomacy and intelligent dialogue
+• Dynamic world news
+• Storyteller-compatible event triggering
+
+Gameplay text AI uses the shared RimAI configuration. PackageId is unchanged for save compatibility.</description>
     <modVersion>1.5.9</modVersion>
     <supportedVersions>
         <li>1.6</li>
@@ -29,5 +35,3 @@
     <incompatibleWith>
     </incompatibleWith>
 </ModMetaData>
-
-

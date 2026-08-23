@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
     <!-- Mod 设置分类 -->
-    <RimChat_SettingsCategory>RimChat</RimChat_SettingsCategory>
+    <RimChat_SettingsCategory>RimAI.Communication.Relations</RimChat_SettingsCategory>
     <RimChat_ReturnToSettings>← 返回设置</RimChat_ReturnToSettings>
 
     <!-- 设置 -->

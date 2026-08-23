@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <LanguageData>
-  <RimChat_SettingsCategory>RimChat</RimChat_SettingsCategory>
+  <RimChat_SettingsCategory>RimAI.Communication.Relations</RimChat_SettingsCategory>
   <RimChat_ReturnToSettings>← Назад до налаштувань</RimChat_ReturnToSettings>
   <RimChat_APISettings>Налаштування API</RimChat_APISettings>
   <RimChat_AIControlSettings>Налаштування керування AI</RimChat_AIControlSettings>
