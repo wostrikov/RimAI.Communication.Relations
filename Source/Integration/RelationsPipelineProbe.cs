@@ -39,7 +39,9 @@ public static class RelationsPipelineProbe
         if (string.Equals(mode, "dialogue_rpg", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(mode, "dialogue_diplomacy", StringComparison.OrdinalIgnoreCase))
             return RelationsDialogueProbe.Run(request, correlationId);
-        return TestDriverProgress.Failed("mode must be provider_response, execute, dialogue_rpg, or dialogue_diplomacy");
+        if (string.Equals(mode, "social_bulletin", StringComparison.OrdinalIgnoreCase))
+            return RelationsDialogueProbe.RunSocialBulletin(correlationId);
+        return TestDriverProgress.Failed("mode must be provider_response, execute, dialogue_rpg, dialogue_diplomacy, or social_bulletin");
     }
 
     static TestDriverProgress ProbeProviderResponse(TestDriverRequest request, string correlationId)

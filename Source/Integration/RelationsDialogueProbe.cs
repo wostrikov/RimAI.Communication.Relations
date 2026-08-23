@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using RimWorld;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Dialogue;
+using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.WorldState;
 using Ustas.RimAI.Core.Diagnostics;
 using Ustas.RimAI.Core.TestDriver;
 using Verse;
@@ -184,6 +186,128 @@ public static class RelationsDialogueProbe
             .Text("firstError", firstError)
             .Flag("windowPresent", window != null)
             .Object("leaderContext", context));
+    }
+
+    public static TestDriverProgress RunSocialBulletin(string correlationId)
+    {
+        if (!TryPickDiplomacyPair(out var faction, out var negotiator, out var pickReason))
+            return TestDriverProgress.Failed(pickReason);
+
+        string openReason = null;
+        bool opened = false;
+        bool tabSwitched = false;
+        bool feedRendered = false;
+        bool filterChanged = false;
+        int postsBefore = 0;
+        int postsAfterFilter = 0;
+        int worldEventCount = 0;
+        int raidReportCount = 0;
+        bool socialEnabled = false;
+        string firstError = null;
+        int exceptionCount = 0;
+        Dialog_DiplomacyDialogue window = null;
+
+        try
+        {
+            opened = DialogueWindowCoordinator.TryOpen(
+                DialogueOpenIntent.CreateDiplomacy(faction, negotiator, negotiator?.Map, muteOpenSound: true),
+                out openReason);
+            if (opened)
+                window = FindWindow<Dialog_DiplomacyDialogue>();
+            if (window == null)
+            {
+                return CompletedBulletin(
+                    correlationId, faction, negotiator, false, openReason, false, false, false,
+                    0, 0, 0, 0, false, 1, "diplomacy window did not appear");
+            }
+
+            var manager = GameComponent_DiplomacyManager.Instance;
+            socialEnabled = manager != null && manager.IsSocialCircleEnabled();
+            postsBefore = manager?.GetSocialPosts()?.Count ?? 0;
+            var ledger = WorldEventLedgerComponent.Instance;
+            worldEventCount = ledger?.worldEvents?.Count ?? 0;
+            raidReportCount = ledger?.raidBattleReports?.Count ?? 0;
+
+            window.Parts.SocialView.SetDialogueMainTab(DialogueMainTab.SocialCircle);
+            tabSwitched = window.Parts.SocialView.currentMainTab == DialogueMainTab.SocialCircle;
+            var unfiltered = window.Parts.SocialView.GetCachedFilteredPosts(manager);
+            feedRendered = tabSwitched && (unfiltered != null);
+            postsBefore = unfiltered?.Count ?? postsBefore;
+
+            window.Parts.SocialView.socialCategoryFilter = SocialPostCategory.Military;
+            var filtered = window.Parts.SocialView.GetCachedFilteredPosts(manager);
+            postsAfterFilter = filtered?.Count ?? 0;
+            filterChanged = postsAfterFilter != postsBefore || window.Parts.SocialView.socialCategoryFilter == SocialPostCategory.Military;
+        }
+        catch (NullReferenceException ex)
+        {
+            exceptionCount++;
+            firstError = ex.GetType().Name + ": " + ex.Message;
+            RimAiLog.Error(RimAiLogCategory.Relations, "[RimAI.Relations] social_bulletin NRE: " + ex);
+        }
+        catch (InvalidOperationException ex)
+        {
+            exceptionCount++;
+            firstError = ex.GetType().Name + ": " + ex.Message;
+            RimAiLog.Error(RimAiLogCategory.Relations, "[RimAI.Relations] social_bulletin invalid: " + ex);
+        }
+        catch (ArgumentException ex)
+        {
+            exceptionCount++;
+            firstError = ex.GetType().Name + ": " + ex.Message;
+            RimAiLog.Error(RimAiLogCategory.Relations, "[RimAI.Relations] social_bulletin argument: " + ex);
+        }
+        finally
+        {
+            window?.Close(doCloseSound: false);
+        }
+
+        return CompletedBulletin(
+            correlationId, faction, negotiator, opened, openReason, tabSwitched, feedRendered, filterChanged,
+            postsBefore, postsAfterFilter, worldEventCount, raidReportCount, socialEnabled,
+            exceptionCount, firstError);
+    }
+
+    static TestDriverProgress CompletedBulletin(
+        string correlationId,
+        Faction faction,
+        Pawn negotiator,
+        bool opened,
+        string openReason,
+        bool tabSwitched,
+        bool feedRendered,
+        bool filterChanged,
+        int postsBefore,
+        int postsAfterFilter,
+        int worldEventCount,
+        int raidReportCount,
+        bool socialEnabled,
+        int exceptionCount,
+        string firstError)
+    {
+        return TestDriverProgress.Completed(new TestDriverJsonWriter()
+            .Text("mode", "social_bulletin")
+            .Text("correlationId", correlationId)
+            .Text("faction", faction?.Name)
+            .Text("negotiator", negotiator?.LabelShort)
+            .Flag("windowOpened", opened)
+            .Text("openReason", openReason)
+            .Text("windowType", nameof(Dialog_DiplomacyDialogue))
+            .Flag("socialTabSelected", tabSwitched)
+            .Flag("feedRendered", feedRendered)
+            .Flag("filterChanged", filterChanged)
+            .Integer("postsBefore", postsBefore)
+            .Integer("postsAfterFilter", postsAfterFilter)
+            .Integer("worldEventCount", worldEventCount)
+            .Integer("raidReportCount", raidReportCount)
+            .Flag("socialEnabled", socialEnabled)
+            .Flag("bulletinObserved", opened && tabSwitched && feedRendered)
+            .Flag("paidCall", false)
+            .Integer("exceptionCount", exceptionCount)
+            .Flag("EXCEPTION_PRESENT", exceptionCount > 0)
+            .Text("firstError", firstError)
+            .Flag("paused", Find.TickManager?.Paused ?? true)
+            .Integer("ticksGame", Find.TickManager?.TicksGame ?? 0));
     }
 
     static TestDriverProgress CompletedRpg(
