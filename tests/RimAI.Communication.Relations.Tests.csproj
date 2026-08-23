@@ -62,9 +62,17 @@
     <Compile Include="..\Source\SettingsPolicy\RelationsSettingsCatalog.cs" Link="SettingsPolicy\RelationsSettingsCatalog.cs" />
     <Compile Include="..\Source\SettingsPolicy\RelationsSettingsModel.cs" Link="SettingsPolicy\RelationsSettingsModel.cs" />
     <Compile Include="..\Source\SettingsPolicy\RelationsSettingsPolicy.cs" Link="SettingsPolicy\RelationsSettingsPolicy.cs" />
+    <Compile Include="..\Source\SettingsPolicy\RelationsTokenAccountingPolicy.cs" Link="SettingsPolicy\RelationsTokenAccountingPolicy.cs" />
+    <Compile Include="..\Source\SettingsPolicy\RelationsGoodwillGatePolicy.cs" Link="SettingsPolicy\RelationsGoodwillGatePolicy.cs" />
+    <Compile Include="..\Source\SettingsPolicy\RelationsProactiveEmitPolicy.cs" Link="SettingsPolicy\RelationsProactiveEmitPolicy.cs" />
     <Compile Include="..\Source\Application\Diplomacy\DiplomacyActionPolicyText.cs" Link="Diplomacy\DiplomacyActionPolicyText.cs" />
     <Compile Include="..\Source\Application\Diplomacy\DiplomacyAirdropPendingParse.cs" Link="Diplomacy\DiplomacyAirdropPendingParse.cs" />
     <Compile Include="..\Source\Application\Diplomacy\DiplomacyParameterParse.cs" Link="Diplomacy\DiplomacyParameterParse.cs" />
     <None Include="..\Source\Domain\Diplomacy\ApiActionEligibilityService.cs" Link="ApiActionEligibilityService.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\Domain\Diplomacy\ApiActionEligibilitySlice1.cs" Link="ApiActionEligibilitySlice1.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\AI\DialogueTokenUsageTracker.cs" Link="DialogueTokenUsageTracker.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\Domain\NpcDialogue\NpcDialoguePushSlice1.cs" Link="NpcDialoguePushSlice1.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\Domain\NpcDialogue\NpcDialoguePushSlice2.cs" Link="NpcDialoguePushSlice2.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\Domain\Rpg\PawnPush\PawnRpgDialoguePushManagerGeneration.cs" Link="PawnRpgDialoguePushManagerGeneration.cs.src" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

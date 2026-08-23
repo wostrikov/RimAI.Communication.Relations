@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Ustas.RimAI.Communication.Relations.Settings;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
@@ -110,7 +111,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         public static bool ShouldTrack(DialogueUsageChannel usageChannel)
         {
-            return usageChannel == DialogueUsageChannel.Diplomacy || usageChannel == DialogueUsageChannel.Rpg;
+            return RelationsTokenAccountingPolicy.ShouldTrack(usageChannel);
         }
 
         public static bool TryExtract(string json, out int promptTokens, out int completionTokens, out int totalTokens)

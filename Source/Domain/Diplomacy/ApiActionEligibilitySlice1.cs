@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Settings;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Relation;
 using Ustas.RimAI.Communication.Relations.WorldState;
@@ -91,7 +92,7 @@ public ActionValidationResult ValidateActionExecution(Faction faction, string ac
                     }
                     {
                         int minGoodwill = RelationsMod.Instance?.InstanceSettings?.MinGoodwillForAid ?? 0;
-                        if (faction.PlayerGoodwill < minGoodwill)
+                        if (!RelationsGoodwillGatePolicy.AllowAid(faction.PlayerGoodwill, minGoodwill))
                         {
                             return ActionValidationResult.Denied("aid_goodwill_too_low", $"Need at least {minGoodwill} goodwill to request aid");
                         }
@@ -151,7 +152,7 @@ public ActionValidationResult ValidateActionExecution(Faction faction, string ac
                     }
                     {
                         int maxGoodwill = RelationsMod.Instance?.InstanceSettings?.MaxGoodwillForWarDeclaration ?? 0;
-                        if (faction.PlayerGoodwill > maxGoodwill)
+                        if (!RelationsGoodwillGatePolicy.AllowWarDeclaration(faction.PlayerGoodwill, maxGoodwill))
                         {
                             return ActionValidationResult.Denied("war_goodwill_too_high", $"Cannot declare war with goodwill above {maxGoodwill}");
                         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Settings;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Dialogue;
@@ -48,7 +49,7 @@ public void RegisterLowQualityTradeTrigger(Faction faction, int lowQualityCount,
 
 public void RegisterGoodwillShiftTrigger(Faction faction, int goodwillDelta, string reason, bool likelyHostile)
         {
-            if (!Owner.IsValidTargetFaction(faction) || Math.Abs(goodwillDelta) < 10)
+            if (!Owner.IsValidTargetFaction(faction) || !RelationsProactiveEmitPolicy.AllowCausalGoodwillShift(goodwillDelta))
             {
                 return;
             }
@@ -339,7 +340,7 @@ internal void ProcessQueuedTriggers(int currentTick)
 internal void EvaluateRegularTriggers(int currentTick)
         {
             RelationsSettings settings = RelationsMod.Instance?.InstanceSettings;
-            if (settings == null || !settings.EnableNpcInitiatedDialogue)
+            if (!RelationsProactiveEmitPolicy.AllowRegularSweep(settings != null && settings.EnableNpcInitiatedDialogue))
             {
                 return;
             }
@@ -348,7 +349,12 @@ internal void EvaluateRegularTriggers(int currentTick)
             List<Faction> candidates = Owner.GetActiveCandidateFactions(currentTick);
             foreach (Faction faction in candidates)
             {
-                if (Rand.Value > chance || Owner.IsFactionPending(faction))
+                bool chancePassed = Rand.Value <= chance;
+                if (!RelationsProactiveEmitPolicy.ShouldEmit(
+                    true,
+                    Owner.IsFactionPending(faction),
+                    cooldownBlocked: false,
+                    chancePassed))
                 {
                     continue;
                 }
@@ -376,11 +382,12 @@ internal NpcDialogueTriggerContext BuildRegularTrigger(Faction faction, int curr
             int severity = 1;
             string reason = "regular_check";
 
-            if (goodwill <= -40)
+            var kind = RelationsProactiveEmitPolicy.ClassifyRegular(goodwill);
+            if (kind == RelationsProactiveKind.Skip)
             {
                 return null;
             }
-            else if (goodwill >= 40)
+            else if (kind == RelationsProactiveKind.FriendlyDiplomacy)
             {
                 category = NpcDialogueCategory.DiplomacyTask;
                 triggerType = NpcDialogueTriggerType.Conditional;

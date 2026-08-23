@@ -23,7 +23,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
     {
         Unknown = 0,
         Diplomacy = 1,
-        Rpg = 2
+        Rpg = 2,
+        Proactive = 3
     }
 
     public class AIRequestResult

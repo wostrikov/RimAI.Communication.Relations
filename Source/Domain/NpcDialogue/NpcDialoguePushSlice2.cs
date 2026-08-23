@@ -67,7 +67,7 @@ internal IEnumerator BuildAndSendRoutine(NpcDialogueTriggerContext context, Dipl
                 messages,
                 onSuccess: response => Owner.OnGenerationSuccess(requestId, response),
                 onError: error => Owner.OnGenerationError(requestId, error),
-                usageChannel: DialogueUsageChannel.Diplomacy,
+                usageChannel: DialogueUsageChannel.Proactive,
                 debugSource: AIRequestDebugSource.NpcPush);
 
             if (string.IsNullOrEmpty(requestId))
@@ -136,7 +136,7 @@ internal void RetryGeneration(PendingGenerationContext pending)
                 pending.Messages,
                 onSuccess: response => Owner.OnGenerationSuccess(retryId, response),
                 onError: error => Owner.OnGenerationError(retryId, error),
-                usageChannel: DialogueUsageChannel.Diplomacy,
+                usageChannel: DialogueUsageChannel.Proactive,
                 debugSource: AIRequestDebugSource.NpcPush);
 
             if (string.IsNullOrEmpty(retryId))

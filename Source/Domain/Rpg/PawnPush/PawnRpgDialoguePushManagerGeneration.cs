@@ -101,7 +101,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
                 messages,
                 onSuccess: response => Owner.OnGenerationSuccess(requestId, response),
                 onError: error => Owner.OnGenerationError(requestId, error),
-                usageChannel: DialogueUsageChannel.Rpg,
+                usageChannel: DialogueUsageChannel.Proactive,
                 debugSource: AIRequestDebugSource.PawnRpgPush);
 
             if (string.IsNullOrEmpty(requestId))
@@ -162,7 +162,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
                 pending.Messages,
                 onSuccess: response => Owner.OnGenerationSuccess(retryId, response),
                 onError: error => Owner.OnGenerationError(retryId, error),
-                usageChannel: DialogueUsageChannel.Rpg,
+                usageChannel: DialogueUsageChannel.Proactive,
                 debugSource: AIRequestDebugSource.PawnRpgPush);
 
             if (string.IsNullOrEmpty(retryId))
