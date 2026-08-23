@@ -3,14 +3,14 @@
     <name>RimAI.Communication.Relations</name>
     <author>yancy</author>
     <packageId>ustas.rimai.communication.relations</packageId>
-    <description>RimAI.Communication.Relations adds AI-driven faction diplomacy and pawn dialogue to the RimAI family.
+    <description>RimAI.Communication.Relations додає ШІ-дипломатію фракцій і розмови пішаків.
 
-Features:
-• Faction diplomacy and intelligent dialogue
-• Dynamic world news
-• Storyteller-compatible event triggering
+Основні можливості:
+• дипломатія та розумні діалоги з фракціями
+• динамічні світові новини
+• події, сумісні з оповідачем
 
-Gameplay text AI uses the shared RimAI configuration.</description>
+Потрібен Harmony. Текстовий ШІ — зі спільних налаштувань RimAI.</description>
     <modVersion>1.5.9</modVersion>
     <supportedVersions>
         <li>1.6</li>
