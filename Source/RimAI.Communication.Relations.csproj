@@ -91,7 +91,9 @@
   </PropertyGroup>
 
     <ItemGroup>
-    <ProjectReference Include="..\..\RimAI.Core\src\RimAI.Core\RimAI.Core.csproj" />
+    <ProjectReference Include="..\..\RimAI.Core\src\RimAI.Core\RimAI.Core.csproj">
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\RimAI.Core\src\RimAI.RimWorld\RimAI.RimWorld.csproj">
       <Private>false</Private>
     </ProjectReference>
