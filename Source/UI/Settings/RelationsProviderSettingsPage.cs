@@ -99,15 +99,9 @@ internal sealed class RelationsProviderSettingsPage
             Widgets.Label(headerRect, "RimChat_DebugSettings".Translate());
             listing.GapLine();
 
-            listing.CheckboxLabeled("RimChat_EnableDebugLogging".Translate(), ref Settings.EnableDebugLogging);
-            if (Settings.EnableDebugLogging)
-            {
-                listing.CheckboxLabeled("RimChat_LogAIRequests".Translate(), ref Settings.LogAIRequests);
-                listing.CheckboxLabeled("RimChat_LogAIResponses".Translate(), ref Settings.LogAIResponses);
-                listing.CheckboxLabeled("RimChat_LogInternals".Translate(), ref Settings.LogInternals);
-                listing.CheckboxLabeled("RimChat_LogFullMessages".Translate(), ref Settings.LogFullMessages);
-                listing.CheckboxLabeled("RimChat_LogWarnings".Translate(), ref Settings.LogWarnings);
-            }
+            // No toggles. RimWorld's developer mode decides, for every RimAI
+            // module at once, whether diagnostics are on.
+            listing.Label("RimChat_DiagnosticsFollowDevMode".Translate());
         }
 
         internal void DrawProviderSelection(Listing_Standard listing)

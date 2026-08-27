@@ -50,12 +50,6 @@ internal static class RelationsSettingsPersistence
             }
 
             // Debug Settings
-            Scribe_Values.Look(ref s.EnableDebugLogging, "EnableDebugLogging", false);
-            Scribe_Values.Look(ref s.LogAIRequests, "LogAIRequests", true);
-            Scribe_Values.Look(ref s.LogAIResponses, "LogAIResponses", true);
-            Scribe_Values.Look(ref s.LogInternals, "LogInternals", false);
-            Scribe_Values.Look(ref s.LogFullMessages, "LogFullMessages", false);
-            Scribe_Values.Look(ref s.LogWarnings, "LogWarnings", true);
 
             // UI Settings
             Scribe_Values.Look(ref s.TypewriterSpeedMode, "TypewriterSpeedMode", TypewriterSpeedMode.Standard);

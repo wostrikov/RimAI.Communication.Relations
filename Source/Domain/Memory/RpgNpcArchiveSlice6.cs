@@ -426,7 +426,7 @@ internal static string TrimForPrompt(string text, int maxLen)
 
 internal void LogDebugMissingArchive(Pawn targetNpc, Pawn currentInterlocutor)
         {
-            if (RelationsMod.Settings?.EnableDebugLogging != true)
+            if (!Diagnostics.DebugLogger.IsDebugEnabled)
             {
                 return;
             }

@@ -1275,6 +1275,7 @@ ID：{5}
 
     <!-- 调试设置 -->
     <RimChat_DebugSettings>调试设置</RimChat_DebugSettings>
+    <RimChat_DiagnosticsFollowDevMode>Diagnostics follow RimWorld developer mode.</RimChat_DiagnosticsFollowDevMode>
     <RimChat_EnableDebugLogging>启用调试日志</RimChat_EnableDebugLogging>
     <RimChat_LogAIRequests>记录AI请求</RimChat_LogAIRequests>
     <RimChat_LogAIResponses>记录AI响应</RimChat_LogAIResponses>

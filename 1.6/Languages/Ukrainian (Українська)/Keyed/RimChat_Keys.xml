@@ -386,6 +386,7 @@
   <RimChat_LocalServiceNotFound>Не вдалося підключитися до локальної служби. Переконайтеся, що службу запущено.</RimChat_LocalServiceNotFound>
   <RimChat_SendingAIRequest>Надсилання запиту до ШІ...</RimChat_SendingAIRequest>
   <RimChat_DebugSettings>Налагоджувальні налаштування</RimChat_DebugSettings>
+  <RimChat_DiagnosticsFollowDevMode>Діагностика йде за режимом розробника RimWorld: увімкнений — повні логи й трасування для всіх модулів RimAI, вимкнений — тиша. Тут нема чого налаштовувати.</RimChat_DiagnosticsFollowDevMode>
   <RimChat_EnableDebugLogging>Увімкнути журналювання налагодження</RimChat_EnableDebugLogging>
   <RimChat_LogAIRequests>Журналювати запити ШІ</RimChat_LogAIRequests>
   <RimChat_LogAIResponses>Журналювати відповіді ШІ</RimChat_LogAIResponses>

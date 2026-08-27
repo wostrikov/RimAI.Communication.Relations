@@ -335,7 +335,7 @@ internal void RecordAPICall(string methodName, bool success, string parameters, 
 
                 _apiCallHistory.Add(record);
 
-                if (RelationsMod.Instance != null && (RelationsMod.Instance.InstanceSettings?.EnableDebugLogging ?? false))
+                if (Diagnostics.DebugLogger.IsDebugEnabled)
                 {
                     string status = success ? "SUCCESS" : "FAILED";
                     DebugLogger.Debug($"API Call [{status}]: {methodName} - {parameters}");

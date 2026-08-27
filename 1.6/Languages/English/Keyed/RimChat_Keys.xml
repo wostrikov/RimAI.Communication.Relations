@@ -407,6 +407,7 @@
     <RimChat_LocalServiceNotFound>Unable to connect to local service. Please make sure the service is running.</RimChat_LocalServiceNotFound>
     <RimChat_SendingAIRequest>Sending AI request...</RimChat_SendingAIRequest>
     <RimChat_DebugSettings>Debug Settings</RimChat_DebugSettings>
+    <RimChat_DiagnosticsFollowDevMode>Diagnostics follow RimWorld developer mode: on means full logs and traces for every RimAI module, off means silence. There is nothing to configure here.</RimChat_DiagnosticsFollowDevMode>
     <RimChat_EnableDebugLogging>Enable debug logging</RimChat_EnableDebugLogging>
     <RimChat_LogAIRequests>Log AI requests</RimChat_LogAIRequests>
     <RimChat_LogAIResponses>Log AI responses</RimChat_LogAIResponses>

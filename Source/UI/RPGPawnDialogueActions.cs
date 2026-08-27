@@ -669,7 +669,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         internal void LogRpgActionDebug(string message)
         {
-            if (RelationsMod.Settings?.EnableDebugLogging != true)
+            if (!Diagnostics.DebugLogger.IsDebugEnabled)
             {
                 return;
             }

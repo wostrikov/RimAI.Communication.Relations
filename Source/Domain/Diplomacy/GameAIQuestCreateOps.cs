@@ -71,7 +71,7 @@ public APIResult CreateQuest(string questDefName, Dictionary<string, object> par
             {
                 DebugLogger.WarningGated($"CreateQuest: Could not resolve faction from parameters. Quest '{questDefName}' might fallback to Empire.");
             }
-            else if (RelationsMod.Instance?.InstanceSettings?.EnableDebugLogging ?? false)
+            else if (Diagnostics.DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug($"CreateQuest: Using faction context '{faction.Name}' (Def: {faction.def.defName})");
             }

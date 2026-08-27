@@ -20,12 +20,20 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
         private static int droppedDebugEntryCount;
         private static int nextDebugFlushTick;
 
-        public static bool IsDebugEnabled => (RelationsMod.Instance?.InstanceSettings)?.EnableDebugLogging ?? false;
-        public static bool LogRequests => IsDebugEnabled && ((RelationsMod.Instance?.InstanceSettings)?.LogAIRequests ?? false);
-        public static bool LogResponses => IsDebugEnabled && ((RelationsMod.Instance?.InstanceSettings)?.LogAIResponses ?? false);
-        public static bool LogInternals => IsDebugEnabled && ((RelationsMod.Instance?.InstanceSettings)?.LogInternals ?? false);
-        public static bool LogFullMessagesEnabled => IsDebugEnabled && ((RelationsMod.Instance?.InstanceSettings)?.LogFullMessages ?? false);
-        public static bool LogWarningsEnabled => IsDebugEnabled && ((RelationsMod.Instance?.InstanceSettings)?.LogWarnings ?? true);
+        /// <summary>
+        /// Developer mode is the whole switch. There used to be six flags across
+        /// two settings pages deciding which half of a failure got recorded, and
+        /// the half that mattered was reliably the one left off: a dialogue parse
+        /// failure logged a localized sentence and hid its reason tag behind
+        /// LogInternals. Diagnostics you have to predict a need for are not
+        /// diagnostics.
+        /// </summary>
+        public static bool IsDebugEnabled => Prefs.DevMode;
+        public static bool LogRequests => Prefs.DevMode;
+        public static bool LogResponses => Prefs.DevMode;
+        public static bool LogInternals => Prefs.DevMode;
+        public static bool LogFullMessagesEnabled => Prefs.DevMode;
+        public static bool LogWarningsEnabled => Prefs.DevMode;
 
         public static void Info(string message)
         {

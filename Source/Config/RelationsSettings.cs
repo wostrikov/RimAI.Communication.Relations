@@ -211,12 +211,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
 
         // Debug Settings
-        public bool EnableDebugLogging = false;
-        public bool LogAIRequests = true;
-        public bool LogAIResponses = true;
-        public bool LogInternals = false;
-        public bool LogFullMessages = false;
-        public bool LogWarnings = true;
 
         // UI Settings  
         public TypewriterSpeedMode TypewriterSpeedMode = TypewriterSpeedMode.Immersive;
