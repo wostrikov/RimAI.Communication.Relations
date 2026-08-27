@@ -22,7 +22,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return false;
             }
 
-            return RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText(retryReason);
+            return Runtime.RelationsRuntimeGateway.Policy.IsRetryableEmptyPrimaryText(retryReason);
         }
 
         public static string BuildParseRetryReason(string rawResponse, string reasonTag)

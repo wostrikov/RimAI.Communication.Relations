@@ -106,6 +106,7 @@ internal static class Program
 
             RelationsDecompositionTests.Run(Check);
             ParserLayerTests.Run(Check);
+            RelationsRuntimeSlotTests.Run(Check);
             PromptDecompositionTests.Run(Check);
             TemplateCleanupTests.Run(Check);
             RelationsSettingsPolicyTests.Run(Check);

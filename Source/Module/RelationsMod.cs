@@ -20,6 +20,9 @@ namespace Ustas.RimAI.Communication.Relations.Module
         public RelationsMod(ModContentPack content) : base(content)
         {
             Instance = this;
+            // Before anything asks for provider policy, so a developer can stage
+            // and reload a candidate without having opened a dialogue first.
+            AI.Runtime.RelationsRuntimeGateway.EnsureRegistered();
             Settings = GetSettings<RelationsSettings>();
             MigratePersistedIdentityIfNeeded();
             RimAiHandshake.TryActivate(

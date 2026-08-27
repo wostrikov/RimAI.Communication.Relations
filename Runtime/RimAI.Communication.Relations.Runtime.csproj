@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Relations' reloadable candidate.
+
+    The provider and parser sources are linked, not copied: this project and the
+    stable assembly compile the same files, so a fix is written once, hot-loaded
+    here immediately, and already in what ships next build. Nothing can drift
+    between the two because there is nothing to keep in step.
+
+    Linking means each of those types exists both here and in the referenced
+    stable assembly, which is CS0436. That is the mechanism working as intended
+    — the local copy wins, and the local copy is the newer one — so the warning
+    is suppressed here and nowhere else.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName Condition="'$(RuntimeAssemblyName)' != ''">$(RuntimeAssemblyName)</AssemblyName>
+    <AssemblyName Condition="'$(AssemblyName)' == ''">RimAI.Communication.Relations.Runtime</AssemblyName>
+    <RootNamespace>Ustas.RimAI.Communication.Relations.Runtime</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <RimWorldDir Condition="'$(RimWorldDir)' == ''">$(RIMWORLD_DIR)</RimWorldDir>
+    <RimWorldWorkshopDir Condition="'$(RimWorldWorkshopDir)' == ''">$(RIMWORLD_WORKSHOP_DIR)</RimWorldWorkshopDir>
+    <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimAI.Communication.Relations.Runtime\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimAI.Communication.Relations.Runtime\obj\</BaseIntermediateOutputPath>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- This project's own files. -->
+    <Compile Include="RelationsModuleRuntime.cs" />
+
+    <!--
+      The reloadable layer, shared with the stable assembly. Every file here is
+      a pure function of its arguments: no Verse, no Unity, no IO, nothing the
+      host holds a reference to across a swap.
+    -->
+    <Compile Include="..\Source\AI\OpenAIProviderAdapter.cs" Link="Shared\OpenAIProviderAdapter.cs" />
+    <Compile Include="..\Source\AI\RelationsProviderTextExtractor.cs" Link="Shared\RelationsProviderTextExtractor.cs" />
+    <Compile Include="..\Source\AI\Parsing\OpenAiResponsesEnvelopeParser.cs" Link="Shared\OpenAiResponsesEnvelopeParser.cs" />
+    <Compile Include="..\Source\AI\Parsing\CompatibleChatEnvelopeParser.cs" Link="Shared\CompatibleChatEnvelopeParser.cs" />
+    <Compile Include="..\Source\AI\Parsing\SseFrameReader.cs" Link="Shared\SseFrameReader.cs" />
+    <Compile Include="..\Source\AI\Parsing\JsonBoundedExtractor.cs" Link="Shared\JsonBoundedExtractor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The seam types come from the stable assembly, never linked: they are what
+      both sides must agree on, so there must be exactly one of each.
+    -->
+    <Reference Include="RimAI.Communication.Relations">
+      <HintPath>$(LOCALAPPDATA)\Ustas\RimWorldSourceBuilds\RimAI.Communication.Relations\bin\Release\RimAI.Communication.Relations.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <ProjectReference Include="..\..\RimAI.Core\src\RimAI.Core\RimAI.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

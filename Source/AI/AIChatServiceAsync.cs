@@ -773,7 +773,8 @@ internal bool TryCompleteFromAssistantText(
             debugTokenMessages = attemptMessages;
 
             DebugLogger.LogFullMessages(attemptMessages, responseText);
-            PrimaryTextExtractionResult parseResult = RelationsProviderTextExtractor.Extract(responseText, provider);
+            PrimaryTextExtractionResult parseResult =
+                Runtime.RelationsRuntimeGateway.Policy.ExtractProviderText(responseText, provider);
             DebugLogger.LogParseExtraction("AIChatServiceAsync", parseResult);
             if (!parseResult.IsSuccess)
             {

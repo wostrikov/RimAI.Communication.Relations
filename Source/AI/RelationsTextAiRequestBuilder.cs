@@ -65,7 +65,16 @@ namespace Ustas.RimAI.Communication.Relations.AI
             if (configuredMaxTokens < 64) configuredMaxTokens = 2048;
             if (config.Provider == AIProvider.OpenAI)
             {
-                return OpenAIProviderAdapter.BuildResponsesRequest(model, messages, configuredMaxTokens);
+                // Through the gateway, not the adapter: a staged Relations
+                // candidate answers here, and calling the adapter directly would
+                // quietly bypass it.
+                return Runtime.RelationsRuntimeGateway.Policy.BuildResponsesRequest(
+                    new Runtime.RelationsProviderRequest
+                    {
+                        Model = model,
+                        Messages = messages,
+                        MaxOutputTokens = configuredMaxTokens
+                    });
             }
 
             var sb = new StringBuilder();
