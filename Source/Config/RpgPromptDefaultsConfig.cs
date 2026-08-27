@@ -80,12 +80,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 RpgCompactFormatConstraintTemplate = "Return one JSON object with visible_dialogue and optional actions. Keep visible_dialogue as one short in-character sentence. Omit actions when there are no gameplay effects. Do not use legacy wrappers like action/content/text.",
                 RpgActionReliabilityRuleTemplate = "Reliability rules: keep actions role-consistent and use the fewest actions necessary. Add TryGainMemory only when context makes that memory meaningful.",
                 DecisionPolicyTemplate =
-                    "决策优先级顺序：1）格式与语言正确性；2）引用字段正确性；3）事实约束；4）行为安全性与关系限制；5）连贯性与人设风格。",
+                    "Порядок пріоритетів рішення: 1) правильність формату й мови; 2) правильність полів-посилань; 3) фактичні обмеження; 4) безпечність дій і межі відносин; 5) звʼязність та стиль персонажа.",
                 TurnObjectiveTemplate =
-                    "主目标：{{dialogue.primary_objective}}可选补充：{{ dialogue.optional_followup }}约束条件：优先完成主目标；最多只能切换一次话题。",
+                    "Головна мета: {{dialogue.primary_objective}} Необовʼязкове доповнення: {{ dialogue.optional_followup }} Умови: спершу заверши головну мету; тему можна змінити щонайбільше раз.",
                 OpeningObjectiveTemplate =
                     "OpeningObjective: use dialogue history and personal memory to decide whether opening should continue prior context. Carry over only when there is explicit unresolved intent, major emotional swing, or major behavior/event that should persist. If none apply, open naturally in-character based on current environment and scene cues. Never copy prior lines verbatim.",
-                TopicShiftRuleTemplate = "话题切换规则：优先完成当前目标；仅当可提升表述清晰度或下一步规划时，才可额外追加一段简短的后续内容。",
+                TopicShiftRuleTemplate = "Правило зміни теми: спершу заверши поточну мету; додавати короткий подальший фрагмент можна лише тоді, коли це прояснює виклад або планує наступний крок.",
                 RelationshipProfileTemplate =
                     "=== RELATIONSHIP PROFILE (MANUAL RPG ONLY) ===\n" +
                     "Kinship: {{ pawn.relation.kinship }}\n" +

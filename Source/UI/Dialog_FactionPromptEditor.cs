@@ -35,7 +35,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
             if (factionConfig.TemplateFields == null || factionConfig.TemplateFields.Count == 0)
             {
                 factionConfig.TemplateFields = new List<PromptTemplateField>();
-                factionConfig.GetOrCreateField("核心风格", string.Empty, "描述派系的核心对话风格");
+                factionConfig.GetOrCreateField("核心风格", string.Empty, "Опиши основний стиль спілкування фракції");
                 factionConfig.GetOrCreateField("用词特征", string.Empty, "描述用词习惯和特征");
                 factionConfig.GetOrCreateField("语气特征", string.Empty, "描述语气和情感特征");
                 factionConfig.GetOrCreateField("句式特征", string.Empty, "描述句式结构特征");

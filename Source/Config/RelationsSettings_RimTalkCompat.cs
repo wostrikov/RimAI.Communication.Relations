@@ -37,14 +37,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
         internal bool _promptUnifiedCatalogLoaded;
         internal bool _promptUnifiedCatalogDirty;
         internal const int UnifiedCatalogMigrationTargetVersion = 7;
-        internal const string RimWorldBackgroundNarrativeLead = "背景：破碎的人类文明散落在已知宇宙边缘。";
+        internal const string RimWorldBackgroundNarrativeLead = "Тло: розколота людська цивілізація розсіяна на околиці відомого всесвіту.";
         internal const string RimWorldBackgroundNarrativeText =
-            "背景：破碎的人类文明散落在已知宇宙边缘。远离中央权威的边缘世界普遍无序，辽阔而危险的星球迫使幸存者自力更生。由于缺乏超光速航行与通信，各世界长期隔绝且发展失衡，原始部落、工业社会、高科技派系与近神级机器得以并存。整体基调是硬科幻与边境生存的结合，聚焦普通人在破碎世界中求生并书写自己的故事；";
-        internal const string RpgOutputSpecificationReferenceText = "输出规范唯一权威：见独立 `response_contract` 节点（`dialogue.response_contract_body`）。本段只做引用，不重复定义规则。";
+            "Тло: розколота людська цивілізація розсіяна на околиці відомого всесвіту. Далекі від центральної влади прикордонні світи здебільшого не мають ладу, а величезні й небезпечні планети змушують уцілілих покладатися на себе. Через брак надсвітлових перельотів і звʼязку світи давно ізольовані й розвинулися нерівномірно, тож первісні племена, індустріальні суспільства, високотехнологічні фракції та майже божественні машини існують поруч. Загальний тон — поєднання твердої наукової фантастики й прикордонного виживання, з фокусом на звичайних людях, які виживають у розколотому світі й пишуть власну історію;";
+        internal const string RpgOutputSpecificationReferenceText = "Єдиний авторитет правил виводу: окремий вузол `response_contract` (`dialogue.response_contract_body`). Цей розділ лише посилається на нього й правил не повторює.";
         internal const string RpgArchiveCompressionSystemRulesText =
-            "RPG 归档压缩模式：你是离线归档压缩器。仅基于提供的会话文本提取事实，不增删事件，不重写因果，不加入角色扮演语气。";
+            "Режим стиснення архіву RPG: ти — офлайновий стискач архіву. Витягуй факти лише з наданого тексту сесії, не додавай і не прибирай подій, не переписуй причинності, не додавай рольового тону.";
         internal const string RpgArchiveCompressionOutputSpecificationText =
-            "输出规范：仅输出单句纯文本摘要。禁止结构化数据、列表、换行、额外说明或引号包裹。";
+            "Правила виводу: виводь лише односкладовий переказ звичайним текстом. Заборонено структуровані дані, списки, переноси рядків, додаткові пояснення чи лапки навколо.";
         internal static readonly string[] RpgArchiveCompressionRequiredSectionIds =
         {
             "system_rules",

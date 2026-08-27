@@ -485,7 +485,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     30,
                     true,
                     false,
-                    "派系初次接触或常规寒暄，强调礼节、信息交换和试探边界。",
+                    "Перший контакт із фракцією або звичайне вітання: наголос на ввічливості, обміні відомостями та промацуванні меж.",
                     "channel:diplomacy",
                     "scene:social"),
                 CreateSeedEntry(
@@ -493,7 +493,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     60,
                     true,
                     false,
-                    "聚焦任务目标、条件、风险与回报，避免空泛承诺。",
+                    "Зосередься на меті завдання, умовах, ризиках і винагороді; уникай порожніх обіцянок.",
                     "channel:diplomacy",
                     "scene:task"),
                 CreateSeedEntry(
@@ -501,7 +501,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     90,
                     true,
                     false,
-                    "进入高压谈判与威慑博弈，语言应更强硬并保持立场一致。",
+                    "Перехід до жорстких переговорів і гри на залякування: мова твердіша, позиція послідовна.",
                     "channel:diplomacy",
                     "scene:threat"),
                 CreateSeedEntry(
@@ -509,7 +509,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     30,
                     false,
                     true,
-                    "进行生活化、角色化交流，注意口语感与个体性。",
+                    "Веди побутову, рольову розмову; тримай розмовний тон та індивідуальність.",
                     "channel:rpg",
                     "scene:daily"),
                 CreateSeedEntry(
@@ -517,7 +517,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     70,
                     false,
                     true,
-                    "突出情感张力、信任和依赖变化，避免机械化表达。",
+                    "Наголос на емоційній напрузі, довірі та змінах у прив'язаності; уникай механічних формулювань.",
                     "channel:rpg",
                     "scene:intimacy"),
                 CreateSeedEntry(
@@ -525,7 +525,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     85,
                     false,
                     true,
-                    "处理争执、挑衅或拒绝情境，保持角色动机和后果一致。",
+                    "Опрацювання суперечки, провокації чи відмови: мотиви персонажа й наслідки лишаються послідовними.",
                     "channel:rpg",
                     "scene:conflict")
             };
@@ -559,7 +559,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const int CurrentPromptSchemaVersion = 3;
         public const int CurrentPromptPolicySchemaVersion = 4;
         public const string PlaceholderGlobalSystemPrompt =
-            "请从 SystemPrompt_Default.json 文件加载默认系统提示词配置。";
+            "Завантаж типову конфігурацію системного промпту з файлу SystemPrompt_Default.json.";
 
         [Serializable]
         private sealed class DefaultPromptHeaderPayload

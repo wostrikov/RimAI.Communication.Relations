@@ -579,8 +579,8 @@ internal void AddRaidBattleReport(WorldEventLedgerComponent.OngoingRaidBattleSta
             Owner.TrimRaidBattleReports();
 
             string eventSummary =
-                $"袭击结束：{state.AttackerFactionName}对{state.MapLabel}的袭击已被击退。" +
-                $"敌方阵亡{state.AttackerDeaths}人，我方阵亡{state.DefenderDeaths}人，" +
+                $"Напад завершено: атаку {state.AttackerFactionName} на {state.MapLabel} відбито." +
+                $"Втрати ворога: {state.AttackerDeaths}, наші втрати: {state.DefenderDeaths}," +
                 $"{state.DefenderDownedPeak}人倒地。";
 
             string originalFullText =

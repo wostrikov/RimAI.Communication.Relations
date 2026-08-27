@@ -57,11 +57,11 @@ internal bool EnsureRansomImportantRules(ResponseFormatConfig format)
                 changed = true;
             }
 
-            if (rules.IndexOf("赎金意图的唯一合法前置动作是 request_info(info_type=prisoner)。", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (rules.IndexOf("Єдина законна дія перед наміром викупу — request_info(info_type=prisoner).", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 rules = rules.Replace(
-                    "赎金意图的唯一合法前置动作是 request_info(info_type=prisoner)。",
-                    "仅在赎金目标信息不足时使用 request_info(info_type=prisoner)。");
+                    "Єдина законна дія перед наміром викупу — request_info(info_type=prisoner).",
+                    "request_info(info_type=prisoner) лише тоді, коли даних про ціль викупу бракує.");
                 changed = true;
             }
 
@@ -69,7 +69,7 @@ internal bool EnsureRansomImportantRules(ResponseFormatConfig format)
             {
                 rules = rules.Replace(
                     "在 request_info(info_type=prisoner) 成功前，严禁调用 pay_prisoner_ransom。",
-                    "若 target_pawn_load_id 已明确有效，可直接调用 pay_prisoner_ransom。");
+                    "Якщо target_pawn_load_id уже відомий і чинний, можна одразу викликати pay_prisoner_ransom.");
                 changed = true;
             }
 
@@ -81,11 +81,11 @@ internal bool EnsureRansomImportantRules(ResponseFormatConfig format)
                 changed = true;
             }
 
-            if (rules.IndexOf("offer_silver 必须为正整数，无上下限限制。", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (rules.IndexOf("offer_silver має бути додатним цілим, без верхньої чи нижньої межі.", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 rules = rules.Replace(
-                    "offer_silver 必须为正整数，无上下限限制。",
-                    "offer_silver 必须参考系统消息给出的当前可报价区间；若越界，执行前会自动夹逼到最近边界。");
+                    "offer_silver має бути додатним цілим, без верхньої чи нижньої межі.",
+                    "offer_silver має спиратися на поточний діапазон пропозицій із системного повідомлення; якщо він поза межами, перед виконанням його автоматично притиснуть до найближчої межі.");
                 changed = true;
             }
 
@@ -157,7 +157,7 @@ internal bool EnsureRansomImportantRules(ResponseFormatConfig format)
             }
 
             const string hardRuleCurrentAskEn = "HARD RULE for pay_prisoner_ransom: when system messages provide current ask, offer_silver must equal current ask and must not reuse stale offers from memory.";
-            const string hardRuleCurrentAskZh = "对 pay_prisoner_ransom（硬规则）：当系统消息给出“当前叫价”时，offer_silver 必须等于当前叫价；禁止复用历史记忆中的旧报价。";
+            const string hardRuleCurrentAskZh = "Для pay_prisoner_ransom (жорстке правило): коли системне повідомлення дає «поточну ціну», offer_silver має дорівнювати саме їй; повторно брати стару ціну з памʼяті заборонено.";
             string rulesWithoutHardAskRule = Owner.RemoveRuleLine(Owner.RemoveRuleLine(rules, hardRuleCurrentAskEn), hardRuleCurrentAskZh);
             if (!string.Equals(rulesWithoutHardAskRule, rules, StringComparison.Ordinal))
             {

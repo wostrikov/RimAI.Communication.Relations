@@ -247,7 +247,7 @@ internal sealed class FactionPromptCatalogPersistence
             const string sentenceName = "句式特征";
             const string taboosName = "表达禁忌";
 
-            config.GetOrCreateField(coreStyleName, $"请从 {FactionPromptManager.DefaultConfigFileName} 文件加载 {factionDefName} 的默认配置，或手动编辑此模板。", "描述派系的核心对话风格");
+            config.GetOrCreateField(coreStyleName, $"Завантаж типову конфігурацію {factionDefName} з файлу {FactionPromptManager.DefaultConfigFileName} або відредагуй цей шаблон вручну.", "Опиши основний стиль спілкування фракції");
             config.GetOrCreateField(vocabName, "请配置用词特征。", "描述用词习惯和特征");
             config.GetOrCreateField(toneName, "请配置语气特征。", "描述语气和情感特征");
             config.GetOrCreateField(sentenceName, "请配置句式特征。", "描述句式结构特征");

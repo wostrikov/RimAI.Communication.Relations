@@ -321,15 +321,15 @@ internal static string BuildMissingParameterClarification(
     switch (actionType)
     {
         case AIActionNames.RequestItemAirdrop:
-            return "你这次要我空投什么物资？你准备用哪些物资支付（或直接说一个银币金额）？";
+            return "Який товар тобі цього разу скинути? Чим збираєшся платити (або просто назви суму в сріблі)?";
         case AIActionNames.RequestAid:
-            return "你要哪类援助：军事、医疗还是资源？";
+            return "Яка допомога потрібна: військова, медична чи ресурсами?";
         case AIActionNames.TriggerIncident:
             return "你要我触发哪个事件（defName）？";
         case AIActionNames.CreateQuest:
-            return "你要发布哪一个任务模板（questDefName）？";
+            return "Який шаблон завдання (questDefName) публікуємо?";
         default:
-            return $"要继续这个请求，我还需要补充参数：{missingParameter}。";
+            return $"Щоб продовжити цей запит, мені бракує параметра: {missingParameter}.";
     }
 }
 
@@ -338,21 +338,21 @@ internal static string BuildMissingParameterClarification(
 internal static string BuildResendConfirmationQuestion(PendingDelayedActionIntent intent)
 {
     string summary = BuildIntentSummary(intent);
-    return $"你是要我按这条请求再执行一次吗：{summary}？请回复“确认”或“取消”。";
+    return $"Виконати цей запит ще раз: {summary}? Відповідай «підтвердити» або «скасувати».";
 }
 
 
 
 internal static string BuildConfirmationAcceptedLine(PendingDelayedActionIntent intent)
 {
-    return $"明白，我按你确认的内容继续安排：{BuildIntentSummary(intent)}。";
+    return $"Зрозуміло, організовую за підтвердженим: {BuildIntentSummary(intent)}.";
 }
 
 
 
 internal static string BuildDedupeClarification(PendingDelayedActionIntent intent)
 {
-    return "这条请求刚刚处理过，为避免重复执行，我先不重复提交。";
+    return "Цей запит щойно оброблявся, тож щоб не виконати його двічі, я поки не подаю його повторно.";
 }
 
 

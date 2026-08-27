@@ -49,11 +49,11 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                     // GameAIInterface.GetRemainingCooldownSeconds returns total remaining seconds (ticks/60)
                     // One RimWorld day is 60,000 ticks = 1000 seconds.
                     float remainingDays = questCooldownSec / 1000f;
-                    sb.AppendLine($"- [关键] {faction.Name} 的 create_quest 当前处于冷却中。剩余：{remainingDays:F1} 天。冷却结束前禁止创建任何任务/委托。若玩家请求任务，你必须拒绝并以角色内理由说明（例如整备中、资源补充中、或先前承诺尚在执行）。");
+                    sb.AppendLine($"- [Ключове] create_quest для {faction.Name} зараз на перезарядці. Лишилося: {remainingDays:F1} дн. До кінця перезарядки створювати будь-які завдання чи доручення заборонено. Якщо гравець просить завдання — відмов і поясни причину в ролі (наприклад: перегрупування, поповнення запасів або ще не виконана попередня обіцянка).");
                 }
             }
 
-            sb.AppendLine($"- 单次好感调整上限：{settings.MaxGoodwillAdjustmentPerCall}（范围：0 到 {settings.MaxGoodwillAdjustmentPerCall}）");
+            sb.AppendLine($"- Межа зміни прихильності за раз: {settings.MaxGoodwillAdjustmentPerCall} (діапазон: від 0 до {settings.MaxGoodwillAdjustmentPerCall})");
             sb.AppendLine($"- 每日好感调整上限：{settings.MaxDailyGoodwillAdjustment}");
             sb.AppendLine($"- 好感冷却：{settings.GoodwillCooldownTicks / 2500f:F1} 小时");
             sb.AppendLine($"- 请求援助最低好感：{settings.MinGoodwillForAid}");
@@ -85,18 +85,18 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             AirdropTradeRuleSnapshot rule = ItemAirdropTradePolicy.ResolveRuleSnapshot(faction, wealthItems, factionTradeTotalSilver);
             TechLevel techLevel = faction.def?.techLevel ?? TechLevel.Archotech;
 
-            sb.AppendLine("=== 空投以物易物规则（必须遵守） ===");
-            sb.AppendLine($"- 派系科技等级：{techLevel}。禁止交易科技等级高于此的商品。");
-            sb.AppendLine($"- 当前好感度：{rule.Goodwill}。交易总额上限：{rule.TradeLimitSilver} 银币。");
+            sb.AppendLine("=== Правила бартеру зі скиданням (обовʼязкові) ===");
+            sb.AppendLine($"- Рівень технологій фракції: {techLevel}. Торгувати товарами вищого рівня технологій заборонено.");
+            sb.AppendLine($"- Поточна прихильність: {rule.Goodwill}. Ліміт сукупної торгівлі: {rule.TradeLimitSilver} срібла.");
             sb.AppendLine($"- 交易限额规则：{rule.TradeLimitRuleText}。");
-            sb.AppendLine($"- 每个空投仓运费：{rule.ShippingCostPerPod} 银币。运费从玩家出价中扣除，不在报价中单独列出。");
+            sb.AppendLine($"- Доставка однієї капсули скидання: {rule.ShippingCostPerPod} срібла. Доставка вираховується з пропозиції гравця й не вказується в ціні окремо.");
             sb.AppendLine("- [Role -- highest priority economic constraint] You are the SELLER/SUPPLIER: the need field is what you sell and air-drop DELIVER TO the player (you ship -> player receives). The player is the BUYER/PAYER: payment_items is what the player pays to you (player ships -> you receive). Direction is NEVER reversible -- you are NOT the buyer, the player is NOT the supplier.");
-            sb.AppendLine("- 需求物资与支付物资都按市场价计算（ThingDef.BaseMarketValue，最低按 0.01）。");
-            sb.AppendLine("- 需求物资倍率规则：tradeTags 包含 ExoticMisc 时 x3.0，其余物资 x1.6；金银仍按市场价固定计算。");
-            sb.AppendLine("- 支付物资倍率规则：除金银外统一按市场价 x0.6 计算；金银仍按市场价固定计算。");
-            sb.AppendLine("- 特殊商品倍率覆盖：若交易卡标记为 special_item_discount，该商品按 x0.4 倍率计价（折扣优惠）；若标记为 special_item_scarce，按 x2.0 倍率计价（稀缺加价）。特殊倍率优先于通用倍率。");
+            sb.AppendLine("- І потрібні товари, і оплата рахуються за ринковою ціною (ThingDef.BaseMarketValue, мінімум 0.01).");
+            sb.AppendLine("- Правило множника для потрібних товарів: якщо tradeTags містить ExoticMisc — x3.0, решта товарів — x1.6; золото й срібло далі за фіксованою ринковою ціною.");
+            sb.AppendLine("- Правило множника для оплати: усе, крім золота й срібла, рахується за ринковою ціною x0.6; золото й срібло — далі за фіксованою ринковою ціною.");
+            sb.AppendLine("- Перекриття множника для особливих товарів: якщо картка обміну позначена special_item_discount, товар рахується з множником x0.4 (знижка); якщо special_item_scarce — з множником x2.0 (націнка за дефіцит). Особливий множник має пріоритет над загальним.");
             Owner.AppendFactionSpecialItemInventory(sb, faction);
-            sb.AppendLine("- 允许在市场价基础上溢价（紧急以物易物场景）。若玩家出价低于参考价，应拒绝或还价。");
+            sb.AppendLine("- Дозволено брати надбавку понад ринкову ціну (сценарій термінового бартеру). Якщо гравець пропонує менше за орієнтовну ціну, відмов або назви зустрічну ціну.");
             sb.AppendLine();
         }
 
@@ -113,7 +113,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 ThingDef discountDef = DefDatabase<ThingDef>.GetNamedSilentFail(itemSet.DiscountItem.DefName);
                 if (discountDef != null && ItemAirdropTradePolicy.TryResolveSpecialItemPrice(discountDef, SpecialItemType.Discount, out float discountPrice, out _))
                 {
-                    sb.AppendLine($"- 当前折扣商品：{itemSet.DiscountItem.Label}（参考单价 {discountPrice:F1}，special_item_discount）");
+                    sb.AppendLine($"- Поточний товар зі знижкою: {itemSet.DiscountItem.Label} (орієнтовна ціна {discountPrice:F1}, special_item_discount)");
                 }
                 else
                 {
@@ -126,7 +126,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 ThingDef scarceDef = DefDatabase<ThingDef>.GetNamedSilentFail(itemSet.ScarceItem.DefName);
                 if (scarceDef != null && ItemAirdropTradePolicy.TryResolveSpecialItemPrice(scarceDef, SpecialItemType.Scarce, out float scarcePrice, out _))
                 {
-                    sb.AppendLine($"- 当前稀缺商品：{itemSet.ScarceItem.Label}（参考单价 {scarcePrice:F1}，special_item_scarce）");
+                    sb.AppendLine($"- Поточний дефіцитний товар: {itemSet.ScarceItem.Label} (орієнтовна ціна {scarcePrice:F1}, special_item_scarce)");
                 }
                 else
                 {
@@ -179,21 +179,21 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                                      string.Equals(faction.def?.defName, "OutlanderRough", StringComparison.Ordinal);
 
             sb.AppendLine();
-            sb.AppendLine("=== 动态任务可用性（按当前派系自动生成） ===");
+            sb.AppendLine("=== Динамічна доступність завдань (генерується автоматично за поточною фракцією) ===");
             sb.AppendLine($"派系：{faction.Name} | 科技：{faction.def?.techLevel} | 类型：{faction.def?.defName}");
             if (isOrbitalTraderContext)
             {
-                sb.AppendLine("当前会话：轨道商通信。禁止生成需要地面据点履约的订单任务；涉及具体物资交换时，只允许引导到 request_item_airdrop。");
+                sb.AppendLine("Поточна сесія: звʼязок з орбітальним торговцем. Заборонено створювати замовлення, які потребують виконання наземним поселенням; коли йдеться про обмін конкретними товарами, дозволено лише скеровувати до request_item_airdrop.");
             }
             if (isMerchantFaction)
             {
-                sb.AppendLine("当前派系：商会派系。禁止生成 TradeRequest 订单任务；涉及具体物资交换时，只允许引导到 request_item_airdrop。");
+                sb.AppendLine("Поточна фракція: торгова гільдія. Заборонено створювати замовлення TradeRequest; коли йдеться про обмін конкретними товарами, дозволено лише скеровувати до request_item_airdrop.");
             }
             sb.AppendLine();
 
             if (!allowed.Any())
             {
-                sb.AppendLine("[阻止] 当前派系没有可用的合规任务模板。");
+                sb.AppendLine("[Заблоковано] Поточна фракція не має доступних придатних шаблонів завдань.");
                 if (blocked.Any())
                 {
                     sb.AppendLine("阻止原因：");
@@ -206,7 +206,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 return;
             }
 
-            sb.AppendLine("当前派系可用任务（只能使用以下精确 defName，括号内为任务内容描述）：");
+            sb.AppendLine("Завдання, доступні поточній фракції (можна брати лише ці точні defName, у дужках — опис змісту завдання):");
             foreach (var item in allowed)
             {
                 sb.AppendLine($"  - {item.QuestDefName} {Owner.GetQuestTemplateDescription(item.QuestDefName)}");
@@ -215,7 +215,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             if (blocked.Any())
             {
                 sb.AppendLine();
-                sb.AppendLine("当前派系被阻止的任务模板（禁止使用）：");
+                sb.AppendLine("Шаблони завдань, заблоковані для поточної фракції (використовувати заборонено):");
                 foreach (var item in blocked)
                 {
                     sb.AppendLine($"  - {item.QuestDefName}: {item.Message}");
@@ -223,25 +223,25 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             }
 
             sb.AppendLine();
-            sb.AppendLine("重要：你只能从上面的可用列表中选择 questDefName。");
+            sb.AppendLine("Важливо: questDefName можна брати лише зі списку доступних вище.");
             if (allowed.Any(item => string.Equals(item.QuestDefName, "PawnLend", StringComparison.Ordinal)))
             {
-                sb.AppendLine("PawnLend 严格约束：仅当当前殖民地确实有可借调殖民者，且系统能在运行时构建完整借调合同（人数、天数、职责、目标、是否派穿梭机）时，才可选择 PawnLend。若无法满足，必须改选其他可用模板。");
+                sb.AppendLine("Жорсткі умови PawnLend: обирати PawnLend можна лише тоді, коли в поточній колонії справді є колоністи, яких можна відрядити, і система здатна під час виконання скласти повний контракт відрядження (кількість, дні, обовʼязки, ціль, чи надсилати шатл). Якщо це неможливо — треба взяти інший доступний шаблон.");
             }
-            sb.AppendLine("方向匹配提醒：请仔细阅读每个任务模板描述中的【玩家→派系】或【派系→玩家】方向标记。方向选择错误等于功能执行错误，会破坏沉浸感。");
+            sb.AppendLine("Нагадування про напрям: уважно читай позначку [гравець→фракція] або [фракція→гравець] в описі кожного шаблону завдання. Хибний напрям — це хибне виконання функції, і воно руйнує занурення.");
             sb.AppendLine();
         }
 
         internal void AppendQuestSelectionHardRules(StringBuilder sb)
         {
-            sb.AppendLine("=== 任务模板严格覆盖规则 ===");
-            sb.AppendLine("你必须将“动态任务可用性（按当前派系自动生成）”视为唯一有效任务来源。");
-            sb.AppendLine("禁止使用其他分段中的静态/回忆型任务推荐。");
-            sb.AppendLine("若任务出现在 blocked templates 或 blocked actions 中，必须禁止调用 create_quest。");
-            sb.AppendLine("任务方向匹配规则：【玩家→派系】=玩家出人/出物资/出力；【派系→玩家】=派系出人/出任务/出情报；【双向】=双方共同参与。所选 questDefName 的方向必须与会话上下文一致。例如：玩家说'我可以借人给你'→PawnLend【玩家→派系】；玩家说'能不能派人过来帮忙'≠PawnLend，非帝国派系无人派模板，应引导到 request_aid 或其他可用动作。");
-            sb.AppendLine("安全策略可能禁用高风险模板（例如 OpportunitySite_ItemStash）。如被禁用，必须以角色内方式拒绝并说明约束。");
-            sb.AppendLine("若当前是轨道商通信，禁止使用 create_quest 生成要求玩家携带指定物资进入地面定居点的订单任务；遇到这类请求时，必须说明轨道商没有该履约链路，并引导玩家改用 request_item_airdrop。");
-            sb.AppendLine("若当前派系是商会派系（OutlanderCivil / OutlanderRough），禁止使用 create_quest 生成 TradeRequest；涉及物资交换时，必须直接改用 request_item_airdrop。");
+            sb.AppendLine("=== Суворі правила перекриття шаблонів завдань ===");
+            sb.AppendLine("Ти маєш вважати «динамічну доступність завдань (генерується автоматично за поточною фракцією)» єдиним чинним джерелом завдань.");
+            sb.AppendLine("Заборонено користуватися статичними чи згаданими по памʼяті рекомендаціями завдань з інших розділів.");
+            sb.AppendLine("Якщо завдання є в blocked templates або blocked actions, викликати create_quest заборонено.");
+            sb.AppendLine("Правило відповідності напряму завдання: [гравець→фракція] = гравець дає людей, ресурси чи зусилля; [фракція→гравець] = фракція дає людей, завдання чи відомості; [двобічне] = беруть участь обидві сторони. Напрям обраного questDefName має збігатися з контекстом розмови. Наприклад: гравець каже 'можу позичити тобі людей' → PawnLend [гравець→фракція]; гравець каже 'чи не могли б ви прислати когось на допомогу' ≠ PawnLend, бо в неімперських фракцій шаблону надсилання людей нема — скеруй до request_aid або іншої доступної дії.");
+            sb.AppendLine("Політика безпеки може вимикати шаблони високого ризику (наприклад OpportunitySite_ItemStash). Якщо шаблон вимкнено, відмов у ролі й поясни обмеження.");
+            sb.AppendLine("Якщо це звʼязок з орбітальним торговцем, заборонено через create_quest створювати замовлення, які вимагають від гравця привезти вказаний товар у наземне поселення; на такий запит поясни, що в орбітального торговця нема цього ланцюга доставки, і скеруй гравця до request_item_airdrop.");
+            sb.AppendLine("Якщо поточна фракція — торгова гільдія (OutlanderCivil / OutlanderRough), заборонено створювати TradeRequest через create_quest; коли йдеться про обмін товарами, треба одразу брати request_item_airdrop.");
             sb.AppendLine();
         }
 
@@ -251,17 +251,17 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             switch (questDefName)
             {
                 case "TradeRequest":
-                    return "（贸易订单：【玩家→派系】派系发起物资请求，玩家提供指定物资换取报酬）";
+                    return "(Торгове замовлення: [гравець→фракція] фракція просить товари, гравець постачає вказане в обмін на винагороду)";
                 case "OpportunitySite_PeaceTalks":
-                    return "（和平谈判：【双向】派系邀请玩家代表出席和谈，可能化解敌对关系）";
+                    return "(Мирні перемовини: [двобічне] фракція запрошує представника гравця на переговори, що можуть зняти ворожість)";
                 case "PawnLend":
-                    return "（借调请求：【玩家→派系】派系请求借用玩家的殖民者。玩家出人→派系接收。派穿梭机接送，完成后给予报酬和好感）";
+                    return "(Запит на відрядження: [гравець→фракція] фракція просить позичити колоніста гравця. Гравець дає людину → фракція приймає. Доставка шатлом, після завершення — винагорода й прихильність)";
                 case "ThreatReward_Raid_MiscReward":
-                    return "（威胁悬赏：【派系→玩家】帝国派系发布悬赏令，玩家消灭目标后获得皇家声望或物品奖励）";
+                    return "(Винагорода за загрозу: [фракція→гравець] імперська фракція оголошує нагороду; знищивши ціль, гравець дістає імперську славу або предмети)";
                 case "Hospitality_Refugee":
-                    return "（难民接待：【派系→玩家】帝国派系派遣难民到玩家基地暂住。派系出人→玩家接收。接待期结束后帝国给予奖励）";
+                    return "(Прийом біженців: [фракція→гравець] імперська фракція надсилає біженців пожити на базі гравця. Фракція дає людей → гравець приймає. Після завершення прийому Імперія дає винагороду)";
                 case "OpportunitySite_ItemStash":
-                    return "（物品藏匿点：【派系→玩家】派系提供敌占据点情报，玩家前往清剿获取战利品）";
+                    return "(Схованка з предметами: [фракція→гравець] фракція дає відомості про ворожий опорний пункт, гравець вирушає зачистити його заради здобичі)";
                 default:
                     return string.Empty;
             }

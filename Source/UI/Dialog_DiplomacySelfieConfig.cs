@@ -17,7 +17,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
     public sealed class Dialog_DiplomacySelfieConfig : Window
     {
         private const int PortraitSize = 512;
-        private const string DefaultPromptText = "帮我生成图片：将图片的动漫风格角色转为低饱和二次元摄影cos风格，做自拍动作，采用现实对脸自拍构图，保留核心服饰元素，背景设为派系典型场景，光线偏暖调以增强氛围感，全身照。比例 4:3。";
+        private const string DefaultPromptText = "Згенеруй зображення: переведи аніме-стилізованого персонажа в косплей-фотографію в приглушених кольорах, поза — селфі, композиція як у реального селфі в обличчя, збережи ключові елементи одягу, тло — типова сцена фракції, світло тепліше для атмосфери, на повний зріст. Співвідношення 4:3.";
 
         private readonly Faction faction;
         private readonly Pawn negotiator;

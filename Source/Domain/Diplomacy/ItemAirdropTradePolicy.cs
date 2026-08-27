@@ -320,9 +320,9 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         {
             float wealthFactor = ResolveWealthFactor(wealthItems);
             float activation = ResolveTradeActivation(goodwill / 100f, wealthFactor);
-            string merchantText = isMerchantFaction ? "商会按最终额度额外放大 x1.4；" : string.Empty;
-            string allyText = isAlly ? "盟友身份仍主要影响运费，但高好感会放大额度成长；" : string.Empty;
-            return $"阶段规则：前期更看好感，中期更看财富与累计交易额，后期保持稳定增长。当前好感 {goodwill}、财富系数 {wealthFactor:F2}、交易激活 {activation:F2}，累计交易额 {Mathf.RoundToInt(factionTradeTotalSilver)} 对额度提供增量奖励。{merchantText}{allyText}当前上限 {Mathf.RoundToInt(resolvedLimit)}。";
+            string merchantText = isMerchantFaction ? "Торгова гільдія додатково множить підсумковий ліміт на x1.4;" : string.Empty;
+            string allyText = isAlly ? "Союзництво далі впливає передусім на вартість доставки, але висока прихильність пришвидшує зростання ліміту;" : string.Empty;
+            return $"Правила етапів: на початку більше важить прихильність, у середині — статки й сукупний обсяг торгівлі, наприкінці тримається стале зростання. Поточна прихильність {goodwill}, коефіцієнт статків {wealthFactor:F2}, активація торгівлі {activation:F2}, сукупний обсяг торгівлі {Mathf.RoundToInt(factionTradeTotalSilver)} додає приріст до ліміту. {merchantText}{allyText}Поточний ліміт {Mathf.RoundToInt(resolvedLimit)}.";
         }
 
         internal static float ResolveNeedPriceMultiplier(ThingDef def)

@@ -176,8 +176,8 @@ internal bool TryMigrateLegacyNodeBodyLiteralTemplates(PromptTemplateTextConfig 
             changed |= Owner.TryRewriteLegacyNodeTemplate(
                 ref templates.QuestGuidanceNodeTemplate,
                 PromptTextConstants.QuestGuidanceNodeLiteralDefault,
-                "=== 动态任务可用性（按当前派系自动生成） ===",
-                "=== 任务模板严格覆盖规则 ===");
+                "=== Динамічна доступність завдань (генерується автоматично за поточною фракцією) ===",
+                "=== Суворі правила перекриття шаблонів завдань ===");
             changed |= Owner.TryRewriteLegacyNodeTemplate(
                 ref templates.ResponseContractNodeTemplate,
                 PromptTextConstants.ResponseContractNodeLiteralDefault,

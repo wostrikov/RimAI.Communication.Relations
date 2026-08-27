@@ -135,23 +135,23 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
         {
             if (memory.NegativeInteractions > memory.PositiveInteractions * 2)
             {
-                return "危险的敌人，多次敌对行为让我们充满警惕";
+                return "Небезпечний ворог: багаторазова ворожість тримає нас насторожі";
             }
             else if (memory.NegativeInteractions > memory.PositiveInteractions)
             {
-                return "关系紧张，存在较多冲突";
+                return "Напружені відносини, чимало конфліктів";
             }
             else if (memory.PositiveInteractions > memory.NegativeInteractions * 2)
             {
-                return "可靠的盟友，长期友好合作建立了信任";
+                return "Надійний союзник: тривала дружня співпраця збудувала довіру";
             }
             else if (memory.PositiveInteractions > memory.NegativeInteractions)
             {
-                return "友好的派系，互动以合作为主";
+                return "Приязна фракція: у взаємодії переважає співпраця";
             }
             else
             {
-                return "关系复杂，既有合作也有冲突";
+                return "Складні відносини: є і співпраця, і конфлікти";
             }
         }
 

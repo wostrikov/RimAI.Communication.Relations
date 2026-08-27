@@ -19,7 +19,7 @@ internal static class DiplomacyAirdropPendingParse
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     internal static readonly Regex AirdropPendingChineseQuantifierCountPattern = new Regex(
-        @"(?<!\d)(?<count>\d{1,5})(?:\s*)(?:个|把|份|组|箱|件|支|只|条|张|台|套|双|打|单位|发|枚|颗|包|瓶|碗|盘|杯|桶|袋|盒|捆|叠)",
+        @"(?<!\d)(?<count>\d{1,5})(?:\s*)(?:шт|штук|штуки|одиниць|одиниці|ящик|ящика|ящиків|комплект|комплекти|комплектів|пар|пари|набір|набори|наборів|пляшок|мисок|тарілок|чашок|бочок|мішків|коробок|звʼязок|стос)",
         RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     internal static bool TryExtractAirdropRequestedCount(string playerMessage, out int requestedCount)

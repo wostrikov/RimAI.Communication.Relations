@@ -87,8 +87,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
             {
                 role = "user",
                 content = $"DIALOGUE_PROTOCOL_VIOLATION={reasonTag ?? "invalid_dialogue_contract"}. "
-                    + $"你的上一条回复格式不符合协议要求。请严格输出一个 JSON 对象，首字符 {{ 末字符 }}，不要附加任何自然语言。"
-                    + $"将你的发言文本放入 visible_dialogue 字段。示例：{example} 若需动作则在同一 JSON 内追加 actions 数组。"
+                    + $"Формат твоєї попередньої відповіді не відповідає протоколу. Виведи строго один обʼєкт JSON: перший символ {{ останній символ }}, без жодного тексту природною мовою."
+                    + $"Текст своєї репліки клади в поле visible_dialogue. Приклад: {example} Якщо потрібна дія, додай масив actions у тому самому JSON."
                     + $" "
                     + $"Your last response violated the dialogue protocol. Output exactly one JSON object — first char {{, last char }}. {hint} "
                     + $"Example: {example}. If actions are needed, add them inside the same JSON object. "
@@ -108,21 +108,21 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string problem = reasonTag switch
             {
                 "reasoning_leakage" => "暴露了推理过程",
-                "mechanic_keyword" => "提到了游戏机制关键词",
-                "parenthetical_metadata" => "用括号备注了系统状态",
-                "status_panel_numeric" => "暴露了数值型系统状态",
-                _ => "包含了不符合沉浸感的内容"
+                "mechanic_keyword" => "згадувала ключові слова ігрових механік",
+                "parenthetical_metadata" => "позначала стан системи в дужках",
+                "status_panel_numeric" => "розкривала числовий стан системи",
+                _ => "містила те, що руйнує занурення"
             };
             string hint = usageChannel == DialogueUsageChannel.Rpg
-                ? "只写角色的一句自然对白。"
-                : "只写1-2句角色的自然外交发言。";
+                ? "Напиши лише одну природну репліку персонажа."
+                : "Напиши лише 1-2 речення природної дипломатичної репліки персонажа.";
             updated.Add(new ChatMessageData
             {
                 role = "user",
                 content = $"IMMERSION_VIOLATION={reasonTag}; snippet={snippet}. "
-                    + $"你的上一条回复{problem}（违规片段：{snippet}）。请重新输出一个纯 JSON 对象，"
+                    + $"Твоя попередня відповідь {problem} (фрагмент порушення: {snippet}). Виведи наново чистий обʼєкт JSON,"
                     + $"首字符 {{ 末字符 }}。{hint}"
-                    + $"将所有可见文本放入 visible_dialogue。禁止在正文中包含系统状态、数值面板、推理过程或括号备注。"
+                    + $"Увесь видимий текст клади у visible_dialogue. Заборонено вносити в нього стан системи, числові показники, хід міркувань чи примітки в дужках."
                     + $" "
                     + $"IMMERSION_VIOLATION={reasonTag}. Your last reply {problem}. "
                     + $"Rewrite as exactly one JSON object, first char {{ last char }}. {hint} "

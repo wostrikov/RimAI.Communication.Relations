@@ -141,13 +141,13 @@ internal string ReplaceLegacyQuestGuidanceVariableToken(string template, string 
 
 internal string BuildDiplomacyStrategyDecisionPolicyText()
         {
-            const string fallback = "决策优先级顺序：1）格式与语言正确性；2）引用字段正确性；3）事实约束；4）行为安全性与关系限制；5）连贯性与人设风格。";
+            const string fallback = "Порядок пріоритетів рішення: 1) правильність формату й мови; 2) правильність полів-посилань; 3) фактичні обмеження; 4) безпечність дій і межі відносин; 5) звʼязність та стиль персонажа.";
             return Owner.ResolveUnifiedNodeTemplate(RimTalkPromptEntryChannelCatalog.DiplomacyStrategy, "decision_policy", fallback);
         }
 
 internal string BuildDiplomacyStrategyTurnObjectiveText()
         {
-            const string fallback = "主目标：{{dialogue.primary_objective}}可选补充：{{ dialogue.optional_followup }}约束条件：优先完成主目标；最多只能切换一次话题。";
+            const string fallback = "Головна мета: {{dialogue.primary_objective}} Необовʼязкове доповнення: {{ dialogue.optional_followup }} Умови: спершу заверши головну мету; тему можна змінити щонайбільше раз.";
             return Owner.ResolveUnifiedNodeTemplate(RimTalkPromptEntryChannelCatalog.DiplomacyStrategy, "turn_objective", fallback);
         }
 

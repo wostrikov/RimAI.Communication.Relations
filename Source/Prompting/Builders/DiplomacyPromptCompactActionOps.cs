@@ -133,19 +133,19 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 case "request_raid":
                     return "仅限敌对状态";
                 case "create_quest":
-                    return "仅允许使用可用列表中的精确 questDefName";
+                    return "Дозволено лише точні questDefName зі списку доступних";
                 case "request_item_airdrop":
-                    return "need/payment_items 必填；预算由 payment_items 按市场价求和后 Floor 派生（最低价 0.01；保留既有倍率：无 tradeTags 时 x10，含 ExoticMisc 时 x2），budget_silver 若存在仅用于审计且不参与执行；payment_items.item 优先 defName、label 仅在可唯一匹配时可用；找不到匹配/歧义/库存不足直接失败；若玩家给出已精确绑定 need_def 的空投信息卡，则 need_def 为强绑定目标，只允许拒绝、重报价或调整数量/付款方式，不允许静默改物资；若只做重报价且本轮不执行动作，请用自然对白明确说出物资、数量、银币价格与简短原因，不要输出生硬模板。";
+                    return "need/payment_items обовʼязкові; бюджет виводиться як Floor від суми payment_items за ринковою ціною (мінімальна ціна 0.01; наявні множники зберігаються: без tradeTags x10, з ExoticMisc x2), budget_silver, якщо він є, потрібен лише для аудиту й у виконанні не бере участі; payment_items.item — спершу defName, label припустимий лише за однозначного збігу; якщо збігу нема, він неоднозначний або бракує запасів — одразу невдача; якщо гравець надав картку скидання з уже точно привʼязаним need_def, цей need_def є жорсткою ціллю: дозволено лише відмовити, перерахувати ціну або змінити кількість чи спосіб оплати, мовчки підміняти товар не можна; якщо ти лише перераховуєш ціну й цього ходу дію не виконуєш — скажи природною реплікою, який товар, скільки, за скільки срібла і коротко чому, без сухого шаблону.";
                 case "request_info":
-                    return "仅支持 info_type=prisoner；仅在赎金目标信息不足（缺少有效 target_pawn_load_id）时使用";
+                    return "Підтримується лише info_type=prisoner; використовується тільки тоді, коли даних про ціль викупу бракує (нема чинного target_pawn_load_id)";
                 case "pay_prisoner_ransom":
-                    return "target_pawn_load_id/offer_silver 必填；缺少或失效目标时先 request_info(prisoner) 选人；offer_silver 必须落在系统提示的当前可报价区间内；payment_mode 可省略，若提供必须是 silver（示例：payment_mode:silver；反例：payment_mode:cash）；常规流程仅执行一次付款提交；若存在 [RansomBatchSelection] 且本轮执行 pay_prisoner_ransom，必须同轮覆盖列表全部目标且总报价在批量区间内；放人由玩家手动操作；若文本承诺已提交/已支付赎金，必须同条携带 pay_prisoner_ransom 动作";
+                    return "target_pawn_load_id/offer_silver обовʼязкові; якщо цілі нема або вона недійсна — спершу request_info(prisoner) для вибору; offer_silver має потрапляти в поточний діапазон пропозицій із системної підказки; payment_mode можна не вказувати, але якщо вказано — лише silver (приклад: payment_mode:silver; контрприклад: payment_mode:cash); у звичайному потоці оплата подається один раз; якщо є [RansomBatchSelection] і цього ходу виконується pay_prisoner_ransom — треба тим самим ходом охопити всі цілі списку, а сума має бути в діапазоні для партії; звільнення виконує гравець вручну; якщо в тексті ти пообіцяв, що викуп подано чи сплачено, у тій самій відповіді має бути дія pay_prisoner_ransom";
                 case "send_image":
-                    return "需配置图片 API + 必填 template_id + 每回合仅一张";
+                    return "Потрібен API зображень + обовʼязковий template_id + одне зображення на хід";
                 case "publish_public_post":
-                    return "公开、面向世界且谨慎触发";
+                    return "Публічно, звернено до світу, вмикати обережно";
                 case "reject_request":
-                    return "仅用于明确请求的正式拒绝";
+                    return "Лише для формальної відмови на явний запит";
                 default:
                     return string.Empty;
             }
@@ -170,31 +170,31 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 case "adjust_goodwill":
                     return "调整派系关系";
                 case "request_aid":
-                    return "安排援助（成功后系统固定扣除好感）";
+                    return "Організувати допомогу (після успіху система знімає фіксовану прихильність)";
                 case "declare_war":
                     return "切换为战争状态";
                 case "make_peace":
-                    return "仅在玩家诚意很高时提出和平";
+                    return "Пропонувати мир лише за дуже високої щирості гравця";
                 case "request_caravan":
-                    return "安排贸易商队（成功后系统固定扣除好感）";
+                    return "Організувати торговий караван (після успіху система знімає фіксовану прихильність)";
                 case "request_raid":
                     return "安排袭击";
                 case "request_item_airdrop":
-                    return "检索真实 ThingDef 并通过原版空投发送 Top1 物资";
+                    return "Знайти справжній ThingDef і надіслати товар Top1 звичайним скиданням";
                 case "request_info":
-                    return "请求执行前所需信息（当前仅囚犯赎金选人）";
+                    return "Дані, потрібні перед виконанням запиту (наразі лише вибір бранця для викупу)";
                 case "pay_prisoner_ransom":
-                    return "提交单次银币赎金支付并登记合约，放人由玩家手动操作";
+                    return "Подати разову оплату викупу сріблом і зареєструвати угоду; звільнення виконує гравець вручну";
                 case "trigger_incident":
                     return "触发游戏事件";
                 case "create_quest":
-                    return "创建原生任务（成功后系统固定 -10 好感）";
+                    return "Створити рідне завдання (після успіху система знімає фіксовані -10 прихильності)";
                 case "send_image":
-                    return "通过图片 API 生成并返回一张外交图片卡";
+                    return "Згенерувати й повернути дипломатичну картку із зображенням через API зображень";
                 case "reject_request":
-                    return "正式拒绝玩家的明确请求";
+                    return "Формальна відмова на явний запит гравця";
                 case "publish_public_post":
-                    return "发布高影响力公开社交动态";
+                    return "Опублікувати публічний допис високого впливу";
                 case "exit_dialogue":
                     return "结束当前话题";
                 case "go_offline":
@@ -224,7 +224,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 
         internal static string MergeMakePeaceRequirement(DiplomacyPromptBuilderContract owner, string configured)
         {
-            const string hardRule = "已处于战争状态 + 仅限很高诚意";
+            const string hardRule = "Уже стан війни + лише за дуже високої щирості";
             if (string.IsNullOrWhiteSpace(configured))
             {
                 return hardRule;

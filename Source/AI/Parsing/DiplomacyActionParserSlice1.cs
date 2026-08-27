@@ -358,7 +358,7 @@ public static int TryInferSilverCountFromDialogue(string visibleDialogue)
 
             var matches = System.Text.RegularExpressions.Regex.Matches(
                 visibleDialogue,
-                @"(?:(?:收你|算你|收|仅收|只需|只要|一共|合计|总计|总共|抹零|折后|实付|应付|给你|作价|报价|要价|开价)\s*)?(\d{1,9})\s*(?:银|银币|块)");
+                @"(?:(?:з тебе|беру з тебе|беру|лише|тільки|усього|разом|загалом|усього-на-всього|після знижки|до сплати|віддам за|ціна|за ціною|прошу|правлю)\s*)?(\d{1,9})\s*(?:срібла|срібняків|монет)");
             if (matches.Count == 0)
             {
                 return 0;

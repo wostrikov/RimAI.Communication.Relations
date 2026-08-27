@@ -290,7 +290,7 @@ internal static void ApplyLegacySocialNewsNodeMigrationIfNeeded(PromptPresetConf
             int overriddenCount = 0;
             overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_style", "文风：中性新闻播报");
             overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_json_contract", "如果 quote 为空，quote_attribution 也必须为空。", "narrative_mode");
-            overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_fact", "基于以下事实种子生成一条社交圈世界新闻卡片。", "narrative_mode={{ world.social.narrative_mode }}");
+            overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_fact", "Створи картку світової новини для соціального кола на основі наведених фактів-зерен.", "narrative_mode={{ world.social.narrative_mode }}");
             catalog.MigrationVersion = LegacySocialNewsNodeMigrationVersion;
             if (overriddenCount > 0)
             {

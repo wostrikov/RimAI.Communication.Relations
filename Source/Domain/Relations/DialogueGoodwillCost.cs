@@ -214,14 +214,14 @@ namespace Ustas.RimAI.Communication.Relations.Relation
         {
             return actionType switch
             {
-                DialogueActionType.RequestCaravan => "请求派系派遣商队访问你的殖民地",
-                DialogueActionType.RequestMilitaryAid => "请求派系派遣军事援助",
-                DialogueActionType.RequestMedicalAid => "请求派系提供医疗援助",
-                DialogueActionType.RequestResourceAid => "请求派系提供资源援助",
-                DialogueActionType.CreateQuest => "通过原生模板向玩家发起任务",
-                DialogueActionType.DemandLeave => "要求派系人员离开你的领地",
-                DialogueActionType.DemandPayment => "要求派系支付赔偿或赎金",
-                DialogueActionType.ShareIntel => "与派系分享有价值的情报",
+                DialogueActionType.RequestCaravan => "Попросити фракцію вислати караван до твоєї колонії",
+                DialogueActionType.RequestMilitaryAid => "Попросити фракцію надіслати військову допомогу",
+                DialogueActionType.RequestMedicalAid => "Попросити у фракції медичну допомогу",
+                DialogueActionType.RequestResourceAid => "Попросити у фракції допомогу ресурсами",
+                DialogueActionType.CreateQuest => "Запропонувати гравцеві завдання через рідний шаблон",
+                DialogueActionType.DemandLeave => "Вимагати, щоб люди фракції залишили твою територію",
+                DialogueActionType.DemandPayment => "Вимагати від фракції відшкодування або викупу",
+                DialogueActionType.ShareIntel => "Поділитися з фракцією цінними відомостями",
                 DialogueActionType.SendGift => "向派系赠送礼物",
                 DialogueActionType.FulfillPromise => "履行之前做出的承诺",
                 DialogueActionType.AcceptDemand => "接受派系提出的要求",

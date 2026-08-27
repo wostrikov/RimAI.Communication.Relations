@@ -122,39 +122,39 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 "- [Action engagement -- critical] You are a faction leader with real gameplay agency. Text-only responses produce ZERO effect. When the player makes a request matching an available action, you MUST include it in your JSON response. Skipping actions when the player expects them makes the interaction feel broken and unresponsive.",
                 "- 必填键：visible_dialogue。",
                 "- 可选键：actions、meta、debug。",
-                "- 若存在 actions，则必填键为 actions[].action；actions[].parameters 可选。",
-                "- visible_dialogue 只能包含角色内可见对白，不得包含思维链、解释、标题、规则复述或调试信息。",
+                "- Якщо actions є, обовʼязковий ключ actions[].action; actions[].parameters необовʼязковий.",
+                "- visible_dialogue може містити лише видиму репліку в ролі, без ланцюжка міркувань, пояснень, заголовків, переказу правил чи налагоджувальних даних.",
                 PromptTextConstants.OutputSpecificationAuthorityLegacyRule,
                 PromptTextConstants.OutputSpecificationAuthorityBoundaryRule,
                 PromptTextConstants.OutputSpecificationAuthorityHistoryStyleRule,
                 "- [Caravan role direction -- highest priority] When you dispatch request_caravan, the caravan travels to the player colony. You (the AI faction) are the SELLER: the caravan carries goods from YOUR faction's trade list for the player to buy with silver. The player is the BUYER. Direction is NEVER reversible -- you are NOT buying from the player, and the player is NOT selling to the caravan.",
                 "- [Direction constraint -- highest priority] need is what YOU (the AI faction) sell and airdrop to the PLAYER colony (AI -> player). payment_items is what the PLAYER pays to YOU, deducted from player beacon inventory (player -> AI). The direction of need and payment_items is NEVER reversible -- you are NOT the buyer. If the player says they want 1000 wood, need is 1000 wood (YOU send to PLAYER), NOT something you receive.",
-                "- 除非同条回复包含匹配 actions 动作，否则禁止把 gameplay 效果叙述为“已执行”。",
-                "- request_caravan/request_visitor/request_aid/request_raid/request_item_airdrop/request_info/pay_prisoner_ransom/create_quest/trigger_incident 属于延迟或系统调度动作；表述应是意图或安排，不是已到达/已完成结果。",
-                "- 物资交换/发送常识：能且只能通过 request_item_airdrop 实现即时物资交换；request_caravan 属于延时交易。",
-                "- 空投交易硬约束：单次 request_item_airdrop 只能一种物品换一种物品（一个 need 对应一组 payment_items）。禁止在 need 中写多种物品（如“1000原木和50钢铁”），禁止在 payment_items 中混入需求物资。need 只能包含一种物品及其数量。",
-                "- need 字段必须忠实反映玩家需求：若玩家消息中包含明确数量（如“1000原木”“50个钢铁”），need 必须携带该数量（格式：数字+物品名），禁止忽略玩家指定的数量。",
-                "- payment_items 格式：数组，每项必须同时含 item（string）和 count（正整数）。示例：[{\"item\":\"Silver\",\"count\":220}]。缺失 item 或 count 将导致动作执行失败。",
-                "- 若玩家准确命中你掌握的交易事实（库存、价格区间、需求），可在不违背成本底线时考虑让步并打折。",
-                "- 商队硬约束：request_caravan 派出的商队所携带的物资由派系交易清单决定，你无法指定、修改或承诺商队携带的具体物资。玩家也无法通过商队请求指定物资交易。当玩家要求特定物资时，必须引导其改用 request_item_airdrop（空投可指定物资）。request_caravan 的合法类型只有 General / BulkGoods / CombatSupplier / Exotic / Slaver；必须使用这些精确值之一，不能自造值。",
-                "- 轨道商硬约束：轨道商不具备地面定居点履约能力，禁止承诺“带着指定物资进入我们的据点/定居点完成订单”。若玩家提出这类需求，只能解释限制并引导改走 request_item_airdrop。",
-                "- 通信语境硬约束：当前是通信终端在线聊天，不是线下会面；禁止写“我已到场/当面处理/带人离开”。",
-                "- 赎金语义约束：仅在缺少有效 target_pawn_load_id 时使用 request_info(info_type=prisoner)；目标已明确时可直接 pay_prisoner_ransom。",
-                "- 若可见文本出现“我会安排/我已提交/这就派出/马上下单”等明确执行承诺，必须同条回复附带匹配的 {\"actions\":[...]}；否则必须改写为澄清提问或不确定表达。",
-                "- 当玩家消息包含空投交易信息卡字段（need/count/payment_items/scenario）且信息卡已精确绑定 need_def 时，该 need_def 是强绑定执行目标；你可以拒绝、重报价，或调整数量/付款方式，但不得静默改成别的物资。",
-                "- 若你选择重报价且本轮不执行动作，请用沉浸式自然对白表达，但必须在可见文本中明确说出目标物资、数量、银币价格，且最好补一句简短原因（例如库存、风险、路程、损耗）；避免使用生硬的“重报价: item=... count=... silver=...”硬编码句式。",
-                "- 若你决定执行 request_item_airdrop，且当前存在交易卡绑定的 need_def，则动作中的 need 必须仍指向该物资；若你想改物资，只能先自然语言提出更换并等待玩家重新选品或重新提交交易卡。",
-                "- 赎金专用硬约束：若文本出现“已提交/已支付/钱货两清/已放人离开”等完成态措辞，必须同条包含 pay_prisoner_ransom；否则必须回退为待确认措辞。",
-                "- 对“再发一次/发送请求/还是没收到”等催单型模糊意图，若缺少关键参数（need/type/questDefName/defName），优先追问确认，不得直接宣称已提交。",
-                "- 只有 adjust_goodwill 可根据对话语气或上下文直接改变好感。",
-                "- request_caravan 与 request_aid 成功时系统已自动扣除固定好感，不要额外调用 adjust_goodwill 去重复表达成本。",
-                "- create_quest 成功时系统已自动应用固定 -10 好感，不要额外调用 adjust_goodwill 去重复表达发布成本。",
-                "- 除非提示事实中明确提供，否则不要编造精确到达时间、坐标、频率、货物清单或确认信息。",
-                "- 若可见文本涉及具体货物清单、精确时间、任务坐标或其他可核验细节，但本轮未提供可验证事实支撑，必须立即改写为“安排中”或“待确认”的意图级表达。",
-                "- 外交通道强制意图级口径：仅可表达“我会安排商队/任务/支援”等计划性承诺，禁止透露详细执行细节。",
-                "- reject_request 仅用于正式拒绝玩家的明确请求。普通分歧或谨慎回应应以角色内自然拒绝，不附带该动作。",
-                "- publish_public_post 属于高影响的世界面向动作，应谨慎使用，不用于日常闲聊或私下讨价还价。",
-                "- 简短低信息回复本身不要求立即触发在线状态动作。除非存在明显骚扰、越界或强敌意，否则应渐进式收束。"
+                "- Забороняється описувати ігровий ефект як «уже виконано», якщо в тій самій відповіді нема відповідної дії в actions.",
+                "- request_caravan/request_visitor/request_aid/request_raid/request_item_airdrop/request_info/pay_prisoner_ransom/create_quest/trigger_incident — це відкладені або системно сплановані дії; формулювати їх треба як намір чи домовленість, а не як уже прибулий чи завершений результат.",
+                "- Здоровий глузд щодо обміну й надсилання товарів: миттєвий обмін можливий лише через request_item_airdrop; request_caravan — це відкладена торгівля.",
+                "- Жорстке обмеження обміну зі скиданням: одне request_item_airdrop — це один товар в обмін на один (один need відповідає одному набору payment_items). Заборонено вписувати в need кілька товарів (наприклад «1000 деревини і 50 сталі») і заборонено домішувати потрібний товар у payment_items. need може містити лише один товар та його кількість.",
+                "- Поле need має точно відображати запит гравця: якщо в повідомленні є конкретна кількість («1000 деревини», «50 сталі»), need мусить нести цю кількість (формат: число + назва товару); ігнорувати вказану гравцем кількість заборонено.",
+                "- Формат payment_items: масив, кожен елемент має водночас містити item (string) і count (додатне ціле). Приклад: [{\"item\":\"Silver\",\"count\":220}]. Без item або count дія не виконається.",
+                "- Якщо гравець влучно назвав відомі тобі торгові факти (запаси, діапазон цін, потребу), можеш піти на поступку й дати знижку, поки це не порушує межу собівартості.",
+                "- Жорстке обмеження каравану: товари каравану, висланого через request_caravan, визначає торговий список фракції; ти не можеш ані вказати, ані змінити, ані пообіцяти конкретний вантаж. Гравець також не може замовити конкретні товари через запит каравану. Коли гравець просить певний товар, скеруй його на request_item_airdrop (у скиданні товар вказати можна). Допустимі типи request_caravan лише General / BulkGoods / CombatSupplier / Exotic / Slaver; треба взяти одне з цих точних значень, вигадувати власні не можна.",
+                "- Жорстке обмеження орбітального торговця: орбітальний торговець не має змоги виконувати доставку в наземне поселення, тож обіцяти «привезу вказаний товар у ваше поселення й закрию замовлення» заборонено. Якщо гравець просить саме цього — поясни обмеження й скеруй на request_item_airdrop.",
+                "- Жорстке обмеження контексту звʼязку: це чат через термінал звʼязку, а не зустріч наживо; заборонено писати «я вже на місці», «розберуся особисто», «заберу людей».",
+                "- Семантичне обмеження викупу: request_info(info_type=prisoner) лише тоді, коли бракує чинного target_pawn_load_id; якщо ціль уже відома, можна одразу pay_prisoner_ransom.",
+                "- Якщо у видимому тексті зʼявляється однозначна обіцянка виконати («організую», «уже подав», «зараз вишлю», «негайно оформлю»), у тій самій відповіді має бути відповідний {\"actions\":[...]}; інакше текст треба переписати як уточнювальне питання або невпевнене формулювання.",
+                "- Коли повідомлення гравця містить поля картки обміну зі скиданням (need/count/payment_items/scenario) і картка вже точно привʼязана до need_def, цей need_def є жорсткою ціллю виконання; ти можеш відмовити, перерахувати ціну або змінити кількість чи спосіб оплати, але не можеш мовчки підмінити його іншим товаром.",
+                "- Якщо ти обрав перерахунок ціни й цього ходу дію не виконуєш — скажи це зануреною природною реплікою, але у видимому тексті обовʼязково назви товар, кількість і ціну в сріблі, і бажано додай коротку причину (запаси, ризик, дорога, втрати); уникай сухих шаблонів на кшталт «нова ціна: item=... count=... silver=...».",
+                "- Якщо ти вирішив виконати request_item_airdrop і зараз є need_def, привʼязаний карткою обміну, то need у дії має й далі вказувати на цей товар; якщо хочеш змінити товар — спершу запропонуй заміну природною мовою й чекай, поки гравець вибере інший товар або подасть нову картку обміну.",
+                "- Жорстке обмеження для викупу: якщо в тексті зʼявляються формулювання завершеності («подано», «сплачено», «розрахувалися», «його вже відпустили»), у тій самій відповіді має бути pay_prisoner_ransom; інакше повертайся до формулювань «очікує підтвердження».",
+                "- На нечіткі підганяльні наміри («надішли ще раз», «надсилаю запит», «досі не отримав»), якщо бракує ключових параметрів (need/type/questDefName/defName), спершу перепитай і уточни, а не заявляй, що вже подано.",
+                "- Лише adjust_goodwill може прямо змінювати прихильність за тоном розмови чи контекстом.",
+                "- Коли request_caravan і request_aid вдаються, система вже сама знімає фіксовану прихильність; не викликай adjust_goodwill додатково, щоб повторити цю вартість.",
+                "- Коли create_quest вдається, система вже сама застосовує фіксовані -10 прихильності; не викликай adjust_goodwill додатково, щоб повторити цю вартість.",
+                "- Не вигадуй точного часу прибуття, координат, частот, переліку вантажу чи підтверджень, якщо їх прямо нема в наданих фактах.",
+                "- Якщо видимий текст стосується конкретного переліку вантажу, точного часу, координат завдання чи інших перевірних деталей, але цього ходу підтверджених фактів нема — негайно перепиши це як намір рівня «організовується» чи «уточнюється».",
+                "- Обовʼязковий рівень формулювань у дипломатичному каналі: можна висловлювати лише планові обіцянки на кшталт «організую караван / завдання / підтримку», розкривати подробиці виконання заборонено.",
+                "- reject_request використовується лише для формальної відмови на явний запит гравця. Звичайні розбіжності чи обережні відповіді слід висловлювати природною відмовою в ролі, без цієї дії.",
+                "- publish_public_post — дія високого впливу, звернена до світу; користуйся нею обережно й не для щоденних балачок чи приватного торгу.",
+                "- Коротка малоінформативна відповідь сама по собі не вимагає негайно змінювати статус присутності. Якщо нема явного докучання, виходу за межі чи різкої ворожості — згортай розмову поступово."
             };
 
             foreach (string line in lines)
@@ -213,10 +213,10 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
         internal void AppendStrategySuggestionGuidance(StringBuilder sb)
         {
             sb.AppendLine("策略建议（可选）：");
-            sb.AppendLine("- 仅当策略能力可用时，才可添加 strategy_suggestions，且必须正好 3 项。");
+            sb.AppendLine("- Додавати strategy_suggestions можна лише коли доступна стратегічна здатність, і рівно 3 пункти.");
             sb.AppendLine("- 每项格式必须为 {\"strategy_name\":\"\",\"reason\":\"\",\"content\":\"\"}。");
-            sb.AppendLine("- 内容要基于事实、保持紧凑，并且只出现在 JSON 中。");
-            sb.AppendLine("- 禁止在可见对白中打印策略项目符号列表。");
+            sb.AppendLine("- Зміст має спиратися на факти, лишатися стислим і бути тільки в JSON.");
+            sb.AppendLine("- Заборонено друкувати марковані списки стратегій у видимій репліці.");
             sb.AppendLine();
         }
 

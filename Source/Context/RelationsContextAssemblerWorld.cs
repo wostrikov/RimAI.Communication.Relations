@@ -55,14 +55,14 @@ namespace Ustas.RimAI.Communication.Relations.Context
                 if (leaderMemory == null) return;
 
                 sb.AppendLine();
-                sb.AppendLine("=== 记忆与历史数据（动态注入）===");
-                sb.AppendLine("以下是你对其他派系的记忆和交互历史，请基于这些信息形成你的态度和决策：");
+                sb.AppendLine("=== Памʼять та історичні дані (динамічне вставлення) ===");
+                sb.AppendLine("Нижче — твоя памʼять і історія взаємодій з іншими фракціями; формуй своє ставлення й рішення на цій основі:");
                 sb.AppendLine();
 
                 if (leaderMemory.SignificantEvents != null && leaderMemory.SignificantEvents.Count > 0)
                 {
                     sb.AppendLine("【重大事件记忆】");
-                    sb.AppendLine("这些事件深刻影响了你对其他派系的看法：");
+                    sb.AppendLine("Ці події глибоко вплинули на твій погляд на інші фракції:");
 
                     var recentEvents = leaderMemory.SignificantEvents
                         .OrderByDescending(e => e.OccurredTick)
@@ -80,7 +80,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
                 if (leaderMemory.FactionMemories != null && leaderMemory.FactionMemories.Count > 0)
                 {
                     sb.AppendLine("【派系关系认知】");
-                    sb.AppendLine("基于长期交互，你对以下派系形成了印象：");
+                    sb.AppendLine("За тривалою взаємодією в тебе склалося враження про такі фракції:");
 
                     foreach (var memory in leaderMemory.FactionMemories)
                     {
@@ -88,7 +88,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
 
                         string impression = host.DiplomacyBuilder.GetRelationImpression(memory);
                         sb.AppendLine($"  • {memory.FactionName}: {impression}");
-                        sb.AppendLine($"    交互记录：{memory.PositiveInteractions} 次正面，{memory.NegativeInteractions} 次负面");
+                        sb.AppendLine($"    Записи взаємодій: {memory.PositiveInteractions} позитивних, {memory.NegativeInteractions} негативних");
 
                         if (memory.RelationHistory != null && memory.RelationHistory.Count > 0)
                         {
@@ -115,7 +115,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
                 if (crossSummaries.Count > 0)
                 {
                     sb.AppendLine("【跨通道长期记忆】");
-                    sb.AppendLine("来自外交会话与 RPG 离图事件的共享摘要：");
+                    sb.AppendLine("Спільний переказ з дипломатичних сесій і подій RPG поза мапою:");
 
                     foreach (CrossChannelSummaryRecord summary in crossSummaries
                         .Where(x => x != null && !string.IsNullOrWhiteSpace(x.SummaryText))
@@ -140,10 +140,10 @@ namespace Ustas.RimAI.Communication.Relations.Context
                 }
 
                 sb.AppendLine("【记忆使用指导】");
-                sb.AppendLine("- 对有过负面交互的派系保持警惕和怀疑");
-                sb.AppendLine("- 对有过正面交互的派系更加友好和信任");
-                sb.AppendLine("- 重大事件（如宣战、背叛）应该深刻影响你的态度");
-                sb.AppendLine("- 基于历史形成连贯一致的外交策略");
+                sb.AppendLine("- До фракцій з негативним досвідом взаємодії лишайся насторожі й з підозрою");
+                sb.AppendLine("- До фракцій з позитивним досвідом взаємодії стався привітніше й довірливіше");
+                sb.AppendLine("- Великі події (оголошення війни, зрада) мають глибоко впливати на твоє ставлення");
+                sb.AppendLine("- Формуй звʼязну й послідовну дипломатичну лінію на основі історії");
                 sb.AppendLine();
             }
             catch (Exception ex)

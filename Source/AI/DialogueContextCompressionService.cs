@@ -37,7 +37,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             "cancelled this airdrop trade",
             "airdrop order canceled",
             "airdrop order cancelled",
-            "你取消了本次空投交易",
+            "Ти скасував цей обмін зі скиданням",
             "取消空投交易",
             "空投订单已取消"
         };

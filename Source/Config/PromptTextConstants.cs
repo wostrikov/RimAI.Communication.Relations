@@ -49,17 +49,17 @@ namespace Ustas.RimAI.Communication.Relations.Config
             "AI заборонено самостійно запускати send_image.";
 
         public const string SendImageCaptionStylePromptDefault =
-            "写一句生动的图片文案，像派系领袖在聊天中分享一张新照片。语气要自然、沉浸并带情绪表达。";
+            "Напиши живий підпис до зображення, наче лідер фракції ділиться новим фото в чаті. Тон природний, занурений, з емоцією.";
         public const string SendImageCaptionFallbackTemplateDefault =
-            "这是我们首领{{ pawn.leader.name }}，怎么样够帅吧？";
+            "Це наш ватажок {{ pawn.leader.name }}, гарний, правда?";
 
         public const string SendImageDefaultTemplateName = "领袖肖像";
         public const string SendImageDefaultTemplateDescription =
-            "基于 RimWorld 科技水平与派系身份的电影感领袖肖像场景。";
+            "Кінематографічна портретна сцена лідера, що відповідає рівню технологій RimWorld і статусу фракції.";
         public const string SendImageDefaultTemplateText =
-            "为这位派系领袖创建一个贴合设定、符合世界观的 RimWorld 肖像场景。"
-            + "环境、服饰与科技水平需与派系背景一致。"
-            + "使用自然材质与实用装备，并保证面部清晰可辨。";
+            "Створи для цього лідера фракції портретну сцену RimWorld, що пасує сеттингу й світові."
+            + "Середовище, одяг і рівень технологій мають відповідати тлу фракції."
+            + "Природні матеріали та практичне спорядження, обличчя має лишатися чітко впізнаваним.";
 
         public const string ApiLimitsNodeLiteralDefault =
             "{{ dialogue.api_limits_body }}";
@@ -72,40 +72,40 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         public const string OutputSpecificationAuthorityHeader = "输出规范权威区：";
         public const string OutputSpecificationAuthorityReference =
-            "响应协议仅在本权威区定义。其他分段只能引用，禁止重复定义规则。";
+            "Протокол відповіді визначається лише в цьому авторитетному розділі. Інші розділи можуть тільки посилатися на нього, повторно визначати правила заборонено.";
         public const string OutputSpecificationAuthorityBoundaryRule =
-            "- 自然语言中关于 AI 身份、数值或游戏机制的禁令仅适用于 visible_dialogue；结构化字段仅服务解析器与动作执行。";
+            "- Заборони щодо ШІ-природи, числових показників та ігрових механік у природній мові стосуються лише visible_dialogue; структуровані поля слугують тільки парсеру й виконанню дій.";
         public const string OutputSpecificationAuthorityLegacyRule =
-            "- 禁止使用旧版单动作包装格式（如 {\"action\":\"...\",\"parameters\":{...},\"response\":\"...\"}）以及 dialogue/content/text 旧包装；仅 visible_dialogue + actions 契约有效。";
+            "- Заборонено вживати старий формат обгортки однієї дії (наприклад {\"action\":\"...\",\"parameters\":{...},\"response\":\"...\"}), а також старі обгортки dialogue/content/text; чинний лише контракт visible_dialogue + actions.";
         public const string OutputSpecificationAuthorityHistoryStyleRule =
-            "- 不要模仿历史中的元注释风格；历史只提供剧情事实，不提供输出样式。";
+            "- Не наслідуй стиль метакоментарів з історії; історія дає лише сюжетні факти, а не форму виводу.";
 
         public const string ActionsHeader = "动作目录：";
         public const string ResponseFormatHeader = "响应格式：";
         public const string ResponseFormatReference =
-            "唯一有效的响应契约请以上方“输出规范权威区”为准；默认输出一个 JSON 对象，主字段为 visible_dialogue。";
+            "Єдиний чинний контракт відповіді визначає розділ «Авторитет правил виводу» вище; типово виводиться один обʼєкт JSON із головним полем visible_dialogue.";
         public const string CriticalActionRulesHeader = "关键动作规则：";
         public const string CriticalActionRulesReference =
-            "所有协议与边界规则以上方“输出规范权威区”为准。";
-        public const string NoActionResponseHint = "如果不需要动作，请仍输出一个 JSON 对象，只保留 visible_dialogue，不要附加 actions。";
-        public const string StrictJsonFormatHeader = "### 格式要求（最高优先级，必须严格遵守）";
-        public const string StrictJsonFormatRequirement = "你的整条回复必须是一个 JSON 对象，首字符 { 末字符 }，不得在 JSON 外附加任何文本、解释或 Markdown。禁止用 ```json ``` 代码块包裹，禁止在 JSON 前后写任何对白或说明——直接输出原始 JSON。";
+            "Усі правила протоколу й меж визначає розділ «Авторитет правил виводу» вище.";
+        public const string NoActionResponseHint = "Якщо дія не потрібна, усе одно виведи обʼєкт JSON лише з visible_dialogue, не додаючи actions.";
+        public const string StrictJsonFormatHeader = "### Вимоги до формату (найвищий пріоритет, дотримуватися суворо)";
+        public const string StrictJsonFormatRequirement = "Уся твоя відповідь має бути одним обʼєктом JSON: перший символ { останній символ }, поза JSON не можна додавати ані тексту, ані пояснень, ані Markdown. Заборонено обгортати у блок ```json ```, заборонено писати будь-які репліки чи примітки до або після JSON — виводь чистий JSON.";
         public const string StrictJsonFormatTemplate = "{\n  \"visible_dialogue\":\"外交发言文本\"\n}";
         public const string StrictJsonFormatTemplateWithAction = "{\n  \"visible_dialogue\":\"外交发言文本\",\n  \"actions\":[\n    {\"action\":\"request_item_airdrop\",\"parameters\":{\"need\":\"1000原木\",\"payment_items\":[{\"item\":\"Silver\",\"count\":1200}]}}\n  ]\n}";
 
-        public const string GoodwillPeacePolicyHeader = "动态和平策略（基于好感）：";
+        public const string GoodwillPeacePolicyHeader = "Динамічна мирна політика (за прихильністю):";
         public const string GoodwillPeacePolicyVeryLowLine1 =
-            "- 当前好感：{0}。禁止使用 make_peace 或直接和约动作。";
+            "- Поточна прихильність: {0}. Використовувати make_peace чи пряму мирну угоду заборонено.";
         public const string GoodwillPeacePolicyVeryLowLine2 =
-            "- 原因：敌意已深于 {0} 以下，不允许立即缔约。";
+            "- Причина: ворожість глибша за {0}, тож укладати угоду одразу не можна.";
         public const string GoodwillPeacePolicyTalkOnlyLine1 =
-            "- 当前好感：{0}。在该区间禁止使用 make_peace。";
+            "- Поточна прихильність: {0}. У цьому діапазоні make_peace використовувати заборонено.";
         public const string GoodwillPeacePolicyTalkOnlyLine2 =
             "- 和谈必须使用 create_quest，并指定 questDefName '{0}'。";
         public const string GoodwillPeacePolicyTalkOnlyLine3 =
-            "- 原因：好感处于 [{0},{1}] 区间，直接和平前必须先进行和谈。";
+            "- Причина: прихильність у діапазоні [{0},{1}], тож перед прямим миром потрібні перемовини.";
         public const string GoodwillPeacePolicyReenabledLine1 =
-            "- 当前好感：{0}。make_peace 与和谈任务均可使用。";
+            "- Поточна прихильність: {0}. Доступні і make_peace, і завдання на перемовини.";
         public const string GoodwillPeacePolicyReenabledLine2 =
             "- 若选择 create_quest，和谈应使用 questDefName '{0}'。";
     }

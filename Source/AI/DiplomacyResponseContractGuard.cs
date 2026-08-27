@@ -24,7 +24,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
     internal static class DiplomacyResponseContractGuard
     {
         private static readonly Regex StrongCommitmentRegex = new Regex(
-            "(?i)(我(已经|已)?提交了请求|我(会|将|这就|马上)?(安排|派出|发送|提交|下单)|I\\s*(will|'ll)\\s*(arrange|dispatch|send|submit|place)|request\\s+submitted|order\\s+placed)",
+            "(?i)(я (вже )?(подав|надіслав) запит|я (зараз|негайно)? ?(організую|вишлю|надішлю|подам|оформлю)|I\\s*(will|'ll)\\s*(arrange|dispatch|send|submit|place)|request\\s+submitted|order\\s+placed)",
             RegexOptions.Compiled);
 
         public static DiplomacyResponseContractCheckResult Validate(string rawOutput)
@@ -74,7 +74,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
         public static string BuildFallbackClarification()
         {
-            return "我可以继续安排，但先确认这次具体请求与预算。";
+            return "Я можу організувати далі, але спершу уточнімо конкретний запит і бюджет.";
         }
 
         private static bool ContainsExplicitCommitment(string visibleDialogue)

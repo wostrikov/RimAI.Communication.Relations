@@ -32,13 +32,13 @@ namespace Ustas.RimAI.Communication.Relations.AI
         private static readonly Regex[] MechanicLeakageRegexes =
         {
             new Regex(@"(?i)\b(?:api[_\s-]?limits?|blocked\s*actions?|system\s*prompt|prompt\s*template|request\s*id|requestid|token\s*(?:usage|count|budget)?)\b", RegexOptions.Compiled),
-            new Regex(@"(?i)^\s*(?:当前|此刻|现在)\s*(?:好感|关系|友好)\s*(?:为|是|:|：|=)\s*[-+]?\d+\s*(?:点|级)?\s*$", RegexOptions.Compiled | RegexOptions.Multiline),
+            new Regex(@"(?i)^\s*(?:поточна|зараз|нині)\s*(?:прихильність|відносини|дружність)\s*(?:—|-|:|=)\s*[-+]?\d+\s*(?:очок|рівень)?\s*$", RegexOptions.Compiled | RegexOptions.Multiline),
             new Regex(@"(?i)^\s*(?:冷却|cooldown)\s*(?:为|是|:|：|=)\s*\d+\s*(?:秒|分钟|小时| ticks)?\s*$", RegexOptions.Compiled | RegexOptions.Multiline),
             new Regex(@"(?i)\b(?:status|system)\b.{0,20}\b(?:panel|state|value|metric)\b", RegexOptions.Compiled)
         };
 
         private static readonly Regex ParentheticalMetadataRegex = new Regex(
-            @"[（(]\s*(?:当前|此刻|现在)\s*(?:状态|好感|关系|形势|局势)[^)）\r\n]{0,60}[)）]",
+            @"[（(]\s*(?:поточний|поточна|зараз|нині)\s*(?:стан|прихильність|відносини|ситуація|становище)[^)）\r\n]{0,60}[)）]",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly Regex StatusPanelNumericRegex = new Regex(
@@ -46,7 +46,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
         private static readonly Regex ReasoningLeakageRegex = new Regex(
-            @"(?i)(让我想想|先分析|先思考|思路如下|我的思考|推理过程|分析如下|根据以上规则|检查输出格式|I\s*(?:need|will|should)\s*(?:think|analyze|reason)|let\s+me\s+think|my\s+reasoning|step[\s-]*by[\s-]*step|according\s+to\s+the\s+rules)",
+            @"(?i)(дай подумати|спершу проаналізую|спершу подумаю|хід думок такий|мої міркування|процес міркування|аналіз такий|згідно з наведеними правилами|перевіряю формат виводу|I\s*(?:need|will|should)\s*(?:think|analyze|reason)|let\s+me\s+think|my\s+reasoning|step[\s-]*by[\s-]*step|according\s+to\s+the\s+rules)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static ImmersionGuardResult ValidateVisibleDialogue(string rawOutput)

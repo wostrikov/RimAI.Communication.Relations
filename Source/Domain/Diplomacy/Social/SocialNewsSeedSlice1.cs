@@ -31,8 +31,8 @@ public static SocialNewsSeed CreateDialogueSeed(
             {
                 string targetName = targetFaction?.Name?.Trim();
                 publicClaim = string.IsNullOrWhiteSpace(targetName)
-                    ? $"{sourceFaction.Name}就当前局势发表了公开声明。"
-                    : $"{sourceFaction.Name}就与{targetName}的关系发表了公开声明。";
+                    ? $"{sourceFaction.Name} зробила публічну заяву щодо поточної ситуації."
+                    : $"{sourceFaction.Name} зробила публічну заяву щодо відносин з {targetName}.";
             }
 
             return new SocialNewsSeed
@@ -182,8 +182,8 @@ internal static bool TryBuildStructuredClaimFromIntent(
                 || (category == SocialPostCategory.Military && sentiment <= -1 && string.IsNullOrWhiteSpace(text)))
             {
                 claim = string.IsNullOrWhiteSpace(targetName)
-                    ? $"{factionName}警告，若再受挑衅，将发动普通袭击。"
-                    : $"{factionName}警告{targetName}，若再受挑衅，将发动普通袭击。";
+                    ? $"{factionName} попереджає: ще одна провокація — і буде звичайний напад."
+                    : $"{factionName} попереджає {targetName}: ще одна провокація — і буде звичайний напад.";
                 return true;
             }
 
@@ -191,8 +191,8 @@ internal static bool TryBuildStructuredClaimFromIntent(
                 || string.Equals(text, "request_aid", StringComparison.OrdinalIgnoreCase))
             {
                 claim = string.IsNullOrWhiteSpace(targetName)
-                    ? $"{factionName}表示愿意继续提供援助。"
-                    : $"{factionName}表示愿意继续向{targetName}提供援助。";
+                    ? $"{factionName} готова й надалі надавати допомогу."
+                    : $"{factionName} готова й надалі надавати допомогу {targetName}.";
                 return true;
             }
 
@@ -200,8 +200,8 @@ internal static bool TryBuildStructuredClaimFromIntent(
                 || string.Equals(text, "request_caravan", StringComparison.OrdinalIgnoreCase))
             {
                 claim = string.IsNullOrWhiteSpace(targetName)
-                    ? $"{factionName}表示愿意恢复贸易往来。"
-                    : $"{factionName}表示愿意与{targetName}恢复贸易往来。";
+                    ? $"{factionName} готова відновити торгівлю."
+                    : $"{factionName} готова відновити торгівлю з {targetName}.";
                 return true;
             }
 
