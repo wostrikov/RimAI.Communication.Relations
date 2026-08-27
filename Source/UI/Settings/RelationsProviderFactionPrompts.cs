@@ -293,15 +293,15 @@ internal sealed class RelationsProviderFactionPrompts
         {
             float sectionHeight = 60f;
 
-            DrawPromptFeature(innerRect, ref y, "RimChat_CoreStyle".Translate(), config.GetFieldValue("閺嶇绺炬搴㈢壐"), sectionHeight);
+            DrawPromptFeature(innerRect, ref y, "RimChat_CoreStyle".Translate(), config.GetFieldValue(FactionPromptFieldNames.CoreStyle), sectionHeight);
 
-            DrawPromptFeature(innerRect, ref y, "RimChat_VocabularyFeatures".Translate(), config.GetFieldValue("閻劏鐦濋悧鐟扮窙"), sectionHeight);
+            DrawPromptFeature(innerRect, ref y, "RimChat_VocabularyFeatures".Translate(), config.GetFieldValue(FactionPromptFieldNames.Vocabulary), sectionHeight);
 
-            DrawPromptFeature(innerRect, ref y, "RimChat_ToneFeatures".Translate(), config.GetFieldValue("鐠囶厽鐨甸悧鐟扮窙"), sectionHeight);
+            DrawPromptFeature(innerRect, ref y, "RimChat_ToneFeatures".Translate(), config.GetFieldValue(FactionPromptFieldNames.Tone), sectionHeight);
 
-            DrawPromptFeature(innerRect, ref y, "RimChat_SentenceFeatures".Translate(), config.GetFieldValue("閸欍儱绱￠悧鐟扮窙"), sectionHeight);
+            DrawPromptFeature(innerRect, ref y, "RimChat_SentenceFeatures".Translate(), config.GetFieldValue(FactionPromptFieldNames.Sentence), sectionHeight);
 
-            DrawPromptFeature(innerRect, ref y, "RimChat_Taboos".Translate(), config.GetFieldValue("鐞涖劏鎻粋浣哥箟"), sectionHeight);
+            DrawPromptFeature(innerRect, ref y, "RimChat_Taboos".Translate(), config.GetFieldValue(FactionPromptFieldNames.Taboos), sectionHeight);
 
             float btnWidth = (innerRect.width - 20f) / 2;
             float btnY = innerRect.yMax - 34f;

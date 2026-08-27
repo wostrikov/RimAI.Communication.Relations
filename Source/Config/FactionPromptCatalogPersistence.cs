@@ -241,17 +241,11 @@ internal sealed class FactionPromptCatalogPersistence
         // Non-obvious edge case — read carefully before changing. (summary factionsettings template configuration FactionPrompts_Default.json file method file configuration summary)
         internal void SetupDefaultTemplateFields(FactionPromptConfig config, string factionDefName)
         {
-            const string coreStyleName = "核心风格";
-            const string vocabName = "用词特征";
-            const string toneName = "语气特征";
-            const string sentenceName = "句式特征";
-            const string taboosName = "表达禁忌";
-
-            config.GetOrCreateField(coreStyleName, $"Завантаж типову конфігурацію {factionDefName} з файлу {FactionPromptManager.DefaultConfigFileName} або відредагуй цей шаблон вручну.", "Опиши основний стиль спілкування фракції");
-            config.GetOrCreateField(vocabName, "请配置用词特征。", "描述用词习惯和特征");
-            config.GetOrCreateField(toneName, "请配置语气特征。", "描述语气和情感特征");
-            config.GetOrCreateField(sentenceName, "请配置句式特征。", "描述句式结构特征");
-            config.GetOrCreateField(taboosName, "请配置表达禁忌。", "描述表达禁忌和限制");
+            config.GetOrCreateField(FactionPromptFieldNames.CoreStyle, $"Завантаж типову конфігурацію {factionDefName} з файлу {FactionPromptManager.DefaultConfigFileName} або відредагуй цей шаблон вручну.", "Опиши основний стиль спілкування фракції");
+            config.GetOrCreateField(FactionPromptFieldNames.Vocabulary, "请配置用词特征。", "描述用词习惯和特征");
+            config.GetOrCreateField(FactionPromptFieldNames.Tone, "请配置语气特征。", "描述语气和情感特征");
+            config.GetOrCreateField(FactionPromptFieldNames.Sentence, "请配置句式特征。", "描述句式结构特征");
+            config.GetOrCreateField(FactionPromptFieldNames.Taboos, "请配置表达禁忌。", "描述表达禁忌和限制");
         }
 
         public bool ExportConfigs(string filePath)
