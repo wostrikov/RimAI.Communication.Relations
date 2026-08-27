@@ -38,6 +38,23 @@ internal static class Program
             Check(!request.Contains(secret), "09 no secret diagnostics");
             Check(request.Contains("developer"), "10 background compatible roles");
             Check(request.Contains("assistant") == false, "11 diplomacy fixture serialized through adapter");
+
+            // Every fixture above stops at system+user, which is why an assistant
+            // turn reached the provider untested and returned HTTP 400 on the second
+            // message of every conversation: the Responses API accepts input_text only
+            // for input roles and requires output_text for assistant history.
+            var withReply = new List<ChatMessageData>
+            {
+                new ChatMessageData { role = "system", content = "Be brief." },
+                new ChatMessageData { role = "user", content = "Hello" },
+                new ChatMessageData { role = "assistant", content = "Hello yourself" },
+                new ChatMessageData { role = "user", content = "How is the harvest?" },
+            };
+            string continued = OpenAIProviderAdapter.BuildResponsesRequest("gpt-5.6-luna", withReply, 16);
+            Check(continued.Contains("{\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\""), "11c assistant history uses output_text");
+            Check(continued.Contains("{\"role\":\"user\",\"content\":[{\"type\":\"input_text\""), "11d user turns stay input_text");
+            Check(continued.Contains("{\"role\":\"developer\",\"content\":[{\"type\":\"input_text\""), "11e system turns stay input_text");
+            Check(!continued.Contains("\"role\":\"assistant\",\"content\":[{\"type\":\"input_text\""), "11f no assistant turn is sent as input_text");
             string nonReasoningRequest = OpenAIProviderAdapter.BuildResponsesRequest("gpt-4o", messages, 16);
             Check(!nonReasoningRequest.Contains("\"reasoning\""), "11b older models do not receive GPT-5.6 reasoning parameters");
 

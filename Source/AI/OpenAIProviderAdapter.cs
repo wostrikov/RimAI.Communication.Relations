@@ -62,7 +62,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             {
                 if (i > 0) json.Append(',');
                 string role = NormalizeRole(messages[i]?.role);
-                json.Append("{\"role\":\"").Append(role).Append("\",\"content\":[{\"type\":\"input_text\",\"text\":\"")
+                // The Responses API types a content part by direction, not by role
+                // alone. An assistant turn replayed as history is text the model
+                // produced, so its part must be output_text; input_text there is a
+                // hard 400 that only appears once a conversation has its first reply.
+                string partType = role == "assistant" ? "output_text" : "input_text";
+                json.Append("{\"role\":\"").Append(role)
+                    .Append("\",\"content\":[{\"type\":\"").Append(partType)
+                    .Append("\",\"text\":\"")
                     .Append(Escape(messages[i]?.content ?? string.Empty)).Append("\"}]}");
             }
             json.Append(']');
