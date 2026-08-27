@@ -48,6 +48,12 @@ namespace Ustas.RimAI.Communication.Relations.AI.Runtime
             }
 
             slot = RuntimeRegistry.Register(Registration);
+
+            // Relations registers from its own mod constructor, which can run
+            // after the host has booted, so the host's boot pass may never have
+            // seen this module. Ask for the staged candidate here and a fresh
+            // game session comes up on it the same way core does.
+            RuntimeHostState.TryActivateStagedCandidate(ModuleId);
         }
 
         /// <summary>
