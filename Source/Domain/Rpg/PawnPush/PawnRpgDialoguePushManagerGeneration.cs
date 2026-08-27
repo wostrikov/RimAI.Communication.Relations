@@ -152,7 +152,9 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
                 return;
             }
 
-            Log.Warning($"[RimAI.Relations] PawnRPG proactive dropped after retry: {error}");
+            Log.Warning(
+                $"[RimAI.Relations] [RIMAI_PAWNRPG_PROACTIVE] outcome=Failed " +
+                $"attempt={pending.Attempt} error={error}");
         }
 
         internal void RetryGeneration(PendingGenerationContext pending)

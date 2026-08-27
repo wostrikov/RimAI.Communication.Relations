@@ -74,5 +74,7 @@
     <None Include="..\Source\Domain\NpcDialogue\NpcDialoguePushSlice1.cs" Link="NpcDialoguePushSlice1.cs.src" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\Source\Domain\NpcDialogue\NpcDialoguePushSlice2.cs" Link="NpcDialoguePushSlice2.cs.src" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\Source\Domain\Rpg\PawnPush\PawnRpgDialoguePushManagerGeneration.cs" Link="PawnRpgDialoguePushManagerGeneration.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\UI\RPGPawnDialogueSlice1.cs" Link="RPGPawnDialogueSlice1.cs.src" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Source\UI\RPGPawnDialogueSlice2.cs" Link="RPGPawnDialogueSlice2.cs.src" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

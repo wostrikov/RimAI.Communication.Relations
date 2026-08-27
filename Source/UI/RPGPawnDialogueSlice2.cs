@@ -7,6 +7,7 @@ using Verse;
 using Verse.Sound;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Dialogue;
@@ -320,7 +321,10 @@ internal void TrySendMessage()
                         }
 
                         aiResponseReady = true;
-                        aiResponseText = "Error: " + error;
+                        DebugLogger.Error(
+                            $"[RIMAI_RPG_DIALOGUE] outcome=Failed " +
+                            $"surface=reply error={error}");
+                        aiResponseText = "RimChat_DialogueRequestUnavailable".Translate().ToString();
                         Owner.ReleaseActiveRequestLease();
                     },
                     onDropped: reason =>
@@ -332,7 +336,7 @@ internal void TrySendMessage()
                 if (activeRequestLease == null)
                 {
                     aiResponseReady = true;
-                    aiResponseText = "Error: " + "RimChat_DialogueRequestUnavailable".Translate().ToString();
+                    aiResponseText = "RimChat_DialogueRequestUnavailable".Translate().ToString();
                 }
             }
         }

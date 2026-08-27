@@ -7,6 +7,7 @@ using Verse;
 using Verse.Sound;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Ustas.RimAI.Communication.Relations.Dialogue;
@@ -140,7 +141,10 @@ internal void SendInitialMessage()
                     }
 
                     isSendingInitialMessage = false;
-                    currentDialogueText = "Error: " + error;
+                    DebugLogger.Error(
+                        $"[RIMAI_RPG_DIALOGUE] outcome=Failed " +
+                        $"surface=initial error={error}");
+                    currentDialogueText = "RimChat_DialogueRequestUnavailable".Translate().ToString();
                     isTyping = true;
                     Owner.ReleaseActiveRequestLease();
                 },

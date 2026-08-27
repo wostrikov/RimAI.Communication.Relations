@@ -32,6 +32,8 @@ internal static class RelationsProactiveTokenTests
         string slice1 = Read("NpcDialoguePushSlice1.cs.src");
         string slice2 = Read("NpcDialoguePushSlice2.cs.src");
         string rpg = Read("PawnRpgDialoguePushManagerGeneration.cs.src");
+        string rpgUi1 = Read("RPGPawnDialogueSlice1.cs.src");
+        string rpgUi2 = Read("RPGPawnDialogueSlice2.cs.src");
         string eligibility = Read("ApiActionEligibilitySlice1.cs.src");
         check(tracker.Contains("RelationsTokenAccountingPolicy.ShouldTrack"), "host-token");
         check(slice1.Contains("RelationsProactiveEmitPolicy.AllowRegularSweep"), "host-regular");
@@ -39,6 +41,11 @@ internal static class RelationsProactiveTokenTests
         check(slice1.Contains("RelationsProactiveEmitPolicy.AllowCausalGoodwillShift"), "host-causal");
         check(slice2.Contains("DialogueUsageChannel.Proactive"), "host-npc-proactive-channel");
         check(rpg.Contains("DialogueUsageChannel.Proactive"), "host-rpg-proactive-channel");
+        check(rpg.Contains("[RIMAI_PAWNRPG_PROACTIVE] outcome=Failed"), "host-rpg-proactive-structured-failure");
+        check(!rpgUi1.Contains("currentDialogueText = \"Error: \" + error"), "host-rpg-initial-hides-transport-error");
+        check(!rpgUi2.Contains("aiResponseText = \"Error: \" + error"), "host-rpg-reply-hides-transport-error");
+        check(rpgUi1.Contains("RimChat_DialogueRequestUnavailable"), "host-rpg-initial-localized-error");
+        check(rpgUi2.Contains("RimChat_DialogueRequestUnavailable"), "host-rpg-reply-localized-error");
         check(eligibility.Contains("RelationsGoodwillGatePolicy.AllowAid"), "host-aid-gate");
         check(eligibility.Contains("RelationsGoodwillGatePolicy.AllowWarDeclaration"), "host-war-gate");
     }
