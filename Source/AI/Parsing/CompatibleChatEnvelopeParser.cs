@@ -23,8 +23,13 @@ namespace Ustas.RimAI.Communication.Relations.AI
             "reasoning_content"
         };
 
+        // An OpenAI Responses envelope always carries "error": null on success, so
+        // the presence of the key says nothing at all. Only a populated value - an
+        // object or array holding something, or a non-empty string - is a real error.
         private static readonly Regex ErrorRegex =
-            new Regex("\"error\"\\s*:", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            new Regex(
+                "\"error\"\\s*:\\s*(?:\\{\\s*[^\\s}]|\\[\\s*[^\\s\\]]|\"[^\"])",
+                RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Regex ContentArrayStartRegex =
             new Regex("\"content\"\\s*:\\s*\\[", RegexOptions.IgnoreCase | RegexOptions.Compiled);

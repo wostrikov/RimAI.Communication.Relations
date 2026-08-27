@@ -86,6 +86,29 @@ internal static class ParserLayerTests
             "{\"error\":{\"message\":\"nope\"}}",
             AIProvider.OpenAI);
         check(!viaExtractor.IsSuccess && viaExtractor.ReasonTag == "error_payload", "openai extractor rejects error envelope");
+
+        // A live gpt-5.6 Responses reply, trimmed but shape-faithful. Every success
+        // envelope carries "error": null, which an earlier presence-only check read as
+        // an error payload - so every dialogue call failed while the provider was fine.
+        ProviderTextResult liveEnvelope = OpenAiResponsesEnvelopeParser.Parse(
+            "{\"id\":\"resp_0402b67b31fd60d6\",\"object\":\"response\",\"status\":\"completed\",\"error\":null,\"incomplete_details\":null,\"max_output_tokens\":2048,\"model\":\"gpt-5.6-luna\",\"output\":[{\"id\":\"msg_0402b67b31fd60d6\",\"type\":\"message\",\"status\":\"completed\",\"content\":[{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"I am doing well, though the nutrient paste tastes like despair today.\"}],\"role\":\"assistant\"}],\"store\":false,\"usage\":{\"input_tokens\":31,\"output_tokens\":18}}");
+        check(liveEnvelope.Success, "openai null error field is not an error payload");
+        check(liveEnvelope.Text.StartsWith("I am doing well"), "openai live envelope text");
+
+        ProviderTextResult emptyErrorField = OpenAiResponsesEnvelopeParser.Parse(
+            "{\"error\":\"\",\"output\":[{\"content\":[{\"type\":\"output_text\",\"text\":\"Still fine\"}]}]}");
+        check(emptyErrorField.Success && emptyErrorField.Text == "Still fine", "openai empty error string is not an error payload");
+
+        // Text the model produced outranks a populated error marker: a partial reply is
+        // worth more to the player than a generic failure line.
+        ProviderTextResult textWins = OpenAiResponsesEnvelopeParser.Parse(
+            "{\"error\":{\"message\":\"late failure\"},\"output\":[{\"content\":[{\"type\":\"output_text\",\"text\":\"Partial reply\"}]}]}");
+        check(textWins.Success && textWins.Text == "Partial reply", "openai usable text outranks error marker");
+
+        PrimaryTextExtractionResult liveViaExtractor = RelationsProviderTextExtractor.Extract(
+            "{\"id\":\"resp_0402b67b31fd60d6\",\"object\":\"response\",\"status\":\"completed\",\"error\":null,\"incomplete_details\":null,\"max_output_tokens\":2048,\"model\":\"gpt-5.6-luna\",\"output\":[{\"id\":\"msg_0402b67b31fd60d6\",\"type\":\"message\",\"status\":\"completed\",\"content\":[{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"I am doing well, though the nutrient paste tastes like despair today.\"}],\"role\":\"assistant\"}],\"store\":false,\"usage\":{\"input_tokens\":31,\"output_tokens\":18}}",
+            AIProvider.OpenAI);
+        check(liveViaExtractor.IsSuccess, "openai extractor accepts a live success envelope");
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("no_output_text"), "openai missing output text is retryable");
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("incomplete_max_output_tokens"), "openai incomplete token limit is retryable");
     }

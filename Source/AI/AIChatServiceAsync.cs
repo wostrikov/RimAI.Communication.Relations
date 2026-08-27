@@ -795,6 +795,14 @@ internal bool TryCompleteFromAssistantText(
                 string failureTag = string.IsNullOrWhiteSpace(parseResult.ReasonTag)
                     ? "parse_error"
                     : $"parse_error_{parseResult.ReasonTag}";
+
+                // The localized sentence is all any dialogue surface ever logs.
+                // Without the reason tag one parse failure looks like every other,
+                // which is exactly what hid the error_payload misclassification.
+                DebugLogger.Error(
+                    $"[RIMAI_RELATIONS_PARSE] outcome=Failed reason={failureTag} " +
+                    $"provider={provider} path={parseResult.MatchedPath} " +
+                    $"body_chars={responseText?.Length ?? 0}");
                 session.SetFailure(requestId, errorMsg, failureTag);
                 Owner.ExecuteRequestActionOnMainThread(requestId, requestContextVersion, () => onError?.Invoke(errorMsg));
                 debugErrorText = errorMsg;

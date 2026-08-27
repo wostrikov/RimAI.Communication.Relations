@@ -42,11 +42,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return ProviderTextResult.Fail(ProviderTextErrorKind.Empty, "invalid_payload");
             }
 
-            if (CompatibleChatEnvelopeParser.IsErrorPayload(json))
-            {
-                return ProviderTextResult.Fail(ProviderTextErrorKind.ErrorEnvelope, "error_payload");
-            }
-
             var values = new List<string>();
             MatchCollection objects = ShallowObject.Matches(json);
             foreach (Match match in objects)
@@ -76,6 +71,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string joined = string.Join(" ", values).Trim();
             if (string.IsNullOrWhiteSpace(joined))
             {
+                // Only now. Every Responses reply carries an "error" field, null on
+                // success, so an error marker must never outrank text the model
+                // actually produced.
+                if (CompatibleChatEnvelopeParser.IsErrorPayload(json))
+                {
+                    return ProviderTextResult.Fail(ProviderTextErrorKind.ErrorEnvelope, "error_payload");
+                }
+
                 if (IncompleteStatus.IsMatch(json))
                 {
                     Match reason = IncompleteReason.Match(json);
