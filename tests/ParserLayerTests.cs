@@ -61,6 +61,15 @@ internal static class ParserLayerTests
         check(!empty.Success && empty.ErrorKind == ProviderTextErrorKind.Empty, "openai empty output");
         check(empty.ReasonTag == "no_output_text", "openai empty reason");
 
+        ProviderTextResult incomplete = OpenAiResponsesEnvelopeParser.Parse(
+            "{\"status\":\"incomplete\",\"incomplete_details\":{\"reason\":\"max_output_tokens\"},\"output\":[{\"type\":\"reasoning\"}]}");
+        check(!incomplete.Success && incomplete.ReasonTag == "incomplete_max_output_tokens", "openai incomplete token limit reason");
+        check(incomplete.MatchedPath == "incomplete_details.reason", "openai incomplete reason path");
+
+        ProviderTextResult partial = OpenAiResponsesEnvelopeParser.Parse(
+            "{\"status\":\"incomplete\",\"incomplete_details\":{\"reason\":\"max_output_tokens\"},\"output\":[{\"content\":[{\"type\":\"output_text\",\"text\":\"Usable partial line\"}]}]}");
+        check(partial.Success && partial.Text == "Usable partial line", "openai incomplete payload keeps usable output text");
+
         ProviderTextResult malformed = OpenAiResponsesEnvelopeParser.Parse("   ");
         check(!malformed.Success && malformed.ErrorKind == ProviderTextErrorKind.Empty, "openai blank payload");
 
@@ -77,6 +86,8 @@ internal static class ParserLayerTests
             "{\"error\":{\"message\":\"nope\"}}",
             AIProvider.OpenAI);
         check(!viaExtractor.IsSuccess && viaExtractor.ReasonTag == "error_payload", "openai extractor rejects error envelope");
+        check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("no_output_text"), "openai missing output text is retryable");
+        check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("incomplete_max_output_tokens"), "openai incomplete token limit is retryable");
     }
 
     static void CompatibleAndErrors(Action<bool, string> check)

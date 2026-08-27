@@ -65,8 +65,22 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 json.Append("{\"role\":\"").Append(role).Append("\",\"content\":[{\"type\":\"input_text\",\"text\":\"")
                     .Append(Escape(messages[i]?.content ?? string.Empty)).Append("\"}]}");
             }
-            json.Append("],\"max_output_tokens\":").Append(maxOutputTokens).Append(",\"store\":false}");
+            json.Append(']');
+            if (SupportsReasoningEffortNone(model))
+            {
+                // Dialogue responses are short and latency-sensitive. GPT-5.6 counts
+                // hidden reasoning against max_output_tokens, so the default reasoning
+                // budget can otherwise consume the whole response before output_text.
+                json.Append(",\"reasoning\":{\"effort\":\"none\"}");
+            }
+            json.Append(",\"max_output_tokens\":").Append(maxOutputTokens).Append(",\"store\":false}");
             return json.ToString();
+        }
+
+        internal static bool SupportsReasoningEffortNone(string model)
+        {
+            return !string.IsNullOrWhiteSpace(model) &&
+                model.StartsWith("gpt-5.6", StringComparison.OrdinalIgnoreCase);
         }
 
         public static OpenAIError ParseError(long httpStatus, string json)

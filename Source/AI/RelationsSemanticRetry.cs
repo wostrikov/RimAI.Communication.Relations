@@ -22,8 +22,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 return false;
             }
 
-            return string.Equals(retryReason, "empty_primary_text", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(retryReason, "assistant_role_without_content", StringComparison.OrdinalIgnoreCase);
+            return RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText(retryReason);
         }
 
         public static string BuildParseRetryReason(string rawResponse, string reasonTag)

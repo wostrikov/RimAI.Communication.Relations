@@ -21,6 +21,14 @@ namespace Ustas.RimAI.Communication.Relations.AI
         private static readonly Regex ConvenienceOutputText =
             new Regex("\\\"output_text\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
+        private static readonly Regex IncompleteStatus =
+            new Regex("\\\"status\\\"\\s*:\\s*\\\"incomplete\\\"", RegexOptions.IgnoreCase);
+
+        private static readonly Regex IncompleteReason =
+            new Regex(
+                "\\\"incomplete_details\\\"\\s*:\\s*\\{[^{}]*\\\"reason\\\"\\s*:\\s*\\\"(?<v>(?:[^\\\"\\\\]|\\\\.)*)\\\"",
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
         public static string ExtractOutputText(string json)
         {
             ProviderTextResult result = Parse(json);
@@ -68,6 +76,19 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string joined = string.Join(" ", values).Trim();
             if (string.IsNullOrWhiteSpace(joined))
             {
+                if (IncompleteStatus.IsMatch(json))
+                {
+                    Match reason = IncompleteReason.Match(json);
+                    string reasonValue = reason.Success ? Unescape(reason.Groups["v"].Value) : string.Empty;
+                    string reasonTag = string.Equals(reasonValue, "max_output_tokens", StringComparison.OrdinalIgnoreCase)
+                        ? "incomplete_max_output_tokens"
+                        : "incomplete_response";
+                    return ProviderTextResult.Fail(
+                        ProviderTextErrorKind.Empty,
+                        reasonTag,
+                        reason.Success ? "incomplete_details.reason" : "status");
+                }
+
                 return ProviderTextResult.Fail(ProviderTextErrorKind.Empty, "no_output_text");
             }
 

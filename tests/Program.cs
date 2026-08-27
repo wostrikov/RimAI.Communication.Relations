@@ -27,6 +27,7 @@ internal static class Program
             var messages = new List<ChatMessageData> { new ChatMessageData { role = "system", content = "Відповідай українською" }, new ChatMessageData { role = "user", content = "Привіт" } };
             string request = OpenAIProviderAdapter.BuildResponsesRequest("gpt-5.6-luna", messages, 16);
             Check(request.Contains("\"model\":\"gpt-5.6-luna\""), "01 model unchanged");
+            Check(request.Contains("\"reasoning\":{\"effort\":\"none\"}"), "01b dialogue disables GPT-5.6 reasoning");
             Check(request.Contains("Привіт"), "02 Ukrainian Unicode");
             Check(OpenAIProviderAdapter.ResponsesEndpoint.EndsWith("/v1/responses"), "03 Responses endpoint");
             Check(request.Contains("\"max_output_tokens\":16"), "04 output limit");
@@ -37,6 +38,8 @@ internal static class Program
             Check(!request.Contains(secret), "09 no secret diagnostics");
             Check(request.Contains("developer"), "10 background compatible roles");
             Check(request.Contains("assistant") == false, "11 diplomacy fixture serialized through adapter");
+            string nonReasoningRequest = OpenAIProviderAdapter.BuildResponsesRequest("gpt-4o", messages, 16);
+            Check(!nonReasoningRequest.Contains("\"reasoning\""), "11b older models do not receive GPT-5.6 reasoning parameters");
 
             var models = OpenAIProviderAdapter.ParseModels("{\"object\":\"list\",\"data\":[{\"id\":\"a\"},{\"id\":\"b\"}]}");
             Check(models.Count == 2, "12 models success");

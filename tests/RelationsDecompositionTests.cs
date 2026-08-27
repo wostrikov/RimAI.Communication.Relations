@@ -54,6 +54,8 @@ internal static class RelationsDecompositionTests
 
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("empty_primary_text"), "empty primary text is retryable");
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("assistant_role_without_content"), "assistant without content is retryable");
+        check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("no_output_text"), "openai output omission is retryable");
+        check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("incomplete_max_output_tokens"), "openai token-limit incomplete response is retryable");
         check(!RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("error_payload"), "error payload is not parse-retryable");
     }
 

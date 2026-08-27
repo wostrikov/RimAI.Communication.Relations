@@ -31,7 +31,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
         public static bool IsRetryableEmptyPrimaryText(string reasonTag)
         {
             return string.Equals(reasonTag, "empty_primary_text", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(reasonTag, "assistant_role_without_content", StringComparison.OrdinalIgnoreCase);
+                   string.Equals(reasonTag, "assistant_role_without_content", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(reasonTag, "no_output_text", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(reasonTag, "incomplete_max_output_tokens", StringComparison.OrdinalIgnoreCase);
         }
 
         static ProviderTextResult ParseOpenAi(string json)
