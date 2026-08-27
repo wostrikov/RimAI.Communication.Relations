@@ -109,6 +109,16 @@ internal static class ParserLayerTests
             "{\"id\":\"resp_0402b67b31fd60d6\",\"object\":\"response\",\"status\":\"completed\",\"error\":null,\"incomplete_details\":null,\"max_output_tokens\":2048,\"model\":\"gpt-5.6-luna\",\"output\":[{\"id\":\"msg_0402b67b31fd60d6\",\"type\":\"message\",\"status\":\"completed\",\"content\":[{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"I am doing well, though the nutrient paste tastes like despair today.\"}],\"role\":\"assistant\"}],\"store\":false,\"usage\":{\"input_tokens\":31,\"output_tokens\":18}}",
             AIProvider.OpenAI);
         check(liveViaExtractor.IsSuccess, "openai extractor accepts a live success envelope");
+
+        // OpenAI escapes every non-ASCII character as \uXXXX. A decoder that only
+        // handled \n and quotes delivered the escape sequences themselves to the player.
+        ProviderTextResult cyrillic = OpenAiResponsesEnvelopeParser.Parse(
+            "{\"output\":[{\"content\":[{\"type\":\"output_text\",\"text\":\"\\u042f \\u0441\\u043b\\u0443\\u0445\\u0430\\u044e. \\u2019 \\ud83d\\ude42\"}]}]}");
+        check(cyrillic.Success, "openai unicode escapes parse");
+        check(cyrillic.Text.StartsWith("Я слухаю."), "openai decodes hex escapes to Cyrillic");
+        check(cyrillic.Text.Contains("’"), "openai decodes a punctuation escape");
+        check(cyrillic.Text.Contains(char.ConvertFromUtf32(0x1F642)), "openai decodes a surrogate pair");
+        check(cyrillic.Text.IndexOf("\\u", StringComparison.Ordinal) < 0, "openai leaves no raw escape sequence in player text");
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("no_output_text"), "openai missing output text is retryable");
         check(RelationsProviderTextExtractor.IsRetryableEmptyPrimaryText("incomplete_max_output_tokens"), "openai incomplete token limit is retryable");
     }

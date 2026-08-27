@@ -149,7 +149,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return match.Success ? Unescape(match.Groups["s"].Value) : string.Empty;
         }
 
-        private static string Escape(string value) => (value ?? string.Empty).Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-        private static string Unescape(string value) => (value ?? string.Empty).Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\t", "\t").Replace("\\\"", "\"").Replace("\\\\", "\\");
+        private static string Escape(string value) => Ustas.RimAI.Core.AI.JsonStringCodec.Escape(value);
+        private static string Unescape(string value) => Ustas.RimAI.Core.AI.JsonStringCodec.Unescape(value);
     }
 }

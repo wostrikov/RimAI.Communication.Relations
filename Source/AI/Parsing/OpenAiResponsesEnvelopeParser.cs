@@ -98,14 +98,13 @@ namespace Ustas.RimAI.Communication.Relations.AI
             return ProviderTextResult.Ok(joined, "output[].content[].output_text");
         }
 
+        // The one JSON string decoder. The private replace-chain that used to live
+        // here handled \n and quotes but not \uXXXX, and OpenAI escapes every
+        // non-ASCII character that way - so Ukrainian text reached the player as the
+        // literal characters backslash u 0 4 2 f.
         static string Unescape(string value)
         {
-            return (value ?? string.Empty)
-                .Replace("\\n", "\n")
-                .Replace("\\r", "\r")
-                .Replace("\\t", "\t")
-                .Replace("\\\"", "\"")
-                .Replace("\\\\", "\\");
+            return Ustas.RimAI.Core.AI.JsonStringCodec.Unescape(value);
         }
     }
 }
