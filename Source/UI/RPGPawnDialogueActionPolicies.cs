@@ -123,7 +123,12 @@ namespace Ustas.RimAI.Communication.Relations.UI
             string displayName = RpgMemoryCatalog.BuildDisplayName(def);
             float moodEffect = Owner.GetMoodEffect(def);
             Color moodColor = moodEffect >= 0 ? MoodPositiveColor : MoodNegativeColor;
-            Owner.AddActionFeedback("RimChat_RPGSystem_MemoryApplied".Translate(), displayName, ActionInfoColor, moodColor, 3.8f);
+            // The name is drawn as the mood-coloured half right after this text, so the
+            // string is a prefix, not a format: calling Translate() without an argument
+            // used to leave a literal {0} on screen with the name jammed against it.
+            Owner.AddActionFeedback(
+                "RimChat_RPGSystem_MemoryApplied".Translate() + " ",
+                displayName, ActionInfoColor, moodColor, 3.8f);
         }
 
         internal float GetMoodEffect(ThoughtDef def)

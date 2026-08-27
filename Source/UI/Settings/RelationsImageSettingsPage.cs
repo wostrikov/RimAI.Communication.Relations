@@ -615,15 +615,26 @@ internal sealed class RelationsImageSettingsPage
 
         internal Color GetImageConnectionStatusColor()
         {
+            // Failure used to be detected by looking for the RimChat_ConnectionFailed
+            // text, but that key is a format string: the probe compared against a
+            // template still holding {0} while the real status had the reason
+            // substituted in, so it never matched and a failed test rendered yellow.
+            // Success and testing are the only two states with a fixed string, so
+            // those are what we test for; anything else that has been set is a
+            // failure by elimination.
+            if (string.IsNullOrEmpty(_imageConnectionTestStatus))
+            {
+                return Color.yellow;
+            }
             if (_imageConnectionTestStatus.Contains("RimChat_ConnectionSuccess".Translate().ToString()))
             {
                 return Color.green;
             }
-            if (_imageConnectionTestStatus.Contains("RimChat_ConnectionFailed".Translate().ToString()))
+            if (_imageConnectionTestStatus.Contains("RimChat_ConnectionTesting".Translate().ToString()))
             {
-                return Color.red;
+                return Color.yellow;
             }
-            return Color.yellow;
+            return Color.red;
         }
 
         internal readonly struct ProbeResult

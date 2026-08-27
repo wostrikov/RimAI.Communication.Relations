@@ -1887,7 +1887,7 @@ Selected prisoners: {1}
     <RimChat_RPGActionFail_InvalidTarget>Current target does not meet execution conditions</RimChat_RPGActionFail_InvalidTarget>
     <RimChat_RPGActionFail_UnsupportedJob>Unsupported JobDef: {0}</RimChat_RPGActionFail_UnsupportedJob>
     <RimChat_RPGActionFail_GameRejected>Action was rejected by game mechanics</RimChat_RPGActionFail_GameRejected>
-    <RimChat_RPGSystem_MemoryApplied>System: applied memory {0}.</RimChat_RPGSystem_MemoryApplied>
+    <RimChat_RPGSystem_MemoryApplied>System: applied memory:</RimChat_RPGSystem_MemoryApplied>
     <RimChat_RPGSystem_MemoryRollFailed>System: memory roll failed (round {0}, target {1}%, roll {2}%).</RimChat_RPGSystem_MemoryRollFailed>
     <RimChat_RPGSystem_MemoryNoDef>System: memory roll passed, but no valid ThoughtDef was found.</RimChat_RPGSystem_MemoryNoDef>
     <RimChat_RPGSystem_MemoryRollSuccess>System: memory roll succeeded (round {0}, target {1}%, roll {2}%), auto-added {3}.</RimChat_RPGSystem_MemoryRollSuccess>

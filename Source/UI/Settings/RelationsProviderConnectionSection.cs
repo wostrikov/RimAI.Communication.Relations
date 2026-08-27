@@ -79,11 +79,20 @@ internal sealed class RelationsProviderConnectionSection
 
         internal Color GetStatusColor()
         {
+            // Failure used to be detected by looking for the RimChat_ConnectionFailed
+            // text, but that key is a format string: the probe compared against a
+            // template still holding {0} while the real status had the reason
+            // substituted in, so it never matched and a failed test rendered yellow.
+            // Success and testing are the only two states with a fixed string, so
+            // those are what we test for; anything else that has been set is a
+            // failure by elimination.
+            if (string.IsNullOrEmpty(connectionTestStatus))
+                return Color.yellow;
             if (connectionTestStatus.Contains("RimChat_ConnectionSuccess".Translate().ToString()))
                 return Color.green;
-            if (connectionTestStatus.Contains("RimChat_ConnectionFailed".Translate().ToString()))
-                return Color.red;
-            return Color.yellow;
+            if (connectionTestStatus.Contains("RimChat_ConnectionTesting".Translate().ToString()))
+                return Color.yellow;
+            return Color.red;
         }
 
         internal void TestConnection()
