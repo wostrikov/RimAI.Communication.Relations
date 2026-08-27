@@ -84,6 +84,10 @@ internal sealed class RelationsRimTalkBridgePage
             DrawSectionCard(card, "RimChat_RimTalkSummaryPersonaTitle".Translate(), "RimChat_RimTalkSummaryPersonaHint".Translate());
             Rect inner = card.ContractedBy(12f);
             Listing_Standard listing = new Listing_Standard();
+            // Verse wraps a Listing into a second column, off the visible view, as soon as
+            // content passes the rect height, and CurHeight then reports that new column.
+            // A scrolling settings page never wants that; see validate_scrollable_listings.
+            listing.maxOneColumn = true;
             listing.Begin(new Rect(inner.x, inner.y + 46f, inner.width, inner.height - 46f));
 
             bool autoPushSummary = Settings.RimTalkAutoPushSessionSummary;

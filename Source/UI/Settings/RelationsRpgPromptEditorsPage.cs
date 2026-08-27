@@ -195,6 +195,10 @@ internal sealed class RelationsRpgPromptEditorsPage
         internal void DrawRPGTextEditor(Rect rect, ref string text, int maxLength, string labelKey)
         {
             Listing_Standard listing = new Listing_Standard();
+            // Verse wraps a Listing into a second column, off the visible view, as soon as
+            // content passes the rect height, and CurHeight then reports that new column.
+            // A scrolling settings page never wants that; see validate_scrollable_listings.
+            listing.maxOneColumn = true;
             listing.Begin(rect);
             
             int currentLength = text?.Length ?? 0;

@@ -62,6 +62,10 @@ internal sealed class RelationsImageSettingsPage
             Widgets.BeginScrollView(rect, ref _imageApiTabScroll, viewRect);
 
             var listing = new Listing_Standard();
+            // Verse wraps a Listing into a second column, off the visible view, as soon as
+            // content passes the rect height, and CurHeight then reports that new column.
+            // A scrolling settings page never wants that; see validate_scrollable_listings.
+            listing.maxOneColumn = true;
             listing.Begin(new Rect(0f, 0f, viewRect.width, viewRect.height));
 
             DrawImageApiConnectionSection(listing);
