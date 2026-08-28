@@ -21,6 +21,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Core.Player2;
 using Ustas.RimAI.Core.UI;
+using RimAI.Core.Runtime;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -187,7 +188,7 @@ internal sealed class RelationsProviderCloudModelFetch
             List<string> candidateUrls = BuildModelListRequestCandidates(url, providerFallbackUrl, provider);
             Log.Message($"[RimAI.Relations] FetchModelsCoroutine: provider={provider}, candidateUrls={string.Join(" | ", candidateUrls)}");
 
-            Task.Run(() =>
+            RimAiBackground.Run(() =>
             {
                 List<string> models = null;
                 try

@@ -13,6 +13,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Core.AI;
 using Ustas.RimAI.Core.Net;
 using Ustas.RimAI.Core.Threading;
+using RimAI.Core.Runtime;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
@@ -362,7 +363,7 @@ internal System.Collections.IEnumerator ProcessRequestCoroutine(
                                     : AiRequestPriority.Background,
                                 caller: "relations")
                         };
-                        ThreadPool.QueueUserWorkItem(_ =>
+                        RimAiBackground.Run(() =>
                         {
                             try
                             {

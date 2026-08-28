@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Verse;
 using Ustas.RimAI.Core.Storage;
+using RimAI.Core.Runtime;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -56,7 +57,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 }
 
                 _warmupInFlightSaveKeys.Add(saveKey);
-                Task.Run(() => Owner.WarmupCacheInBackground(saveKey, sourceDir, targetPawnLoadId));
+                RimAiBackground.Run(() => Owner.WarmupCacheInBackground(saveKey, sourceDir, targetPawnLoadId));
             }
         }
 
