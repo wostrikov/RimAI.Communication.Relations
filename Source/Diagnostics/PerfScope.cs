@@ -4,13 +4,24 @@ using System.Diagnostics;
 namespace Ustas.RimAI.Communication.Relations.Diagnostics
 {
     /// <summary>
-    /// Lightweight disposable perf probe. Logs via DebugLogger when the
-    /// measured block exceeds <see cref="ThresholdMs"/>.
+    /// Lightweight disposable perf probe, reporting a block that took longer
+    /// than <see cref="ThresholdMs"/>.
     /// Usage: using (PerfScope.Measure("MyMethod")) { ... }
+    ///
+    /// A timing is not a warning. This used to report through WarningGated, so
+    /// "FactionIntel.RaidScan: 2.4ms" arrived in yellow and RimWorld popped the
+    /// debug log open for it - an alarm whose text said nothing was wrong. The
+    /// other WarningGated callers are real problems and keep that level.
     /// </summary>
     internal struct PerfScope : IDisposable
     {
-        private const double ThresholdMs = 2.0;
+        /// <summary>
+        /// A tick at normal speed has about 16.6ms for the whole game, so a
+        /// single scan of ours passing 25 has overrun a frame on its own and is
+        /// worth looking at. The old bar was 2ms, which every ordinary scan
+        /// clears, which is why this reported constantly.
+        /// </summary>
+        private const double ThresholdMs = 25.0;
 
         private readonly string label;
         private readonly Stopwatch sw;
@@ -29,7 +40,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
             double ms = sw.Elapsed.TotalMilliseconds;
             if (ms >= ThresholdMs)
             {
-                DebugLogger.WarningGated($"[Perf] {label}: {ms:F1}ms");
+                ModuleLog.Message($"[RimAI.Relations] [Perf] {label}: {ms:F1}ms");
             }
         }
     }
