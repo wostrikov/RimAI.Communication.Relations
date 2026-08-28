@@ -8,6 +8,7 @@ using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Relation;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.AI
 {
@@ -135,7 +136,7 @@ internal ActionResult ExecuteActionLegacy(AIAction action)
                 return ActionResult.Failure("Action is null");
             }
 
-            Log.Message($"[RimAI.Relations] Executing AI action: {action.ActionType}");
+            ModuleLog.Message($"[RimAI.Relations] Executing AI action: {action.ActionType}");
             if (action.Parameters == null)
             {
                 action.Parameters = new Dictionary<string, object>();

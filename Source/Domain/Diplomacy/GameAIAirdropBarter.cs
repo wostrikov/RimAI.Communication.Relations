@@ -12,6 +12,7 @@ using APICallRecord = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAI
 using DialogueApiGoodwillCostResult = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.DialogueApiGoodwillCostResult;
 using FactionCooldownEntry = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.FactionCooldownEntry;
 using RaidWaveState = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.RaidWaveState;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -448,7 +449,7 @@ internal APIResult PrepareItemAirdropTradeForMap(
 
                 if (validatedCount < requestedOriginalCount)
                 {
-                    Log.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
+                    ModuleLog.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
                 }
             }
 

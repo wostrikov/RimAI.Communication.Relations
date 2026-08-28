@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -40,7 +41,7 @@ internal void ClearPendingAirdropDialogState(string reason, bool log)
         return;
     }
 
-    Log.Message(
+    ModuleLog.Message(
         $"[RimAI.Relations] AirdropConfirmDiscarded: reason={reason ?? "none"},def={state.PreparedTrade?.SelectedDefName ?? "unknown"},stage={state.Session?.airdropExecutionStage.ToString() ?? "null"}");
 }
 
@@ -84,7 +85,7 @@ internal void TryProcessPendingAirdropDialog()
             if (!state.WaitingForTypewriterLogged)
             {
                 state.WaitingForTypewriterLogged = true;
-                Log.Message(
+                ModuleLog.Message(
                     $"[RimAI.Relations] AirdropConfirmQueued: state=waiting_for_typewriter,def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity}");
             }
 
@@ -105,7 +106,7 @@ internal void TryProcessPendingAirdropDialog()
         state.DelayStarted = true;
         state.ReadyAtRealtime = Time.realtimeSinceStartup + Dialog_DiplomacyDialogue.PendingAirdropDialogDelaySeconds;
         state.DelayWindowLogged = false;
-        Log.Message(
+        ModuleLog.Message(
             $"[RimAI.Relations] AirdropConfirmQueued: state=waiting_delay,def={state.PreparedTrade.SelectedDefName ?? "unknown"},readyInSeconds={PendingAirdropDialogDelaySeconds:F1}");
         return;
     }
@@ -115,7 +116,7 @@ internal void TryProcessPendingAirdropDialog()
         if (!state.DelayWindowLogged)
         {
             state.DelayWindowLogged = true;
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] AirdropConfirmQueued: state=delay_countdown,def={state.PreparedTrade.SelectedDefName ?? "unknown"},readyAt={state.ReadyAtRealtime:F3}");
         }
 
@@ -123,7 +124,7 @@ internal void TryProcessPendingAirdropDialog()
     }
 
     pendingAirdropDialogState = null;
-    Log.Message(
+    ModuleLog.Message(
         $"[RimAI.Relations] AirdropConfirmDisplayed: def={state.PreparedTrade.SelectedDefName ?? "unknown"},count={state.PreparedTrade.Quantity},requested={state.PreparedTrade.RequestedQuantity},hardMax={state.PreparedTrade.HardMax},adjustment={state.PreparedTrade.CountAdjustmentReason},payment={state.PreparedTrade.PaymentTotalSilver}");
     Owner.Parts.AirdropConfirmUi.OpenQueuedAirdropTradeConfirmationDialog(state);
 }
@@ -188,7 +189,7 @@ internal bool TryHandleAirdropActionWithConfirmation(
         return true;
     }
 
-    Log.Message($"[RimAI.Relations] Airdrop context validation passed: faction={currentFaction?.Name}, defName={currentFaction?.def?.defName}, need={actionSnapshot.Parameters?["need"] ?? "null"}");
+    ModuleLog.Message($"[RimAI.Relations] Airdrop context validation passed: faction={currentFaction?.Name}, defName={currentFaction?.def?.defName}, need={actionSnapshot.Parameters?["need"] ?? "null"}");
 
     var lease = new DialogueRequestLease(
         requestContext.DialogueSessionId,
@@ -265,7 +266,7 @@ internal bool TryHandleAirdropActionWithConfirmation(
         pendingCandidates = new List<PendingAirdropSelectionCandidate>();
     }
 
-    Log.Message(
+    ModuleLog.Message(
         $"[RimAI.Relations] AirdropConfirmOpen: def={preparedTrade.SelectedDefName},count={preparedTrade.Quantity},requested={preparedTrade.RequestedQuantity},hardMax={preparedTrade.HardMax},adjustment={preparedTrade.CountAdjustmentReason},payment={preparedTrade.PaymentTotalSilver},candidateCount={pendingCandidates.Count}");
     Owner.Parts.AirdropConfirmUi.ShowAirdropTradeConfirmationDialog(currentSession, currentFaction, preparedTrade, baseParameters, pendingCandidates);
     outcome = ActionExecutionOutcome.Success(
@@ -305,7 +306,7 @@ internal static void TryInjectPendingAirdropCountFromLatestPlayerMessage(AIActio
     if (pendingCardCount > 0)
     {
         actionSnapshot.Parameters["count"] = pendingCardCount;
-        Log.Message($"[RimAI.Relations] Injected pending airdrop count from session trade-card reference: count={pendingCardCount}");
+        ModuleLog.Message($"[RimAI.Relations] Injected pending airdrop count from session trade-card reference: count={pendingCardCount}");
         return;
     }
 
@@ -318,7 +319,7 @@ internal static void TryInjectPendingAirdropCountFromLatestPlayerMessage(AIActio
     }
 
     actionSnapshot.Parameters["count"] = requestedCount;
-    Log.Message($"[RimAI.Relations] Injected pending airdrop count from latest player message: count={requestedCount}");
+    ModuleLog.Message($"[RimAI.Relations] Injected pending airdrop count from latest player message: count={requestedCount}");
 }
 
 
@@ -457,7 +458,7 @@ internal static void CacheAirdropPendingSelectionIntent(
 
     currentSession.pendingDelayedActionIntent = intent;
     currentSession.lastDelayedActionIntent = intent.Clone();
-    Log.Message($"[RimAI.Relations] CacheAirdropPendingSelectionIntent: cached pendingDelayedActionIntent for RequestItemAirdrop, failureCode={pendingSelection.FailureCode}, optionsCount={pendingSelection.Options.Count}");
+    ModuleLog.Message($"[RimAI.Relations] CacheAirdropPendingSelectionIntent: cached pendingDelayedActionIntent for RequestItemAirdrop, failureCode={pendingSelection.FailureCode}, optionsCount={pendingSelection.Options.Count}");
 }
 
 

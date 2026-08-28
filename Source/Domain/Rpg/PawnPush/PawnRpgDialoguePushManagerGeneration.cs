@@ -72,9 +72,9 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
                     playerPawn, npcPawn, true, sceneTags);
                 _systemPromptCache[cacheKey] = (currentTick, systemPrompt);
                 if (wasCached)
-                    Log.Message($"[RimAI.Relations] RpgSystemPromptCache: expired for key={cacheKey}, age={currentTick - entry.builtTick}ticks");
+                    ModuleLog.Message($"[RimAI.Relations] RpgSystemPromptCache: expired for key={cacheKey}, age={currentTick - entry.builtTick}ticks");
                 else
-                    Log.Message($"[RimAI.Relations] RpgSystemPromptCache: miss (new) for key={cacheKey}");
+                    ModuleLog.Message($"[RimAI.Relations] RpgSystemPromptCache: miss (new) for key={cacheKey}");
             }
 
             var messages = new List<ChatMessageData>();
@@ -201,7 +201,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             // Sliding window: skip if delivery window is full
             if (Owner.IsRpgDeliveryWindowFull(currentTick))
             {
-                Log.Message($"[RimAI.Relations] PawnRPG delivery skipped: sliding window full");
+                ModuleLog.Message($"[RimAI.Relations] PawnRPG delivery skipped: sliding window full");
                 return;
             }
 
@@ -212,7 +212,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
                 if (recentEventDeliveries.TryGetValue(context.SourceTag, out int lastEventTick)
                     && currentTick - lastEventTick < EventDedupWindowTicks)
                 {
-                    Log.Message($"[RimAI.Relations] PawnRPG event deduplicated: sourceTag={context.SourceTag}");
+                    ModuleLog.Message($"[RimAI.Relations] PawnRPG event deduplicated: sourceTag={context.SourceTag}");
                     return;
                 }
             }
@@ -223,7 +223,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             string dedupKey = $"{npcPawn.thingIDNumber}:{playerPawn.thingIDNumber}:{contentHash}";
             if (recentMessageHashes.ContainsKey(dedupKey))
             {
-                Log.Message($"[RimAI.Relations] PawnRPG proactive deduplicated: same content for {npcPawn.LabelShortCap} -> {playerPawn.LabelShortCap}");
+                ModuleLog.Message($"[RimAI.Relations] PawnRPG proactive deduplicated: same content for {npcPawn.LabelShortCap} -> {playerPawn.LabelShortCap}");
                 return;
             }
 

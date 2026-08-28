@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -355,13 +356,13 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
             if (blacklist != null && blacklist.Contains(record.DefName))
             {
-                Log.Message($"[RimAI.Relations][GetRejectReason] {record.DefName}: rejected by BLACKLIST");
+                ModuleLog.Message($"[RimAI.Relations][GetRejectReason] {record.DefName}: rejected by BLACKLIST");
                 return CandidateRejectReason.Blacklist;
             }
 
             if (ItemAirdropSafetyPolicy.IsBlockedByCategory(record, blockedCategories))
             {
-                Log.Message($"[RimAI.Relations][GetRejectReason] {record.DefName}: rejected by BLOCKED_CATEGORY");
+                ModuleLog.Message($"[RimAI.Relations][GetRejectReason] {record.DefName}: rejected by BLOCKED_CATEGORY");
                 return CandidateRejectReason.BlockedCategory;
             }
 

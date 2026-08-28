@@ -5,6 +5,7 @@ using System.Text;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -505,7 +506,7 @@ internal static void ImportLegacyChannelConfig(
 
             if (migrated > 0 || rejected > 0)
             {
-                Log.Message($"[RimAI.Relations] Legacy prompt migration finished: source={sourceId}, migrated={migrated}, rejected={rejected}.");
+                ModuleLog.Message($"[RimAI.Relations] Legacy prompt migration finished: source={sourceId}, migrated={migrated}, rejected={rejected}.");
             }
         }
 

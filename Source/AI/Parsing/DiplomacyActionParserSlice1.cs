@@ -122,7 +122,7 @@ public static void AddActionIfValid(
                     keptRansomWithoutTargetCount++;
                 }
 
-                Log.Message(
+                ModuleLog.Message(
                     $"[RimAI.Relations] pay_prisoner_ransom parser accepted: " +
                     $"payment_mode_raw={DiplomacyActionParser.FormatRansomLogValue(paymentModeRaw)}, " +
                     $"payment_mode_normalized={DiplomacyActionParser.FormatRansomLogValue(paymentModeNormalized)}, " +
@@ -203,7 +203,7 @@ public static void LogRansomParseSummary(
             string droppedTargets = droppedTargetCount > 0
                 ? string.Join(",", droppedDuplicateRansomTargetIds.Distinct().OrderBy(id => id))
                 : "none";
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] pay_prisoner_ransom parser summary: kept_targets={keptTargets}, " +
                 $"dropped_duplicate_targets={droppedTargets}, kept_without_target={Math.Max(0, keptRansomWithoutTargetCount)}.");
         }

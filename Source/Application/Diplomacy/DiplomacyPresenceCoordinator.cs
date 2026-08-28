@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -265,7 +266,7 @@ internal bool TryHandlePresenceAction(AIAction action, FactionDialogueSession cu
 
     if (!(Ustas.RimAI.Communication.Relations.Module.RelationsMod.Instance?.InstanceSettings?.EnableFactionPresenceStatus ?? true))
     {
-        Log.Message($"[RimAI.Relations] Presence action ignored because presence system is disabled: {action.ActionType}");
+        ModuleLog.Message($"[RimAI.Relations] Presence action ignored because presence system is disabled: {action.ActionType}");
         return false;
     }
 
@@ -280,7 +281,7 @@ internal bool TryHandlePresenceAction(AIAction action, FactionDialogueSession cu
     }
 
     GameComponent_DiplomacyManager.Instance?.ApplyPresenceAction(currentFaction, action.ActionType, reason, currentSession);
-    Log.Message($"[RimAI.Relations] Presence action applied: {action.ActionType}, faction={currentFaction?.Name ?? "null"}, reason={reason ?? "none"}");
+    ModuleLog.Message($"[RimAI.Relations] Presence action applied: {action.ActionType}, faction={currentFaction?.Name ?? "null"}, reason={reason ?? "none"}");
 
     if (currentSession != null)
     {
@@ -330,7 +331,7 @@ internal void TryAutoApplyPresenceFallback(string dialogueText, FactionDialogueS
     GameComponent_DiplomacyManager.Instance?.ApplyPresenceAction(currentFaction, actionType, string.Empty, currentSession);
     currentSession.AddMessage("System", BuildPresenceSystemMessage(actionType, string.Empty), false, DialogueMessageType.System);
     TryPlayAiConversationEndedSound(currentSession, wasConversationEnded);
-    Log.Message($"[RimAI.Relations] Presence fallback action applied: {actionType}, faction={currentFaction.Name}");
+    ModuleLog.Message($"[RimAI.Relations] Presence fallback action applied: {actionType}, faction={currentFaction.Name}");
 }
 
 

@@ -213,7 +213,7 @@ internal void InitializeNpcPersonaBootstrapQueue()
                 return;
             }
 
-            Log.Message($"[RimAI.Relations] NPC persona bootstrap queued {npcPersonaBootstrapTargets.Count} existing NPC pawn(s).");
+            ModuleLog.Message($"[RimAI.Relations] NPC persona bootstrap queued {npcPersonaBootstrapTargets.Count} existing NPC pawn(s).");
         }
 
 internal List<Pawn> CollectNpcPersonaBootstrapTargets()
@@ -355,7 +355,7 @@ internal static bool ShouldBlockAiPersonaGeneration()
             if (!rimTalkPersonaAiBlockLogged)
             {
                 rimTalkPersonaAiBlockLogged = true;
-                Log.Message("[RimAI.Relations] RimTalk detected; AI persona generation blocked at runtime.");
+                ModuleLog.Message("[RimAI.Relations] RimTalk detected; AI persona generation blocked at runtime.");
             }
 
             return true;

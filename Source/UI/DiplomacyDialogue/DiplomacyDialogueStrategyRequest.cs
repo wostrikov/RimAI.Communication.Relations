@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -62,7 +63,7 @@ internal void ApplyStrategySuggestions(FactionDialogueSession currentSession, Li
     if (suggestions == null || suggestions.Count != DiplomacyDialogueStrategyUi.StrategySuggestionRequiredCount)
     {
         Owner.Parts.StrategyUi.ClearPendingStrategySuggestions(currentSession);
-        Log.Message("[RimAI.Relations] Strategy payload missing/invalid; requesting strict follow-up strategy payload.");
+        ModuleLog.Message("[RimAI.Relations] Strategy payload missing/invalid; requesting strict follow-up strategy payload.");
         TryRequestStrategySuggestionsFromLLM(currentSession, faction);
         return;
     }
@@ -77,7 +78,7 @@ internal void ApplyStrategySuggestions(FactionDialogueSession currentSession, Li
     if (mapped.Count != DiplomacyDialogueStrategyUi.StrategySuggestionRequiredCount)
     {
         Owner.Parts.StrategyUi.ClearPendingStrategySuggestions(currentSession);
-        Log.Message("[RimAI.Relations] Strategy payload invalid after parse, requesting follow-up strategy payload.");
+        ModuleLog.Message("[RimAI.Relations] Strategy payload invalid after parse, requesting follow-up strategy payload.");
         TryRequestStrategySuggestionsFromLLM(currentSession, faction);
         return;
     }
@@ -125,7 +126,7 @@ internal void TryRequestStrategySuggestionsFromLLM(FactionDialogueSession curren
 
     int snapshotMessageCount = currentSession.messages?.Count ?? 0;
     Owner.Parts.StrategyUi.strategySuggestionRequestPending = true;
-    Log.Message("[RimAI.Relations] Sending strategy follow-up request.");
+    ModuleLog.Message("[RimAI.Relations] Sending strategy follow-up request.");
 
     string requestId = string.Empty;
     requestId = AIChatServiceAsync.Instance.SendChatRequestAsync(
@@ -164,16 +165,16 @@ internal void TryRequestStrategySuggestionsFromLLM(FactionDialogueSession curren
                 currentSession.pendingStrategySuggestions = mapped;
                 if (usedLocalFallback)
                 {
-                    Log.Message("[RimAI.Relations] Strategy follow-up payload invalid; local fallback strategy set primed.");
+                    ModuleLog.Message("[RimAI.Relations] Strategy follow-up payload invalid; local fallback strategy set primed.");
                 }
                 else
                 {
-                    Log.Message("[RimAI.Relations] Strategy follow-up request succeeded, strategy buttons primed.");
+                    ModuleLog.Message("[RimAI.Relations] Strategy follow-up request succeeded, strategy buttons primed.");
                 }
                 return;
             }
 
-            Log.Message("[RimAI.Relations] Strategy follow-up produced no valid strategy payload.");
+            ModuleLog.Message("[RimAI.Relations] Strategy follow-up produced no valid strategy payload.");
         },
         onError: error =>
         {
@@ -191,7 +192,7 @@ internal void TryRequestStrategySuggestionsFromLLM(FactionDialogueSession curren
                 Owner.Parts.StrategyUi.HasStrategyUsesRemaining(currentSession))
             {
                 currentSession.pendingStrategySuggestions = Owner.Parts.StrategyPrompt.EnsureStrategySuggestionCount(new List<PendingStrategySuggestion>());
-                Log.Message($"[RimAI.Relations] Strategy follow-up request failed: {error}; local fallback strategies primed.");
+                ModuleLog.Message($"[RimAI.Relations] Strategy follow-up request failed: {error}; local fallback strategies primed.");
                 return;
             }
 

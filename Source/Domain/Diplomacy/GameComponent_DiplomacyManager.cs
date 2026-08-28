@@ -345,12 +345,12 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                             int minDelay = (int)(baseDelay * 0.2f);
                             int maxDelay = baseDelay;
                             evt.ExecuteTick = currentTick + Rand.Range(minDelay, maxDelay);
-                            Log.Message($"[RimAI.Relations] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: tick was in past, new tick={evt.ExecuteTick}");
+                            ModuleLog.Message($"[RimAI.Relations] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: tick was in past, new tick={evt.ExecuteTick}");
                         }
                         else if (evt.ExecuteTick - currentTick > baseDelay * 2)
                         {
                             evt.ExecuteTick = currentTick + Rand.Range(baseDelay, baseDelay * 2);
-                            Log.Message($"[RimAI.Relations] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: delay was too long, new tick={evt.ExecuteTick}");
+                            ModuleLog.Message($"[RimAI.Relations] Adjusted delayed {evt.EventType} from {evt.Faction?.Name}: delay was too long, new tick={evt.ExecuteTick}");
                         }
                     }
 
@@ -361,7 +361,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                         && tempFactionRelations.originalRelations.Count > 0
                         && tempFactionRelations.restoreAtTick > currentTick)
                     {
-                        Log.Message($"[RimAI.Relations] Re-applying {tempFactionRelations.originalRelations.Count} temp faction peace overrides after load (restoreAtTick={tempFactionRelations.restoreAtTick})");
+                        ModuleLog.Message($"[RimAI.Relations] Re-applying {tempFactionRelations.originalRelations.Count} temp faction peace overrides after load (restoreAtTick={tempFactionRelations.restoreAtTick})");
                         foreach (var kv in tempFactionRelations.originalRelations)
                         {
                             string[] ids = kv.Key.Split(':');
@@ -370,7 +370,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                             Faction fb = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f?.loadID.ToString() == ids[1]);
                             if (fa == null || fb == null || fa.defeated || fb.defeated) continue;
                             fa.SetRelationDirect(fb, FactionRelationKind.Neutral);
-                            Log.Message($"[RimAI.Relations] Re-applied temp peace: {fa.Name} <-> {fb.Name} (was {kv.Value})");
+                            ModuleLog.Message($"[RimAI.Relations] Re-applied temp peace: {fa.Name} <-> {fb.Name} (was {kv.Value})");
                         }
                     }
                 }

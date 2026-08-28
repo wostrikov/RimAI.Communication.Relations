@@ -82,7 +82,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
             else
             {
-                Log.Message("[RimAI.Relations] QuestScriptDef 'RimChat_AIQuest' loaded successfully.");
+                ModuleLog.Message("[RimAI.Relations] QuestScriptDef 'RimChat_AIQuest' loaded successfully.");
             }
         }
 

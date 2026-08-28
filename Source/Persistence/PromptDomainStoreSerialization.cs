@@ -24,6 +24,7 @@ using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -40,7 +41,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 if (!LocalStorage.Current.DirectoryExists(BasePath))
                 {
                     LocalStorage.Current.CreateDirectory(BasePath);
-                    Log.Message($"[RimAI.Relations] Created prompt directory: {BasePath}");
+                    ModuleLog.Message($"[RimAI.Relations] Created prompt directory: {BasePath}");
                 }
             }
             catch (Exception ex)
@@ -644,7 +645,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 }
                 else
                 {
-                    Log.Message($"[RimAI.Relations] Typed JSON parse was incomplete at source={source}; recovered config using current-schema text fallback.");
+                    ModuleLog.Message($"[RimAI.Relations] Typed JSON parse was incomplete at source={source}; recovered config using current-schema text fallback.");
                 }
             }
             else if (hasTypedError)
@@ -887,7 +888,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 }
                 else
                 {
-                    Log.Message(message);
+                    ModuleLog.Message(message);
                 }
             }
         }

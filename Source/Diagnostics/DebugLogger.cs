@@ -6,6 +6,7 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Diagnostics
 {
@@ -37,7 +38,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
 
         public static void Info(string message)
         {
-            Log.Message($"{Prefix} {message}");
+            ModuleLog.Message($"{Prefix} {message}");
         }
 
         public static void Warning(string message)
@@ -54,7 +55,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
         public static void MessageGated(string message)
         {
             if (!IsDebugEnabled) return;
-            Log.Message($"{Prefix} {message}");
+            ModuleLog.Message($"{Prefix} {message}");
         }
 
         public static void Error(string message)
@@ -66,7 +67,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
         {
             if (IsDebugEnabled)
             {
-                Log.Message($"{Prefix} [DEBUG] {message}");
+                ModuleLog.Message($"{Prefix} [DEBUG] {message}");
             }
         }
 
@@ -84,7 +85,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
             sb.AppendLine(FormatJson(jsonBody));
             sb.AppendLine("================================");
 
-            Log.Message($"{Prefix}\n{sb}");
+            ModuleLog.Message($"{Prefix}\n{sb}");
         }
 
         public static void LogAIResponse(string response, long responseCode, long elapsedMs)
@@ -100,7 +101,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
             sb.AppendLine(FormatJson(response));
             sb.AppendLine("=================================");
 
-            Log.Message($"{Prefix}\n{sb}");
+            ModuleLog.Message($"{Prefix}\n{sb}");
         }
 
         public static void LogAIError(string error, string context = null)
@@ -141,7 +142,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
             sb.AppendLine($"Log Full Messages: {LogFullMessagesEnabled}");
             sb.AppendLine("=================================");
 
-            Log.Message($"{Prefix}\n{sb}");
+            ModuleLog.Message($"{Prefix}\n{sb}");
         }
 
         public static void LogFullMessages(List<ChatMessageData> messages, string responseContent)
@@ -293,7 +294,7 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
             }
 
             sb.AppendLine("========================================");
-            Log.Message($"{Prefix}\n{sb}");
+            ModuleLog.Message($"{Prefix}\n{sb}");
         }
 
         private static bool IsDeveloperLogWindowOpen()

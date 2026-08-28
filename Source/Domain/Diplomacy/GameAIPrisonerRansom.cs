@@ -11,6 +11,7 @@ using APICallRecord = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAI
 using DialogueApiGoodwillCostResult = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.DialogueApiGoodwillCostResult;
 using FactionCooldownEntry = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.FactionCooldownEntry;
 using RaidWaveState = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.RaidWaveState;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -142,7 +143,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             int acceptedSilver = Mathf.Clamp(offeredSilver, minOfferSilver, maxOfferSilver);
             if (acceptedSilver != offeredSilver)
             {
-                Log.Message(
+                ModuleLog.Message(
                     "[RimAI.Relations] pay_prisoner_ransom normalized in prepare. " +
                     $"target={pawnLoadId}, original={offeredSilver}, " +
                     $"window={minOfferSilver}-{maxOfferSilver}, normalized={acceptedSilver}, " +

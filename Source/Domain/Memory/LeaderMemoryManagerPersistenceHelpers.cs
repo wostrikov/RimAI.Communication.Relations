@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Verse;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -86,7 +87,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
             LocalStorage.Current.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
             Owner.TryClaimDefaultBucket(currentSaveKey, legacyDirs);
-            Log.Message(
+            ModuleLog.Message(
                 "[RimAI.Relations] Migrated legacy leader memory files. " +
                 $"copied={copied}, skipped_existing={skippedExisting}, target={currentSaveKey}.");
         }

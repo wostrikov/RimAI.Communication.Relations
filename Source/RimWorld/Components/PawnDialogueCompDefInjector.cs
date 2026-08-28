@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Comp;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Comp
 {
@@ -44,7 +45,7 @@ namespace Ustas.RimAI.Communication.Relations.Comp
                 }
 
                 if (added > 0)
-                    Log.Message($"[RimAI.Relations] Pawn dialogue comp injector finished. Added={added}.");
+                    ModuleLog.Message($"[RimAI.Relations] Pawn dialogue comp injector finished. Added={added}.");
             }
             catch (Exception ex)
             {
@@ -73,7 +74,7 @@ namespace Ustas.RimAI.Communication.Relations.Comp
             {
                 AddDialogueComp(def);
                 _injectedDefs.Add(def);
-                Log.Message($"[RimAI.Relations] Runtime injected CompPawnDialogue to {def.defName}");
+                ModuleLog.Message($"[RimAI.Relations] Runtime injected CompPawnDialogue to {def.defName}");
                 return true;
             }
             catch (Exception ex)

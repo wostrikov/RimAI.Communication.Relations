@@ -7,6 +7,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -95,7 +96,7 @@ internal static void TryMigrateLegacyStoreToConfigPath()
             {
                 PromptPresetService.EnsureStoreDirectory();
                 LocalStorage.Current.CopyFile(legacyPath, targetPath, overwrite: false);
-                Log.Message($"[RimAI.Relations] Migrated preset store to config path: {targetPath}");
+                ModuleLog.Message($"[RimAI.Relations] Migrated preset store to config path: {targetPath}");
             }
             catch (Exception ex)
             {
@@ -270,7 +271,7 @@ internal static void ApplyLegacyRpgNodeMigrationIfNeeded(PromptPresetConfig pres
             }
 
             catalog.MigrationVersion = LegacyRpgNodeMigrationVersion;
-            Log.Message($"[RimAI.Relations] Legacy RPG node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
+            ModuleLog.Message($"[RimAI.Relations] Legacy RPG node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
         }
 
 internal static void ApplyLegacySocialNewsNodeMigrationIfNeeded(PromptPresetConfig preset)
@@ -294,7 +295,7 @@ internal static void ApplyLegacySocialNewsNodeMigrationIfNeeded(PromptPresetConf
             catalog.MigrationVersion = LegacySocialNewsNodeMigrationVersion;
             if (overriddenCount > 0)
             {
-                Log.Message($"[RimAI.Relations] Legacy social news node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
+                ModuleLog.Message($"[RimAI.Relations] Legacy social news node migration applied to preset '{preset.Id}': {overriddenCount} nodes overridden, new migrationVersion={catalog.MigrationVersion}.");
             }
         }
 

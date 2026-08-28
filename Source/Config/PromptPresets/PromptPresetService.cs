@@ -7,6 +7,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -307,7 +308,7 @@ public void SaveAll(PromptPresetStoreConfig store)
             string path = PromptPresetService.GetStorePath();
             string tempPath = path + ".tmp";
             string json = ReflectionJsonFieldSerializer.Serialize(normalized, prettyPrint: true);
-            Log.Message($"[RimAI.Relations][PresetDiag] SaveAll begin. presets={normalized.Presets.Count}, active={normalized.ActivePresetId}, default={normalized.DefaultPresetId}, path={path}");
+            ModuleLog.Message($"[RimAI.Relations][PresetDiag] SaveAll begin. presets={normalized.Presets.Count}, active={normalized.ActivePresetId}, default={normalized.DefaultPresetId}, path={path}");
             if (normalized.Presets.Count > 0 &&
                 json.IndexOf("\"Presets\"", StringComparison.Ordinal) < 0)
             {
@@ -318,7 +319,7 @@ public void SaveAll(PromptPresetStoreConfig store)
             {
                 PromptPresetService.AtomicWriteText(path, tempPath, json);
                 PromptPresetService.MirrorStoreToLegacyPath(path);
-                Log.Message($"[RimAI.Relations][PresetDiag] SaveAll done. presets={normalized.Presets.Count}, bytes={new FileInfo(path).Length}");
+                ModuleLog.Message($"[RimAI.Relations][PresetDiag] SaveAll done. presets={normalized.Presets.Count}, bytes={new FileInfo(path).Length}");
             }
             finally
             {

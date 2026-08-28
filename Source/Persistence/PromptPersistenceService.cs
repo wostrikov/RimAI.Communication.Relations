@@ -10,6 +10,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Prompting.Builders;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
 using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -96,7 +97,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 DomainStore.EnsureDirectoryExists();
                 DomainStore.LoadConfig();
                 _isInitialized = true;
-                Log.Message($"[RimAI.Relations] PromptPersistenceService initialized, config path: {ConfigFilePath}");
+                ModuleLog.Message($"[RimAI.Relations] PromptPersistenceService initialized, config path: {ConfigFilePath}");
             }
             catch (PromptRenderException)
             {

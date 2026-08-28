@@ -9,6 +9,7 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
 {
@@ -454,7 +455,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
                 PromptBundleConfig bundle = CreatePromptBundle(host.DomainStore.CachedConfig, selectedModules);
                 string json = PromptDomainJsonUtility.Serialize(bundle, prettyPrint: true);
                 LocalStorage.Current.WriteAllText(normalizedPath, json, Encoding.UTF8);
-                Log.Message($"[RimAI.Relations] Exported config to: {normalizedPath}");
+                ModuleLog.Message($"[RimAI.Relations] Exported config to: {normalizedPath}");
                 return true;
             }
             catch (Exception ex)
@@ -521,7 +522,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Transfer
                 SavePromptBundle(bundle, modulesToApply);
                 host.DomainStore.CachedConfig = null;
                 host.DomainStore.CachedConfigWriteTimeUtc = DateTime.MinValue;
-                Log.Message($"[RimAI.Relations] Imported config from: {filePath}");
+                ModuleLog.Message($"[RimAI.Relations] Imported config from: {filePath}");
                 return true;
             }
             catch (Exception ex)

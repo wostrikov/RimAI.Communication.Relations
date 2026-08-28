@@ -7,6 +7,7 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.UI;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config;
 
@@ -251,23 +252,23 @@ internal static void EnsureUnifiedCatalogReady(this RelationsSettings settings)
 
                 if (normalizeReport.FilledDefaultLayoutCount > 0)
                 {
-                    Log.Message(
+                    ModuleLog.Message(
                         $"[RimAI.Relations] Unified prompt catalog filled {normalizeReport.FilledDefaultLayoutCount} missing node layouts.");
                 }
 
                 if (legacyMigratedChanged || migrationVersionChanged)
                 {
-                    Log.Message(
+                    ModuleLog.Message(
                         $"[RimAI.Relations] Unified prompt catalog migration applied " +
                         $"(legacyMigrated={legacyMigratedChanged}, migrationVersionUpdated={migrationVersionChanged}).");
                 }
                 if (literalDefaultsChanged)
                 {
-                    Log.Message("[RimAI.Relations] Unified prompt catalog applied static literal node defaults.");
+                    ModuleLog.Message("[RimAI.Relations] Unified prompt catalog applied static literal node defaults.");
                 }
                 if (archiveCompressionSectionChanged)
                 {
-                    Log.Message("[RimAI.Relations] Unified prompt catalog repaired rpg_archive_compression section contract.");
+                    ModuleLog.Message("[RimAI.Relations] Unified prompt catalog repaired rpg_archive_compression section contract.");
                 }
 
                 if (requiresSave)

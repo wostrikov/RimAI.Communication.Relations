@@ -23,6 +23,7 @@ using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -60,7 +61,7 @@ internal bool MigratePresenceBehaviorGuidance(SystemPromptConfig config)
                 config.GlobalSystemPrompt += "\n\n" + sectionContent.TrimEnd();
             }
 
-            Log.Message("[RimAI.Relations] Migrating config: Added presence behavior guidance.");
+            ModuleLog.Message("[RimAI.Relations] Migrating config: Added presence behavior guidance.");
             return true;
         }
 
@@ -313,7 +314,7 @@ internal bool EnsurePresenceActionExists(SystemPromptConfig config, string actio
             }
 
             config.ApiActions.Insert(insertIndex, new ApiActionConfig(actionName, description, parameters, requirement));
-            Log.Message($"[RimAI.Relations] Migrating config: Adding {actionName} action...");
+            ModuleLog.Message($"[RimAI.Relations] Migrating config: Adding {actionName} action...");
             return true;
         }
 

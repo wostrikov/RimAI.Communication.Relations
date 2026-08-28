@@ -13,6 +13,7 @@ using Ustas.RimAI.Core.Storage;
 using Ustas.RimAI.Core.Relations;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -439,7 +440,7 @@ internal void LogDebugMissingArchive(Pawn targetNpc, Pawn currentInterlocutor)
             string contextSuffix = hasSaveContext
                 ? $"saveKey={saveKey}, dir={archiveDir}"
                 : "saveKey=<unresolved>, dir=<unresolved>";
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] RPG memory skipped: no archive sessions for target={targetName}({targetId}), " +
                 $"interlocutor={interlocutorName}({interlocutorId}), {contextSuffix}");
         }

@@ -1,5 +1,6 @@
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -26,7 +27,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 letterDef
             );
 
-            Log.Message($"[RimAI.Relations] Sent notification: {title} - {faction.Name}");
+            ModuleLog.Message($"[RimAI.Relations] Sent notification: {title} - {faction.Name}");
         }
 
         public static void SendAIActionNotification(Faction faction, AIActionType actionType, string detail = "")

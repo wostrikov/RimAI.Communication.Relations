@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Module;
 using UnityEngine;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -709,7 +710,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                         $"default_system_prompt_file:{defaultConfigPath}");
                     if (config != null)
                     {
-                        Log.Message($"[RimAI.Relations] Loaded default system prompt from {defaultConfigPath}");
+                        ModuleLog.Message($"[RimAI.Relations] Loaded default system prompt from {defaultConfigPath}");
                         return config;
                     }
                 }
@@ -971,7 +972,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
                 if (usable)
                 {
-                    Log.Message($"[RimAI.Relations] Loaded default diplomacy prompt fallback from {defaultPath}");
+                    ModuleLog.Message($"[RimAI.Relations] Loaded default diplomacy prompt fallback from {defaultPath}");
                     return true;
                 }
             }

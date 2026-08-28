@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -83,7 +84,7 @@ internal bool TryHandleRequestInfoActionForPrisoner(
     action.Parameters["info_type"] = RequestInfoTypePrisoner;
     if (currentSession != null && currentSession.isWaitingForRansomTargetSelection)
     {
-        Log.Message("[RimAI.Relations] request_info(prisoner) dedup hit: selection already in progress.");
+        ModuleLog.Message("[RimAI.Relations] request_info(prisoner) dedup hit: selection already in progress.");
         outcome = ActionExecutionOutcome.Success(action, "RimChat_RansomNeedPrisonerSelectionSystem".Translate().ToString());
         return true;
     }
@@ -103,16 +104,16 @@ internal bool TryHandleRequestInfoActionForPrisoner(
     if (DiplomacyRansomBatchRuntime.TryUseBoundRansomTarget(currentSession, currentFaction, out int boundTargetId, out Pawn boundTargetPawn))
     {
         string targetLabel = boundTargetPawn?.LabelShortCap ?? "RimChat_Unknown".Translate().ToString();
-        Log.Message($"[RimAI.Relations] request_info(prisoner) dedup hit: target={boundTargetId}, skipping selection popup.");
+        ModuleLog.Message($"[RimAI.Relations] request_info(prisoner) dedup hit: target={boundTargetId}, skipping selection popup.");
         outcome = ActionExecutionOutcome.Success(
             action,
             "RimChat_RansomNeedOfferSystem".Translate(targetLabel).ToString());
         return true;
     }
 
-    Log.Message("[RimAI.Relations] request_info(prisoner) received.");
+    ModuleLog.Message("[RimAI.Relations] request_info(prisoner) received.");
     bool started = StartRansomTargetSelection(currentSession, currentFaction, out int candidateCount);
-    Log.Message($"[RimAI.Relations] request_info(prisoner) candidate_count={candidateCount}, selection_started={started}.");
+    ModuleLog.Message($"[RimAI.Relations] request_info(prisoner) candidate_count={candidateCount}, selection_started={started}.");
 
     if (!started)
     {
@@ -134,7 +135,7 @@ internal void TryStartManualPrisonerInfoSend()
     }
 
     bool started = StartRansomTargetSelection(session, faction, out int candidateCount, false);
-    Log.Message($"[RimAI.Relations] manual prisoner info send. candidate_count={candidateCount}, selection_started={started}.");
+    ModuleLog.Message($"[RimAI.Relations] manual prisoner info send. candidate_count={candidateCount}, selection_started={started}.");
 }
 
 
@@ -255,7 +256,7 @@ internal bool StartRansomTargetSelection(
 
     if (currentSession.isWaitingForRansomTargetSelection)
     {
-        Log.Message("[RimAI.Relations] request_info(prisoner) dedup hit: selection already in progress.");
+        ModuleLog.Message("[RimAI.Relations] request_info(prisoner) dedup hit: selection already in progress.");
         return false;
     }
 
@@ -263,7 +264,7 @@ internal bool StartRansomTargetSelection(
         DiplomacyRansomBatchRuntime.TryUseBoundRansomTarget(currentSession, currentFaction, out int boundTargetId, out _))
     {
         candidateCount = 1;
-        Log.Message($"[RimAI.Relations] request_info(prisoner) dedup hit: reuse bound target={boundTargetId}, skip reselection.");
+        ModuleLog.Message($"[RimAI.Relations] request_info(prisoner) dedup hit: reuse bound target={boundTargetId}, skip reselection.");
         return true;
     }
 
@@ -274,7 +275,7 @@ internal bool StartRansomTargetSelection(
             candidateCount = pendingBatch.TargetPawnLoadIds.Count;
         }
 
-        Log.Message("[RimAI.Relations] request_info(prisoner) dedup hit: reuse pending ransom batch selection.");
+        ModuleLog.Message("[RimAI.Relations] request_info(prisoner) dedup hit: reuse pending ransom batch selection.");
         return true;
     }
 
@@ -363,7 +364,7 @@ internal void HandleRansomTargetSelectedSingle(FactionDialogueSession currentSes
     DiplomacyRansomBatchRuntime.ClearPendingRansomOfferReference(currentSession);
     DiplomacyRansomBatchRuntime.BindRansomTarget(currentSession, currentFaction, selectedPawn.thingIDNumber);
     DiplomacyRansomBatchRuntime.MarkRansomInfoRequestCompleted(currentSession, currentFaction, selectedPawn.thingIDNumber);
-    Log.Message($"[RimAI.Relations] request_info(prisoner) completed. selected_target={selectedPawn.thingIDNumber}.");
+    ModuleLog.Message($"[RimAI.Relations] request_info(prisoner) completed. selected_target={selectedPawn.thingIDNumber}.");
     Owner.Parts.RansomProof.PublishRansomProofCard(currentSession, currentFaction, selectedPawn);
 }
 
@@ -381,7 +382,7 @@ internal void HandleRansomTargetSelectionCanceled(FactionDialogueSession current
     DiplomacyRansomBatchRuntime.ClearPendingRansomBatchSelection(currentSession);
     DiplomacyRansomBatchRuntime.ClearPendingRansomOfferReference(currentSession);
     DiplomacyRansomBatchRuntime.MarkRansomInfoRequestIncomplete(currentSession);
-    Log.Message("[RimAI.Relations] request_info(prisoner) cancelled by player.");
+    ModuleLog.Message("[RimAI.Relations] request_info(prisoner) cancelled by player.");
     currentSession.AddMessage(
         "System",
         "RimChat_RansomSelectionCancelledSystem".Translate().ToString(),

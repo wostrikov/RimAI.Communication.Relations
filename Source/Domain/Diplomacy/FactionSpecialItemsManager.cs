@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -194,7 +195,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             if (usedIds.Contains(id))
             {
                 slot.SetUniqueId(nextId++);
-                Log.Message($"[RimAI.Relations] Fixed duplicate FactionSpecialItemSlot ID: {id} -> {slot.GetUniqueIdForFix()}");
+                ModuleLog.Message($"[RimAI.Relations] Fixed duplicate FactionSpecialItemSlot ID: {id} -> {slot.GetUniqueIdForFix()}");
             }
             else
             {

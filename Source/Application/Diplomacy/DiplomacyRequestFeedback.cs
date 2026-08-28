@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -118,7 +119,7 @@ internal void HandleDroppedRequest(string primaryReason, string secondaryReason 
     string reason = !string.IsNullOrWhiteSpace(primaryReason) ? primaryReason : secondaryReason;
     if (DialogueDropPolicy.ShouldSuppressUserFacingDrop(reason))
     {
-        Log.Message($"[RimAI.Relations] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
+        ModuleLog.Message($"[RimAI.Relations] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
         return;
     }
 
@@ -184,7 +185,7 @@ internal void HandleSessionDroppedRequest(
     string reason = !string.IsNullOrWhiteSpace(primaryReason) ? primaryReason : secondaryReason;
     if (DialogueDropPolicy.ShouldSuppressUserFacingDrop(reason))
     {
-        Log.Message($"[RimAI.Relations] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
+        ModuleLog.Message($"[RimAI.Relations] Suppressed user-facing dropped diplomacy callback: reason={reason ?? "unknown"}");
         return;
     }
 

@@ -7,6 +7,7 @@ using RimWorld;
 using Verse;
 
 using DialoguePage = Ustas.RimAI.Communication.Relations.UI.Dialog_RPGPawnDialogue.DialoguePage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -124,7 +125,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
             if (DialogueDropPolicy.ShouldSuppressUserFacingDrop(reason))
             {
-                Log.Message($"[RimAI.Relations] Suppressed user-facing dropped RPG callback: reason={reason ?? "unknown"}");
+                ModuleLog.Message($"[RimAI.Relations] Suppressed user-facing dropped RPG callback: reason={reason ?? "unknown"}");
                 Owner.ReleaseActiveRequestLease();
                 return;
             }

@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -144,7 +145,7 @@ internal void TryGenerateDialogueKeywordSocialPost(
                        playerMessage,
                        aiText,
                        out enqueueResult);
-    Log.Message($"[RimAI.Relations] Player-influenced post attempt: faction={currentFaction?.Name}, created={created}, triggered={enqueueResult.Triggered}, failureReason={enqueueResult.FailureReason}");
+    ModuleLog.Message($"[RimAI.Relations] Player-influenced post attempt: faction={currentFaction?.Name}, created={created}, triggered={enqueueResult.Triggered}, failureReason={enqueueResult.FailureReason}");
     if (!enqueueResult.Triggered)
     {
         TryGenerateRandomDialogueSocialPost(playerMessage, aiText, currentFaction, currentSession);

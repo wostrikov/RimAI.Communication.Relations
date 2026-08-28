@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -327,7 +328,7 @@ internal static void LogActionFailure(AIAction action, string message)
         }
         else
         {
-            Log.Message($"[RimAI.Relations][ActionDenied][Expected] action={actionType} reason={reason}");
+            ModuleLog.Message($"[RimAI.Relations][ActionDenied][Expected] action={actionType} reason={reason}");
         }
         return;
     }

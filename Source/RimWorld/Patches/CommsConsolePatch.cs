@@ -37,7 +37,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
         {
             try
             {
-                Log.Message("[RimAI.Relations] === Initializing CommsConsole Patch ===");
+                ModuleLog.Message("[RimAI.Relations] === Initializing CommsConsole Patch ===");
 
                 var commsConsoleType = AccessTools.TypeByName("RimWorld.Building_CommsConsole");
                 if (commsConsoleType == null)
@@ -46,32 +46,32 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     return;
                 }
 
-                Log.Message($"[RimAI.Relations] Found Building_CommsConsole: {commsConsoleType.FullName}");
-                Log.Message("[RimAI.Relations] Building_CommsConsole methods:");
+                ModuleLog.Message($"[RimAI.Relations] Found Building_CommsConsole: {commsConsoleType.FullName}");
+                ModuleLog.Message("[RimAI.Relations] Building_CommsConsole methods:");
                 foreach (var method in commsConsoleType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 {
-                    Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
+                    ModuleLog.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
                 }
 
                 var compUsableType = AccessTools.TypeByName("Verse.CompUsable");
                 if (compUsableType != null)
                 {
-                    Log.Message($"[RimAI.Relations] Found CompUsable: {compUsableType.FullName}");
-                    Log.Message("[RimAI.Relations] CompUsable methods:");
+                    ModuleLog.Message($"[RimAI.Relations] Found CompUsable: {compUsableType.FullName}");
+                    ModuleLog.Message("[RimAI.Relations] CompUsable methods:");
                     foreach (var method in compUsableType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                     {
-                        Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
+                        ModuleLog.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
                     }
                 }
 
                 var jobDriverType = AccessTools.TypeByName("RimWorld.JobDriver_UseCommsConsole");
                 if (jobDriverType != null)
                 {
-                    Log.Message($"[RimAI.Relations] Found JobDriver_UseCommsConsole: {jobDriverType.FullName}");
-                    Log.Message("[RimAI.Relations] JobDriver_UseCommsConsole methods:");
+                    ModuleLog.Message($"[RimAI.Relations] Found JobDriver_UseCommsConsole: {jobDriverType.FullName}");
+                    ModuleLog.Message("[RimAI.Relations] JobDriver_UseCommsConsole methods:");
                     foreach (var method in jobDriverType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                     {
-                        Log.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
+                        ModuleLog.Message($"  - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name))})");
                     }
                 }
 
@@ -89,7 +89,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             var getFloatMenuOptionsMethod = commsConsoleType.GetMethod("GetFloatMenuOptions", BindingFlags.Public | BindingFlags.Instance);
             if (getFloatMenuOptionsMethod != null)
             {
-                Log.Message($"[RimAI.Relations] Patching Building_CommsConsole.GetFloatMenuOptions method");
+                ModuleLog.Message($"[RimAI.Relations] Patching Building_CommsConsole.GetFloatMenuOptions method");
                 var postfixMethod = typeof(CommsConsolePatch).GetMethod("GetFloatMenuOptionsPostfix", BindingFlags.Static | BindingFlags.NonPublic);
                 harmony.Patch(getFloatMenuOptionsMethod, postfix: new HarmonyMethod(postfixMethod));
             }
@@ -159,7 +159,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                 };
                 if (ShouldLogInterceptDebug(myPawn, targetFaction))
                 {
-                    Log.Message($"[RimAI.Relations] Comms option intercepted: pawn={myPawn.LabelShortCap}, faction={targetFaction.Name}");
+                    ModuleLog.Message($"[RimAI.Relations] Comms option intercepted: pawn={myPawn.LabelShortCap}, faction={targetFaction.Name}");
                 }
                 yield return option;
             }
@@ -303,7 +303,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             string pawnLabel = pawn?.LabelShortCap ?? "null";
             string optionLabel = option?.Label ?? "<null>";
             string actionInfo = option?.action?.Method?.DeclaringType?.FullName ?? "<no-action>";
-            Log.Message($"[RimAI.Relations] Comms option bypassed: reason={reason}, pawn={pawnLabel}, label={optionLabel}, actionType={actionInfo}");
+            ModuleLog.Message($"[RimAI.Relations] Comms option bypassed: reason={reason}, pawn={pawnLabel}, label={optionLabel}, actionType={actionInfo}");
         }
 
         private static bool ShouldLogBypassDebug(Pawn pawn, FloatMenuOption option, CommsOptionBypassReason reason)

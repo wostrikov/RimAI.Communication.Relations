@@ -184,7 +184,7 @@ internal void CompleteNpcPersonaBootstrap()
             npcPersonaBootstrapCompleted = true;
             npcPersonaBootstrapVersion = CurrentNpcPersonaBootstrapVersion;
             Owner.ResetNpcPersonaBootstrapRuntimeState();
-            Log.Message("[RimAI.Relations] Existing NPC persona bootstrap completed.");
+            ModuleLog.Message("[RimAI.Relations] Existing NPC persona bootstrap completed.");
         }
 
 internal bool ShouldRunNpcPersonaBootstrap()

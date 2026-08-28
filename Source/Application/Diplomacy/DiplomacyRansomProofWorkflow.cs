@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -222,7 +223,7 @@ internal static void NormalizeSingleRansomOfferForExecution(
     }
 
     action.Parameters["offer_silver"] = normalizedOffer;
-    Log.Message(
+    ModuleLog.Message(
         "[RimAI.Relations] pay_prisoner_ransom single offer normalized. " +
         $"target={targetPawnLoadId}, original={originalOffer}, " +
         $"window={minOfferSilver}-{maxOfferSilver}, normalized={normalizedOffer}, " +
@@ -243,7 +244,7 @@ internal void TryQueueReplyForPlayerPrisonerInfoCard(
 
     if (DiplomacyRansomBatchRuntime.IsRansomAutoReplyCoolingDown(currentSession, out float cooldownRemaining))
     {
-        Log.Message($"[RimAI.Relations] Skipped auto-reply for prisoner info card due to active timeout cooldown. remaining={cooldownRemaining:F1}s.");
+        ModuleLog.Message($"[RimAI.Relations] Skipped auto-reply for prisoner info card due to active timeout cooldown. remaining={cooldownRemaining:F1}s.");
         return;
     }
 

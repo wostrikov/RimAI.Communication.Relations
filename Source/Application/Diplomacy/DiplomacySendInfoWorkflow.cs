@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -373,7 +374,7 @@ internal void SendSystemInfoRequest(string systemMessage, string hiddenDirective
 
     if (!AIChatServiceAsync.Instance.IsConfigured())
     {
-        Log.Message("[RimAI.Relations] AI not configured, using fallback response");
+        ModuleLog.Message("[RimAI.Relations] AI not configured, using fallback response");
         Owner.Parts.Fallback.AddFallbackResponseToSession(systemMessage, currentSession, currentFaction);
         return;
     }

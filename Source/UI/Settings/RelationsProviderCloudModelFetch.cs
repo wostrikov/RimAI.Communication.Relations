@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Core.Player2;
 using Ustas.RimAI.Core.UI;
 using RimAI.Core.Runtime;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -41,7 +42,7 @@ internal sealed class RelationsProviderCloudModelFetch
         {
             if (resolution.WasSiliconFlowHostMapped)
             {
-                Log.Message($"[RimAI.Relations] Custom URL host mapped to API domain: {resolution.ChatEndpoint}");
+                ModuleLog.Message($"[RimAI.Relations] Custom URL host mapped to API domain: {resolution.ChatEndpoint}");
             }
 
             if (resolution.HasSuspiciousBasePath)
@@ -186,7 +187,7 @@ internal sealed class RelationsProviderCloudModelFetch
         {
             var service = AIChatServiceAsync.Instance;
             List<string> candidateUrls = BuildModelListRequestCandidates(url, providerFallbackUrl, provider);
-            Log.Message($"[RimAI.Relations] FetchModelsCoroutine: provider={provider}, candidateUrls={string.Join(" | ", candidateUrls)}");
+            ModuleLog.Message($"[RimAI.Relations] FetchModelsCoroutine: provider={provider}, candidateUrls={string.Join(" | ", candidateUrls)}");
 
             RimAiBackground.Run(() =>
             {
@@ -195,7 +196,7 @@ internal sealed class RelationsProviderCloudModelFetch
                 {
                     foreach (string candidateUrl in candidateUrls)
                     {
-                        Log.Message($"[RimAI.Relations] FetchModelsCoroutine: trying url={candidateUrl}");
+                        ModuleLog.Message($"[RimAI.Relations] FetchModelsCoroutine: trying url={candidateUrl}");
                         using (var request = new UnityWebRequest(candidateUrl, "GET"))
                         {
                             request.downloadHandler = new DownloadHandlerBuffer();
@@ -211,10 +212,10 @@ internal sealed class RelationsProviderCloudModelFetch
 
                             if (request.result == UnityWebRequest.Result.Success)
                             {
-                                Log.Message($"[RimAI.Relations] FetchModelsCoroutine: url={candidateUrl}, result={request.result}, responseCode={request.responseCode}");
+                                ModuleLog.Message($"[RimAI.Relations] FetchModelsCoroutine: url={candidateUrl}, result={request.result}, responseCode={request.responseCode}");
                                 models = ParseModelsFromResponse(request.downloadHandler.text, provider);
                                 RelationsSettings.ModelCache[cacheKey] = models;
-                                Log.Message($"[RimAI.Relations] FetchModelsCoroutine: success, parsed {models?.Count ?? 0} models");
+                                ModuleLog.Message($"[RimAI.Relations] FetchModelsCoroutine: success, parsed {models?.Count ?? 0} models");
                                 break;
                             }
 

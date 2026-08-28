@@ -7,6 +7,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -193,7 +194,7 @@ internal static PromptPresetStoreConfig TryReadStoreFile(string path, out bool c
                 }
 
                 PromptPresetService.ApplyLegacyPayloadsFromStoreJson(store, json);
-                Log.Message($"[RimAI.Relations][PresetDiag] ReadStore success. path={path}, presets={store.Presets?.Count ?? 0}");
+                ModuleLog.Message($"[RimAI.Relations][PresetDiag] ReadStore success. path={path}, presets={store.Presets?.Count ?? 0}");
                 return store;
             }
             catch (Exception ex)

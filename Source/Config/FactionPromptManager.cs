@@ -7,6 +7,7 @@ using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -104,7 +105,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 EnsureAllFactionsHaveConfigs();
 
                 _initialized = true;
-                Log.Message($"[RimAI.Relations] FactionPromptManager initialized with {_configCollection.Configs.Count} faction prompts");
+                ModuleLog.Message($"[RimAI.Relations] FactionPromptManager initialized with {_configCollection.Configs.Count} faction prompts");
             }
             catch (Exception ex)
             {

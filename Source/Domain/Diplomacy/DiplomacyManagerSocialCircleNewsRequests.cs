@@ -9,6 +9,7 @@ using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Context;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -187,7 +188,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             try
             {
                 messages = SocialNewsPromptBuilder.BuildMessages(seed, snapshot);
-                Log.Message(
+                ModuleLog.Message(
                     "[RimAI.Relations][SocialNewsPrompt] "
                     + $"origin_type={seed.OriginType}, origin_key={seed.OriginKey ?? string.Empty}, "
                     + $"source_faction={seed.SourceFaction?.Name ?? "None"}, target_faction={seed.TargetFaction?.Name ?? "None"}, "
@@ -399,7 +400,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             PublicSocialPost post = SocialCircleService.CreatePostFromDraft(pending.Seed, draft);
-            Log.Message(
+            ModuleLog.Message(
                 "[RimAI.Relations][SocialNewsDraft] "
                 + $"origin_type={pending.Seed?.OriginType.ToString() ?? "Unknown"}, origin_key={pending.Seed?.OriginKey ?? string.Empty}, "
                 + $"location_name={draft?.LocationName ?? string.Empty}, quote_attribution={draft?.QuoteAttribution ?? string.Empty}, "

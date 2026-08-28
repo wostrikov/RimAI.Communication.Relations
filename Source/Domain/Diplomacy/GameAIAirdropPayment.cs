@@ -12,6 +12,7 @@ using APICallRecord = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAI
 using DialogueApiGoodwillCostResult = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.DialogueApiGoodwillCostResult;
 using FactionCooldownEntry = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.FactionCooldownEntry;
 using RaidWaveState = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.RaidWaveState;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -40,7 +41,7 @@ internal APIResult BuildPaymentPlan(
             APIResult parseResult = ParsePaymentItems(parameters, out List<ItemAirdropPaymentRequestLine> requestedLines);
             if (!parseResult.Success)
             {
-                Log.Message($"[RimAI.Relations][PaymentPlan] ParsePaymentItems failed: {parseResult.Message}");
+                ModuleLog.Message($"[RimAI.Relations][PaymentPlan] ParsePaymentItems failed: {parseResult.Message}");
                 return parseResult;
             }
 
@@ -75,16 +76,16 @@ internal APIResult BuildPaymentPlanFromRequestedLines(
                 return BuildPaymentFailure("payment_items_missing", "payment_items must include at least one item.");
             }
 
-            Log.Message($"[RimAI.Relations][PaymentPlan] Parsed {requestedLines.Count} payment_items: {string.Join(", ", requestedLines.Select(l => $"{l.ItemText}x{l.Count}"))}");
+            ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Parsed {requestedLines.Count} payment_items: {string.Join(", ", requestedLines.Select(l => $"{l.ItemText}x{l.Count}"))}");
 
             List<Thing> beaconThings = CollectBeaconTradeableThings(map);
             if (beaconThings.Count == 0)
             {
-                Log.Message("[RimAI.Relations][PaymentPlan] No powered orbital-trade-beacon source items available.");
+                ModuleLog.Message("[RimAI.Relations][PaymentPlan] No powered orbital-trade-beacon source items available.");
                 return BuildPaymentFailure("beacon_source_unavailable", "No powered orbital-trade-beacon source items are available on this map.");
             }
 
-            Log.Message($"[RimAI.Relations][PaymentPlan] Beacon has {beaconThings.Count} tradeable things.");
+            ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Beacon has {beaconThings.Count} tradeable things.");
 
             var buckets = new Dictionary<string, List<Thing>>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < beaconThings.Count; i++)
@@ -113,7 +114,7 @@ internal APIResult BuildPaymentPlanFromRequestedLines(
                 .Select(group => group.First())
                 .ToList();
 
-            Log.Message($"[RimAI.Relations][PaymentPlan] Beacon inventory buckets: {string.Join(", ", buckets.Select(kvp => $"{kvp.Key}x{kvp.Value.Sum(t => t.stackCount)}"))}");
+            ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Beacon inventory buckets: {string.Join(", ", buckets.Select(kvp => $"{kvp.Key}x{kvp.Value.Sum(t => t.stackCount)}"))}");
 
             float totalValueFloat = 0f;
             for (int i = 0; i < requestedLines.Count; i++)
@@ -128,19 +129,19 @@ internal APIResult BuildPaymentPlanFromRequestedLines(
                         out ThingDefRecord catalogResolvedRecord);
                     if (catalogResolveResult.Success && catalogResolvedRecord != null)
                     {
-                        Log.Message($"[RimAI.Relations][PaymentPlan] Payment item '{line.ItemText}' resolved globally to '{catalogResolvedRecord.DefName}' but is absent from beacon stock.");
+                        ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Payment item '{line.ItemText}' resolved globally to '{catalogResolvedRecord.DefName}' but is absent from beacon stock.");
                         return BuildPaymentFailure(
                             "payment_item_insufficient",
                             "RimChat_AirdropError_payment_item_no_beacon_stock".Translate(catalogResolvedRecord.Label).ToString());
                     }
 
-                    Log.Message($"[RimAI.Relations][PaymentPlan] Failed to resolve payment item '{line.ItemText}' against beacon stock: {resolveResult.Message}");
+                    ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Failed to resolve payment item '{line.ItemText}' against beacon stock: {resolveResult.Message}");
                     return resolveResult;
                 }
 
                 if (!buckets.TryGetValue(resolvedRecord.DefName, out List<Thing> stockThings))
                 {
-                    Log.Message($"[RimAI.Relations][PaymentPlan] No beacon stock for payment item '{resolvedRecord.DefName}' ({line.ItemText}). Available: {string.Join(", ", buckets.Keys)}");
+                    ModuleLog.Message($"[RimAI.Relations][PaymentPlan] No beacon stock for payment item '{resolvedRecord.DefName}' ({line.ItemText}). Available: {string.Join(", ", buckets.Keys)}");
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
                         "RimChat_AirdropError_payment_item_no_beacon_stock".Translate(resolvedRecord.Label).ToString());
@@ -149,7 +150,7 @@ internal APIResult BuildPaymentPlanFromRequestedLines(
                 int availableCount = stockThings.Sum(thing => Math.Max(0, thing.stackCount));
                 if (availableCount < line.Count)
                 {
-                    Log.Message($"[RimAI.Relations][PaymentPlan] Insufficient stock for '{resolvedRecord.DefName}': required={line.Count}, available={availableCount}");
+                    ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Insufficient stock for '{resolvedRecord.DefName}': required={line.Count}, available={availableCount}");
                     return BuildPaymentFailure(
                         "payment_item_insufficient",
                         "RimChat_AirdropError_payment_item_insufficient".Translate(resolvedRecord.Label, line.Count, availableCount).ToString());
@@ -173,7 +174,7 @@ internal APIResult BuildPaymentPlanFromRequestedLines(
                     SubtotalMarketValue = subtotal
                 });
 
-                Log.Message($"[RimAI.Relations][PaymentPlan] Payment line: {resolvedRecord.DefName} x{line.Count} @ {unitPrice:F1} = {subtotal:F1} silver");
+                ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Payment line: {resolvedRecord.DefName} x{line.Count} @ {unitPrice:F1} = {subtotal:F1} silver");
 
                 int remaining = line.Count;
                 foreach (Thing thing in stockThings.OrderByDescending(item => item.stackCount))
@@ -202,13 +203,13 @@ internal APIResult BuildPaymentPlanFromRequestedLines(
             int flooredTotalValue = Mathf.FloorToInt(Math.Max(0f, totalValueFloat));
             if (flooredTotalValue <= 0)
             {
-                Log.Message($"[RimAI.Relations][PaymentPlan] Derived budget is not positive: total={totalValueFloat:F1}");
+                ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Derived budget is not positive: total={totalValueFloat:F1}");
                 return BuildPaymentFailure(
                     "budget_invalid",
                     $"Derived budget from payment_items is not positive. total={totalValueFloat:F1}.");
             }
 
-            Log.Message($"[RimAI.Relations][PaymentPlan] Payment plan complete: budget={flooredTotalValue} silver, paymentLines={paymentLines.Count}, deductionRows={deductionPlan.Count}");
+            ModuleLog.Message($"[RimAI.Relations][PaymentPlan] Payment plan complete: budget={flooredTotalValue} silver, paymentLines={paymentLines.Count}, deductionRows={deductionPlan.Count}");
             derivedBudgetSilver = flooredTotalValue;
             paymentTotalSilver = flooredTotalValue;
             return APIResult.SuccessResult("Payment plan prepared.");

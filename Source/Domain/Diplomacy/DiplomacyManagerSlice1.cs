@@ -124,7 +124,7 @@ public FactionDialogueSession GetOrCreateSession(Faction faction)
             session = new FactionDialogueSession(faction);
             dialogueSessions.Add(session);
             dialogueSessionsByFaction[faction] = session;
-            Log.Message($"[RimAI.Relations] Created dialogue session for {faction.Name}");
+            ModuleLog.Message($"[RimAI.Relations] Created dialogue session for {faction.Name}");
             return session;
         }
 

@@ -9,6 +9,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
 {
@@ -576,7 +577,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             {
                 if (!_loggedNoEligibleReceivers)
                 {
-                    Log.Message("[RimAI.Relations] TryResolveColonistPair: No eligible receivers in protagonist list (all busy or unavailable).");
+                    ModuleLog.Message("[RimAI.Relations] TryResolveColonistPair: No eligible receivers in protagonist list (all busy or unavailable).");
                     _loggedNoEligibleReceivers = true;
                 }
                 return false;
@@ -629,7 +630,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             {
                 if (!_loggedNoValidPair)
                 {
-                    Log.Message($"[RimAI.Relations] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
+                    ModuleLog.Message($"[RimAI.Relations] TryResolveColonistPair: No valid pair found. Receivers={receivers.Count}, AllColonists={allColonists.Count}, threshold={threshold}");
                     _loggedNoValidPair = true;
                 }
                 return false;

@@ -126,7 +126,7 @@ public bool DebugForcePawnRpgProactiveDialogue()
                         continue;
                     }
 
-                    Log.Message($"[RimAI.Relations] DebugForcePawnRpg: NPC path resolved: NPC={npcPawn.LabelShortCap}, Player={playerPawn.LabelShortCap}");
+                    ModuleLog.Message($"[RimAI.Relations] DebugForcePawnRpg: NPC path resolved: NPC={npcPawn.LabelShortCap}, Player={playerPawn.LabelShortCap}");
                     var context = new PawnRpgTriggerContext
                     {
                         Faction = faction,
@@ -145,7 +145,7 @@ public bool DebugForcePawnRpgProactiveDialogue()
             // Path 2: colonist → colonist (fallback)
             if (Owner.TryResolveColonistPair(now, out Pawn initiator, out Pawn receiver, bypassAvailability: true))
             {
-                Log.Message($"[RimAI.Relations] DebugForcePawnRpg: Colonist path resolved: Initiator={initiator.LabelShortCap}, Receiver={receiver.LabelShortCap}");
+                ModuleLog.Message($"[RimAI.Relations] DebugForcePawnRpg: Colonist path resolved: Initiator={initiator.LabelShortCap}, Receiver={receiver.LabelShortCap}");
                 var context = new PawnRpgTriggerContext
                 {
                     Faction = Faction.OfPlayer,
@@ -231,7 +231,7 @@ internal void AutoSelectDefaultProtagonist()
             {
                 proactiveProtagonists.Add(PawnRpgProtagonistEntry.FromPawn(best));
                 _cachedProtagonists = null;
-                Log.Message($"[RimAI.Relations] Auto-selected default protagonist: {best.LabelShortCap} (highest skills)");
+                ModuleLog.Message($"[RimAI.Relations] Auto-selected default protagonist: {best.LabelShortCap} (highest skills)");
             }
         }
 

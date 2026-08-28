@@ -14,6 +14,7 @@ using Ustas.RimAI.Communication.Relations.Context;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
 
 using Ustas.RimAI.Communication.Relations.Persistence;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {
@@ -51,7 +52,7 @@ internal List<ResolvedPromptNodePlacement> ResolveDiplomacyNodePlacements(
 
             var placements = new List<ResolvedPromptNodePlacement>();
             List<PromptUnifiedNodeLayoutConfig> diploLayouts = Owner.GetOrderedNodeLayouts(promptChannel);
-            Log.Message($"[RimAI.Relations] ResolveDiplomacyNodePlacements: channel={promptChannel}, layout_count={diploLayouts.Count}, node_ids=[{string.Join(", ", diploLayouts.Select(l => l.NodeId))}]");
+            ModuleLog.Message($"[RimAI.Relations] ResolveDiplomacyNodePlacements: channel={promptChannel}, layout_count={diploLayouts.Count}, node_ids=[{string.Join(", ", diploLayouts.Select(l => l.NodeId))}]");
             foreach (PromptUnifiedNodeLayoutConfig layout in diploLayouts)
             {
                 if (layout == null)
@@ -161,7 +162,7 @@ internal List<ResolvedPromptNodePlacement> ResolveRpgNodePlacements(
         {
             var placements = new List<ResolvedPromptNodePlacement>();
             List<PromptUnifiedNodeLayoutConfig> layouts = Owner.GetOrderedNodeLayouts(promptChannel);
-            Log.Message($"[RimAI.Relations] ResolveRpgNodePlacements: channel={promptChannel}, layout_count={layouts.Count}, node_ids=[{string.Join(", ", layouts.Select(l => l.NodeId))}]");
+            ModuleLog.Message($"[RimAI.Relations] ResolveRpgNodePlacements: channel={promptChannel}, layout_count={layouts.Count}, node_ids=[{string.Join(", ", layouts.Select(l => l.NodeId))}]");
             foreach (PromptUnifiedNodeLayoutConfig layout in layouts)
             {
                 if (layout == null)

@@ -23,6 +23,7 @@ using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -74,7 +75,7 @@ internal bool EnsurePromptTemplateDefaults(SystemPromptConfig config, SystemProm
 
             if (changed)
             {
-                Log.Message("[RimAI.Relations] Migrating config: Filled missing PromptTemplates fields from default template file.");
+                ModuleLog.Message("[RimAI.Relations] Migrating config: Filled missing PromptTemplates fields from default template file.");
             }
 
             return changed;

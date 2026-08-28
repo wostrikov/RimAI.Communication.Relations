@@ -5,6 +5,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Memory;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -271,7 +272,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 out string intentHint);
             if (!matched)
             {
-                Log.Message($"[RimAI.Relations] KeywordDialoguePost skipped: keywords not matched. playerMsgLen={playerMessage?.Length ?? 0}, aiResponseLen={aiResponse?.Length ?? 0}");
+                ModuleLog.Message($"[RimAI.Relations] KeywordDialoguePost skipped: keywords not matched. playerMsgLen={playerMessage?.Length ?? 0}, aiResponseLen={aiResponse?.Length ?? 0}");
                 return false;
             }
 
@@ -300,7 +301,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 out enqueueResult,
                 intentHint,
                 DebugGenerateReason.DialogueKeyword);
-            Log.Message($"[RimAI.Relations] KeywordDialoguePost enqueue: result={postResult}, category={category}, sentiment={sentiment}, failureReason={enqueueResult.FailureReason}");
+            ModuleLog.Message($"[RimAI.Relations] KeywordDialoguePost enqueue: result={postResult}, category={category}, sentiment={sentiment}, failureReason={enqueueResult.FailureReason}");
             return postResult;
         }
 
@@ -657,7 +658,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 reason);
 
             if (success)
-                Log.Message($"[RimAI.Relations] AI-to-AI post generated: {sourceFaction.Name} -> {targetFaction.Name}, category={category}, sentiment={sentiment}");
+                ModuleLog.Message($"[RimAI.Relations] AI-to-AI post generated: {sourceFaction.Name} -> {targetFaction.Name}, category={category}, sentiment={sentiment}");
 
             return success;
         }

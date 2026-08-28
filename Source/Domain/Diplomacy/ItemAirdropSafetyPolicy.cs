@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -209,7 +210,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return;
             }
 
-            Log.Message($"[RimAI.Relations][IsResourceCandidate] {def.defName}: {decision}");
+            ModuleLog.Message($"[RimAI.Relations][IsResourceCandidate] {def.defName}: {decision}");
         }
 
         private static bool ShouldLogResourceDecision()

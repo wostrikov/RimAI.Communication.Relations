@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -144,7 +145,7 @@ internal List<ChatMessageData> BuildChatMessages(
     string aiUserMessage = BuildAiUserMessage(playerMessage, activeSession);
     chatMessages.Add(new ChatMessageData { role = "user", content = aiUserMessage });
 
-    Log.Message(
+    ModuleLog.Message(
         $"[RimAI.Relations] Built chat messages: packed={chatMessages.Count}, raw_history={history.Count}, " +
         $"last={playerMessage.Substring(0, Math.Min(50, playerMessage.Length))}...,airdropCleanHistory={useAirdropTradeCardCleanHistory}");
     return chatMessages;

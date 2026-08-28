@@ -1085,7 +1085,7 @@ internal void TryCompressOldWorldEvents(int tick)
 
             if (compressed > 0)
             {
-                Log.Message($"[RimAI.Relations] Compressed {compressed} old world event summaries.");
+                ModuleLog.Message($"[RimAI.Relations] Compressed {compressed} old world event summaries.");
             }
         }
 

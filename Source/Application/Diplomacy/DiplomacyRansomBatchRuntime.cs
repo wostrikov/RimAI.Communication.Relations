@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -257,7 +258,7 @@ internal static bool TryNormalizeBatchOfferTotals(
         actionOfferSilver[action] = normalizedOffers[action];
     }
 
-    Log.Message(
+    ModuleLog.Message(
         "[RimAI.Relations] pay_prisoner_ransom batch total normalized. " +
         $"original_total={totalOfferSilver}, normalized_total={targetTotalOfferSilver}, " +
         $"window={pendingBatch.TotalMinOfferSilver}-{pendingBatch.TotalMaxOfferSilver}, " +
@@ -357,7 +358,7 @@ internal void HandleBatchRansomPaymentSuccess(
 
     if (!HasPendingRansomBatchSelection(currentSession))
     {
-        Log.Message("[RimAI.Relations] pay_prisoner_ransom batch completed. Cleared request_info(prisoner) state.");
+        ModuleLog.Message("[RimAI.Relations] pay_prisoner_ransom batch completed. Cleared request_info(prisoner) state.");
         ResetRansomSelectionStateAfterPayment(currentSession);
         return;
     }

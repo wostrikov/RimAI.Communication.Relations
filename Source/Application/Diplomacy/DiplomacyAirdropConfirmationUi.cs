@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -49,7 +50,7 @@ internal void ShowAirdropTradeConfirmationDialog(
         BaseParameters = DiplomacyActionPolicyService.CloneParameters(baseParameters),
         PendingCandidates = ClonePendingAirdropCandidates(availableCandidates)
     };
-    Log.Message(
+    ModuleLog.Message(
         $"[RimAI.Relations] AirdropConfirmScheduled: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},candidateCount={availableCandidates.Count}");
 }
 
@@ -264,7 +265,7 @@ internal void CommitConfirmedAirdropTrade(
         TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Committing, preparedTrade?.SelectedDefName ?? "prepared_trade");
     }
 
-    Log.Message($"[RimAI.Relations] AirdropConfirmCommitStart: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},budget={preparedTrade?.BudgetSilver ?? 0}");
+    ModuleLog.Message($"[RimAI.Relations] AirdropConfirmCommitStart: def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},budget={preparedTrade?.BudgetSilver ?? 0}");
     var commitResult = GameAIInterface.Instance.CommitPreparedItemAirdropTrade(currentFaction, preparedTrade);
     if (commitResult.Success)
     {
@@ -275,7 +276,7 @@ internal void CommitConfirmedAirdropTrade(
             ? DiplomacySessionOutcomeMessages.BuildAirdropSuccessSystemMessage(payload)
             : "RimChat_ItemAirdropCommitSuccessSystem".Translate().ToString();
         currentSession?.AddMessage("System", text, false, DialogueMessageType.System);
-        Log.Message($"[RimAI.Relations] AirdropConfirmCommitResult: success=True,def={payload?.SelectedDefName ?? preparedTrade?.SelectedDefName ?? "unknown"},count={payload?.Quantity ?? preparedTrade?.Quantity ?? 0},failureCode=none");
+        ModuleLog.Message($"[RimAI.Relations] AirdropConfirmCommitResult: success=True,def={payload?.SelectedDefName ?? preparedTrade?.SelectedDefName ?? "unknown"},count={payload?.Quantity ?? preparedTrade?.Quantity ?? 0},failureCode=none");
     }
     else
     {
@@ -308,7 +309,7 @@ internal void CommitConfirmedAirdropTrade(
                 DialogueMessageType.System);
         }
 
-        Log.Message($"[RimAI.Relations] AirdropConfirmCommitResult: success=False,def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},failureCode={payload?.FailureCode ?? "none"},message={commitResult?.Message ?? "none"}");
+        ModuleLog.Message($"[RimAI.Relations] AirdropConfirmCommitResult: success=False,def={preparedTrade?.SelectedDefName ?? "unknown"},count={preparedTrade?.Quantity ?? 0},failureCode={payload?.FailureCode ?? "none"},message={commitResult?.Message ?? "none"}");
     }
 
     Owner.Parts.Session.SaveFactionMemory(currentSession, currentFaction);
@@ -354,7 +355,7 @@ internal void CancelConfirmedAirdropTrade(FactionDialogueSession currentSession,
     bool clearedDelayedIntent = ClearAirdropDelayedIntentRuntime(currentSession);
     ResetAirdropConfirmationRuntime(currentSession, "commit_cancelled", true, true, true);
     TransitionAirdropExecutionStage(currentSession, AirdropExecutionStage.Idle, "player_cancelled_confirmation");
-    Log.Message($"[RimAI.Relations] AirdropConfirmExplicitCancel: stage={currentSession?.airdropExecutionStage.ToString() ?? "null"},faction={currentFaction?.Name ?? "null"},clearedDelayedIntent={clearedDelayedIntent}");
+    ModuleLog.Message($"[RimAI.Relations] AirdropConfirmExplicitCancel: stage={currentSession?.airdropExecutionStage.ToString() ?? "null"},faction={currentFaction?.Name ?? "null"},clearedDelayedIntent={clearedDelayedIntent}");
 
     if (!skipSystemMessage)
     {
@@ -381,7 +382,7 @@ internal static void TransitionAirdropExecutionStage(
 
     AirdropExecutionStage previousStage = currentSession.airdropExecutionStage;
     currentSession.airdropExecutionStage = nextStage;
-    Log.Message($"[RimAI.Relations] AirdropStateTransition: {previousStage} -> {nextStage} reason={reason ?? "none"}");
+    ModuleLog.Message($"[RimAI.Relations] AirdropStateTransition: {previousStage} -> {nextStage} reason={reason ?? "none"}");
 }
 
 
@@ -423,7 +424,7 @@ internal static void ResetAirdropConfirmationRuntime(
     if (clearedPendingIntent || clearedAirdropIntent || hadAsyncState || clearTradeCardReference || resetStageToIdle)
     {
         currentSession.airdropRequestGeneration++;
-        Log.Message(
+        ModuleLog.Message(
             $"[RimAI.Relations] AirdropPendingIntentInvalidated: reason={reason ?? "none"},clearedPendingIntent={clearedPendingIntent},clearedAirdropIntent={clearedAirdropIntent},clearedAsyncState={hadAsyncState},clearedTradeCard={clearTradeCardReference},resetStageToIdle={resetStageToIdle},generation={currentSession.airdropRequestGeneration}");
     }
 }

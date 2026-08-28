@@ -10,6 +10,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Core.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -223,7 +224,7 @@ internal sealed class RelationsPromptSectionWorkspace
                     sb.Append(glyphKey.Translate()).Append(' ');
                 // Pre-render all CJK glyphs into the font texture to avoid per-frame rasterization
                 GUI.skin.font.RequestCharactersInTexture(sb.ToString());
-                Log.Message($"[RimAI.Relations] Font pre-rasterized, {sb.Length} chars");
+                ModuleLog.Message($"[RimAI.Relations] Font pre-rasterized, {sb.Length} chars");
             }
             catch (Exception ex)
             {

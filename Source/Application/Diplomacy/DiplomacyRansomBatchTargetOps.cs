@@ -7,6 +7,7 @@ using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Memory;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -189,7 +190,7 @@ internal static void ResetRansomSelectionStateAfterPayment(FactionDialogueSessio
     currentSession.boundRansomTargetFactionId = string.Empty;
     currentSession.ClearPendingRansomBatchSelection();
     currentSession.ClearPendingRansomOfferReference();
-    Log.Message("[RimAI.Relations] pay_prisoner_ransom succeeded. Cleared request_info(prisoner) state.");
+    ModuleLog.Message("[RimAI.Relations] pay_prisoner_ransom succeeded. Cleared request_info(prisoner) state.");
 }
 
 

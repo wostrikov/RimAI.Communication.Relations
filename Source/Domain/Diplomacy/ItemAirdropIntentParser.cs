@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -87,7 +88,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             }
 
             var result = tokens.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            Log.Message($"[RimAI.Relations][Tokenize] input=\"{text}\" -> tokens=[{string.Join(",", result)}]");
+            ModuleLog.Message($"[RimAI.Relations][Tokenize] input=\"{text}\" -> tokens=[{string.Join(",", result)}]");
             return result;
         }
 
@@ -135,7 +136,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 tokens = tokens
                     .Where(t => !exclusionsCapture.Contains(t))
                     .ToList();
-                Log.Message($"[RimAI.Relations][TokenizeWithExclusions] exclusions=[{string.Join(",", exclusionTokens)}], tokens=[{string.Join(",", tokens)}]");
+                ModuleLog.Message($"[RimAI.Relations][TokenizeWithExclusions] exclusions=[{string.Join(",", exclusionTokens)}], tokens=[{string.Join(",", tokens)}]");
             }
         }
 

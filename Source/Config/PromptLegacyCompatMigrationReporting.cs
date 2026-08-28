@@ -4,6 +4,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -121,7 +122,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 Log.Warning($"[RimAI.Relations] Failed to write legacy prompt migration report: {ex.Message}");
             }
 
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] Legacy prompt migration report updated: source={report.SourceId}, imported={report.ImportedCount}, rewritten={report.RewrittenCount}, rejected={report.RejectedCount}, defaulted={report.DefaultedCount}.");
         }
 

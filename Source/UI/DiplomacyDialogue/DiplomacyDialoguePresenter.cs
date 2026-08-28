@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -64,7 +65,7 @@ internal void BindActiveFactionState(
     double ms1 = (t1 - startTicks) * 1000.0 / freq;
     double ms2 = (t2 - t1) * 1000.0 / freq;
     double ms3 = (t3 - t2) * 1000.0 / freq;
-    Log.Message($"[RimAI.Relations][PerfDiag] BindState: session={ms1:F1}ms, speakers={ms2:F1}ms, memory={ms3:F1}ms, msgs={session?.messages?.Count ?? 0}");
+    ModuleLog.Message($"[RimAI.Relations][PerfDiag] BindState: session={ms1:F1}ms, speakers={ms2:F1}ms, memory={ms3:F1}ms, msgs={session?.messages?.Count ?? 0}");
 }
 
 
@@ -129,7 +130,7 @@ internal bool SwitchFactionInPlace(Faction targetFaction)
     double ms2 = (t2 - t1) * 1000.0 / freq;
     double ms3 = (t3 - t2) * 1000.0 / freq;
     double total = (t3 - startTicks) * 1000.0 / freq;
-    Log.Message($"[RimAI.Relations] Switched to {targetFaction.Name}: summary={ms1:F1}ms, bind={ms2:F1}ms, presence={ms3:F1}ms, total={total:F1}ms");
+    ModuleLog.Message($"[RimAI.Relations] Switched to {targetFaction.Name}: summary={ms1:F1}ms, bind={ms2:F1}ms, presence={ms3:F1}ms, total={total:F1}ms");
     return true;
 }
 

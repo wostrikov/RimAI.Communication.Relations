@@ -6,6 +6,7 @@ using System.Reflection;
 using Scriban;
 using Scriban.Runtime;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Prompting
 {
@@ -182,7 +183,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
             }
 
             PromptRenderTelemetrySnapshot snapshot = PromptRenderTelemetry.CaptureSnapshot();
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] Scriban telemetry: hit={snapshot.CacheHitRatePercent:F1}% " +
                 $"hits={snapshot.CacheHits} misses={snapshot.CacheMisses} evictions={snapshot.CacheEvictions} " +
                 $"avg_parse_ms={snapshot.AverageParseMilliseconds:F3} avg_render_ms={snapshot.AverageRenderMilliseconds:F3}");
@@ -262,7 +263,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 bool hasRelaxedTarget = HasWritableBoolProperty(typeof(TemplateContext), "EnableRelaxedTargetAccess");
                 bool hasMessageBag = typeof(Template).Assembly.GetType("Scriban.LogMessageBag", false) != null;
 
-                Log.Message(
+                ModuleLog.Message(
                     $"[RimAI.Relations] Scriban runtime probe: version={version} path={path} " +
                     $"strict={hasStrict} relaxed_fn={hasRelaxedFn} relaxed_indexer={hasRelaxedIndexer} " +
                     $"relaxed_member={hasRelaxedMember} relaxed_target={hasRelaxedTarget} message_bag={hasMessageBag}");

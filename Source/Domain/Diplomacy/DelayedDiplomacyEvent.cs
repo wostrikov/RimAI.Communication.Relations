@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -263,7 +264,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             {
                 bool isAid = IsMilitaryAidAction(CallEveryoneAction, wasFriendly);
                 ParticipantPawnThingIds = CaptureNewParticipantPawnIds(targetFaction, before);
-                Log.Message($"[RimAI.Relations] RaidCallEveryone: Triggered {(isAid ? "military aid" : "raid")} from {targetFaction.Name}");
+                ModuleLog.Message($"[RimAI.Relations] RaidCallEveryone: Triggered {(isAid ? "military aid" : "raid")} from {targetFaction.Name}");
                 ScheduleRaidDepartureMonitor(targetFaction, isAid, isFinalWave: false);
             }
 
@@ -394,7 +395,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 };
 
                 pushManager.RegisterCustomTrigger(context);
-                Log.Message($"[RimAI.Relations] Triggered NPC dialogue: {sourceTag} from {targetFaction.Name}");
+                ModuleLog.Message($"[RimAI.Relations] Triggered NPC dialogue: {sourceTag} from {targetFaction.Name}");
             }
             catch (Exception ex)
             {

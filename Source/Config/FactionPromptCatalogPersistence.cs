@@ -8,6 +8,7 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config;
 
@@ -32,7 +33,7 @@ internal sealed class FactionPromptCatalogPersistence
                 {
                     string json = LocalStorage.Current.ReadAllText(sourcePath);
                     Owner._configCollection = FactionPromptJsonUtility.FromJson(json);
-                    Log.Message($"[RimAI.Relations] Loaded faction prompts from {sourcePath}");
+                    ModuleLog.Message($"[RimAI.Relations] Loaded faction prompts from {sourcePath}");
                     
                     if (Owner._configCollection == null || Owner._configCollection.Configs.Count == 0)
                     {
@@ -49,7 +50,7 @@ internal sealed class FactionPromptCatalogPersistence
             }
             else
             {
-                Log.Message($"[RimAI.Relations] Prompt config file not found, loading defaults");
+                ModuleLog.Message($"[RimAI.Relations] Prompt config file not found, loading defaults");
                 LoadDefaultConfigs();
                 SaveConfigs();
             }
@@ -76,7 +77,7 @@ internal sealed class FactionPromptCatalogPersistence
 
                 string json = FactionPromptJsonUtility.ToJson(Owner._configCollection, true);
                 LocalStorage.Current.WriteAllText(Owner.ConfigFilePath, json);
-                Log.Message($"[RimAI.Relations] Saved faction prompts to {Owner.ConfigFilePath}");
+                ModuleLog.Message($"[RimAI.Relations] Saved faction prompts to {Owner.ConfigFilePath}");
             }
             catch (Exception ex)
             {
@@ -112,7 +113,7 @@ internal sealed class FactionPromptCatalogPersistence
                 {
                     string defaultDir = Path.Combine(mod.Content.RootDir, FactionPromptManager.PromptFolderName, FactionPromptManager.DefaultSubFolderName);
                     string path = Path.Combine(defaultDir, FactionPromptManager.DefaultConfigFileName);
-                    Log.Message($"[RimAI.Relations] Default config path from mod: {path}");
+                    ModuleLog.Message($"[RimAI.Relations] Default config path from mod: {path}");
                     return path;
                 }
             }
@@ -130,7 +131,7 @@ internal sealed class FactionPromptCatalogPersistence
                 {
                     string defaultDir = Path.Combine(modDir, FactionPromptManager.PromptFolderName, FactionPromptManager.DefaultSubFolderName);
                     string path = Path.Combine(defaultDir, FactionPromptManager.DefaultConfigFileName);
-                    Log.Message($"[RimAI.Relations] Default config path from assembly parent: {path}");
+                    ModuleLog.Message($"[RimAI.Relations] Default config path from assembly parent: {path}");
                     return path;
                 }
             }
@@ -140,7 +141,7 @@ internal sealed class FactionPromptCatalogPersistence
             }
 
             string fallbackPath = PromptDomainFileCatalog.GetDefaultPath(FactionPromptManager.DefaultConfigFileName);
-            Log.Message($"[RimAI.Relations] Default config path from domain catalog: {fallbackPath}");
+            ModuleLog.Message($"[RimAI.Relations] Default config path from domain catalog: {fallbackPath}");
             return fallbackPath;
         }
 
@@ -317,7 +318,7 @@ internal sealed class FactionPromptCatalogPersistence
             Owner._defaultConfigLookup = new Dictionary<string, FactionPromptConfig>(StringComparer.OrdinalIgnoreCase);
 
             string defaultConfigPath = GetDefaultConfigFilePath();
-            Log.Message($"[RimAI.Relations] Looking for default config at: {defaultConfigPath}");
+            ModuleLog.Message($"[RimAI.Relations] Looking for default config at: {defaultConfigPath}");
             if (!string.IsNullOrWhiteSpace(defaultConfigPath) && LocalStorage.Current.FileExists(defaultConfigPath))
             {
                 try
@@ -326,7 +327,7 @@ internal sealed class FactionPromptCatalogPersistence
                     FactionPromptConfigCollection collection = FactionPromptJsonUtility.FromJson(json);
                     if (TryPopulateDefaultCatalog(collection))
                     {
-                        Log.Message($"[RimAI.Relations] Loaded default faction prompt catalog ({Owner._defaultFactionDefNames.Count})");
+                        ModuleLog.Message($"[RimAI.Relations] Loaded default faction prompt catalog ({Owner._defaultFactionDefNames.Count})");
                         return;
                     }
 
@@ -365,7 +366,7 @@ internal sealed class FactionPromptCatalogPersistence
 
         internal void BuildHardcodedDefaultCatalog()
         {
-            Log.Message("[RimAI.Relations] Using hardcoded fallback for faction prompt default catalog.");
+            ModuleLog.Message("[RimAI.Relations] Using hardcoded fallback for faction prompt default catalog.");
 
             foreach (FactionDef factionDef in GetSupportedFactionDefs())
             {

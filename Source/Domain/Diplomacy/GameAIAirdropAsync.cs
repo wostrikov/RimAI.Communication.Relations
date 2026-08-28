@@ -12,6 +12,7 @@ using APICallRecord = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAI
 using DialogueApiGoodwillCostResult = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.DialogueApiGoodwillCostResult;
 using FactionCooldownEntry = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.FactionCooldownEntry;
 using RaidWaveState = Ustas.RimAI.Communication.Relations.DiplomacySystem.GameAIInterface.RaidWaveState;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -30,7 +31,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Action<APIResult> onCompleted,
             Action<string, int> onRequestQueued)
         {
-            Log.Message($"[RimAI.Relations] BeginPrepareItemAirdropTradeAsync: faction={faction?.Name}, defName={faction?.def?.defName}, need={parameters?["need"] ?? "null"}");
+            ModuleLog.Message($"[RimAI.Relations] BeginPrepareItemAirdropTradeAsync: faction={faction?.Name}, defName={faction?.def?.defName}, need={parameters?["need"] ?? "null"}");
             
             APIResult contextResult = TryBuildAirdropAsyncContext(
                 faction,
@@ -360,7 +361,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             Action<APIResult> onCompleted,
             Action<string, int> onRequestQueued)
         {
-            Log.Message($"[RimAI.Relations] ContinueAirdropSelectionStageAsync: need={context.Need}, def={context.ForcedSelectedDef}, candidates={context.CandidatePack?.Candidates?.Count ?? 0}");
+            ModuleLog.Message($"[RimAI.Relations] ContinueAirdropSelectionStageAsync: need={context.Need}, def={context.ForcedSelectedDef}, candidates={context.CandidatePack?.Candidates?.Count ?? 0}");
             
             RequestedCountExtraction requestedCount = GameAIAirdropSelection.ExtractRequestedCount(context.Intent?.NeedText);
             requestedCount = GameAIAirdropSelection.MergeRequestedCountWithParameters(requestedCount, context.Parameters);
@@ -550,7 +551,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     int originalPayment = context.PaymentTotalSilver;
                     context.PaymentTotalSilver = actualNeeded;
                     overpay = 0;
-                    Log.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled from {originalPayment} to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
+                    ModuleLog.Message($"[RimAI.Relations][PaymentAdjust] Quantity clamped ({requestedOriginalCount}->{validatedCount}), payment scaled from {originalPayment} to {actualNeeded} (scale={scale:F4}, deductionLines={adjustedPlan.Count}, totalDeductionCount={adjustedTotal})");
                     Owner.Parts.AirdropDrop.RecordStageAudit("prepare_trade", context.Faction, context.Parameters, $"budget={quotedNeedTotalSilver},payment={actualNeeded},shipping={shippingCostSilver},pods={shippingPodCount},overpay=0,clampedPaymentAdjusted=True,paymentLines={context.PaymentLines.Count},deductionRows={adjustedPlan.Count}");
                 }
             }

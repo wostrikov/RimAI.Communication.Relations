@@ -218,13 +218,13 @@ internal static void LogSendImagePromptDebug(
     int finalLength = (finalPrompt ?? string.Empty).Length;
     string preview = BuildPromptPreview(finalPrompt, 600);
 
-    Log.Message(
+    ModuleLog.Message(
         "[RimAI.Relations] send_image prompt debug: "
         + $"faction='{factionName}', requested_template_id='{requestedTemplateId ?? string.Empty}', "
         + $"resolved_template_id='{resolvedId}', resolved_template_name='{resolvedName}', "
         + $"template_text_len={templateLength}, extra_prompt_len={extraLength}, "
         + $"final_prompt_len={finalLength}, size='{size ?? string.Empty}', watermark={watermark}.");
-    Log.Message($"[RimAI.Relations] send_image prompt preview: {preview}");
+    ModuleLog.Message($"[RimAI.Relations] send_image prompt preview: {preview}");
 }
 
 

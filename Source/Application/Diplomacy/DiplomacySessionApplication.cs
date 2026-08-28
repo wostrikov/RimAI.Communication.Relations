@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -143,7 +144,7 @@ internal void SendPreparedMessage(
 
     if (!AIChatServiceAsync.Instance.IsConfigured())
     {
-        Log.Message("[RimAI.Relations] AI not configured, using fallback response");
+        ModuleLog.Message("[RimAI.Relations] AI not configured, using fallback response");
         Owner.Parts.Fallback.AddFallbackResponse(playerMessage);
         return;
     }
@@ -437,12 +438,12 @@ internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, 
 
                InjectExplicitChallengeRequestHint(action, playerMessage);
 
-               Log.Message($"[RimAI.Relations] Executing AI action: {action.ActionType}");
+               ModuleLog.Message($"[RimAI.Relations] Executing AI action: {action.ActionType}");
                var result = RelationsInteractionAdapter.Execute(action, currentFaction, applyDialogueApiGoodwillCost: true);
 
                if (result.IsSuccess)
                {
-                   Log.Message($"[RimAI.Relations] Action executed successfully: {result.Message}");
+                   ModuleLog.Message($"[RimAI.Relations] Action executed successfully: {result.Message}");
                    if (string.Equals(action.ActionType, AIActionNames.PayPrisonerRansom, StringComparison.Ordinal))
                    {
                        if (batchRansomPlan.IsActive)
@@ -451,12 +452,12 @@ internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, 
                        }
                        else if (DiplomacySessionOutcomeMessages.ShouldResetRansomSelectionStateAfterSuccess(result))
                        {
-                           Log.Message("[RimAI.Relations] pay_prisoner_ransom paid_submitted detected. Clearing request_info(prisoner) binding state.");
+                           ModuleLog.Message("[RimAI.Relations] pay_prisoner_ransom paid_submitted detected. Clearing request_info(prisoner) binding state.");
                            DiplomacyRansomBatchRuntime.ResetRansomSelectionStateAfterPayment(currentSession);
                        }
                        else
                        {
-                           Log.Message($"[RimAI.Relations] pay_prisoner_ransom success detected with unexpected status={DiplomacySessionOutcomeMessages.ResolveRansomSuccessStatusCode(result)}. Preserving request_info(prisoner) binding state.");
+                           ModuleLog.Message($"[RimAI.Relations] pay_prisoner_ransom success detected with unexpected status={DiplomacySessionOutcomeMessages.ResolveRansomSuccessStatusCode(result)}. Preserving request_info(prisoner) binding state.");
                        }
                    }
                    outcomes.Add(ActionExecutionOutcome.Success(action, result.Message, result.Data));
@@ -467,10 +468,10 @@ internal string FinalizeDialogueTextWithActionOutcomes(string baseDialogueText, 
                {
                    if (string.Equals(action.ActionType, AIActionNames.PayPrisonerRansom, StringComparison.Ordinal))
                    {
-                       Log.Message("[RimAI.Relations] pay_prisoner_ransom failed. Preserving request_info(prisoner) binding state for retry.");
+                       ModuleLog.Message("[RimAI.Relations] pay_prisoner_ransom failed. Preserving request_info(prisoner) binding state for retry.");
                        if (batchRansomPlan.IsActive)
                        {
-                           Log.Message("[RimAI.Relations] batch pay_prisoner_ransom failed. Stop executing remaining actions in this turn.");
+                           ModuleLog.Message("[RimAI.Relations] batch pay_prisoner_ransom failed. Stop executing remaining actions in this turn.");
                        }
                    }
 

@@ -21,6 +21,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -254,7 +255,7 @@ public class Dialog_DiplomacyDialogue : Window
 
             GoodwillChangeAnimator.OnGoodwillChanged += Parts.Presenter.OnGoodwillChanged;
 
-            Log.Message($"[RimAI.Relations] Dialogue opened with {faction.Name}, messages: {session?.messages.Count ?? 0}, AI configured: {AIChatServiceAsync.Instance.IsConfigured()}");
+            ModuleLog.Message($"[RimAI.Relations] Dialogue opened with {faction.Name}, messages: {session?.messages.Count ?? 0}, AI configured: {AIChatServiceAsync.Instance.IsConfigured()}");
         }
 
 
@@ -403,7 +404,7 @@ public class Dialog_DiplomacyDialogue : Window
                 double actionsMs = (t2c - t2b) * 1000.0 / freq;
                 double chatMs = (t3 - t2c) * 1000.0 / freq;
                 double overlayMs = (t4 - t3) * 1000.0 / freq;
-                Log.Message($"[RimAI.Relations][FrameDiag] {faction?.Name}: mem={memRefreshMs:F1}ms, title={titleMs:F1}ms, list={listMs:F1}ms, tabs={tabsMs:F1}ms, actions={actionsMs:F1}ms, chat={chatMs:F1}ms, overlay={overlayMs:F1}ms, total={totalMs:F1}ms");
+                ModuleLog.Message($"[RimAI.Relations][FrameDiag] {faction?.Name}: mem={memRefreshMs:F1}ms, title={titleMs:F1}ms, list={listMs:F1}ms, tabs={tabsMs:F1}ms, actions={actionsMs:F1}ms, chat={chatMs:F1}ms, overlay={overlayMs:F1}ms, total={totalMs:F1}ms");
             }
         }
 

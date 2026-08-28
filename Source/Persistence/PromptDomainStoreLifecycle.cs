@@ -23,6 +23,7 @@ using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting.Diplomacy;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Persistence
 {
@@ -224,12 +225,12 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                     string summary = migrationFixes.Count == 0
                         ? "none"
                         : string.Join(", ", migrationFixes);
-                    Log.Message("[RimAI.Relations] Prompt domain migration completed and saved. Fixes: " + summary);
+                    ModuleLog.Message("[RimAI.Relations] Prompt domain migration completed and saved. Fixes: " + summary);
                     _hasPendingPromptDomainRepairs = false;
                     repaired = true;
                 }
 
-                Log.Message("[RimAI.Relations] Loaded SystemPromptConfig from prompt domain files.");
+                ModuleLog.Message("[RimAI.Relations] Loaded SystemPromptConfig from prompt domain files.");
                 return resolvedConfig;
             }
             catch (PromptRenderException)
@@ -265,7 +266,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
                 if (Owner.TryRepairPlaceholderGlobalSystemPrompt(ref config, "config save request"))
                 {
-                    Log.Message("[RimAI.Relations] Rebuilt placeholder GlobalSystemPrompt before saving custom config.");
+                    ModuleLog.Message("[RimAI.Relations] Rebuilt placeholder GlobalSystemPrompt before saving custom config.");
                 }
 
                 if (Owner.IsPlaceholderGlobalSystemPrompt(config))
@@ -287,7 +288,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                     _cachedConfigWriteTimeUtc = writeTimeUtc;
                 }
 
-                Log.Message($"[RimAI.Relations] Saved SystemPromptConfig to: {ConfigFilePath}");
+                ModuleLog.Message($"[RimAI.Relations] Saved SystemPromptConfig to: {ConfigFilePath}");
             }
             catch (Exception ex)
             {
@@ -305,7 +306,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
                 FactionPromptManager.Instance.ResetAllConfigs();
                 _cachedConfig = Owner.CreateDefaultConfig();
                 _cachedConfigWriteTimeUtc = DateTime.MinValue;
-                Log.Message("[RimAI.Relations] Reset SystemPromptConfig to default");
+                ModuleLog.Message("[RimAI.Relations] Reset SystemPromptConfig to default");
             }
             catch (Exception ex)
             {

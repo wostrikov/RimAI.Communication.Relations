@@ -8,6 +8,7 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Serialization;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -519,7 +520,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
 
             loggedCustomPath = path;
-            Log.Message($"[RimAI.Relations] RPG custom prompt path ({source}): {path}");
+            ModuleLog.Message($"[RimAI.Relations] RPG custom prompt path ({source}): {path}");
         }
 
         private static void LogResolvedCustomPayload(RpgPromptCustomConfig config, bool exists)
@@ -549,7 +550,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
 
             loggedPayloadSignature = signature;
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] RPG custom prompt payload updated (exists={exists}): FullHeaderLen={fullHeader.Length}, CompactHeaderLen={compactHeader.Length}, ActionReliabilityLen={reliability.Length}, FullTryGainMemoryTemplateLen={tryGainMemory.Length}");
         }
 

@@ -13,6 +13,7 @@ using Ustas.RimAI.Core.Storage;
 using Ustas.RimAI.Core.Relations;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -1000,7 +1001,7 @@ internal void TryMigrateLegacyArchives(string currentSaveKey)
             {
                 LocalStorage.Current.WriteAllText(markerPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
                 Owner.TryClaimDefaultBucket(currentSaveKey, legacyDirs);
-                Log.Message($"[RimAI.Relations] Migrated {migratedCount} legacy NPC archive file(s) to {currentSaveKey}.");
+                ModuleLog.Message($"[RimAI.Relations] Migrated {migratedCount} legacy NPC archive file(s) to {currentSaveKey}.");
             }
         }
 

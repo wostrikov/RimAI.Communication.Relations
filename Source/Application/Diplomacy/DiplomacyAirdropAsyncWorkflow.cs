@@ -22,6 +22,7 @@ using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -607,7 +608,7 @@ internal bool TryHandlePendingAirdropSelectionBeforeAi(
     }
 
     string countHint = mappedParameters.TryGetValue("count", out object countRaw) ? countRaw?.ToString() ?? "none" : "none";
-    Log.Message($"[RimAI.Relations] Pre-send pending airdrop selection resolved locally: def={selected.DefName},index={selected.Index},label={selected.Label},countHint={countHint}");
+    ModuleLog.Message($"[RimAI.Relations] Pre-send pending airdrop selection resolved locally: def={selected.DefName},index={selected.Index},label={selected.Label},countHint={countHint}");
     currentSession.AddMessage(
         "System",
         "RimChat_ItemAirdropSelectionChosen".Translate(selected.Label, selected.DefName).ToString(),

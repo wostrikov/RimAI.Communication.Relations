@@ -21,6 +21,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Prompting.Transfer;
 using Ustas.RimAI.Core.Player2;
 using Ustas.RimAI.Core.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -79,7 +80,7 @@ internal sealed class RelationsPromptWorkbenchPresets
                     Owner._promptPresetStore.Presets.Add(created);
                     Owner._selectedPromptPresetId = created.Id;
                     Owner._presetRenameBuffer = created.Name;
-                    Log.Message($"[RimAI.Relations][PresetDiag] Legacy workbench create clicked. add_id={created.Id}, count={Owner._promptPresetStore.Presets.Count}");
+                    ModuleLog.Message($"[RimAI.Relations][PresetDiag] Legacy workbench create clicked. add_id={created.Id}, count={Owner._promptPresetStore.Presets.Count}");
                     if (!TryActivatePresetById(created.Id, showSuccessMessage: false))
                     {
                         Owner._promptPresetService.SaveAll(Owner._promptPresetStore);
@@ -102,7 +103,7 @@ internal sealed class RelationsPromptWorkbenchPresets
                     Owner._promptPresetStore.Presets.Add(duplicated);
                     Owner._selectedPromptPresetId = duplicated.Id;
                     Owner._presetRenameBuffer = duplicated.Name;
-                    Log.Message($"[RimAI.Relations][PresetDiag] Legacy workbench duplicate clicked. add_id={duplicated.Id}, count={Owner._promptPresetStore.Presets.Count}");
+                    ModuleLog.Message($"[RimAI.Relations][PresetDiag] Legacy workbench duplicate clicked. add_id={duplicated.Id}, count={Owner._promptPresetStore.Presets.Count}");
                     if (!TryActivatePresetById(duplicated.Id, showSuccessMessage: false))
                     {
                         Owner._promptPresetService.SaveAll(Owner._promptPresetStore);

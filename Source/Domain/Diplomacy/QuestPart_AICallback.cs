@@ -4,6 +4,7 @@ using System.Linq;
 using RimWorld;
 using RimWorld.QuestGen;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -30,7 +31,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         private void OnQuestStateChanged(string state)
         {
-            Log.Message($"[RimAI.Relations] Quest {quest.name} state changed to {state}. CallbackId: {callbackId}");
+            ModuleLog.Message($"[RimAI.Relations] Quest {quest.name} state changed to {state}. CallbackId: {callbackId}");
             
             if (faction != null)
             {

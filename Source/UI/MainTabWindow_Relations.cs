@@ -9,6 +9,7 @@ using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.Relation;
 using Ustas.RimAI.Communication.Relations.Config;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -95,7 +96,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
         internal void ShowFallbackFactionInfo(Faction faction)
         {
-            Log.Message($"[RimAI.Relations] Faction Info: {faction.def?.label ?? "Unknown"} - Tech: {faction.def?.techLevel}");
+            ModuleLog.Message($"[RimAI.Relations] Faction Info: {faction.def?.label ?? "Unknown"} - Tech: {faction.def?.techLevel}");
         }
 
         

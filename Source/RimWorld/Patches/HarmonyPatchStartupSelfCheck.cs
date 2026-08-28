@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
@@ -19,7 +20,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
 
             if (failures.Count == 0)
             {
-                Log.Message("[RimAI.Relations][HarmonySelfCheck] Startup patch checks passed: 1/1.");
+                ModuleLog.Message("[RimAI.Relations][HarmonySelfCheck] Startup patch checks passed: 1/1.");
                 return;
             }
 

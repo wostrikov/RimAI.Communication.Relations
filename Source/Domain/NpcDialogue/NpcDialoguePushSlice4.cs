@@ -154,7 +154,7 @@ internal void LogThrottleDebug(string message)
                 return;
             }
 
-            Log.Message($"[RimAI.Relations][NpcPushThrottle] {message}");
+            ModuleLog.Message($"[RimAI.Relations][NpcPushThrottle] {message}");
         }
 
 internal bool TryDeliverFallbackMessage(NpcDialogueTriggerContext context)

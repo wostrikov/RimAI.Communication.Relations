@@ -157,7 +157,7 @@ public void AddDelayedEvent(DelayedDiplomacyEvent evt)
             {
                 delayedEvents.Add(evt);
             }
-            Log.Message($"[RimAI.Relations] Scheduled delayed {evt.EventType} from {evt.Faction?.Name} at tick {evt.ExecuteTick}");
+            ModuleLog.Message($"[RimAI.Relations] Scheduled delayed {evt.EventType} from {evt.Faction?.Name} at tick {evt.ExecuteTick}");
         }
 
 internal void FlushPendingDelayedEvents()
@@ -176,7 +176,7 @@ internal void DailyReset()
             GameAIInterface.Instance?.DailyReset();
             Owner.OnSocialCircleDailyReset();
 
-            Log.Message("[RimAI.Relations] Daily reset completed.");
+            ModuleLog.Message("[RimAI.Relations] Daily reset completed.");
         }
 
 internal void ProcessAIDecisions()
@@ -230,7 +230,7 @@ internal void MigrateLegacyRaidCallEveryoneEvents(int currentTick)
 
                 if (changed)
                 {
-                    Log.Message($"[RimAI.Relations] Migrated legacy RaidCallEveryone event from {evtFaction?.Name ?? "Unknown"}: executeTick={evt.ExecuteTick}, action={evt.CallEveryoneAction}, maxRetry={evt.MaxRetryCount}");
+                    ModuleLog.Message($"[RimAI.Relations] Migrated legacy RaidCallEveryone event from {evtFaction?.Name ?? "Unknown"}: executeTick={evt.ExecuteTick}, action={evt.CallEveryoneAction}, maxRetry={evt.MaxRetryCount}");
                 }
             }
         }
@@ -477,7 +477,7 @@ public void TryRestoreTempFactionRelations(int currentTick)
             if (tempFactionRelations.restoreAtTick <= 0) return;
             if (currentTick < tempFactionRelations.restoreAtTick) return;
 
-            Log.Message($"[RimAI.Relations] Restoring {tempFactionRelations.originalRelations.Count} temporary faction peace overrides at tick {currentTick}");
+            ModuleLog.Message($"[RimAI.Relations] Restoring {tempFactionRelations.originalRelations.Count} temporary faction peace overrides at tick {currentTick}");
             foreach (var kv in tempFactionRelations.originalRelations)
             {
                 string[] ids = kv.Key.Split(':');

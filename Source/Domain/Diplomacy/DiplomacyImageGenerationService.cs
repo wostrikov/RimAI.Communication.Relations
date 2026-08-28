@@ -14,6 +14,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -113,7 +114,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             for (int attempt = 0; attempt < requestBodies.Length; attempt++)
             {
                 byte[] postData = Encoding.UTF8.GetBytes(requestBodies[attempt]);
-                Log.Message($"[RimAI.Relations] image request attempt={attempt + 1}, schema='{request.SchemaPreset}', mode='{request.Mode}', endpoint='{submitUrl}', model='{request.Model}', sourceBytes={(request.SourceImageBytes == null ? 0 : request.SourceImageBytes.Length)}, bodyPreview={BuildRequestBodyPreview(requestBodies[attempt])}");
+                ModuleLog.Message($"[RimAI.Relations] image request attempt={attempt + 1}, schema='{request.SchemaPreset}', mode='{request.Mode}', endpoint='{submitUrl}', model='{request.Model}', sourceBytes={(request.SourceImageBytes == null ? 0 : request.SourceImageBytes.Length)}, bodyPreview={BuildRequestBodyPreview(requestBodies[attempt])}");
                 using (var requestWeb = new UnityWebRequest(submitUrl, "POST"))
                 {
                     requestWeb.uploadHandler = new UploadHandlerRaw(postData);
@@ -259,7 +260,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             string size = EscapeJson(normalizedSize);
             string watermark = request.Watermark ? "true" : "false";
             string imageField = BuildImageToImageJsonField(request);
-            Log.Message($"[RimAI.Relations] send_image request normalized size={normalizedSize}, img2img={(string.IsNullOrEmpty(imageField) ? "false" : "true")}");
+            ModuleLog.Message($"[RimAI.Relations] send_image request normalized size={normalizedSize}, img2img={(string.IsNullOrEmpty(imageField) ? "false" : "true")}");
             return "{"
                 + $"\"model\":\"{model}\","
                 + $"\"prompt\":\"{prompt}\","

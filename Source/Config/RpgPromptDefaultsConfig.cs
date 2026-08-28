@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -469,7 +470,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             }
 
             loggedDefaultPath = path;
-            Log.Message($"[RimAI.Relations] RPG default prompt path ({source}): {path}");
+            ModuleLog.Message($"[RimAI.Relations] RPG default prompt path ({source}): {path}");
         }
 
         private static void LogResolvedDefaultPayload(RpgPromptDefaultsConfig config)
@@ -483,7 +484,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             string compactHeader = config.ApiActionPrompt?.CompactHeader ?? "<null>";
             string reliability = config.ActionReliabilityFallback ?? "<null>";
             string tryGainMemory = config.ApiActionPrompt?.FullTryGainMemoryLineTemplate ?? "<null>";
-            Log.Message(
+            ModuleLog.Message(
                 $"[RimAI.Relations] RPG defaults loaded: FullHeader='{fullHeader}', CompactHeader='{compactHeader}', ActionReliabilityFallback='{reliability}', FullTryGainMemoryLineTemplate='{tryGainMemory}'");
         }
     }
