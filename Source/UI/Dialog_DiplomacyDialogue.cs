@@ -24,6 +24,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
+[StaticConstructorOnStartup]
 public class Dialog_DiplomacyDialogue : Window
     
 {

@@ -25,6 +25,7 @@ using Ustas.RimAI.Communication.Relations.UI;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
+[StaticConstructorOnStartup]
 internal sealed class DiplomacyDialogueChrome : DiplomacyDialogueCollaborator
 {
     internal DiplomacyDialogueChrome(Dialog_DiplomacyDialogue owner) : base(owner) { }

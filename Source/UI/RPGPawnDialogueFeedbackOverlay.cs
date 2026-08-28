@@ -7,6 +7,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
     /// <summary>/// Dependencies: portrait layout helpers, Verse widgets, and localized feedback text producers.
  /// Responsibility: queue and render portrait-anchored RPG floating subtitles with gentle rise/fade motion.
  ///</summary>
+        [StaticConstructorOnStartup]
         internal sealed class RPGPawnDialogueFeedbackOverlay : Dialog_RPGPawnDialogueCollaborator
     {
         internal RPGPawnDialogueFeedbackOverlay(Dialog_RPGPawnDialogue owner) : base(owner)
@@ -25,6 +26,17 @@ namespace Ustas.RimAI.Communication.Relations.UI
         }
 
         internal static Texture2D subtitleCornerTexture;
+
+        /// <summary>
+        /// The attribute alone would preload nothing, because the texture is
+        /// built lazily by the property below. This makes the claim true. The
+        /// generator is arithmetic over a pixel buffer with no defs or content
+        /// lookups behind it, so it is safe this early in startup.
+        /// </summary>
+        static RPGPawnDialogueFeedbackOverlay()
+        {
+            subtitleCornerTexture = CreateSubtitleCornerTexture();
+        }
         internal static Texture2D SubtitleCornerTexture => subtitleCornerTexture ?? (subtitleCornerTexture = Dialog_RPGPawnDialogue.CreateSubtitleCornerTexture());
 
         internal readonly List<ActionFeedbackEntry> actionFeedbackEntries = new List<ActionFeedbackEntry>();
