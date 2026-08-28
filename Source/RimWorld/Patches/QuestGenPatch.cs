@@ -100,7 +100,11 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                                 return false;
                             }
                         }
-                        catch { }
+                        // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - quest slot probe treated the slot as unset
+                        catch (System.Exception ex)
+                        {
+                            ModuleLog.Message("[RimAI.Relations] quest slot probe treated the slot as unset: " + ex.Message);
+                        }
                     }
 
                     if (var == null) return false;
@@ -124,7 +128,12 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                                     }
                                     else if (var.GetType().IsValueType)
                                     {
-                                        try { newInt = Convert.ToInt32(var); } catch { }
+                                        try { newInt = Convert.ToInt32(var); }
+                                        // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - quest slot probe treated the slot as unset
+                                        catch (System.Exception ex)
+                                        {
+                                            ModuleLog.Message("[RimAI.Relations] quest slot probe treated the slot as unset: " + ex.Message);
+                                        }
                                     }
                                     
                                     if (newInt <= 0)
@@ -134,7 +143,11 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                                 }
                             }
                         }
-                        catch { }
+                        // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - quest slot probe treated the slot as unset
+                        catch (System.Exception ex)
+                        {
+                            ModuleLog.Message("[RimAI.Relations] quest slot probe treated the slot as unset: " + ex.Message);
+                        }
                     }
                 }
             }

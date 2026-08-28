@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -149,8 +150,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - save scope probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] save scope probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
@@ -194,8 +197,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - save scope probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] save scope probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
@@ -242,8 +247,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - save scope probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] save scope probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
@@ -263,8 +270,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             {
                 slot = GameComponent_RPGManager.Instance?.GetPersistentRpgSaveSlotId() ?? string.Empty;
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - save scope probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] save scope probe fell through to the next strategy: " + ex.Message);
             }
 
             return $"gameInfoType={gameInfoType}; gameInfo={gameInfoValues}; tracked='{trackedSaveName}'; metaHeader='{metaHeader}'; slot='{slot}'";

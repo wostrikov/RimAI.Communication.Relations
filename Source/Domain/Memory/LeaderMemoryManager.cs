@@ -9,6 +9,7 @@ using Verse;
 using RimWorld;
 
 using JsonCopyStats = Ustas.RimAI.Communication.Relations.Memory.LeaderMemoryManagerPersistenceHelpers.JsonCopyStats;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Memory
 {
@@ -107,8 +108,10 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                         return path;
                     }
                 }
-                catch
+                // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - leader memory folder unavailable, so memories cannot persist
+                catch (System.Exception ex)
                 {
+                    RimAiLog.WarningOnce(RimAiLogCategory.Relations, "[RimAI.Relations] leader memory folder unavailable, so memories cannot persist: " + ex, 1511194630);
                 }
 
                 string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, SaveRootDir, PromptFolderName, NpcPromptSubDir);

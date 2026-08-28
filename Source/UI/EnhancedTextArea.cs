@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI
 {
@@ -377,7 +378,11 @@ namespace Ustas.RimAI.Communication.Relations.UI
                     return field.GetValue(null) as TextEditor;
                 }
             }
-            catch { }
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - GUI text editor handle unavailable
+            catch (System.Exception ex)
+            {
+                ModuleLog.Message("[RimAI.Relations] GUI text editor handle unavailable: " + ex.Message);
+            }
             return null;
         }
 

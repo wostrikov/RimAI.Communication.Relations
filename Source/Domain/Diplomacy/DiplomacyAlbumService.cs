@@ -7,6 +7,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -175,8 +176,10 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return root;
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - album folder unavailable, so saved images have nowhere to go
+            catch (System.Exception ex)
             {
+                RimAiLog.WarningOnce(RimAiLogCategory.Relations, "[RimAI.Relations] album folder unavailable, so saved images have nowhere to go: " + ex, 1511194627);
             }
 
             string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptNpcFolderName, PromptNpcSubFolderName);
@@ -234,8 +237,10 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return field.GetValue(target) as string ?? string.Empty;
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - album folder unavailable, so saved images have nowhere to go
+            catch (System.Exception ex)
             {
+                RimAiLog.WarningOnce(RimAiLogCategory.Relations, "[RimAI.Relations] album folder unavailable, so saved images have nowhere to go: " + ex, 1511194628);
             }
 
             return string.Empty;

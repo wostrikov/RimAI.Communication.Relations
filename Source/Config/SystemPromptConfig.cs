@@ -7,6 +7,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using UnityEngine;
 using Ustas.RimAI.Core.Storage;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -766,7 +767,11 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     return System.IO.Path.Combine(defaultDir, fileName);
                 }
             }
-            catch { }
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - prompt folder unavailable, so the default prompt file cannot be found
+            catch (System.Exception ex)
+            {
+                RimAiLog.WarningOnce(RimAiLogCategory.Relations, "[RimAI.Relations] prompt folder unavailable, so the default prompt file cannot be found: " + ex, 1511194625);
+            }
 
             try
             {
@@ -779,7 +784,11 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     return System.IO.Path.Combine(defaultDir, fileName);
                 }
             }
-            catch { }
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - prompt folder unavailable, so the default prompt file cannot be found
+            catch (System.Exception ex)
+            {
+                RimAiLog.WarningOnce(RimAiLogCategory.Relations, "[RimAI.Relations] prompt folder unavailable, so the default prompt file cannot be found: " + ex, 1511194626);
+            }
 
             return System.IO.Path.Combine(PromptFolderName, DefaultSubFolderName, fileName);
         }

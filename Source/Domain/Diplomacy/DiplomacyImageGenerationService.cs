@@ -15,6 +15,7 @@ using UnityEngine.Networking;
 using Verse;
 using Ustas.RimAI.Core.Storage;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -500,8 +501,10 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return root;
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - image output folder unavailable
+            catch (System.Exception ex)
             {
+                RimAiLog.WarningOnce(RimAiLogCategory.Relations, "[RimAI.Relations] image output folder unavailable: " + ex, 1511194629);
             }
 
             string fallback = Path.Combine(GenFilePaths.ConfigFolderPath, "Ustas.RimAI.Communication.Relations", PromptNpcFolderName, PromptNpcSubFolderName);

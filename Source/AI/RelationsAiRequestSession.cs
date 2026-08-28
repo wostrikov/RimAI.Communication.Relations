@@ -189,8 +189,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 {
                     cancellation.Cancel();
                 }
-                catch
+                // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - a transport cancellation was already disposed
+                catch (System.Exception ex)
                 {
+                    ModuleLog.Message("[RimAI.Relations] a transport cancellation was already disposed: " + ex.Message);
                 }
             }
 
@@ -477,8 +479,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
                     {
                         cancellation.Cancel();
                     }
-                    catch
+                    // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - a transport cancellation was already disposed
+                    catch (System.Exception ex)
                     {
+                        ModuleLog.Message("[RimAI.Relations] a transport cancellation was already disposed: " + ex.Message);
                     }
                 }
 

@@ -16,6 +16,7 @@ using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Core.Player2;
 using Ustas.RimAI.Core.UI;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -173,7 +174,11 @@ internal sealed class RelationsProviderFactionPrompts
                     return (bool)hiddenField.GetValue(def);
                 }
             }
-            catch { }
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - faction hidden flag unreadable, treated as visible
+            catch (System.Exception ex)
+            {
+                ModuleLog.Message("[RimAI.Relations] faction hidden flag unreadable, treated as visible: " + ex.Message);
+            }
             return false;
         }
 

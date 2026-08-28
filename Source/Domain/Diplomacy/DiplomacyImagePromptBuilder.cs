@@ -6,6 +6,7 @@ using System.Text;
 using Ustas.RimAI.Communication.Relations.Config;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Communication.Relations.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -201,8 +202,10 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                     return field.GetValue(target);
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - optional member probe returned nothing
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] optional member probe returned nothing: " + ex.Message);
             }
 
             return null;

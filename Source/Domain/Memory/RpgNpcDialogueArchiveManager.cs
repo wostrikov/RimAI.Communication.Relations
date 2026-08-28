@@ -1959,8 +1959,10 @@ internal static string ReadStringMember(object target, string memberName)
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - archive field probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] archive field probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
@@ -2004,8 +2006,10 @@ internal static string TryResolveNameFromAnyStringMember(object target)
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - archive field probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] archive field probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
@@ -2052,8 +2056,10 @@ internal static string TryResolveLoadedGameNameFromMetaHeader()
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - archive field probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] archive field probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
@@ -2133,8 +2139,10 @@ internal static string ReadStaticStringMember(Type targetType, string memberName
                     }
                 }
             }
-            catch
+            // RimAI.catch-boundary: ALLOWED_TOP_LEVEL_BOUNDARY - archive field probe fell through to the next strategy
+            catch (System.Exception ex)
             {
+                ModuleLog.Message("[RimAI.Relations] archive field probe fell through to the next strategy: " + ex.Message);
             }
 
             return string.Empty;
