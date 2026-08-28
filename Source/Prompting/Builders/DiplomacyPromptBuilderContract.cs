@@ -108,7 +108,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             sb.AppendLine();
             sb.AppendLine("WRONG (will be discarded):");
             sb.AppendLine("```");
-            sb.AppendLine("好的，这就安排！\\n```json\\n{\"visible_dialogue\":\"...\"}\\n```");
+            sb.AppendLine("Гаразд, зараз організую!\\n```json\\n{\"visible_dialogue\":\"...\"}\\n```");
             sb.AppendLine("```");
             sb.AppendLine("NEVER wrap in code blocks or add text before/after the JSON.");
             sb.AppendLine();
@@ -120,8 +120,8 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             {
                 "- [Highest Priority] Your entire reply MUST be a single top-level JSON object. First char {, last char }. No text, explanation, reasoning, or Markdown outside the JSON object. Violation will cause the reply to be discarded.",
                 "- [Action engagement -- critical] You are a faction leader with real gameplay agency. Text-only responses produce ZERO effect. When the player makes a request matching an available action, you MUST include it in your JSON response. Skipping actions when the player expects them makes the interaction feel broken and unresponsive.",
-                "- 必填键：visible_dialogue。",
-                "- 可选键：actions、meta、debug。",
+                "- Обовʼязковий ключ: visible_dialogue.",
+                "- Необовʼязкові ключі: actions, meta, debug.",
                 "- Якщо actions є, обовʼязковий ключ actions[].action; actions[].parameters необовʼязковий.",
                 "- visible_dialogue може містити лише видиму репліку в ролі, без ланцюжка міркувань, пояснень, заголовків, переказу правил чи налагоджувальних даних.",
                 PromptTextConstants.OutputSpecificationAuthorityLegacyRule,
@@ -165,7 +165,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 
         internal void AppendOutputSpecificationAuthorityTemplate(StringBuilder sb, string jsonTemplate)
         {
-            sb.AppendLine("原始 JSON 模板：");
+            sb.AppendLine("Початковий шаблон JSON:");
             sb.AppendLine(jsonTemplate);
             sb.AppendLine();
         }
@@ -212,9 +212,9 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 
         internal void AppendStrategySuggestionGuidance(StringBuilder sb)
         {
-            sb.AppendLine("策略建议（可选）：");
+            sb.AppendLine("Стратегічні поради (необовʼязково):");
             sb.AppendLine("- Додавати strategy_suggestions можна лише коли доступна стратегічна здатність, і рівно 3 пункти.");
-            sb.AppendLine("- 每项格式必须为 {\"strategy_name\":\"\",\"reason\":\"\",\"content\":\"\"}。");
+            sb.AppendLine("- Формат кожного пункту має бути {\"strategy_name\":\"\",\"reason\":\"\",\"content\":\"\"}.");
             sb.AppendLine("- Зміст має спиратися на факти, лишатися стислим і бути тільки в JSON.");
             sb.AppendLine("- Заборонено друкувати марковані списки стратегій у видимій репліці.");
             sb.AppendLine();

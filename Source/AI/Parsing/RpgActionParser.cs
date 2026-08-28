@@ -79,7 +79,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             MatchCollection matches = Regex.Matches(
                 rawResponse,
-                @"(?:Use\s+Action|使用动作)\s*[:：]\s*([A-Za-z_][A-Za-z0-9_]*)[^\r\n\)]*",
+                @"(?:Use\s+Action|Дія)\s*[:]\s*([A-Za-z_][A-Za-z0-9_]*)[^\r\n\)]*",
                 RegexOptions.IgnoreCase);
 
             foreach (Match match in matches)
@@ -399,9 +399,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
             }
 
             string sanitized = content;
-            sanitized = Regex.Replace(sanitized, @"\(\s*(?:Use\s+Action|使用动作)\s*[:：][^)\r\n]*\)", string.Empty, RegexOptions.IgnoreCase);
-            sanitized = Regex.Replace(sanitized, @"（\s*(?:Use\s+Action|使用动作)\s*[:：][^）\r\n]*）", string.Empty, RegexOptions.IgnoreCase);
-            sanitized = Regex.Replace(sanitized, @"^[ \t]*(?:Use\s+Action|使用动作)\s*[:：][^\r\n]*$", string.Empty, RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            sanitized = Regex.Replace(sanitized, @"\(\s*(?:Use\s+Action|Дія)\s*[:][^)\r\n]*\)", string.Empty, RegexOptions.IgnoreCase);
+            sanitized = Regex.Replace(sanitized, @"（\s*(?:Use\s+Action|Дія)\s*[:][^）\r\n]*）", string.Empty, RegexOptions.IgnoreCase);
+            sanitized = Regex.Replace(sanitized, @"^[ \t]*(?:Use\s+Action|Дія)\s*[:][^\r\n]*$", string.Empty, RegexOptions.Multiline | RegexOptions.IgnoreCase);
             sanitized = Regex.Replace(sanitized, @"^\s*\*\*<[^>\r\n]+>\*\*\s*$", string.Empty, RegexOptions.Multiline);
             sanitized = Regex.Replace(sanitized, @"^\s*<[^>\r\n]+>\s*$", string.Empty, RegexOptions.Multiline);
             sanitized = Regex.Replace(sanitized, @"^\s*\{[\s\r\n]*""defName""\s*:\s*""[^""]+""[\s\r\n]*\}\s*$", string.Empty, RegexOptions.Multiline);

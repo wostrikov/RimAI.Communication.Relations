@@ -118,16 +118,16 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
         {
             return eventType switch
             {
-                SignificantEventType.WarDeclared => "宣战",
-                SignificantEventType.PeaceMade => "议和",
-                SignificantEventType.TradeCaravan => "贸易商队",
-                SignificantEventType.GiftSent => "赠送礼物",
-                SignificantEventType.AidRequested => "请求援助",
-                SignificantEventType.QuestIssued => "发布任务",
-                SignificantEventType.GoodwillChanged => "好感度变化",
-                SignificantEventType.AllianceFormed => "结盟",
-                SignificantEventType.Betrayal => "背叛",
-                _ => "事件"
+                SignificantEventType.WarDeclared => "оголосити війну",
+                SignificantEventType.PeaceMade => "мирні перемовини",
+                SignificantEventType.TradeCaravan => "Торговий караван",
+                SignificantEventType.GiftSent => "Подарувати",
+                SignificantEventType.AidRequested => "Запит допомоги",
+                SignificantEventType.QuestIssued => "Опублікувати завдання",
+                SignificantEventType.GoodwillChanged => "Зміна прихильності",
+                SignificantEventType.AllianceFormed => "союз",
+                SignificantEventType.Betrayal => "зрада",
+                _ => "подія"
             };
         }
 
@@ -166,11 +166,11 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             int lastGoodwill = recent.Last().Goodwill;
             int change = lastGoodwill - firstGoodwill;
 
-            if (change > 10) return "关系显著改善 ↑";
-            else if (change > 0) return "关系缓慢改善 ↑";
-            else if (change < -10) return "关系急剧恶化 ↓";
-            else if (change < 0) return "关系缓慢恶化 ↓";
-            else return "关系稳定 →";
+            if (change > 10) return "Відносини помітно поліпшилися ↑";
+            else if (change > 0) return "Відносини поволі поліпшуються ↑";
+            else if (change < -10) return "Відносини різко погіршилися ↓";
+            else if (change < 0) return "Відносини поволі гіршають ↓";
+            else return "Відносини стабільні →";
         }
     }
 }

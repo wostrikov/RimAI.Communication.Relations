@@ -19,7 +19,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         private static readonly string[] ImplantResourceKeywords =
         {
             "bionic", "prosthetic", "implant", "artificial", "bodypart", "cybernetic",
-            "仿生", "义体", "假肢", "植入", "人工"
+            "біонік", "протез", "імплант кінцівки", "імплантат", "штучний"
         };
 
         public static bool CanCandidateForNeed(ThingDefRecord record, ItemAirdropNeedFamily family)

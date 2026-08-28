@@ -61,7 +61,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
 
                 if (leaderMemory.SignificantEvents != null && leaderMemory.SignificantEvents.Count > 0)
                 {
-                    sb.AppendLine("【重大事件记忆】");
+                    sb.AppendLine("[Памʼять про великі події]");
                     sb.AppendLine("Ці події глибоко вплинули на твій погляд на інші фракції:");
 
                     var recentEvents = leaderMemory.SignificantEvents
@@ -72,14 +72,14 @@ namespace Ustas.RimAI.Communication.Relations.Context
                     foreach (var evt in recentEvents)
                     {
                         string eventIcon = host.DiplomacyBuilder.GetEventIcon(evt.EventType);
-                        sb.AppendLine($"  {eventIcon} [{host.DiplomacyBuilder.GetEventTypeName(evt.EventType)}] 对 {evt.InvolvedFactionName}: {evt.Description}");
+                        sb.AppendLine($"  {eventIcon} [{host.DiplomacyBuilder.GetEventTypeName(evt.EventType)}] щодо {evt.InvolvedFactionName}: {evt.Description}");
                     }
                     sb.AppendLine();
                 }
 
                 if (leaderMemory.FactionMemories != null && leaderMemory.FactionMemories.Count > 0)
                 {
-                    sb.AppendLine("【派系关系认知】");
+                    sb.AppendLine("[Уявлення про відносини фракцій]");
                     sb.AppendLine("За тривалою взаємодією в тебе склалося враження про такі фракції:");
 
                     foreach (var memory in leaderMemory.FactionMemories)
@@ -95,7 +95,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
                             var trend = host.DiplomacyBuilder.GetRelationTrend(memory.RelationHistory);
                             if (!string.IsNullOrEmpty(trend))
                             {
-                                sb.AppendLine($"    关系趋势：{trend}");
+                                sb.AppendLine($"    Тенденція відносин: {trend}");
                             }
                         }
                     }
@@ -114,7 +114,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
 
                 if (crossSummaries.Count > 0)
                 {
-                    sb.AppendLine("【跨通道长期记忆】");
+                    sb.AppendLine("[Довготривала памʼять між каналами]");
                     sb.AppendLine("Спільний переказ з дипломатичних сесій і подій RPG поза мапою:");
 
                     foreach (CrossChannelSummaryRecord summary in crossSummaries
@@ -123,8 +123,8 @@ namespace Ustas.RimAI.Communication.Relations.Context
                         .Take(6))
                     {
                         string sourceLabel = summary.Source == CrossChannelSummarySource.DiplomacySession
-                            ? "外交会话"
-                            : "RPG离图";
+                            ? "Дипломатична сесія"
+                            : "RPG поза мапою";
                         sb.AppendLine($"  • [{sourceLabel}] {summary.SummaryText}");
 
                         if (summary.KeyFacts != null && summary.KeyFacts.Count > 0)
@@ -132,14 +132,14 @@ namespace Ustas.RimAI.Communication.Relations.Context
                             string facts = string.Join("；", summary.KeyFacts.Take(2));
                             if (!string.IsNullOrWhiteSpace(facts))
                             {
-                                sb.AppendLine($"    关键点：{facts}");
+                                sb.AppendLine($"    Ключове: {facts}");
                             }
                         }
                     }
                     sb.AppendLine();
                 }
 
-                sb.AppendLine("【记忆使用指导】");
+                sb.AppendLine("[Настанови щодо використання памʼяті]");
                 sb.AppendLine("- До фракцій з негативним досвідом взаємодії лишайся насторожі й з підозрою");
                 sb.AppendLine("- До фракцій з позитивним досвідом взаємодії стався привітніше й довірливіше");
                 sb.AppendLine("- Великі події (оголошення війни, зрада) мають глибоко впливати на твоє ставлення");
@@ -148,7 +148,7 @@ namespace Ustas.RimAI.Communication.Relations.Context
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimAI.Relations] 注入记忆数据失败：{ex.Message}");
+                Log.Warning($"[RimAI.Relations] Не вдалося вставити дані памʼяті: {ex.Message}");
             }
         }
 

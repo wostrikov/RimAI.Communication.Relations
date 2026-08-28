@@ -259,8 +259,8 @@ internal string CompactStrategyReasonForDisplay(string reason)
         "\\[\\s*F\\d+\\s*\\]",
         string.Empty,
         System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-    compact = compact.Replace("事实", string.Empty)
-                     .Replace("原因", string.Empty)
+    compact = compact.Replace("факт", string.Empty)
+                     .Replace("причина", string.Empty)
                      .Replace("because", string.Empty)
                      .Replace("Because", string.Empty)
                      .Trim(' ', ':', '：', '-', '|', ';', '；');
@@ -269,19 +269,19 @@ internal string CompactStrategyReasonForDisplay(string reason)
     string wealth = Owner.Parts.StrategyPrompt.ExtractWealthTier(compact);
     if (!string.IsNullOrWhiteSpace(wealth))
     {
-        parts.Add($"财富{wealth}");
+        parts.Add($"статки {wealth}");
     }
 
-    int? social = Owner.Parts.StrategyPrompt.ExtractIntNearKeyword(compact, "社交", "social");
+    int? social = Owner.Parts.StrategyPrompt.ExtractIntNearKeyword(compact, "спілкування", "social");
     if (social.HasValue)
     {
-        parts.Add($"社交{social.Value}");
+        parts.Add($"соціальність {social.Value}");
     }
 
-    int? population = Owner.Parts.StrategyPrompt.ExtractIntNearKeyword(compact, "殖民者", "人口", "colonists");
+    int? population = Owner.Parts.StrategyPrompt.ExtractIntNearKeyword(compact, "колоніст", "населення", "colonists");
     if (population.HasValue)
     {
-        parts.Add($"人口{population.Value}");
+        parts.Add($"населення {population.Value}");
     }
 
     if (parts.Count > 0)

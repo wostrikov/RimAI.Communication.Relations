@@ -288,8 +288,8 @@ internal static void ApplyLegacySocialNewsNodeMigrationIfNeeded(PromptPresetConf
 
             PromptUnifiedCatalog authoritative = PromptUnifiedCatalog.CreateFallback();
             int overriddenCount = 0;
-            overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_style", "文风：中性新闻播报");
-            overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_json_contract", "如果 quote 为空，quote_attribution 也必须为空。", "narrative_mode");
+            overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_style", "Стиль: нейтральне новинне мовлення");
+            overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_json_contract", "Якщо quote порожній, quote_attribution теж має бути порожнім.", "narrative_mode");
             overriddenCount += PromptPresetService.TryOverrideLegacySocialNewsNode(catalog, authoritative, "social_news_fact", "Створи картку світової новини для соціального кола на основі наведених фактів-зерен.", "narrative_mode={{ world.social.narrative_mode }}");
             catalog.MigrationVersion = LegacySocialNewsNodeMigrationVersion;
             if (overriddenCount > 0)

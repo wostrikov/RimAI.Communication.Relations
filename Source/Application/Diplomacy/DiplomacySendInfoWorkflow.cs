@@ -335,7 +335,7 @@ internal static string BuildSendInfoHiddenDirective(
     string wavesLine = waves.HasValue ? $"\nwaves: {waves.Value}" : string.Empty;
     string explicitLine = explicitChallengeRequest ? "\nexplicit_challenge_request: true" : string.Empty;
     string challengeLine = explicitChallengeRequest
-        ? "\nchallenge_phrase: call everyone | joint raid | 一起上 | 联合袭击"
+        ? "\nchallenge_phrase: call everyone | joint raid | гуртом на них | спільний напад"
         : string.Empty;
     string extraLines = string.IsNullOrWhiteSpace(extraParameterLines)
         ? string.Empty

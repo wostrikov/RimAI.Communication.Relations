@@ -189,7 +189,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             result = (result ?? string.Empty).Replace("\r", " ").Replace("\n", " ").Trim();
             if (result.Length == 0)
             {
-                result = "策略建议";
+                result = "Стратегічні поради";
             }
             if (result.Length > 14)
             {
@@ -203,7 +203,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string result = (reason ?? string.Empty).Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrWhiteSpace(result))
             {
-                return "综合判断";
+                return "Загальна оцінка";
             }
             if (result.Length > 80)
             {

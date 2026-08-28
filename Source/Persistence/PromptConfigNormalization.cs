@@ -37,7 +37,7 @@ namespace Ustas.RimAI.Communication.Relations.Persistence
 
         internal static readonly string[] PresenceBehaviorSectionTitles =
         {
-            "【在线状态策略】",
+            "[Політика статусу присутності]",
             "Online Status Strategy:",
             "Online Status Strategy"
         };

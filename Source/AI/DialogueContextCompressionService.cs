@@ -25,11 +25,11 @@ namespace Ustas.RimAI.Communication.Relations.AI
             "offer out of window",
             "outside this range",
             "reference ransom",
-            "当前可报价区间",
-            "当前可报价范围",
-            "超出允许区间",
-            "超出区间",
-            "参考赎金"
+            "Поточний діапазон пропозицій",
+            "Поточні межі пропозиції",
+            "поза дозволеним діапазоном",
+            "поза діапазоном",
+            "Орієнтовний викуп"
         };
 
         private static readonly string[] AirdropSystemKeywords =
@@ -38,8 +38,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
             "airdrop order canceled",
             "airdrop order cancelled",
             "Ти скасував цей обмін зі скиданням",
-            "取消空投交易",
-            "空投订单已取消"
+            "Скасувати обмін зі скиданням",
+            "Замовлення на скидання скасовано"
         };
 
         private static readonly Dictionary<string, string[]> TopicKeywords = new Dictionary<string, string[]>

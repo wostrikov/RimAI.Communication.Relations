@@ -247,7 +247,7 @@ internal static bool TryClassifyRansomAutoReplyTimeout(string detail, out string
 internal static bool IsQueueTimeoutText(string text)
 {
     return ContainsTimeoutToken(text, "queue") ||
-           ContainsTimeoutToken(text, "排队");
+           ContainsTimeoutToken(text, "черга");
 }
 
 
@@ -258,7 +258,7 @@ internal static bool IsNetworkTimeoutText(string text)
            ContainsTimeoutToken(text, "request timeout") ||
            ContainsTimeoutToken(text, "timed out") ||
            ContainsTimeoutToken(text, "timeout") ||
-           ContainsTimeoutToken(text, "超时");
+           ContainsTimeoutToken(text, "таймаут");
 }
 
 

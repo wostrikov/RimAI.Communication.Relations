@@ -55,25 +55,25 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 case "romance":
                 case "fall_in_love":
                 case "start_romance":
-                case "恋爱":
+                case "кохання":
                     return "RomanceAttempt";
                 case "marriageproposal":
                 case "marriage_proposal":
                 case "propose_marriage":
                 case "marry":
-                case "结婚":
+                case "одруження":
                     return "MarriageProposal";
                 case "breakup":
                 case "break_up":
                 case "split_up":
-                case "分手":
+                case "розрив":
                     return "Breakup";
                 case "divorce":
-                case "离婚":
+                case "розлучення":
                     return "Divorce";
                 case "date":
                 case "dating":
-                case "约会":
+                case "побачення":
                     return "Date";
                 case "trygainmemory":
                 case "try_gain_memory":
@@ -91,8 +91,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 case "action4":
                 case "action_4":
                 case "action 4":
-                case "第4个动作":
-                case "第四个动作":
+                case "Дія 4":
+                case "Четверта дія":
                     return "Recruit";
                 case "trytakeorderedjob":
                 case "try_take_ordered_job":
@@ -113,15 +113,15 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 case "convertideology":
                 case "convert_ideology":
                 case "change_ideology":
-                case "改变意识形态":
-                case "皈依":
-                case "改变信仰":
+                case "Змінити ідеологію":
+                case "навернення":
+                case "змінити віру":
                     return "ConvertIdeology";
                 case "adjustcertainty":
                 case "adjust_certainty":
                 case "change_certainty":
-                case "调整信仰度":
-                case "动摇信仰":
+                case "Змінити побожність":
+                case "похитнути віру":
                     return "AdjustCertainty";
                 default:
                     return actionName.Trim();

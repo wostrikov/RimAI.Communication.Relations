@@ -481,7 +481,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             config.SceneEntries = new List<ScenePromptEntryConfig>
             {
                 CreateSeedEntry(
-                    "外交-社交接触",
+                    "Дипломатія — соціальний контакт",
                     30,
                     true,
                     false,
@@ -489,7 +489,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     "channel:diplomacy",
                     "scene:social"),
                 CreateSeedEntry(
-                    "外交-任务协商",
+                    "Дипломатія — узгодження завдань",
                     60,
                     true,
                     false,
@@ -497,7 +497,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     "channel:diplomacy",
                     "scene:task"),
                 CreateSeedEntry(
-                    "外交-威胁对抗",
+                    "Дипломатія — погрози й протистояння",
                     90,
                     true,
                     false,
@@ -505,7 +505,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     "channel:diplomacy",
                     "scene:threat"),
                 CreateSeedEntry(
-                    "RPG-日常互动",
+                    "RPG — щоденна взаємодія",
                     30,
                     false,
                     true,
@@ -513,7 +513,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     "channel:rpg",
                     "scene:daily"),
                 CreateSeedEntry(
-                    "RPG-亲密关系",
+                    "RPG — близькі стосунки",
                     70,
                     false,
                     true,
@@ -521,7 +521,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     "channel:rpg",
                     "scene:intimacy"),
                 CreateSeedEntry(
-                    "RPG-冲突对话",
+                    "RPG — конфліктна розмова",
                     85,
                     false,
                     true,
@@ -864,7 +864,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 new ApiActionConfig("request_info", "Запросити інформацію часу виконання, потрібну перед дією.", "info_type (string, REQUIRED; currently prisoner only)", "Використовуй лише коли в ланцюжку викупу бракує інформації про вибір полоненого (наприклад, відсутній дійсний target_pawn_load_id). Негайно зупиняйся для непідтримуваного info_type."),
                 new ApiActionConfig("pay_prisoner_ransom", "Подати виплату викупу сріблом за полоненого, якого утримує гравець, і зареєструвати контракт викупу; звільнення полоненого виконується гравцем вручну. Стратегія ціни: нижчий викуп вигідніший фракції; вищий викуп відображає цінність полоненого або апетит гравця; якщо гравець готовий звільнити без умов, запропонуй низьку ціну й оціни його добру волю.", "target_pawn_load_id (int, REQUIRED), offer_silver (int>0, REQUIRED), payment_mode (string, optional; omit or set exactly silver)", "Лише для полонених, що належать поточній фракції й утримуються гравцем. Якщо target_pawn_load_id відсутній або недійсний, виклич request_info(info_type=prisoner) для вибору; інакше pay_prisoner_ransom можна викликати напряму. offer_silver має спиратися на поточне вікно пропозиції із системних повідомлень; виконання притисне значення поза межами до найближчої межі перед поданням. Принцип ціни: як платник, фракція виграє від нижчого викупу; вища ціна лише для цінних полонених або коли гравець вимагає багато; якщо гравець готовий звільнити без умов, запропонуй низьку ціну (наприклад 10%-30% від довідкової) і подякуй за добру волю. payment_mode можна опустити; якщо вказано, воно MUST бути точно silver. Виконуй одне подання платежу за хід. MUST: якщо природна мова стверджує, що викуп подано/сплачено/врегульовано або полоненого звільнено, та сама відповідь MUST містити дію pay_prisoner_ransom."),
                 new ApiActionConfig("trigger_incident", "Запустити ігрову подію (incident)", "defName (string), amount (int, optional points)", ""),
-                new ApiActionConfig("create_quest", "Створити місію/завдання для гравця за допомогою вбудованого шаблону. Напрям має значення: 【玩家→派系】=гравець надає (PawnLend, TradeRequest); 【派系→玩家】=фракція надає (Hospitality_Refugee, ThreatReward_Raid_MiscReward). Узгоджуй напрям із контекстом розмови.", "questDefName (string, REQUIRED: exact name from the dynamic list provided below - this parameter is MANDATORY and cannot be omitted), askerFaction (string, optional: defaults to current faction), points (int, optional: threat points for the mission)", "CRITICAL: questDefName є MANDATORY. Дія завершиться помилкою, якщо questDefName відсутній або не входить до дозволеного списку. MUST перевірити доступний список questDefName у контексті перед викликом цієї дії. Якщо немає дійсного questDefName, НЕ викликай create_quest. Власні завдання НЕ дозволені."),
+                new ApiActionConfig("create_quest", "Створити місію/завдання для гравця за допомогою вбудованого шаблону. Напрям має значення: [гравець→фракція] = гравець надає (PawnLend, TradeRequest); [фракція→гравець] = фракція надає (Hospitality_Refugee, ThreatReward_Raid_MiscReward). Узгоджуй напрям із контекстом розмови.", "questDefName (string, REQUIRED: exact name from the dynamic list provided below - this parameter is MANDATORY and cannot be omitted), askerFaction (string, optional: defaults to current faction), points (int, optional: threat points for the mission)", "CRITICAL: questDefName є MANDATORY. Дія завершиться помилкою, якщо questDefName відсутній або не входить до дозволеного списку. MUST перевірити доступний список questDefName у контексті перед викликом цієї дії. Якщо немає дійсного questDefName, НЕ викликай create_quest. Власні завдання НЕ дозволені."),
                 new ApiActionConfig("send_image", PromptTextConstants.SendImageActionDescription, PromptTextConstants.SendImageActionParameters, PromptTextConstants.SendImageActionRequirement),
                 new ApiActionConfig("exit_dialogue", "Завершити поточний сеанс розмови, зберігши поточний статус присутності", "reason (string, optional)", ""),
                 new ApiActionConfig("go_offline", PromptTextConstants.GoOfflineActionDescription, "reason (string, optional)", ""),

@@ -78,7 +78,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 case "request_raid_waves":
                     return "waves(2-6)";
                 case "request_item_airdrop":
-                    return "need, payment_items[{item(defName优先),count}], scenario?(general/trade/ransom), constraints?, budget_silver?(仅审计)";
+                    return "need, payment_items[{item(спершу defName),count}], scenario?(general/trade/ransom), constraints?, budget_silver?(лише аудит)";
                 case "request_info":
                     return "info_type(prisoner)";
                 case "pay_prisoner_ransom":
@@ -123,15 +123,15 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             switch (actionName)
             {
                 case "request_aid":
-                    return "满足援助阈值";
+                    return "Поріг для допомоги досягнуто";
                 case "declare_war":
-                    return "满足宣战阈值";
+                    return "Поріг для оголошення війни досягнуто";
                 case "make_peace":
-                    return "已处于战争状态";
+                    return "Уже стан війни";
                 case "request_caravan":
-                    return "当前非敌对";
+                    return "Наразі не ворожі";
                 case "request_raid":
-                    return "仅限敌对状态";
+                    return "Лише у ворожому стані";
                 case "create_quest":
                     return "Дозволено лише точні questDefName зі списку доступних";
                 case "request_item_airdrop":
@@ -168,17 +168,17 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             switch (actionName)
             {
                 case "adjust_goodwill":
-                    return "调整派系关系";
+                    return "Змінити відносини з фракцією";
                 case "request_aid":
                     return "Організувати допомогу (після успіху система знімає фіксовану прихильність)";
                 case "declare_war":
-                    return "切换为战争状态";
+                    return "Перейти до стану війни";
                 case "make_peace":
                     return "Пропонувати мир лише за дуже високої щирості гравця";
                 case "request_caravan":
                     return "Організувати торговий караван (після успіху система знімає фіксовану прихильність)";
                 case "request_raid":
-                    return "安排袭击";
+                    return "Організувати напад";
                 case "request_item_airdrop":
                     return "Знайти справжній ThingDef і надіслати товар Top1 звичайним скиданням";
                 case "request_info":
@@ -186,7 +186,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 case "pay_prisoner_ransom":
                     return "Подати разову оплату викупу сріблом і зареєструвати угоду; звільнення виконує гравець вручну";
                 case "trigger_incident":
-                    return "触发游戏事件";
+                    return "Запустити ігрову подію";
                 case "create_quest":
                     return "Створити рідне завдання (після успіху система знімає фіксовані -10 прихильності)";
                 case "send_image":
@@ -196,11 +196,11 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 case "publish_public_post":
                     return "Опублікувати публічний допис високого впливу";
                 case "exit_dialogue":
-                    return "结束当前话题";
+                    return "Завершити поточну тему";
                 case "go_offline":
-                    return "离开并切到离线";
+                    return "Піти й перейти в офлайн";
                 case "set_dnd":
-                    return "停止后续联系";
+                    return "Припинити подальші контакти";
                 default:
                     return actionName;
             }
@@ -235,7 +235,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 return configured;
             }
 
-            return configured + "；仅限很高诚意";
+            return configured + "; лише за дуже високої щирості";
         }
 
         internal static bool ContainsSincerityConstraint(DiplomacyPromptBuilderContract owner, string text)
@@ -246,7 +246,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             }
 
             string lower = text.ToLowerInvariant();
-            return lower.Contains("sincer") || text.Contains("真诚") || text.Contains("诚意");
+            return lower.Contains("sincer") || text.Contains("щирість") || text.Contains("добра воля");
         }
     }
 }

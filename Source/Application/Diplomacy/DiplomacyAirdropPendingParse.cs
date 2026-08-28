@@ -15,7 +15,7 @@ internal static class DiplomacyAirdropPendingParse
         RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     internal static readonly Regex AirdropTradeCardNeedCountPattern = new Regex(
-        @"(?:需求|need)\s+[^\r\n,，。]*?(?:x|×)\s*(?<count>\d{1,5})",
+        @"(?:потрібно|need)\s+[^\r\n,.]*?(?:x|×)\s*(?<count>\d{1,5})",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     internal static readonly Regex AirdropPendingChineseQuantifierCountPattern = new Regex(
@@ -81,27 +81,27 @@ internal static class DiplomacyAirdropPendingParse
             return 0;
         }
 
-        if (text.Contains("一"))
+        if (text.Contains("один"))
         {
             return 1;
         }
 
-        if (text.Contains("二") || text.Contains("两"))
+        if (text.Contains("два") || text.Contains("пара"))
         {
             return 2;
         }
 
-        if (text.Contains("三"))
+        if (text.Contains("три"))
         {
             return 3;
         }
 
-        if (text.Contains("四"))
+        if (text.Contains("чотири"))
         {
             return 4;
         }
 
-        if (text.Contains("五"))
+        if (text.Contains("пʼять"))
         {
             return 5;
         }

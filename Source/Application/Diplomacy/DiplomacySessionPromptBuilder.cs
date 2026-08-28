@@ -432,7 +432,7 @@ internal void AddAIResponseToSession(DialogueResponseEnvelope envelope, FactionD
         string reason = string.IsNullOrWhiteSpace(failedOutcome.Message)
             ? "RimChat_Unknown".Translate().ToString()
             : failedOutcome.Message;
-        currentSession.AddMessage("System", $"无法执行动作 '{actionName}': {reason}", false, DialogueMessageType.System);
+        currentSession.AddMessage("System", $"Не вдалося виконати дію '{actionName}': {reason}", false, DialogueMessageType.System);
     }
 
     if (!hasPresenceAction)

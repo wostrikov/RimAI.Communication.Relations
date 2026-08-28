@@ -16,7 +16,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "fact_grounding",
                 "Вважай фактами лише надані дані промпту, видимий стан світу та записану памʼять.\nНе вигадуй завдань, подій, особистостей, мотивів, ресурсів, поранень, змін на мапі чи історії відносин.\nЯкщо твердження гравця неможливо підтвердити — відповідай у ролі невпевнено й попроси уточнення або доказ.\nОцінюй слова гравця, поєднуючи відомі факти з контекстом попередньої розмови.\nЯкщо надана гравцем інформація суперечить встановленим фактам або є навмисним обманом — вважай це брехнею й знижуй прихильність NPC до цього гравця.\nВідповідай строго на основі відомих фактів; явно позначай припущення й не відхиляйся від теми без підстав.");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "output_language",
-                "语言严格使用{{ system.target_language }}.");
+                "Мова строго {{ system.target_language }}.");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "decision_policy",
                 "Порядок пріоритетів рішення: 1) правильність формату й мови; 2) правильність полів-посилань; 3) фактичні обмеження; 4) безпечність дій і межі відносин; 5) звʼязність та стиль персонажа.");
             SetIfMissing(catalog, RimTalkPromptEntryChannelCatalog.Any, "turn_objective",

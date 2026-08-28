@@ -513,10 +513,10 @@ internal static bool LooksLikeExplicitCallEveryoneChallenge(string playerMessage
            normalized.Contains("joint raid") ||
            normalized.Contains("everyone attack") ||
            normalized.Contains("all in") ||
-           normalized.Contains("联合袭击") ||
-           normalized.Contains("都叫来") ||
-           normalized.Contains("全都叫来") ||
-           normalized.Contains("一起上");
+           normalized.Contains("спільний напад") ||
+           normalized.Contains("усіх клич") ||
+           normalized.Contains("гуртом на них") ||
+           normalized.Contains("гуртом");
 }
 
 

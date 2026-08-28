@@ -210,27 +210,27 @@ internal string BuildStrategyLabelFromReply(string reply)
     }
 
     string lower = cleaned.ToLowerInvariant();
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "social", "口才", "谈判", "交涉", "说服"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "social", "красномовність", "перемовини", "перемовини", "переконати"))
     {
         return "RimChat_StrategyLabelSocialLeverage".Translate();
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "trade", "贸易", "资源", "组件", "物资", "代工"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "trade", "торг", "ресурси", "компоненти", "припаси", "підряд"))
     {
         return "RimChat_StrategyLabelResourceTransfer".Translate();
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "weak", "示弱", "弱势"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "weak", "показати слабкість", "слабка позиція"))
     {
         return "RimChat_StrategyLabelWeakPosture".Translate();
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "risk", "风险", "防御", "人口", "缓冲"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "risk", "ризик", "оборона", "населення", "запас"))
     {
         return "RimChat_StrategyLabelRiskBuffer".Translate();
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "respect", "trust", "goodwill", "关系", "信任", "亲密", "尊重"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "respect", "trust", "goodwill", "стосунки", "довіра", "близькість", "повага"))
     {
         return "RimChat_StrategyLabelRelationRepair".Translate();
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "emotion", "情绪", "共鸣", "安抚"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(lower, "emotion", "емоції", "співзвуччя", "заспокоїти"))
     {
         return "RimChat_StrategyLabelEmotionalResonance".Translate();
     }
@@ -280,8 +280,8 @@ internal bool IsGenericStrategyLabel(string label)
     }
 
     string normalized = label.Trim().ToLowerInvariant();
-    return normalized == "策略建议" ||
-           normalized == "建议" ||
+    return normalized == "Стратегічні поради" ||
+           normalized == "порада" ||
            normalized == "strategy" ||
            normalized == "proposal";
 }
@@ -321,35 +321,35 @@ internal string ExtractWealthTier(string text)
     }
 
     string value = text.ToLowerInvariant();
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "very_low", "极低", "贫困"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "very_low", "дуже низький", "бідність"))
     {
-        return "极低";
+        return "дуже низький";
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "low", "较低", "低"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "low", "нижчий", "низько"))
     {
-        return "低";
+        return "низько";
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "very_high", "极高"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "very_high", "дуже високий"))
     {
-        return "极高";
+        return "дуже високий";
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "high", "较高", "高"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "high", "вищий", "високо"))
     {
-        return "高";
+        return "високо";
     }
-    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "mid", "medium", "中"))
+    if (Owner.Parts.StrategyContext.ContainsAnyStrategyToken(value, "mid", "medium", "середньо"))
     {
-        return "中";
+        return "середньо";
     }
 
     var match = System.Text.RegularExpressions.Regex.Match(value, "wealth[^0-9]{0,8}(\\d{4,7})");
     if (match.Success && int.TryParse(match.Groups[1].Value, out int wealth))
     {
-        if (wealth >= 250000) return "极高";
-        if (wealth >= 120000) return "高";
-        if (wealth >= 50000) return "中";
-        if (wealth >= 15000) return "低";
-        return "极低";
+        if (wealth >= 250000) return "дуже високий";
+        if (wealth >= 120000) return "високо";
+        if (wealth >= 50000) return "середньо";
+        if (wealth >= 15000) return "низько";
+        return "дуже низький";
     }
 
     return string.Empty;

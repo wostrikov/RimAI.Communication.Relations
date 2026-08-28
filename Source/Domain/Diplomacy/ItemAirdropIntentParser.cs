@@ -14,22 +14,22 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
     {
         private static readonly string[] MedicineKeywords =
         {
-            "medicine", "medical", "med", "drug", "医疗", "医药", "药", "药品", "药物", "草药", "绷带", "医疗包"
+            "medicine", "medical", "med", "drug", "медицина", "медикаменти", "ліки", "ліки", "ліки", "трави", "бинт", "аптечка"
         };
 
         private static readonly string[] WeaponKeywords =
         {
-            "weapon", "gun", "ammo", "rifle", "melee", "武器", "枪", "弹药", "步枪", "手枪", "霰弹", "子弹"
+            "weapon", "gun", "ammo", "rifle", "melee", "зброя", "рушниця", "боєприпаси", "гвинтівка", "пістолет", "дробовик", "куля"
         };
 
         private static readonly string[] ApparelKeywords =
         {
-            "apparel", "armor", "cloth", "wear", "jacket", "hat", "护甲", "衣服", "服装", "外套", "头盔", "防具"
+            "apparel", "armor", "cloth", "wear", "jacket", "hat", "броня", "одяг", "вбрання", "куртка", "шолом", "захист"
         };
 
         private static readonly string[] FoodKeywords =
         {
-            "food", "meal", "nutrition", "eat", "ration", "食物", "食材", "食品", "口粮", "干粮", "肉饼", "生存餐", "营养膏"
+            "food", "meal", "nutrition", "eat", "ration", "їжа", "інгредієнти", "харчі", "пайок", "сухпай", "котлета", "пайок", "поживна паста"
         };
 
         private static readonly string[] ResourceKeywords =
@@ -37,8 +37,8 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             "resource", "resources", "material", "materials", "chemfuel", "fuel", "steel", "component", "components", "plasteel",
             "uranium", "neutroamine", "cloth", "textile", "leather", "wood", "lumber", "stone", "blocks",
             "bionic", "prosthetic", "implant", "artificial", "bodypart", "cybernetic",
-            "资源", "材料", "化合燃料", "燃料", "钢铁", "钢材", "零部件", "组件", "塑钢", "铀", "中性胺", "布料", "纺织", "皮革", "木材", "木头", "石块",
-            "仿生", "义体", "假肢", "植入", "人工"
+            "ресурси", "матеріали", "Хімпаливо", "паливо", "сталь", "прокат", "компоненти", "компоненти", "пластасталь", "уран", "нейтроамін", "тканина", "текстиль", "шкіра", "деревина", "дерево", "камінь",
+            "біонік", "протез", "імплант кінцівки", "імплантат", "штучний"
         };
 
         private static readonly HashSet<string> StopTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -46,12 +46,12 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             "the", "a", "an", "please", "need", "want", "some", "for", "to", "of", "and",
             "give", "send", "drop", "supply",
             "me", "my", "our", "us", "it", "is", "are", "be", "we", "he", "she", "they",
-            "给", "需要", "想要", "一些", "用于", "的", "和", "我", "你", "空投", "请求"
+            "дай", "потрібно", "хочу", "трохи", "для", "це", "та", "я", "ти", "скидання", "запит"
         };
 
         private static readonly HashSet<string> NoiseUnitTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "个", "份", "组", "包", "箱", "件", "把", "瓶", "支", "只", "块", "斤", "千克", "克",
+            "штука", "порція", "набір", "пакунок", "ящик", "одиниця", "держак", "пляшка", "ствол", "голова", "брусок", "фунт", "кілограм", "грам",
             "kg", "g", "x"
         };
 
@@ -94,7 +94,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
         private static readonly HashSet<string> NegationPrefixes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "not", "except", "without", "no",
-            "除了", "不要", "排除", "不含", "不需要", "别"
+            "крім", "не хочу", "виключити", "без", "не потрібно", "не смій"
         };
 
         public static void TokenizeWithExclusions(string text, out List<string> tokens, out List<string> exclusionTokens)
@@ -232,7 +232,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             return CountKeywordMatches(tokens, new string[]
             {
                 "bionic", "prosthetic", "implant", "artificial", "bodypart", "cybernetic",
-                "仿生", "义体", "假肢", "植入", "人工"
+                "біонік", "протез", "імплант кінцівки", "імплантат", "штучний"
             });
         }
 

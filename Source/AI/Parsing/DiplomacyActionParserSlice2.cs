@@ -150,8 +150,8 @@ public static bool TryNormalizePrisonerRansomPaymentMode(
             switch (mode)
             {
                 case "silver":
-                case "银币":
-                case "银":
+                case "срібло":
+                case "срібняк":
                 case "coin":
                 case "coins":
                 case "cash":

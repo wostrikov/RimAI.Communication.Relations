@@ -246,15 +246,15 @@ namespace Ustas.RimAI.Communication.Relations.Memory
                 .Where(t => t != null && t.IsPlayer && !string.IsNullOrWhiteSpace(t.Text))
                 .Select(t => t.Text)
                 .LastOrDefault() ?? string.Empty;
-            if (ContainsAny(lastPlayer, "kill", "murder", "attack", "threat", "杀", "攻击", "威胁")) return "hostile";
-            if (ContainsAny(lastPlayer, "help", "ally", "peace", "trade", "合作", "和平", "交易")) return "cooperative";
+            if (ContainsAny(lastPlayer, "kill", "murder", "attack", "threat", "вбити", "атакувати", "погроза")) return "hostile";
+            if (ContainsAny(lastPlayer, "help", "ally", "peace", "trade", "співпраця", "мир", "торгівля")) return "cooperative";
             return "neutral";
         }
 
         internal static string DescribeNpcTone(string text)
         {
-            if (ContainsAny(text, "警惕", "后退", "拒绝", "滚开", "threat", "stay away", "guarded")) return "guarded";
-            if (ContainsAny(text, "友好", "欢迎", "感谢", "happy", "glad", "friendly")) return "friendly";
+            if (ContainsAny(text, "пильність", "назад", "відмова", "забирайся", "threat", "stay away", "guarded")) return "guarded";
+            if (ContainsAny(text, "дружній", "вітаємо", "дякую", "happy", "glad", "friendly")) return "friendly";
             return "neutral";
         }
 
@@ -294,11 +294,11 @@ namespace Ustas.RimAI.Communication.Relations.Memory
             foreach (string text in texts)
             {
                 string lower = (text ?? string.Empty).ToLowerInvariant();
-                AddTopicIfContains(lower, tags, "trade", "trade", "caravan", "goods", "交易", "商队");
-                AddTopicIfContains(lower, tags, "peace", "peace", "ally", "ceasefire", "和平", "盟友");
-                AddTopicIfContains(lower, tags, "threat", "threat", "war", "raid", "attack", "威胁", "战争", "袭击");
-                AddTopicIfContains(lower, tags, "aid", "aid", "help", "support", "救援", "支援");
-                AddTopicIfContains(lower, tags, "trust", "trust", "respect", "favor", "信任", "尊重");
+                AddTopicIfContains(lower, tags, "trade", "trade", "caravan", "goods", "торгівля", "караван");
+                AddTopicIfContains(lower, tags, "peace", "peace", "ally", "ceasefire", "мир", "союзник");
+                AddTopicIfContains(lower, tags, "threat", "threat", "war", "raid", "attack", "погроза", "війна", "напад");
+                AddTopicIfContains(lower, tags, "aid", "aid", "help", "support", "рятувати", "підтримка");
+                AddTopicIfContains(lower, tags, "trust", "trust", "respect", "favor", "довіра", "повага");
             }
             return tags.Take(4).ToList();
         }

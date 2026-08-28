@@ -212,7 +212,7 @@ internal static bool TryBuildStructuredClaimFromIntent(
 
             claim = text.IndexOf(factionName, StringComparison.Ordinal) >= 0
                 ? text
-                : $"{factionName}表示：{text}";
+                : $"{factionName} заявляє: {text}";
             return true;
         }
 

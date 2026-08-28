@@ -14,7 +14,7 @@ internal static class DiplomacyDialoguePolicyTests
     static void Hints(Action<bool, string> check)
     {
         check(DiplomacyActionPolicyText.ContainsAnyHint("please confirm the order", DiplomacyActionPolicyText.ConfirmationHints), "confirm hint matches english");
-        check(DiplomacyActionPolicyText.ContainsAnyHint("确认发送", DiplomacyActionPolicyText.ConfirmationHints), "confirm hint matches chinese");
+        check(DiplomacyActionPolicyText.ContainsAnyHint("підтвердити надсилання", DiplomacyActionPolicyText.ConfirmationHints), "confirm hint matches ukrainian");
         check(DiplomacyActionPolicyText.ContainsAnyHint("cancel this", DiplomacyActionPolicyText.CancellationHints), "cancel hint matches");
         check(!DiplomacyActionPolicyText.ContainsAnyHint("hello there", DiplomacyActionPolicyText.ConfirmationHints), "unrelated text is not a confirm hint");
         check(DiplomacyActionPolicyText.ContainsAnyHint("not this item", DiplomacyActionPolicyText.AirdropSelectionRejectionHints), "airdrop rejection hint matches");
@@ -25,12 +25,12 @@ internal static class DiplomacyDialoguePolicyTests
     static void AirdropParse(Action<bool, string> check)
     {
         check(DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("need steel x 12", out int structured) && structured == 12, "structured need count");
-        check(DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("需求 组件 x 8", out int chineseNeed) && chineseNeed == 8, "chinese structured need count");
-        check(DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("给我20个", out int quantifier) && quantifier == 20, "chinese quantifier count");
+        check(DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("потрібно компонентів x 8", out int chineseNeed) && chineseNeed == 8, "ukrainian structured need count");
+        check(DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("дай мені 20", out int quantifier) && quantifier == 20, "ukrainian quantifier count");
         check(!DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("1", out _), "option index 1 is not a requested count");
         check(DiplomacyAirdropPendingParse.TryExtractAirdropRequestedCount("send 40", out int loose) && loose == 40, "loose count above option range");
-        check(DiplomacyAirdropPendingParse.TryParseChineseChoiceIndex("选二") == 2, "chinese choice index two");
-        check(DiplomacyAirdropPendingParse.TryParseChineseChoiceIndex("两") == 2, "chinese choice index liang");
+        check(DiplomacyAirdropPendingParse.TryParseChineseChoiceIndex("два з") == 2, "chinese choice index two");
+        check(DiplomacyAirdropPendingParse.TryParseChineseChoiceIndex("пара") == 2, "chinese choice index liang");
         check(DiplomacyAirdropPendingParse.TryParseChineseChoiceIndex("") == 0, "empty chinese choice is zero");
     }
 

@@ -6,26 +6,26 @@ internal static class DiplomacyActionPolicyText
 {
     internal static readonly string[] AmbiguousFollowupHints =
     {
-        "再发一次", "再发", "发送请求", "还是没收到", "没收到", "再来一次", "催一下",
+        "надішли ще раз", "надіслати ще", "надсилаю запит", "досі не отримав", "не отримав", "ще раз", "підганяю",
         "send request", "resend", "still not received", "not received", "send it again"
     };
 
     internal static readonly string[] ConfirmationHints =
     {
-        "确认", "是的", "是", "好", "行", "就这个", "下单", "发送吧", "发吧",
+        "підтвердити", "так", "є", "добре", "чинити", "саме це", "оформити", "надсилай", "надсилай",
         "yes", "confirm", "do it", "go ahead", "place it", "submit it"
     };
 
     internal static readonly string[] CancellationHints =
     {
-        "取消", "算了", "不用了", "不用", "不要", "别发", "不需要",
+        "скасувати", "облишмо", "не треба", "не треба", "не хочу", "не надсилай", "не потрібно",
         "cancel", "stop", "no need", "never mind"
     };
 
     internal static readonly string[] AirdropSelectionRejectionHints =
     {
-        "不是", "不对", "不是这个", "换一个", "换别的", "其他的", "另一种",
-        "不是我想要", "不想要这个", "不要这个",
+        "не те", "неправильно", "не це", "заміни", "дай інше", "щось інше", "інший вид",
+        "я не це хотів", "не хочу цього", "не треба цього",
         "not this", "wrong item", "something else", "different item", "another one"
     };
 

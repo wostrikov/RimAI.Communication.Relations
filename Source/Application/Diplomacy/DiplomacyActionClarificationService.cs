@@ -38,7 +38,7 @@ internal const string SendInfoDirectiveEnd = "[/SendInfoDirective]";
 
 
 internal static readonly Regex AirdropSingleAmountShorthandPattern = new Regex(
-    @"^\s*(?<amount>\d{1,3}(?:,\d{3})*|\d{1,9})\s*(?:银|银币|silver|silvers)?\s*(?:[。.!！?？])?\s*$",
+    @"^\s*(?<amount>\d{1,3}(?:,\d{3})*|\d{1,9})\s*(?:срібла|срібняків|silver|silvers)?\s*(?:[.!?])?\s*$",
     RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
 
@@ -325,7 +325,7 @@ internal static string BuildMissingParameterClarification(
         case AIActionNames.RequestAid:
             return "Яка допомога потрібна: військова, медична чи ресурсами?";
         case AIActionNames.TriggerIncident:
-            return "你要我触发哪个事件（defName）？";
+            return "Яку подію (defName) запустити?";
         case AIActionNames.CreateQuest:
             return "Який шаблон завдання (questDefName) публікуємо?";
         default:
@@ -361,26 +361,26 @@ internal static string BuildIntentSummary(PendingDelayedActionIntent intent)
 {
     if (intent == null)
     {
-        return "无可用请求";
+        return "Доступних запитів нема";
     }
 
     Dictionary<string, object> parameters = intent.Parameters ?? new Dictionary<string, object>();
     switch (intent.ActionType)
     {
         case AIActionNames.RequestItemAirdrop:
-            string need = GetParameterText(parameters, "need", "未指定物资");
+            string need = GetParameterText(parameters, "need", "Товар не вказано");
             string payment = BuildPaymentIntentSummary(parameters);
-            return $"空投 {need}（支付：{payment}）";
+            return $"скидання {need} (оплата: {payment})";
         case AIActionNames.RequestCaravan:
-            return $"请求商队（goods={GetParameterText(parameters, "goods", "未指定")})";
+            return $"запит каравану (goods={GetParameterText(parameters, "goods", "не вказано")})";
         case AIActionNames.RequestAid:
-            return $"请求援助（type={GetParameterText(parameters, "type", "未指定")})";
+            return $"запит допомоги (type={GetParameterText(parameters, "type", "не вказано")})";
         case AIActionNames.RequestRaid:
-            return $"请求袭击（strategy={GetParameterText(parameters, "strategy", "未指定")}）";
+            return $"запит нападу (strategy={GetParameterText(parameters, "strategy", "не вказано")}）";
         case AIActionNames.TriggerIncident:
-            return $"触发事件（defName={GetParameterText(parameters, "defName", "未指定")})";
+            return $"запуск події (defName={GetParameterText(parameters, "defName", "не вказано")})";
         case AIActionNames.CreateQuest:
-            return $"创建任务（questDefName={GetParameterText(parameters, "questDefName", "未指定")})";
+            return $"створення завдання (questDefName={GetParameterText(parameters, "questDefName", "не вказано")})";
         default:
             return intent.ActionType;
     }
@@ -410,7 +410,7 @@ internal static string BuildPaymentIntentSummary(Dictionary<string, object> para
         !parameters.TryGetValue("payment_items", out object raw) ||
         !(raw is IEnumerable<object> rows))
     {
-        return "未指定";
+        return "не вказано";
     }
 
     List<string> items = rows
@@ -431,7 +431,7 @@ internal static string BuildPaymentIntentSummary(Dictionary<string, object> para
         .ToList();
     if (items.Count == 0)
     {
-        return "未指定";
+        return "не вказано";
     }
 
     return string.Join(" + ", items);

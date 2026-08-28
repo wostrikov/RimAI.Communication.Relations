@@ -32,28 +32,28 @@ namespace Ustas.RimAI.Communication.Relations.UI
         {
             "leave me alone", "do not contact me", "don't contact me", "stop talking",
             "get lost", "go away", "don't bother me",
-            "别再打扰", "别联系我", "不要再找我",
-            "离我远点", "滚开", "请离开"
+            "не турбуй більше", "не звертайся до мене", "більше не звертайся",
+            "відчепися", "забирайся", "іди геть"
         };
 
         internal static readonly string[] NormalExitFallbackHints =
         {
             "goodbye", "see you", "talk later", "let's pause", "need to go", "that's all for now",
-            "再见", "不聊了", "今天就到这",
-            "先聊到这", "就聊到这", "改天再聊",
-            "我要去忙了", "晚点再说", "回头再聊"
+            "бувай", "більше не говоримо", "на сьогодні досить",
+            "на цьому спинімося", "на цьому й закінчимо", "поговоримо іншим разом",
+            "мені треба йти", "пізніше поговоримо", "ще поговоримо"
         };
 
         internal static readonly string[] StrongRejectHints =
         {
             "never", "won't", "refuse", "stop", "don't ask again", "leave me alone",
-            "休想", "不可能", "少来", "别再问", "禁止"
+            "і не мрій", "неможливо", "облиш", "не питай більше", "заборонити"
         };
 
         internal static readonly string[] CollaborationHints =
         {
             "i will do it", "i can help", "let me handle it", "leave it to me", "i'll take care of it",
-            "我会去做", "我可以帮你", "我来处理", "交给我", "我会负责"
+            "я зроблю", "я можу допомогти", "я цим займуся", "полиш це мені", "я відповідатиму за це"
         };
 
         internal enum IntentActionCategory
@@ -152,23 +152,23 @@ namespace Ustas.RimAI.Communication.Relations.UI
             string normalized = actionName.Trim().Replace("-", "_").ToLowerInvariant();
             return normalized switch
             {
-                "romanceattempt" or "romance_attempt" or "romance" or "fall_in_love" or "start_romance" or "恋爱" => "RomanceAttempt",
-                "marriageproposal" or "marriage_proposal" or "propose_marriage" or "marry" or "结婚" => "MarriageProposal",
-                "breakup" or "break_up" or "split_up" or "分手" => "Breakup",
-                "divorce" or "离婚" => "Divorce",
-                "date" or "dating" or "约会" => "Date",
+                "romanceattempt" or "romance_attempt" or "romance" or "fall_in_love" or "start_romance" or "кохання" => "RomanceAttempt",
+                "marriageproposal" or "marriage_proposal" or "propose_marriage" or "marry" or "одруження" => "MarriageProposal",
+                "breakup" or "break_up" or "split_up" or "розрив" => "Breakup",
+                "divorce" or "розлучення" => "Divorce",
+                "date" or "dating" or "побачення" => "Date",
                 "trygainmemory" or "try_gain_memory" => "TryGainMemory",
                 "tryaffectsocialgoodwill" or "try_affect_social_goodwill" => "TryAffectSocialGoodwill",
                 "reduceresistance" or "reduce_resistance" => "ReduceResistance",
                 "reducewill" or "reduce_will" => "ReduceWill",
-                "recruit" or "action4" or "action_4" or "action 4" or "第4个动作" or "第四个动作" => "Recruit",
+                "recruit" or "action4" or "action_4" or "action 4" or "Дія 4" or "Четверта дія" => "Recruit",
                 "trytakeorderedjob" or "try_take_ordered_job" => "TryTakeOrderedJob",
                 "triggerincident" or "trigger_incident" => "TriggerIncident",
                 "grantinspiration" or "grant_inspiration" => "GrantInspiration",
                 "exitdialoguecooldown" or "exit_dialogue_cooldown" or "exit_dialogue_with_cooldown" => "ExitDialogueCooldown",
                 "exitdialogue" or "exit_dialogue" or "end_dialogue" => "ExitDialogue",
-                "convertideology" or "convert_ideology" or "改变意识形态" or "皈依" => "ConvertIdeology",
-                "adjustcertainty" or "adjust_certainty" or "调整信仰度" or "动摇信仰" => "AdjustCertainty",
+                "convertideology" or "convert_ideology" or "Змінити ідеологію" or "навернення" => "ConvertIdeology",
+                "adjustcertainty" or "adjust_certainty" or "Змінити побожність" or "похитнути віру" => "AdjustCertainty",
                 _ => actionName.Trim()
             };
         }

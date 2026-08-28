@@ -369,9 +369,9 @@ internal static void EnsureUnifiedCatalogReady(this RelationsSettings settings)
             // system_rules: special validation for legacy placeholder patterns
             if (string.Equals(normalizedSectionId, "system_rules", StringComparison.Ordinal))
             {
-                return currentText.IndexOf("只保留世界内", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                return currentText.IndexOf("лишайся у світі", StringComparison.OrdinalIgnoreCase) >= 0 ||
                     currentText.IndexOf("{{ ctx.channel }}", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    currentText.IndexOf("角色内表达", StringComparison.OrdinalIgnoreCase) >= 0;
+                    currentText.IndexOf("вислів у ролі", StringComparison.OrdinalIgnoreCase) >= 0;
             }
 
             return false;

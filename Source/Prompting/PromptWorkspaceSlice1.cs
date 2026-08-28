@@ -193,10 +193,10 @@ internal string DeduplicatePromptAuthorityLines(string prompt)
 
 internal bool IsDuplicateAuthorityLine(string trimmedLine)
         {
-            return trimmedLine.IndexOf("输出规范唯一权威", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                trimmedLine.IndexOf("response_contract", StringComparison.OrdinalIgnoreCase) >= 0 && trimmedLine.IndexOf("唯一", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                trimmedLine.IndexOf("动作使用最小化", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                trimmedLine.IndexOf("输出规范权威区", StringComparison.OrdinalIgnoreCase) >= 0;
+            return trimmedLine.IndexOf("Єдиний авторитет правил виводу", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                trimmedLine.IndexOf("response_contract", StringComparison.OrdinalIgnoreCase) >= 0 && trimmedLine.IndexOf("єдиний", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                trimmedLine.IndexOf("Мінімум дій", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                trimmedLine.IndexOf("Авторитет правил виводу", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
 internal bool IsSocialCirclePostChannel(string promptChannel)

@@ -37,15 +37,15 @@ internal static void ResolveRaidPointTuning(this RelationsSettings settings, Fac
         private const string ModVariablesSectionId = "mod_variables";
         internal static readonly PromptWorkbenchSectionDefinition[] PromptWorkbenchSections =
         {
-            new PromptWorkbenchSectionDefinition("system_rules", "System Rules", "系统规则"),
-            new PromptWorkbenchSectionDefinition("character_persona", "Persona", "角色人设", "Character Persona", "人物设定", "人格"),
-            new PromptWorkbenchSectionDefinition("memory_system", "Memory", "记忆", "Memory System", "记忆系统"),
-            new PromptWorkbenchSectionDefinition("environment_perception", "Environment", "环境感知", "Environment Perception", "环境"),
-            new PromptWorkbenchSectionDefinition("context", "Context", "上下文"),
-            new PromptWorkbenchSectionDefinition("mod_variables", "Mod Variables", "模组变量", "Mod Vars"),
-            new PromptWorkbenchSectionDefinition("action_rules", "Action Rules", "行为规则", "行动规则"),
-            new PromptWorkbenchSectionDefinition("repetition_reinforcement", "Reinforcement", "强化规则", "Repetition Reinforcement", "重复强化", "强化"),
-            new PromptWorkbenchSectionDefinition("output_specification", "Output Format", "输出格式", "Output Specification", "输出规范")
+            new PromptWorkbenchSectionDefinition("system_rules", "System Rules", "Системні правила"),
+            new PromptWorkbenchSectionDefinition("character_persona", "Persona", "Образ персонажа", "Character Persona", "Опис персонажа", "особистість"),
+            new PromptWorkbenchSectionDefinition("memory_system", "Memory", "памʼять", "Memory System", "Система памʼяті"),
+            new PromptWorkbenchSectionDefinition("environment_perception", "Environment", "Відчуття середовища", "Environment Perception", "середовище"),
+            new PromptWorkbenchSectionDefinition("context", "Context", "Контекст"),
+            new PromptWorkbenchSectionDefinition("mod_variables", "Mod Variables", "Змінні мода", "Mod Vars"),
+            new PromptWorkbenchSectionDefinition("action_rules", "Action Rules", "Правила поведінки", "Правила дій"),
+            new PromptWorkbenchSectionDefinition("repetition_reinforcement", "Reinforcement", "Підсилені правила", "Repetition Reinforcement", "Повторне підсилення", "підсилення"),
+            new PromptWorkbenchSectionDefinition("output_specification", "Output Format", "Формат виводу", "Output Specification", "Правила виводу")
         };
 
 

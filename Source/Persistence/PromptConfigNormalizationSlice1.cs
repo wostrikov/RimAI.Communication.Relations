@@ -105,7 +105,7 @@ internal int FindPresenceBehaviorInsertIndex(string promptText)
                 return actionOutputIndex;
             }
 
-            int importantBanIndex = promptText.IndexOf("【重要禁令】", StringComparison.Ordinal);
+            int importantBanIndex = promptText.IndexOf("[Важлива заборона]", StringComparison.Ordinal);
             if (importantBanIndex >= 0)
             {
                 return importantBanIndex;
@@ -197,7 +197,7 @@ internal bool IsPresenceBehaviorBoundary(string line)
                 line.StartsWith("Identity Lock:", StringComparison.OrdinalIgnoreCase) ||
                 line.StartsWith("Format Ban:", StringComparison.OrdinalIgnoreCase) ||
                 line.StartsWith("Worldview Compliance:", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(line, "【重要禁令】", StringComparison.Ordinal);
+                string.Equals(line, "[Важлива заборона]", StringComparison.Ordinal);
         }
 
 internal string BuildPresenceBehaviorFallbackSection()
@@ -408,8 +408,8 @@ internal bool TryUpgradeRansomActionContract(ApiActionConfig target, ApiActionCo
                 string requestInfoRequirement = target.Requirement ?? string.Empty;
                 bool hasLegacyPreconditionWording =
                     requestInfoRequirement.IndexOf("only valid precondition", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    requestInfoRequirement.IndexOf("唯一合法前置", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    requestInfoRequirement.IndexOf("必须且只能先调用", StringComparison.OrdinalIgnoreCase) >= 0;
+                    requestInfoRequirement.IndexOf("Єдина законна попередня дія", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    requestInfoRequirement.IndexOf("Обовʼязково викликати першим і тільки його", StringComparison.OrdinalIgnoreCase) >= 0;
                 if (string.IsNullOrWhiteSpace(target.Requirement) ||
                     target.Requirement.IndexOf("info_type=prisoner", StringComparison.OrdinalIgnoreCase) < 0 ||
                     hasLegacyPreconditionWording)
@@ -423,8 +423,8 @@ internal bool TryUpgradeRansomActionContract(ApiActionConfig target, ApiActionCo
                 string payRequirement = target.Requirement ?? string.Empty;
                 bool hasLegacyHardGate =
                     payRequirement.IndexOf("forbidden before request_info", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    payRequirement.IndexOf("唯一合法前置", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    payRequirement.IndexOf("严禁调用", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    payRequirement.IndexOf("Єдина законна попередня дія", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    payRequirement.IndexOf("Викликати суворо заборонено", StringComparison.OrdinalIgnoreCase) >= 0 ||
                     payRequirement.IndexOf("MUST call request_info", StringComparison.OrdinalIgnoreCase) >= 0;
                 if (string.IsNullOrWhiteSpace(target.Requirement) ||
                     hasLegacyHardGate ||

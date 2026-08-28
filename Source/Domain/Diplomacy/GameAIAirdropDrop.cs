@@ -195,7 +195,7 @@ internal static string BuildSelectionPrompt(
             var sb = new StringBuilder();
             sb.AppendLine("channel:airdrop_selection");
             sb.AppendLine("Task: choose exactly one candidate and legal count for item airdrop.");
-            sb.AppendLine("IMPORTANT: If Need has an explicit quantity (e.g., '50个干肉饼' or '50 pemmican'), preserve that quantity in count.");
+            sb.AppendLine("IMPORTANT: If Need has an explicit quantity (e.g., '50 пемікану' or '50 pemmican'), preserve that quantity in count.");
             sb.AppendLine("IMPORTANT: If Need directly matches a candidate, keep the explicit quantity from Need instead of forcing count=1.");
             sb.AppendLine("Output JSON only:");
             sb.AppendLine("{\"selected_def\":\"<defName>\",\"count\":<int>,\"reason\":\"<short reason>\"}");

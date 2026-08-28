@@ -135,7 +135,7 @@ internal static void TryMapDelayedIntentFromPlayerFollowup(
 
         if (string.IsNullOrWhiteSpace(response.DialogueText))
         {
-            response.DialogueText = "好，这次请求先取消。";
+            response.DialogueText = "Гаразд, цього разу скасуємо запит.";
         }
         return;
     }

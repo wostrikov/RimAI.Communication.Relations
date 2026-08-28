@@ -29,7 +29,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 factionName = "Unknown";
             }
 
-            return $"{SummarySystemPrompt}\n\n背景：派系={factionName}\n{summaryContext ?? string.Empty}";
+            return $"{SummarySystemPrompt}\n\nТло: фракція={factionName}\n{summaryContext ?? string.Empty}";
         }
 
         internal static string RenderArchiveCompressionPrompt(
@@ -47,7 +47,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting
                 interlocutorName = "Unknown";
             }
 
-            return $"{ArchiveCompressionSystemPrompt}\n\nNPC={npcName}\n对话方={interlocutorName}\n对话记录：\n{sessionTranscript ?? string.Empty}";
+            return $"{ArchiveCompressionSystemPrompt}\n\nNPC={npcName}\nСпіврозмовник={interlocutorName}\nЗапис розмови:\n{sessionTranscript ?? string.Empty}";
         }
     }
 }

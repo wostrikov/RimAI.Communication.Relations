@@ -86,8 +86,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             string text = visibleDialogue.Trim();
             string lower = text.ToLowerInvariant();
-            if ((lower.Contains("如果") || lower.Contains("若")) &&
-                (lower.Contains("会安排") || lower.Contains("会派出") || lower.Contains("会发送") || lower.Contains("会提交")))
+            if ((lower.Contains("якщо") || lower.Contains("коли б")) &&
+                (lower.Contains("організую") || lower.Contains("вишлю") || lower.Contains("надішлю") || lower.Contains("подам")))
             {
                 return false;
             }

@@ -188,22 +188,22 @@ internal string BuildTopicDigest(IEnumerable<RecentEventIntelItem> items)
 internal string ResolveRecentEventTopic(RecentEventIntelItem item)
         {
             string text = (item?.Summary ?? string.Empty).ToLowerInvariant();
-            if (Owner.ContainsAnyKeyword(text, "raid", "attack", "battle", "siege", "袭击", "战斗", "围攻"))
+            if (Owner.ContainsAnyKeyword(text, "raid", "attack", "battle", "siege", "напад", "бій", "облога"))
             {
                 return "conflict";
             }
 
-            if (Owner.ContainsAnyKeyword(text, "died", "death", "killed", "死亡", "阵亡", "葬礼"))
+            if (Owner.ContainsAnyKeyword(text, "died", "death", "killed", "смерть", "загиблі", "похорон"))
             {
                 return "casualty";
             }
 
-            if (Owner.ContainsAnyKeyword(text, "trade", "caravan", "merchant", "交易", "商队", "商船"))
+            if (Owner.ContainsAnyKeyword(text, "trade", "caravan", "merchant", "торгівля", "караван", "торговий корабель"))
             {
                 return "trade";
             }
 
-            if (Owner.ContainsAnyKeyword(text, "quest", "mission", "任务", "委托"))
+            if (Owner.ContainsAnyKeyword(text, "quest", "mission", "завдання", "доручення"))
             {
                 return "quest";
             }

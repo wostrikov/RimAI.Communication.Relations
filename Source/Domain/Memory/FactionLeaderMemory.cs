@@ -132,7 +132,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         private bool IsNegativeContext(string message, string factionName)
         {
-            var negativeWords = new[] { "enemy", "attack", "war", "hostile", "threat", "destroy", "hate", "敌", "战争", "攻击", "威胁" };
+            var negativeWords = new[] { "enemy", "attack", "war", "hostile", "threat", "destroy", "hate", "ворог", "війна", "атакувати", "погроза" };
             foreach (var word in negativeWords)
             {
                 if (message.ToLower().Contains(word.ToLower()))
@@ -145,7 +145,7 @@ namespace Ustas.RimAI.Communication.Relations.Memory
 
         private bool IsPositiveContext(string message, string factionName)
         {
-            var positiveWords = new[] { "ally", "friend", "peace", "trade", "help", "support", "友好", "和平", "贸易", "盟友", "帮助" };
+            var positiveWords = new[] { "ally", "friend", "peace", "trade", "help", "support", "дружній", "мир", "торг", "союзник", "допомогти" };
             foreach (var word in positiveWords)
             {
                 if (message.ToLower().Contains(word.ToLower()))

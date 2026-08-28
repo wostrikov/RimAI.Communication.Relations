@@ -34,7 +34,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             
             if (faction != null)
             {
-                Messages.Message($"任务 '{quest.name}' 已{state} (派系: {faction.Name})", MessageTypeDefOf.NeutralEvent);
+                Messages.Message($"Завдання '{quest.name}' {state} (фракція: {faction.Name})", MessageTypeDefOf.NeutralEvent);
                 int value = string.Equals(state, "Success", StringComparison.Ordinal) ? 1 : -1;
                 string questId = quest != null ? quest.id.ToString() : (quest?.name ?? "UnknownQuest");
                 string key = $"quest:{callbackId}:{questId}:{state}";

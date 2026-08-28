@@ -14,15 +14,15 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         private static readonly PromptSectionSchemaItem[] MainChainSections =
         {
-            new PromptSectionSchemaItem("system_rules", "System Rules", "系统规则", "RimChat_PromptSectionLabel_SystemRules"),
-            new PromptSectionSchemaItem("character_persona", "Persona", "角色人设", "RimChat_PromptSectionLabel_Persona"),
-            new PromptSectionSchemaItem("memory_system", "Memory", "记忆", "RimChat_PromptSectionLabel_Memory"),
-            new PromptSectionSchemaItem("environment_perception", "Environment", "环境感知", "RimChat_PromptSectionLabel_Environment"),
-            new PromptSectionSchemaItem("context", "Context", "上下文", "RimChat_PromptSectionLabel_Context"),
-            new PromptSectionSchemaItem("mod_variables", "Mod Variables", "模组变量", "RimChat_PromptSectionLabel_ModVariables"),
-            new PromptSectionSchemaItem("action_rules", "Action Rules", "行为规则", "RimChat_PromptSectionLabel_ActionRules"),
-            new PromptSectionSchemaItem("repetition_reinforcement", "Reinforcement", "强化规则", "RimChat_PromptSectionLabel_Reinforcement"),
-            new PromptSectionSchemaItem("output_specification", "Output Format", "输出格式", "RimChat_PromptSectionLabel_OutputFormat")
+            new PromptSectionSchemaItem("system_rules", "System Rules", "Системні правила", "RimChat_PromptSectionLabel_SystemRules"),
+            new PromptSectionSchemaItem("character_persona", "Persona", "Образ персонажа", "RimChat_PromptSectionLabel_Persona"),
+            new PromptSectionSchemaItem("memory_system", "Memory", "памʼять", "RimChat_PromptSectionLabel_Memory"),
+            new PromptSectionSchemaItem("environment_perception", "Environment", "Відчуття середовища", "RimChat_PromptSectionLabel_Environment"),
+            new PromptSectionSchemaItem("context", "Context", "Контекст", "RimChat_PromptSectionLabel_Context"),
+            new PromptSectionSchemaItem("mod_variables", "Mod Variables", "Змінні мода", "RimChat_PromptSectionLabel_ModVariables"),
+            new PromptSectionSchemaItem("action_rules", "Action Rules", "Правила поведінки", "RimChat_PromptSectionLabel_ActionRules"),
+            new PromptSectionSchemaItem("repetition_reinforcement", "Reinforcement", "Підсилені правила", "RimChat_PromptSectionLabel_Reinforcement"),
+            new PromptSectionSchemaItem("output_specification", "Output Format", "Формат виводу", "RimChat_PromptSectionLabel_OutputFormat")
         };
 
         private static readonly string[] DiplomacyWorkspaceChannels =

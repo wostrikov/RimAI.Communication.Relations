@@ -38,7 +38,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             if (settings == null) return;
 
             sb.AppendLine();
-            sb.AppendLine("=== 当前 API 限制（必须遵守） ===");
+            sb.AppendLine("=== Поточні обмеження API (обовʼязкові) ===");
 
             // Check current cooldown for specific faction
             if (faction != null)
@@ -54,21 +54,21 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             }
 
             sb.AppendLine($"- Межа зміни прихильності за раз: {settings.MaxGoodwillAdjustmentPerCall} (діапазон: від 0 до {settings.MaxGoodwillAdjustmentPerCall})");
-            sb.AppendLine($"- 每日好感调整上限：{settings.MaxDailyGoodwillAdjustment}");
-            sb.AppendLine($"- 好感冷却：{settings.GoodwillCooldownTicks / 2500f:F1} 小时");
-            sb.AppendLine($"- 请求援助最低好感：{settings.MinGoodwillForAid}");
-            sb.AppendLine($"- 宣战最大好感阈值：{settings.MaxGoodwillForWarDeclaration}");
-            sb.AppendLine($"- 和平费用上限：{settings.MaxPeaceCost}");
-            sb.AppendLine($"- 和平后的好感重置值：{settings.PeaceGoodwillReset}");
-            sb.AppendLine($"- create_quest 冷却：{settings.MinQuestCooldownDays} 到 {settings.MaxQuestCooldownDays} 天");
+            sb.AppendLine($"- Денна межа зміни прихильності: {settings.MaxDailyGoodwillAdjustment}");
+            sb.AppendLine($"- Перезарядка прихильності: {settings.GoodwillCooldownTicks / 2500f:F1} год");
+            sb.AppendLine($"- Мінімальна прихильність для запиту допомоги: {settings.MinGoodwillForAid}");
+            sb.AppendLine($"- Максимальний поріг прихильності для оголошення війни: {settings.MaxGoodwillForWarDeclaration}");
+            sb.AppendLine($"- Межа вартості миру: {settings.MaxPeaceCost}");
+            sb.AppendLine($"- Значення прихильності після миру: {settings.PeaceGoodwillReset}");
+            sb.AppendLine($"- Перезарядка create_quest: від {settings.MinQuestCooldownDays} до {settings.MaxQuestCooldownDays} дн.");
             sb.AppendLine();
-            sb.AppendLine("已启用功能：");
-            sb.AppendLine($"- 好感调整：{(settings.EnableAIGoodwillAdjustment ? "是" : "否")}");
-            sb.AppendLine($"- 宣战：{(settings.EnableAIWarDeclaration ? "是" : "否")}");
-            sb.AppendLine($"- 和平：{(settings.EnableAIPeaceMaking ? "是" : "否")}");
-            sb.AppendLine($"- 贸易商队：{(settings.EnableAITradeCaravan ? "是" : "否")}");
-            sb.AppendLine($"- 请求援助：{(settings.EnableAIAidRequest ? "是" : "否")}");
-            sb.AppendLine("- 任务创建：是");
+            sb.AppendLine("Увімкнені можливості:");
+            sb.AppendLine($"- Зміна прихильності: {(settings.EnableAIGoodwillAdjustment ? "是" : "否")}");
+            sb.AppendLine($"- Оголошення війни: {(settings.EnableAIWarDeclaration ? "是" : "否")}");
+            sb.AppendLine($"- Мир: {(settings.EnableAIPeaceMaking ? "是" : "否")}");
+            sb.AppendLine($"- Торговий караван: {(settings.EnableAITradeCaravan ? "是" : "否")}");
+            sb.AppendLine($"- Запит допомоги: {(settings.EnableAIAidRequest ? "是" : "否")}");
+            sb.AppendLine("- Створення завдань: так");
             sb.AppendLine();
 
             // Airdrop trade rules
@@ -88,7 +88,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
             sb.AppendLine("=== Правила бартеру зі скиданням (обовʼязкові) ===");
             sb.AppendLine($"- Рівень технологій фракції: {techLevel}. Торгувати товарами вищого рівня технологій заборонено.");
             sb.AppendLine($"- Поточна прихильність: {rule.Goodwill}. Ліміт сукупної торгівлі: {rule.TradeLimitSilver} срібла.");
-            sb.AppendLine($"- 交易限额规则：{rule.TradeLimitRuleText}。");
+            sb.AppendLine($"- Правило торгового ліміту: {rule.TradeLimitRuleText}.");
             sb.AppendLine($"- Доставка однієї капсули скидання: {rule.ShippingCostPerPod} срібла. Доставка вираховується з пропозиції гравця й не вказується в ціні окремо.");
             sb.AppendLine("- [Role -- highest priority economic constraint] You are the SELLER/SUPPLIER: the need field is what you sell and air-drop DELIVER TO the player (you ship -> player receives). The player is the BUYER/PAYER: payment_items is what the player pays to you (player ships -> you receive). Direction is NEVER reversible -- you are NOT the buyer, the player is NOT the supplier.");
             sb.AppendLine("- І потрібні товари, і оплата рахуються за ринковою ціною (ThingDef.BaseMarketValue, мінімум 0.01).");
@@ -117,7 +117,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 }
                 else
                 {
-                    sb.AppendLine($"- 当前折扣商品：{itemSet.DiscountItem.Label}（special_item_discount）");
+                    sb.AppendLine($"- Поточний товар зі знижкою: {itemSet.DiscountItem.Label} (special_item_discount)");
                 }
                 hasAny = true;
             }
@@ -130,13 +130,13 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 }
                 else
                 {
-                    sb.AppendLine($"- 当前稀缺商品：{itemSet.ScarceItem.Label}（special_item_scarce）");
+                    sb.AppendLine($"- Поточний дефіцитний товар: {itemSet.ScarceItem.Label} (special_item_scarce)");
                 }
                 hasAny = true;
             }
             if (!hasAny)
             {
-                sb.AppendLine("- 当前无可用特殊商品。");
+                sb.AppendLine("- Наразі особливих товарів нема.");
             }
         }
 
@@ -180,7 +180,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 
             sb.AppendLine();
             sb.AppendLine("=== Динамічна доступність завдань (генерується автоматично за поточною фракцією) ===");
-            sb.AppendLine($"派系：{faction.Name} | 科技：{faction.def?.techLevel} | 类型：{faction.def?.defName}");
+            sb.AppendLine($"Фракція: {faction.Name} | Технології: {faction.def?.techLevel} | Тип: {faction.def?.defName}");
             if (isOrbitalTraderContext)
             {
                 sb.AppendLine("Поточна сесія: звʼязок з орбітальним торговцем. Заборонено створювати замовлення, які потребують виконання наземним поселенням; коли йдеться про обмін конкретними товарами, дозволено лише скеровувати до request_item_airdrop.");
@@ -196,7 +196,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
                 sb.AppendLine("[Заблоковано] Поточна фракція не має доступних придатних шаблонів завдань.");
                 if (blocked.Any())
                 {
-                    sb.AppendLine("阻止原因：");
+                    sb.AppendLine("Причина блокування:");
                     foreach (var item in blocked)
                     {
                         sb.AppendLine($"  - {item.QuestDefName}: {item.Message}");
@@ -269,7 +269,7 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Builders
 
         internal static readonly string[] PresenceBehaviorSectionTitles =
         {
-            "【在线状态策略】",
+            "[Політика статусу присутності]",
             "Online Status Strategy:",
             "Online Status Strategy"
         };

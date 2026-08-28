@@ -358,7 +358,7 @@ internal static string BuildPendingAirdropTradeCardStateLostMessage()
 
 
 internal static readonly Regex AirdropCounterofferPattern = new Regex(
-    @"(?im)^(?:重报价|counteroffer)\s*:\s*item=(?<item>[A-Za-z0-9_\.]+)\s+count=(?<count>\d{1,5})\s+silver=(?<silver>\d{1,9})(?:\s+reason=(?<reason>.+))?\s*$",
+    @"(?im)^(?:нова ціна|counteroffer)\s*:\s*item=(?<item>[A-Za-z0-9_\.]+)\s+count=(?<count>\d{1,5})\s+silver=(?<silver>\d{1,9})(?:\s+reason=(?<reason>.+))?\s*$",
     RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
 
@@ -378,7 +378,7 @@ internal static readonly Regex AirdropCounterofferEnglishNaturalPattern = new Re
 
 
 internal static readonly Regex AirdropCounterofferReasonPattern = new Regex(
-    @"(?is)(?:原因|理由|因为|due to|because|since)\s*[:：,，]?\s*(?<reason>[^\r\n]+)",
+    @"(?is)(?:причина|підстава|бо|через те що|due to|because|since)\s*[:,]?\s*(?<reason>[^\r\n]+)",
     RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
 

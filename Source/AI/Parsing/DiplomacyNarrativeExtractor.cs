@@ -171,10 +171,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string lower = normalized.ToLowerInvariant();
             string[] markers =
             {
-                "\n**策略建议",
-                "\n策略建议：",
-                "\n策略建议:",
-                "\n***\n\n**策略建议",
+                "\n**Стратегічні поради",
+                "\nСтратегічні поради:",
+                "\nСтратегічні поради:",
+                "\n***\n\n**Стратегічні поради",
                 "\n**strategy suggestions",
                 "\nstrategy suggestions:",
                 "\nstrategy suggestion:"
@@ -193,9 +193,9 @@ namespace Ustas.RimAI.Communication.Relations.AI
             if (cutIndex < 0)
             {
                 string start = lower.TrimStart();
-                if (start.StartsWith("**策略建议", StringComparison.Ordinal) ||
-                    start.StartsWith("策略建议：", StringComparison.Ordinal) ||
-                    start.StartsWith("策略建议:", StringComparison.Ordinal) ||
+                if (start.StartsWith("**Стратегічні поради", StringComparison.Ordinal) ||
+                    start.StartsWith("Стратегічні поради:", StringComparison.Ordinal) ||
+                    start.StartsWith("Стратегічні поради:", StringComparison.Ordinal) ||
                     start.StartsWith("**strategy suggestions", StringComparison.Ordinal) ||
                     start.StartsWith("strategy suggestions:", StringComparison.Ordinal))
                 {

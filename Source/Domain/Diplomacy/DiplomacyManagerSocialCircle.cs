@@ -287,7 +287,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             if (string.IsNullOrWhiteSpace(summary))
             {
                 Log.Warning($"[RimAI.Relations] KeywordDialoguePost: summary is null/empty after matching keywords. category={category}, sentiment={sentiment}");
-                string targetLabel = targetFaction != null ? $"与{targetFaction.Name}" : string.Empty;
+                string targetLabel = targetFaction != null ? $"з {targetFaction.Name}" : string.Empty;
                 summary = $"{sourceFaction.Name}{targetLabel} зробила публічну заяву щодо поточної ситуації.";
             }
             bool postResult = Owner.EnqueuePublicPost(

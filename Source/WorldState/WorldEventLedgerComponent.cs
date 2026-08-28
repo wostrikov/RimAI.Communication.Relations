@@ -581,7 +581,7 @@ internal void AddRaidBattleReport(WorldEventLedgerComponent.OngoingRaidBattleSta
             string eventSummary =
                 $"Напад завершено: атаку {state.AttackerFactionName} на {state.MapLabel} відбито." +
                 $"Втрати ворога: {state.AttackerDeaths}, наші втрати: {state.DefenderDeaths}," +
-                $"{state.DefenderDownedPeak}人倒地。";
+                $"знерухомлених: {state.DefenderDownedPeak}.";
 
             string originalFullText =
                 $"Raid ended: {state.AttackerFactionName} raid on {state.MapLabel} repelled. " +
@@ -794,27 +794,27 @@ internal static string BuildLetterFullText(Letter letter)
 internal string DetectEventType(string summary)
         {
             string normalized = (summary ?? string.Empty).ToLowerInvariant();
-            if (Owner.ContainsAny(normalized, "cold snap", "寒潮"))
+            if (Owner.ContainsAny(normalized, "cold snap", "похолодання"))
             {
                 return "cold_snap";
             }
 
-            if (Owner.ContainsAny(normalized, "heat wave", "热浪"))
+            if (Owner.ContainsAny(normalized, "heat wave", "спека"))
             {
                 return "heat_wave";
             }
 
-            if (Owner.ContainsAny(normalized, "blight", "枯萎"))
+            if (Owner.ContainsAny(normalized, "blight", "всихання"))
             {
                 return "blight";
             }
 
-            if (Owner.ContainsAny(normalized, "raid", "袭击", "attacking"))
+            if (Owner.ContainsAny(normalized, "raid", "напад", "attacking"))
             {
                 return "raid";
             }
 
-            if (Owner.ContainsAny(normalized, "died", "killed", "死亡"))
+            if (Owner.ContainsAny(normalized, "died", "killed", "смерть"))
             {
                 return "colonist_death";
             }

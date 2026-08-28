@@ -66,7 +66,7 @@ internal string BuildStrategyFactPackForPrompt(FactionDialogueSession currentSes
             .Reverse()
             .Take(4)
             .Count(m => ContainsAnyStrategyToken((m.message ?? string.Empty).ToLowerInvariant(),
-                "war", "attack", "threat", "kill", "侮辱", "威胁", "进攻", "开战", "袭击"));
+                "war", "attack", "threat", "kill", "образа", "погроза", "наступ", "почати війну", "напад"));
     }
     string recentPlayerTone = aggressiveCount > 0 ? "aggressive" : "non_aggressive";
     string playerIntentDigest = TrimPrompt(lastPlayerMessage, 80);
@@ -311,8 +311,8 @@ internal bool IsGenericBasis(string basis)
     }
 
     string normalized = basis.Trim().ToLowerInvariant();
-    return normalized == "综合判断" ||
-           normalized == "综合" ||
+    return normalized == "Загальна оцінка" ||
+           normalized == "сукупно" ||
            normalized == "general" ||
            normalized == "generic" ||
            normalized.Contains("unknown");
@@ -422,11 +422,11 @@ internal void AppendColonyWealthContext(StringBuilder sb)
 
     string tier = wealth switch
     {
-        >= 250000f => "顶级",
-        >= 120000f => "高",
-        >= 50000f => "中",
-        >= 15000f => "低",
-        _ => "极低"
+        >= 250000f => "найвищий",
+        >= 120000f => "високо",
+        >= 50000f => "середньо",
+        >= 15000f => "низько",
+        _ => "дуже низький"
     };
     sb.AppendLine($"Colony Wealth: {wealth:F0} (Tier: {tier})");
 }
@@ -455,7 +455,7 @@ internal void AppendRecentInteractionContext(StringBuilder sb)
     }
 
     int aggressiveCount = recentPlayers.Count(m => ContainsAnyStrategyToken(m.ToLowerInvariant(),
-        "war", "attack", "threat", "kill", "侮辱", "威胁", "进攻", "开战", "袭击"));
+        "war", "attack", "threat", "kill", "образа", "погроза", "наступ", "почати війну", "напад"));
 
     sb.AppendLine($"Recent Player Interaction: {recentPlayers.Count} turns, aggressive={aggressiveCount}");
     sb.AppendLine($"Recent Snippets: {string.Join(" || ", recentPlayers.Select(m => m.Length > 60 ? m.Substring(0, 60) : m))}");

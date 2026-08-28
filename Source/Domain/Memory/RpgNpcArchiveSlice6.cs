@@ -117,10 +117,10 @@ internal static string DetectDiplomacyTopic(IEnumerable<string> lines)
             }
 
             string joined = string.Join(" ", lines.Where(l => !string.IsNullOrWhiteSpace(l))).ToLowerInvariant();
-            if (joined.Contains("trade") || joined.Contains("交易") || joined.Contains("商队")) return "trade";
-            if (joined.Contains("peace") || joined.Contains("war") || joined.Contains("和平") || joined.Contains("宣战")) return "war-peace";
-            if (joined.Contains("aid") || joined.Contains("help") || joined.Contains("援助") || joined.Contains("支援")) return "aid";
-            if (joined.Contains("gift") || joined.Contains("礼物")) return "gift";
+            if (joined.Contains("trade") || joined.Contains("торгівля") || joined.Contains("караван")) return "trade";
+            if (joined.Contains("peace") || joined.Contains("war") || joined.Contains("мир") || joined.Contains("оголосити війну")) return "war-peace";
+            if (joined.Contains("aid") || joined.Contains("help") || joined.Contains("допомога") || joined.Contains("підтримка")) return "aid";
+            if (joined.Contains("gift") || joined.Contains("подарунок")) return "gift";
             return "general";
         }
 
@@ -389,7 +389,7 @@ internal static bool IsHostileIntent(string text)
             string[] keywords =
             {
                 "kill", "murder", "attack", "hurt", "destroy", "threat", "hate",
-                "杀", "死", "干掉", "攻击", "伤害", "威胁", "仇恨"
+                "вбити", "смерть", "прибрати", "атакувати", "шкода", "погроза", "ненависть"
             };
 
             for (int i = 0; i < keywords.Length; i++)

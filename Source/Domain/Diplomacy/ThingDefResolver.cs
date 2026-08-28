@@ -13,16 +13,16 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
     {
         private static readonly Dictionary<string, string[]> LocalAliasMap = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["steel"] = new[] { "metal", "钢铁", "钢材" },
-            ["metal"] = new[] { "steel", "钢铁", "钢材" },
-            ["pemmican"] = new[] { "干肉饼", "肉干", "ration", "dried meat" },
-            ["meal"] = new[] { "生存餐", "套餐", "food", "口粮" },
-            ["medicine"] = new[] { "药品", "医疗包", "医药", "med" },
-            ["med"] = new[] { "medicine", "医疗", "药品" },
-            ["component"] = new[] { "零部件", "组件", "部件" },
-            ["plasteel"] = new[] { "塑钢", "高级金属" },
-            ["wood"] = new[] { "木材", "原木" },
-            ["chemfuel"] = new[] { "燃料", "化学燃料" }
+            ["steel"] = new[] { "metal", "сталь", "прокат" },
+            ["metal"] = new[] { "steel", "сталь", "прокат" },
+            ["pemmican"] = new[] { "пемікан", "вʼялене мʼясо", "ration", "dried meat" },
+            ["meal"] = new[] { "пайок", "набір", "food", "пайок" },
+            ["medicine"] = new[] { "ліки", "аптечка", "медикаменти", "med" },
+            ["med"] = new[] { "medicine", "медицина", "ліки" },
+            ["component"] = new[] { "компоненти", "компоненти", "деталі" },
+            ["plasteel"] = new[] { "пластасталь", "Високоякісний метал" },
+            ["wood"] = new[] { "деревина", "колода" },
+            ["chemfuel"] = new[] { "паливо", "Хімічне паливо" }
         };
 
         public static ResolverResult ResolveTop1(string need, string constraints, HashSet<string> blacklist)

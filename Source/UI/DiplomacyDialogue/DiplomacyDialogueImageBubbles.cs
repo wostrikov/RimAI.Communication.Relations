@@ -64,7 +64,7 @@ internal static readonly Vector2 OutboundPrisonerThumbnailPivot = new Vector2(0.
 
 
 internal static readonly string[] OutboundPrisonerFieldOrderZh =
-    { "姓名：", "年龄：", "健康：", "意识：", "所属派系：", "ID：", "证词：" };
+    { "Імʼя:", "Вік:", "Здоровʼя:", "Свідомість:", "Належить до фракції:", "ID：", "Свідчення:" };
 
 
 internal static readonly string[] OutboundPrisonerFieldOrderEn =
@@ -72,7 +72,7 @@ internal static readonly string[] OutboundPrisonerFieldOrderEn =
 
 
 internal static readonly string[] LegacyOutboundPrisonerFieldOrderZh =
-    { "姓名：", "年龄：", "健康：", "意识：", "所属派系：", "证词：" };
+    { "Імʼя:", "Вік:", "Здоровʼя:", "Свідомість:", "Належить до фракції:", "Свідчення:" };
 
 
 internal static readonly string[] LegacyOutboundPrisonerFieldOrderEn =
@@ -394,7 +394,7 @@ internal static void ValidateOutboundPrisonerProofCaption(string caption, Dialog
         return;
     }
 
-    if (caption.IndexOf("行走", StringComparison.Ordinal) >= 0)
+    if (caption.IndexOf("хода", StringComparison.Ordinal) >= 0)
     {
         WarnOutboundPrisonerCaptionOnce(
             msg,

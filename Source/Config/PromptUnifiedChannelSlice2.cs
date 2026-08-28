@@ -153,7 +153,7 @@ internal static string MigrateLegacyRpgRelationshipProfileTemplate(
             }
 
             string migrated = current;
-            migrated = PromptUnifiedChannelConfig.WrapLegacyGuidanceLine(migrated, "引导：{{ dialogue.guidance }}");
+            migrated = PromptUnifiedChannelConfig.WrapLegacyGuidanceLine(migrated, "Настанова: {{ dialogue.guidance }}");
             migrated = PromptUnifiedChannelConfig.WrapLegacyGuidanceLine(migrated, "Guidance: {{ dialogue.guidance }}");
             return migrated;
         }

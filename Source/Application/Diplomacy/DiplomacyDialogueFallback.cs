@@ -57,7 +57,7 @@ internal void AddFallbackResponseToSession(string playerMessage, FactionDialogue
         if (!result.IsSuccess)
         {
             string reason = result.Message ?? "Unknown error";
-            currentSession.AddMessage("System", $"无法执行动作 '{directive.ActionType}': {reason}", false, DialogueMessageType.System);
+            currentSession.AddMessage("System", $"Не вдалося виконати дію '{directive.ActionType}': {reason}", false, DialogueMessageType.System);
         }
     }
 

@@ -33,7 +33,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
         {
             new Regex(@"(?i)\b(?:api[_\s-]?limits?|blocked\s*actions?|system\s*prompt|prompt\s*template|request\s*id|requestid|token\s*(?:usage|count|budget)?)\b", RegexOptions.Compiled),
             new Regex(@"(?i)^\s*(?:поточна|зараз|нині)\s*(?:прихильність|відносини|дружність)\s*(?:—|-|:|=)\s*[-+]?\d+\s*(?:очок|рівень)?\s*$", RegexOptions.Compiled | RegexOptions.Multiline),
-            new Regex(@"(?i)^\s*(?:冷却|cooldown)\s*(?:为|是|:|：|=)\s*\d+\s*(?:秒|分钟|小时| ticks)?\s*$", RegexOptions.Compiled | RegexOptions.Multiline),
+            new Regex(@"(?i)^\s*(?:перезарядка|cooldown)\s*(?:—|-|:|=)\s*\d+\s*(?:с|сек|хв|год| ticks)?\s*$", RegexOptions.Compiled | RegexOptions.Multiline),
             new Regex(@"(?i)\b(?:status|system)\b.{0,20}\b(?:panel|state|value|metric)\b", RegexOptions.Compiled)
         };
 
@@ -42,7 +42,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly Regex StatusPanelNumericRegex = new Regex(
-            @"(?im)^(?:\s*(?:好感度|阈值|冷却|goodwill|threshold|cooldown|relation|status|api[_\s-]?limits?|blocked\s*actions?|token|request\s*id)\s*[:：]\s*-?\d+(?:\.\d+)?\s*[,;]?\s*)+$",
+            @"(?im)^(?:\s*(?:прихильність|поріг|перезарядка|goodwill|threshold|cooldown|relation|status|api[_\s-]?limits?|blocked\s*actions?|token|request\s*id)\s*[:：]\s*-?\d+(?:\.\d+)?\s*[,;]?\s*)+$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
         private static readonly Regex ReasoningLeakageRegex = new Regex(

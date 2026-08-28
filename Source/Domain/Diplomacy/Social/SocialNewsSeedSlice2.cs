@@ -28,35 +28,35 @@ internal static bool IsConcreteDialogueFact(string value)
             string lowered = text.ToLowerInvariant();
             string[] concreteFragments =
             {
-                "要求",
-                "主张",
-                "表示",
-                "宣布",
-                "拒绝",
-                "支持",
-                "反对",
-                "停止",
-                "继续",
-                "允许",
-                "禁止",
-                "开放",
-                "封锁",
-                "停火",
-                "谈判",
-                "贸易",
-                "援助",
-                "袭击",
-                "进攻",
-                "威胁",
-                "撤军",
-                "增兵",
-                "赔偿",
-                "合作",
-                "结盟",
-                "归还",
-                "交付",
-                "释放",
-                "警告",
+                "вимога",
+                "твердження",
+                "заявляє",
+                "оголошує",
+                "відмова",
+                "підтримка",
+                "заперечення",
+                "зупинити",
+                "продовжити",
+                "дозволити",
+                "заборонити",
+                "відкрити",
+                "блокада",
+                "припинення вогню",
+                "перемовини",
+                "торг",
+                "допомога",
+                "напад",
+                "наступ",
+                "погроза",
+                "відвести війська",
+                "надіслати війська",
+                "відшкодування",
+                "співпраця",
+                "союз",
+                "повернути",
+                "передати",
+                "звільнити",
+                "попередження",
                 "trade",
                 "truce",
                 "aid",
@@ -89,23 +89,23 @@ internal static bool IsConcreteDialogueFact(string value)
 
             string[] blockedFragments =
             {
-                "引发讨论",
-                "引起讨论",
-                "公开社交圈",
-                "社交圈",
-                "发酵",
-                "波澜",
-                "关注",
-                "热议",
-                "议论",
-                "讨论",
-                "风声",
-                "信号",
-                "口径",
-                "态度",
-                "立场",
-                "局势",
-                "传闻",
+                "викликало обговорення",
+                "спричинило обговорення",
+                "Публічне соціальне коло",
+                "соціальне коло",
+                "бродіння",
+                "хвиля",
+                "увага",
+                "жваве обговорення",
+                "обговорення",
+                "дискусія",
+                "чутки",
+                "сигнал",
+                "формулювання",
+                "ставлення",
+                "позиція",
+                "ситуація",
+                "поголос",
                 "rumor",
                 "discussion",
                 "debate",
@@ -125,10 +125,10 @@ internal static bool IsConcreteDialogueFact(string value)
                 || text.Contains(":")
                 || text.Contains("“")
                 || text.Contains("”")
-                || text.Contains("将")
-                || text.Contains("会")
-                || text.Contains("必须")
-                || text.Contains("不得")
+                || text.Contains("буде")
+                || text.Contains("може")
+                || text.Contains("мусить")
+                || text.Contains("не можна")
                 || text.Contains("would")
                 || text.Contains("will ")
                 || text.Contains("must ")
@@ -151,14 +151,14 @@ internal static string NormalizeDialogueClaimCandidate(string value)
 
             string[] prefixes =
             {
-                "对话内容",
-                "公开对话",
-                "公开声明",
-                "公开表态",
-                "消息称",
-                "据称",
-                "报道称",
-                "有声音称"
+                "Зміст розмови",
+                "Публічна розмова",
+                "Публічна заява",
+                "Публічна позиція",
+                "повідомляють",
+                "нібито",
+                "пишуть",
+                "Подейкують, що"
             };
             foreach (string prefix in prefixes)
             {
@@ -318,8 +318,8 @@ internal static bool ShouldTreatAsAidArrival(WorldEventRecord record)
         {
             string merged = $"{record?.EventType} {record?.Summary}".ToLowerInvariant();
             return merged.Contains("aid")
-                   || merged.Contains("援助")
-                   || merged.Contains("救援")
+                   || merged.Contains("допомога")
+                   || merged.Contains("рятувати")
                    || merged.Contains("support");
         }
 

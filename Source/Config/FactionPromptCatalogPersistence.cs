@@ -242,10 +242,10 @@ internal sealed class FactionPromptCatalogPersistence
         internal void SetupDefaultTemplateFields(FactionPromptConfig config, string factionDefName)
         {
             config.GetOrCreateField(FactionPromptFieldNames.CoreStyle, $"Завантаж типову конфігурацію {factionDefName} з файлу {FactionPromptManager.DefaultConfigFileName} або відредагуй цей шаблон вручну.", "Опиши основний стиль спілкування фракції");
-            config.GetOrCreateField(FactionPromptFieldNames.Vocabulary, "请配置用词特征。", "描述用词习惯和特征");
-            config.GetOrCreateField(FactionPromptFieldNames.Tone, "请配置语气特征。", "描述语气和情感特征");
-            config.GetOrCreateField(FactionPromptFieldNames.Sentence, "请配置句式特征。", "描述句式结构特征");
-            config.GetOrCreateField(FactionPromptFieldNames.Taboos, "请配置表达禁忌。", "描述表达禁忌和限制");
+            config.GetOrCreateField(FactionPromptFieldNames.Vocabulary, "Налаштуй особливості добору слів.", "Опиши звички й особливості добору слів");
+            config.GetOrCreateField(FactionPromptFieldNames.Tone, "Налаштуй особливості тону.", "Опиши тон та емоційні риси");
+            config.GetOrCreateField(FactionPromptFieldNames.Sentence, "Налаштуй особливості будови речень.", "Опиши особливості будови речень");
+            config.GetOrCreateField(FactionPromptFieldNames.Taboos, "Налаштуй мовні табу.", "Опиши мовні табу й обмеження");
         }
 
         public bool ExportConfigs(string filePath)

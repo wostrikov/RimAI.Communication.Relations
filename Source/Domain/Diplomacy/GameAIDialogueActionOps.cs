@@ -226,7 +226,7 @@ internal bool CheckDailyDialogueLimit(Faction faction, DialogueGoodwillCost.Dial
                 int expectedCost = Math.Abs(DialogueGoodwillCost.GetBaseValue(actionType));
                 if (todayCost + expectedCost > Math.Abs(DialogueGoodwillCost.DailyCostLimit))
                 {
-                    reason = $"今日消耗已达上限 ({todayCost}/{Math.Abs(DialogueGoodwillCost.DailyCostLimit)})";
+                    reason = $"Денну межу витрат вичерпано ({todayCost}/{Math.Abs(DialogueGoodwillCost.DailyCostLimit)})";
                     return false;
                 }
             }
@@ -235,7 +235,7 @@ internal bool CheckDailyDialogueLimit(Faction faction, DialogueGoodwillCost.Dial
                 int expectedGain = DialogueGoodwillCost.GetBaseValue(actionType);
                 if (todayGain + expectedGain > DialogueGoodwillCost.DailyGainLimit)
                 {
-                    reason = $"今日收益已达上限 ({todayGain}/{DialogueGoodwillCost.DailyGainLimit})";
+                    reason = $"Денну межу надходжень вичерпано ({todayGain}/{DialogueGoodwillCost.DailyGainLimit})";
                     return false;
                 }
             }

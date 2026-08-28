@@ -84,10 +84,10 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 case "everyone_attack":
                 case "joint_raid":
                 case "all_in":
-                case "联合袭击":
-                case "一起上":
-                case "都叫来":
-                case "全都叫来":
+                case "спільний напад":
+                case "гуртом":
+                case "усіх клич":
+                case "гуртом на них":
                     return "request_raid_call_everyone";
                 case "requestraidwaves":
                 case "raid_waves":

@@ -291,12 +291,12 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             string value = quote.Trim();
             string[] blockedFragments =
             {
-                "消息源：",
-                "消息来源：",
-                "来源：",
+                "Джерело:",
+                "Джерело новини:",
+                "Джерело:",
                 "Source:",
                 "source:",
-                "公开社交圈转述"
+                "Переказ у публічному соціальному колі"
             };
 
             foreach (string fragment in blockedFragments)

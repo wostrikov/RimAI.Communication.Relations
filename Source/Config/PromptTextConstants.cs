@@ -53,7 +53,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const string SendImageCaptionFallbackTemplateDefault =
             "Це наш ватажок {{ pawn.leader.name }}, гарний, правда?";
 
-        public const string SendImageDefaultTemplateName = "领袖肖像";
+        public const string SendImageDefaultTemplateName = "Портрет лідера";
         public const string SendImageDefaultTemplateDescription =
             "Кінематографічна портретна сцена лідера, що відповідає рівню технологій RimWorld і статусу фракції.";
         public const string SendImageDefaultTemplateText =
@@ -70,7 +70,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const string ResponseContractNodeLiteralDefault =
             "{{ dialogue.response_contract_body }}";
 
-        public const string OutputSpecificationAuthorityHeader = "输出规范权威区：";
+        public const string OutputSpecificationAuthorityHeader = "Авторитет правил виводу:";
         public const string OutputSpecificationAuthorityReference =
             "Протокол відповіді визначається лише в цьому авторитетному розділі. Інші розділи можуть тільки посилатися на нього, повторно визначати правила заборонено.";
         public const string OutputSpecificationAuthorityBoundaryRule =
@@ -80,18 +80,18 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const string OutputSpecificationAuthorityHistoryStyleRule =
             "- Не наслідуй стиль метакоментарів з історії; історія дає лише сюжетні факти, а не форму виводу.";
 
-        public const string ActionsHeader = "动作目录：";
-        public const string ResponseFormatHeader = "响应格式：";
+        public const string ActionsHeader = "Каталог дій:";
+        public const string ResponseFormatHeader = "Формат відповіді:";
         public const string ResponseFormatReference =
             "Єдиний чинний контракт відповіді визначає розділ «Авторитет правил виводу» вище; типово виводиться один обʼєкт JSON із головним полем visible_dialogue.";
-        public const string CriticalActionRulesHeader = "关键动作规则：";
+        public const string CriticalActionRulesHeader = "Ключові правила дій:";
         public const string CriticalActionRulesReference =
             "Усі правила протоколу й меж визначає розділ «Авторитет правил виводу» вище.";
         public const string NoActionResponseHint = "Якщо дія не потрібна, усе одно виведи обʼєкт JSON лише з visible_dialogue, не додаючи actions.";
         public const string StrictJsonFormatHeader = "### Вимоги до формату (найвищий пріоритет, дотримуватися суворо)";
         public const string StrictJsonFormatRequirement = "Уся твоя відповідь має бути одним обʼєктом JSON: перший символ { останній символ }, поза JSON не можна додавати ані тексту, ані пояснень, ані Markdown. Заборонено обгортати у блок ```json ```, заборонено писати будь-які репліки чи примітки до або після JSON — виводь чистий JSON.";
-        public const string StrictJsonFormatTemplate = "{\n  \"visible_dialogue\":\"外交发言文本\"\n}";
-        public const string StrictJsonFormatTemplateWithAction = "{\n  \"visible_dialogue\":\"外交发言文本\",\n  \"actions\":[\n    {\"action\":\"request_item_airdrop\",\"parameters\":{\"need\":\"1000原木\",\"payment_items\":[{\"item\":\"Silver\",\"count\":1200}]}}\n  ]\n}";
+        public const string StrictJsonFormatTemplate = "{\n  \"visible_dialogue\":\"текст дипломатичної репліки\"\n}";
+        public const string StrictJsonFormatTemplateWithAction = "{\n  \"visible_dialogue\":\"текст дипломатичної репліки\",\n  \"actions\":[\n    {\"action\":\"request_item_airdrop\",\"parameters\":{\"need\":\"1000 деревини\",\"payment_items\":[{\"item\":\"Silver\",\"count\":1200}]}}\n  ]\n}";
 
         public const string GoodwillPeacePolicyHeader = "Динамічна мирна політика (за прихильністю):";
         public const string GoodwillPeacePolicyVeryLowLine1 =
@@ -101,12 +101,12 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public const string GoodwillPeacePolicyTalkOnlyLine1 =
             "- Поточна прихильність: {0}. У цьому діапазоні make_peace використовувати заборонено.";
         public const string GoodwillPeacePolicyTalkOnlyLine2 =
-            "- 和谈必须使用 create_quest，并指定 questDefName '{0}'。";
+            "- Для перемовин обовʼязково використовуй create_quest із questDefName '{0}'.";
         public const string GoodwillPeacePolicyTalkOnlyLine3 =
             "- Причина: прихильність у діапазоні [{0},{1}], тож перед прямим миром потрібні перемовини.";
         public const string GoodwillPeacePolicyReenabledLine1 =
             "- Поточна прихильність: {0}. Доступні і make_peace, і завдання на перемовини.";
         public const string GoodwillPeacePolicyReenabledLine2 =
-            "- 若选择 create_quest，和谈应使用 questDefName '{0}'。";
+            "- Якщо обрано create_quest, для перемовин має бути questDefName '{0}'.";
     }
 }

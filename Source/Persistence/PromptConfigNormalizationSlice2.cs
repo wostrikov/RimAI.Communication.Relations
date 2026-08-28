@@ -65,10 +65,10 @@ internal bool EnsureRansomImportantRules(ResponseFormatConfig format)
                 changed = true;
             }
 
-            if (rules.IndexOf("在 request_info(info_type=prisoner) 成功前，严禁调用 pay_prisoner_ransom。", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (rules.IndexOf("Поки request_info(info_type=prisoner) не пройшов успішно, викликати pay_prisoner_ransom суворо заборонено.", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 rules = rules.Replace(
-                    "在 request_info(info_type=prisoner) 成功前，严禁调用 pay_prisoner_ransom。",
+                    "Поки request_info(info_type=prisoner) не пройшов успішно, викликати pay_prisoner_ransom суворо заборонено.",
                     "Якщо target_pawn_load_id уже відомий і чинний, можна одразу викликати pay_prisoner_ransom.");
                 changed = true;
             }

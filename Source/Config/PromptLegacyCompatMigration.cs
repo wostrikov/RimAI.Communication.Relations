@@ -24,14 +24,14 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
         internal static readonly PromptSectionDefinition[] SectionDefinitions =
         {
-            new PromptSectionDefinition("system_rules", "System Rules", "系统规则"),
-            new PromptSectionDefinition("character_persona", "Persona", "角色人设", "Character Persona", "人物设定", "人格"),
-            new PromptSectionDefinition("memory_system", "Memory", "记忆", "Memory System", "记忆系统"),
-            new PromptSectionDefinition("environment_perception", "Environment", "环境感知", "Environment Perception", "环境"),
-            new PromptSectionDefinition("context", "Context", "上下文"),
-            new PromptSectionDefinition("action_rules", "Action Rules", "行为规则", "行动规则"),
-            new PromptSectionDefinition("repetition_reinforcement", "Reinforcement", "强化规则", "Repetition Reinforcement", "重复强化", "强化"),
-            new PromptSectionDefinition("output_specification", "Output Format", "输出格式", "Output Specification", "输出规范")
+            new PromptSectionDefinition("system_rules", "System Rules", "Системні правила"),
+            new PromptSectionDefinition("character_persona", "Persona", "Образ персонажа", "Character Persona", "Опис персонажа", "особистість"),
+            new PromptSectionDefinition("memory_system", "Memory", "памʼять", "Memory System", "Система памʼяті"),
+            new PromptSectionDefinition("environment_perception", "Environment", "Відчуття середовища", "Environment Perception", "середовище"),
+            new PromptSectionDefinition("context", "Context", "Контекст"),
+            new PromptSectionDefinition("action_rules", "Action Rules", "Правила поведінки", "Правила дій"),
+            new PromptSectionDefinition("repetition_reinforcement", "Reinforcement", "Підсилені правила", "Repetition Reinforcement", "Повторне підсилення", "підсилення"),
+            new PromptSectionDefinition("output_specification", "Output Format", "Формат виводу", "Output Specification", "Правила виводу")
         };
 
         

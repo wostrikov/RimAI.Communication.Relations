@@ -78,8 +78,8 @@ namespace Ustas.RimAI.Communication.Relations.AI
         {
             List<ChatMessageData> updated = RelationsTextAiRequestBuilder.Clone(messages);
             string example = usageChannel == DialogueUsageChannel.Rpg
-                ? "{\"visible_dialogue\":\"角色的一句对白\"}"
-                : "{\"visible_dialogue\":\"外交发言文本\"}";
+                ? "{\"visible_dialogue\":\"одна репліка персонажа\"}"
+                : "{\"visible_dialogue\":\"текст дипломатичної репліки\"}";
             string hint = usageChannel == DialogueUsageChannel.Rpg
                 ? "Put one in-character NPC line inside visible_dialogue."
                 : "Put 1-2 in-character diplomacy sentences inside visible_dialogue.";
@@ -107,7 +107,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
             string snippet = guardResult?.ViolationSnippet ?? string.Empty;
             string problem = reasonTag switch
             {
-                "reasoning_leakage" => "暴露了推理过程",
+                "reasoning_leakage" => "розкривала хід міркувань",
                 "mechanic_keyword" => "згадувала ключові слова ігрових механік",
                 "parenthetical_metadata" => "позначала стан системи в дужках",
                 "status_panel_numeric" => "розкривала числовий стан системи",
@@ -121,7 +121,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
                 role = "user",
                 content = $"IMMERSION_VIOLATION={reasonTag}; snippet={snippet}. "
                     + $"Твоя попередня відповідь {problem} (фрагмент порушення: {snippet}). Виведи наново чистий обʼєкт JSON,"
-                    + $"首字符 {{ 末字符 }}。{hint}"
+                    + $"перший символ {{ останній символ }}. {hint}"
                     + $"Увесь видимий текст клади у visible_dialogue. Заборонено вносити в нього стан системи, числові показники, хід міркувань чи примітки в дужках."
                     + $" "
                     + $"IMMERSION_VIOLATION={reasonTag}. Your last reply {problem}. "

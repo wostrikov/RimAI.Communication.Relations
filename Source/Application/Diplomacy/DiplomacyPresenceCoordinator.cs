@@ -352,18 +352,18 @@ internal string DetectAutoPresenceAction(string dialogueText, Faction currentFac
 {
     string text = (dialogueText ?? string.Empty).ToLowerInvariant();
 
-    if (ContainsAny(text, "停止联系", "别再联系", "滚开", "拉黑", "不再回应", "leave me alone", "stop contacting"))
+    if (ContainsAny(text, "припини звʼязок", "більше не пиши", "забирайся", "у чорний список", "не відповідатиму", "leave me alone", "stop contacting"))
     {
         return AIActionNames.GoOffline;
     }
 
-    if (ContainsAny(text, "请勿打扰", "不要打扰", "忙不过来", "稍后再说", "do not disturb", "don't disturb"))
+    if (ContainsAny(text, "не турбуй", "не турбуйте", "не встигаю", "поговоримо пізніше", "do not disturb", "don't disturb"))
     {
         return AIActionNames.SetDnd;
     }
 
     if (currentFaction.PlayerGoodwill <= -75 &&
-        ContainsAny(text, "威胁", "挑衅", "冒犯", "threat", "insult"))
+        ContainsAny(text, "погроза", "провокація", "образа", "threat", "insult"))
     {
         return AIActionNames.ExitDialogue;
     }

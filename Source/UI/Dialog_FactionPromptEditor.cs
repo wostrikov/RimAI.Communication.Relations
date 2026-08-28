@@ -36,10 +36,10 @@ namespace Ustas.RimAI.Communication.Relations.UI
             {
                 factionConfig.TemplateFields = new List<PromptTemplateField>();
                 factionConfig.GetOrCreateField("核心风格", string.Empty, "Опиши основний стиль спілкування фракції");
-                factionConfig.GetOrCreateField("用词特征", string.Empty, "描述用词习惯和特征");
-                factionConfig.GetOrCreateField("语气特征", string.Empty, "描述语气和情感特征");
-                factionConfig.GetOrCreateField("句式特征", string.Empty, "描述句式结构特征");
-                factionConfig.GetOrCreateField("表达禁忌", string.Empty, "描述表达禁忌和限制");
+                factionConfig.GetOrCreateField("用词特征", string.Empty, "Опиши звички й особливості добору слів");
+                factionConfig.GetOrCreateField("语气特征", string.Empty, "Опиши тон та емоційні риси");
+                factionConfig.GetOrCreateField("句式特征", string.Empty, "Опиши особливості будови речень");
+                factionConfig.GetOrCreateField("表达禁忌", string.Empty, "Опиши мовні табу й обмеження");
             }
 
             // Initialize edit buffers.
