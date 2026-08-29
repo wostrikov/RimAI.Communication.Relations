@@ -18,9 +18,6 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
             AccessTools.Field(typeof(Letter), "label");
         private static readonly System.Reflection.FieldInfo ChoiceTitleField =
             AccessTools.Field(typeof(ChoiceLetter), "title");
-        private static readonly System.Reflection.FieldInfo LetterLoadIDField =
-            AccessTools.Field(typeof(Letter), "loadID");
-
         private static int nextUniqueLoadID = 700001;
 
         private int factionLoadId = -1;
@@ -42,7 +39,7 @@ namespace Ustas.RimAI.Communication.Relations.NpcDialogue
         /// </summary>
         public void AssignLoadID()
         {
-            LetterLoadIDField?.SetValue(this, nextUniqueLoadID++);
+            ID = Find.UniqueIDsManager?.GetNextLetterID() ?? nextUniqueLoadID++;
         }
 
         public void Setup(Faction faction, TaggedString labelText, TaggedString bodyText, LetterDef letterDef)

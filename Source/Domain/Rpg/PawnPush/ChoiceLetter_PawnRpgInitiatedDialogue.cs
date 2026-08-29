@@ -20,9 +20,6 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             AccessTools.Field(typeof(Letter), "label");
         private static readonly System.Reflection.FieldInfo ChoiceTitleField =
             AccessTools.Field(typeof(ChoiceLetter), "title");
-        private static readonly System.Reflection.FieldInfo LetterLoadIDField =
-            AccessTools.Field(typeof(Letter), "loadID");
-
         private static int nextUniqueLoadID = 800001;
 
         private int npcLoadId = -1;
@@ -39,13 +36,23 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
         }
 
         /// <summary>
-        /// Assign a unique loadID to this letter instance immediately.
-        /// Must be called before ReceiveLetter to prevent loadID=0 collisions
-        /// when two letters are saved in the same save cycle.
+        /// Give this letter an identity of its own.
+        ///
+        /// This wrote through AccessTools.Field(typeof(Letter), "loadID").
+        /// Verse.Letter has no field of that name - its identity field is the
+        /// public ID - so the lookup returned null, every ?.SetValue was a
+        /// silent no-op, and every letter of this type kept ID 0. Two of them
+        /// in one save both serialise as "Letter_0", which is precisely the
+        /// duplicate the save-integrity checker reports.
+        ///
+        /// The game's own allocator is used rather than a private counter,
+        /// because a private counter restarts at the same number every session
+        /// and collides with the letters already in the save. The counter
+        /// remains only for the load path, where no game object exists to ask.
         /// </summary>
         public void AssignLoadID()
         {
-            LetterLoadIDField?.SetValue(this, nextUniqueLoadID++);
+            ID = Find.UniqueIDsManager?.GetNextLetterID() ?? nextUniqueLoadID++;
         }
 
         public void Setup(Pawn npcPawn, Pawn playerPawn, TaggedString labelText, TaggedString bodyText, LetterDef letterDef)
