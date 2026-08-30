@@ -181,16 +181,44 @@ internal static PromptPresetStoreConfig TryReadStoreFile(string path, out bool c
                     Log.Warning($"[RimAI.Relations] Prompt preset store file has IDs but missing preset list. path={path}");
                 }
 
+                // JsonUtility returns the store with an empty preset list for
+                // this file while the raw JSON plainly contains presets - two of
+                // them, well-formed, matching the field names exactly. Why it
+                // does that is not established: the file nests ten levels deep,
+                // which is past Unity's serialization depth limit, but Unity
+                // logs nothing about depth here and an unproven cause is not a
+                // cause. What is established is that the recovery below reads
+                // them correctly and has been the load-bearing path all along.
                 int rawPresetCountHint = PromptPresetService.CountPresetObjectsHint(json);
                 int parsedPresetCount = store.Presets?.Count ?? 0;
-                if (rawPresetCountHint > parsedPresetCount &&
-                    PromptPresetService.TryRecoverPresetListFromRawJson(json, out List<PromptPresetConfig> recovered) &&
-                    recovered.Count >= rawPresetCountHint)
+                if (rawPresetCountHint > parsedPresetCount)
                 {
-                    store.Presets = recovered;
-                    Log.Warning(
-                        $"[RimAI.Relations][PresetDiag] Recovered preset list from raw JSON. " +
-                        $"path={path}, parsed={parsedPresetCount}, recovered={recovered.Count}");
+                    if (PromptPresetService.TryRecoverPresetListFromRawJson(json, out List<PromptPresetConfig> recovered) &&
+                        recovered.Count >= rawPresetCountHint)
+                    {
+                        store.Presets = recovered;
+                        // Chatter. The recovery succeeded, every preset is
+                        // present, and there is nothing for the player to do -
+                        // reporting a working fallback as a warning on every
+                        // single load is how a log stops being read.
+                        ModuleLog.Message(
+                            $"[RimAI.Relations][PresetDiag] Recovered preset list from raw JSON. " +
+                            $"path={path}, parsed={parsedPresetCount}, recovered={recovered.Count}");
+                    }
+                    else
+                    {
+                        // This is the case worth shouting about, and it was the
+                        // silent one: presets the file contains are about to be
+                        // missing from the game, and nothing said so.
+                        Log.Warning(
+                            // "Cannot" rather than "Could not" on purpose: it is
+                            // what the playtest parser already reads as a
+                            // warning, so the game's severity and the tool's
+                            // agree without teaching the tool a new phrase.
+                            $"[RimAI.Relations] Cannot recover the prompt preset list. The file contains " +
+                            $"{rawPresetCountHint} presets and only {parsedPresetCount} were read, so the rest " +
+                            $"will be missing from the workbench. path={path}");
+                    }
                 }
 
                 PromptPresetService.ApplyLegacyPayloadsFromStoreJson(store, json);
