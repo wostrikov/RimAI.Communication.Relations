@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ustas.RimAI.Communication.Relations.Config;
@@ -436,13 +436,25 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
                 return;
             }
 
+            // The player's own faction is skipped here rather than caught below.
+            // A post written by the player's faction, or about it, is the
+            // ordinary case - the player is a participant in the social circle
+            // like anyone else - and what this method does is move a faction's
+            // goodwill *towards the player*, which is not a question that has an
+            // answer when the faction is the player. Adding it and then refusing
+            // it turned a normal post into a warning in developer mode.
+            //
+            // The refusal in TryAffectPlayerGoodwill stays. With this filter it
+            // is no longer reachable in the ordinary case, which is what makes it
+            // worth keeping: from here on it only fires if a caller finds some
+            // other way to ask, and that would be worth hearing about.
             var impactFactions = new HashSet<Faction>();
-            if (post?.SourceFaction != null)
+            if (post?.SourceFaction != null && !post.SourceFaction.IsPlayer)
             {
                 impactFactions.Add(post.SourceFaction);
             }
 
-            if (post?.TargetFaction != null)
+            if (post?.TargetFaction != null && !post.TargetFaction.IsPlayer)
             {
                 impactFactions.Add(post.TargetFaction);
             }
