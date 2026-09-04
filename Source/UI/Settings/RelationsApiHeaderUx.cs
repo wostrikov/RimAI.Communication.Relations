@@ -30,6 +30,14 @@ internal sealed class RelationsApiHeaderUx
         internal const string VersionLogFileLocalizedDefault = "VersionLog.txt";
         internal const string VersionLogFileEnglish = "VersionLog_en.txt";
         internal const string VersionLogFileByLanguagePattern = "VersionLog_{0}.txt";
+
+        /// Where the shipped copies actually live. The mod's runtime documents -
+        /// the help pages and the version logs - are kept in Docs/ in the
+        /// repository, and the package now carries that folder. Both roots are
+        /// tried because a copy at the mod root is what every earlier release
+        /// had, and a reader that only knows the new place would stop finding
+        /// the old one.
+        internal const string DocumentsRelativePath = "Docs";
         internal const string HelpFileLocalizedDefault = "help.md";
         internal const string HelpFileEnglish = "help_en.md";
         internal const string RimChatGitHubUrl = "https://github.com/yancy22737-sudo/RimChat";
@@ -265,6 +273,20 @@ internal sealed class RelationsApiHeaderUx
             return null;
         }
 
+        /// RimWorld names a language folder with its endonym in brackets -
+        /// "Ukrainian (Ukrainska)". Shipped documents are named after the
+        /// language alone, so this is the other half of the pair to try.
+        internal static string LanguageNameWithoutEndonym(string languageFolder)
+        {
+            if (string.IsNullOrWhiteSpace(languageFolder))
+            {
+                return languageFolder;
+            }
+
+            int bracket = languageFolder.IndexOf('(');
+            return bracket <= 0 ? languageFolder.Trim() : languageFolder.Substring(0, bracket).Trim();
+        }
+
         internal static string NormalizeLanguageToken(string value)
         {
             string sanitized = TrimLanguageDisplaySuffix(value);
@@ -331,14 +353,29 @@ internal sealed class RelationsApiHeaderUx
 
             if (!isEnglish && !string.IsNullOrWhiteSpace(matchedFolder))
             {
-                string languageSpecific = string.Format(
-                    VersionLogFileByLanguagePattern,
-                    matchedFolder.Trim());
-                candidates.Add(CombineRootPath(rootDir, languageSpecific));
-                candidates.Add(CombineRootPath(rootDir, VersionLogFileLocalizedDefault));
+                // Two spellings, because RimWorld's language folder carries the
+                // endonym - "Ukrainian (Ukrainska)" - while the shipped file is
+                // named after the language alone. Asking only for the folder
+                // name is what left the Ukrainian log unfound.
+                string folder = matchedFolder.Trim();
+                AddRootedCandidates(
+                    candidates,
+                    rootDir,
+                    string.Format(VersionLogFileByLanguagePattern, folder));
+
+                string bare = LanguageNameWithoutEndonym(folder);
+                if (!string.Equals(bare, folder, StringComparison.Ordinal))
+                {
+                    AddRootedCandidates(
+                        candidates,
+                        rootDir,
+                        string.Format(VersionLogFileByLanguagePattern, bare));
+                }
+
+                AddRootedCandidates(candidates, rootDir, VersionLogFileLocalizedDefault);
             }
 
-            candidates.Add(CombineRootPath(rootDir, VersionLogFileEnglish));
+            AddRootedCandidates(candidates, rootDir, VersionLogFileEnglish);
             return candidates;
         }
 
@@ -351,15 +388,15 @@ internal sealed class RelationsApiHeaderUx
 
             if (isChineseSimplified)
             {
-                candidates.Add(CombineRootPath(rootDir, HelpFileLocalizedDefault));
-                candidates.Add(CombineRootPath(rootDir, HelpFileEnglish));
+                AddRootedCandidates(candidates, rootDir, HelpFileLocalizedDefault);
+                AddRootedCandidates(candidates, rootDir, HelpFileEnglish);
                 return candidates;
             }
 
-            candidates.Add(CombineRootPath(rootDir, HelpFileEnglish));
+            AddRootedCandidates(candidates, rootDir, HelpFileEnglish);
             if (!isEnglish)
             {
-                candidates.Add(CombineRootPath(rootDir, HelpFileLocalizedDefault));
+                AddRootedCandidates(candidates, rootDir, HelpFileLocalizedDefault);
             }
 
             return candidates;
@@ -415,6 +452,15 @@ internal sealed class RelationsApiHeaderUx
             return string.IsNullOrWhiteSpace(rootDir)
                 ? fileName
                 : System.IO.Path.Combine(rootDir, fileName);
+        }
+
+        /// The same file under both roots, mod root first.
+        internal static void AddRootedCandidates(List<string> candidates, string rootDir, string fileName)
+        {
+            candidates.Add(CombineRootPath(rootDir, fileName));
+            candidates.Add(CombineRootPath(
+                rootDir,
+                System.IO.Path.Combine(DocumentsRelativePath, fileName)));
         }
 
         internal string ReadVersionLogContent(string filePath)
