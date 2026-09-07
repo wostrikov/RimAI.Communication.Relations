@@ -18,7 +18,7 @@
   <ItemGroup>
     <!-- RimWorld Core Assembly References -->
     <Reference Include="0Harmony">
-      <HintPath>$(RimWorldWorkshopDir)\2009463077\Current\Assemblies\0Harmony.dll</HintPath>
+      <HintPath>$(RimWorldDir)\Mods\Harmony - Ustas\Current\Assemblies\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
