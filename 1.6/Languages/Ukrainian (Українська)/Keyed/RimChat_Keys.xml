@@ -1570,7 +1570,7 @@ ID: {5}
   <RimChat_DialogueCompressionMaxEvents>Максимум речень подій на блок: {0}</RimChat_DialogueCompressionMaxEvents>
   <RimChat_DialogueCompressionMaxMark>Максимальна позначка стиснення: {0}</RimChat_DialogueCompressionMaxMark>
   <RimChat_GlobalSystemPromptSection>Глобальний системний промпт</RimChat_GlobalSystemPromptSection>
-  <RimChat_GlobalSystemPromptSectionTooltip>Функція: редагування спільних обмежень на рівні системи. Область: спільний вступ для системних промптів дипломатії та діалогів пішаків.</RimChat_GlobalSystemPromptSectionTooltip>
+  <RimChat_GlobalSystemPromptSectionTooltip>Функція: редагування спільних обмежень на рівні системи. Область: спільний вступ для системних промптів дипломатії та діалогів персонажів.</RimChat_GlobalSystemPromptSectionTooltip>
   <RimChat_ApiActionsSection>Дії API</RimChat_ApiActionsSection>
   <RimChat_ResponseFormatSection>Формат відповіді</RimChat_ResponseFormatSection>
   <RimChat_DecisionRulesSection>Правила ухвалення рішень</RimChat_DecisionRulesSection>
@@ -1675,13 +1675,13 @@ ID: {5}
   <RimChat_UsePermit>Скористатися дозволом</RimChat_UsePermit>
   <RimChat_UsePermitHint>Скористайтеся цим дозволом із панелі колоніста або карти світу.</RimChat_UsePermitHint>
   <RimChat_PermitCooldown>Затримка відновлення</RimChat_PermitCooldown>
-  <RimChat_RPGPawnPersonaSection>Персона пішачка колонії</RimChat_RPGPawnPersonaSection>
-  <RimChat_RPGPawnPersonaNeedGame>Щоб редагувати промпти персон пішаків, потрібно завантажити збереження.</RimChat_RPGPawnPersonaNeedGame>
-  <RimChat_RPGPawnPersonaNoPawn>Редагованих людиноподібних пішаків колонії не знайдено.</RimChat_RPGPawnPersonaNoPawn>
-  <RimChat_RPGPawnPersonaPawnList>Список пішаків колонії</RimChat_RPGPawnPersonaPawnList>
+  <RimChat_RPGPawnPersonaSection>Особистість персонажа колонії</RimChat_RPGPawnPersonaSection>
+  <RimChat_RPGPawnPersonaNeedGame>Щоб редагувати промпти персон персонажів, потрібно завантажити збереження.</RimChat_RPGPawnPersonaNeedGame>
+  <RimChat_RPGPawnPersonaNoPawn>Редагованих людиноподібних персонажів колонії не знайдено.</RimChat_RPGPawnPersonaNoPawn>
+  <RimChat_RPGPawnPersonaPawnList>Список персонажів колонії</RimChat_RPGPawnPersonaPawnList>
   <RimChat_RPGPawnPersonaPromptLabel>{0} Промпт персони</RimChat_RPGPawnPersonaPromptLabel>
-  <RimChat_RPGPawnPersonaPromptDesc>Цей вміст додається лише для цього пішака в системні промпти діалогів RPG.</RimChat_RPGPawnPersonaPromptDesc>
-  <RimChat_RPGPawnPersonaReset>Очистити промпт пішака</RimChat_RPGPawnPersonaReset>
+  <RimChat_RPGPawnPersonaPromptDesc>Цей вміст додається лише для цього персонажа в системні промпти діалогів RPG.</RimChat_RPGPawnPersonaPromptDesc>
+  <RimChat_RPGPawnPersonaReset>Очистити промпт персонажа</RimChat_RPGPawnPersonaReset>
   <RimChat_EnvironmentPromptsSection>Промпти середовища</RimChat_EnvironmentPromptsSection>
   <RimChat_EnvironmentWorldviewLabel>Глобальний промпт світогляду</RimChat_EnvironmentWorldviewLabel>
   <RimChat_EnvironmentWorldviewEnabled>Увімкнути промпт світогляду</RimChat_EnvironmentWorldviewEnabled>
@@ -1715,7 +1715,7 @@ ID: {5}
   <RimChat_EnvironmentContextCleanliness>Чистота</RimChat_EnvironmentContextCleanliness>
   <RimChat_EnvironmentContextSurroundings>Оточення</RimChat_EnvironmentContextSurroundings>
   <RimChat_EnvironmentContextWealth>Багатство мапи</RimChat_EnvironmentContextWealth>
-  <RimChat_EnvironmentRpgParamsLabel>Глибокі параметри пішака для RPG</RimChat_EnvironmentRpgParamsLabel>
+  <RimChat_EnvironmentRpgParamsLabel>Глибокі параметри персонажа для RPG</RimChat_EnvironmentRpgParamsLabel>
   <RimChat_EnvironmentRpgParamSkills>Вставити навички</RimChat_EnvironmentRpgParamSkills>
   <RimChat_EnvironmentRpgParamEquipment>Вставити спорядження</RimChat_EnvironmentRpgParamEquipment>
   <RimChat_EnvironmentRpgParamGenes>Вставити гени</RimChat_EnvironmentRpgParamGenes>
@@ -1725,7 +1725,7 @@ ID: {5}
   <RimChat_EnvironmentRpgParamColonyInventory>Вставляти зведення про запаси колонії</RimChat_EnvironmentRpgParamColonyInventory>
   <RimChat_EnvironmentRpgParamHomeAlerts>Вставляти сповіщення рідного світу</RimChat_EnvironmentRpgParamHomeAlerts>
   <RimChat_EnvironmentRpgParamRecentJobState>Вставляти нещодавній стан роботи</RimChat_EnvironmentRpgParamRecentJobState>
-  <RimChat_EnvironmentRpgParamAttributeLevels>Вставляти рівні характеристик пішака</RimChat_EnvironmentRpgParamAttributeLevels>
+  <RimChat_EnvironmentRpgParamAttributeLevels>Вставляти рівні характеристик персонажа</RimChat_EnvironmentRpgParamAttributeLevels>
   <RimChat_EnvironmentEventIntelLabel>Пам’ять про події (розвіддані світу)</RimChat_EnvironmentEventIntelLabel>
   <RimChat_EnvironmentEventIntelEnabled>Увімкнути вставлення пам’яті про події</RimChat_EnvironmentEventIntelEnabled>
   <RimChat_EnvironmentEventIntelApplyDiplomacy>Застосувати до дипломатії</RimChat_EnvironmentEventIntelApplyDiplomacy>
@@ -1744,8 +1744,8 @@ ID: {5}
   <RimChat_DiplomacySceneTags>Теги сцени каналу дипломатії</RimChat_DiplomacySceneTags>
   <RimChat_DiplomacySceneTagsTooltip>Функція: додавати теги сцени дипломатії. Область: вхідні дані ін’єкції additionalSceneTags для складання промпту дипломатії.</RimChat_DiplomacySceneTagsTooltip>
   <RimChat_RpgSceneTags>Теги сцени RPG-каналу</RimChat_RpgSceneTags>
-  <RimChat_RpgSceneTagsTooltip>Функція: додавання тегів сцени RPG. Область застосування: вхідні дані ін’єкції additionalSceneTags для складання промпту діалогів пішака.</RimChat_RpgSceneTagsTooltip>
-  <RimChat_RpgPreviewNoContext>Зразки пішаків для попереднього перегляду RPG недоступні.</RimChat_RpgPreviewNoContext>
+  <RimChat_RpgSceneTagsTooltip>Функція: додавання тегів сцени RPG. Область застосування: вхідні дані ін’єкції additionalSceneTags для складання промпту діалогів персонажа.</RimChat_RpgSceneTagsTooltip>
+  <RimChat_RpgPreviewNoContext>Зразки персонажів для попереднього перегляду RPG недоступні.</RimChat_RpgPreviewNoContext>
   <RimChat_RPGHistoryButton>Історія</RimChat_RPGHistoryButton>
   <RimChat_RPGHistoryPanelTitle>RimChat — історія поточного сеансу</RimChat_RPGHistoryPanelTitle>
   <RimChat_RPGHistoryEmpty>У цьому сеансі ще немає історії діалогів.</RimChat_RPGHistoryEmpty>
@@ -1827,7 +1827,7 @@ ID: {5}
   <RimChat_RPGActionLabel_ConvertIdeology>Змінити ідеологію</RimChat_RPGActionLabel_ConvertIdeology>
   <RimChat_RPGActionLabel_AdjustCertainty>Налаштувати впевненість</RimChat_RPGActionLabel_AdjustCertainty>
   <RimChat_RPGActionFail_IdeologyDLCRequired>DLC «Ідеологія» не активне</RimChat_RPGActionFail_IdeologyDLCRequired>
-  <RimChat_RPGActionFail_NoIdeology>У цільового пішака немає ідеології</RimChat_RPGActionFail_NoIdeology>
+  <RimChat_RPGActionFail_NoIdeology>У цільового персонажа немає ідеології</RimChat_RPGActionFail_NoIdeology>
   <RimChat_RPGActionFail_NoSourceIdeology>Немає доступної вихідної ідеології (ініціатор не має ідеології, а у фракції гравця немає основної ідеології)</RimChat_RPGActionFail_NoSourceIdeology>
   <RimChat_PromptVariables>Змінні</RimChat_PromptVariables>
   <RimChat_ValidateVariables>Перевірити змінні</RimChat_ValidateVariables>
@@ -1870,8 +1870,8 @@ ID: {5}
   <RimChat_TemplateVar_colony_status_Desc>Зведення про поточний стан колонії (карти, колоністи, статки, дата).</RimChat_TemplateVar_colony_status_Desc>
   <RimChat_TemplateVar_colony_factions_Desc>Список відомих фракцій зі зведеннями про доброзичливість і відносини.</RimChat_TemplateVar_colony_factions_Desc>
   <RimChat_TemplateVar_current_faction_profile_Desc>Зведення профілю фракції поточного співрозмовника.</RimChat_TemplateVar_current_faction_profile_Desc>
-  <RimChat_TemplateVar_rpg_target_profile_Desc>Зведення профілю пішака — цілі RPG.</RimChat_TemplateVar_rpg_target_profile_Desc>
-  <RimChat_TemplateVar_rpg_initiator_profile_Desc>Зведення профілю пішака — ініціатора RPG.</RimChat_TemplateVar_rpg_initiator_profile_Desc>
+  <RimChat_TemplateVar_rpg_target_profile_Desc>Зведення профілю персонажа — цілі RPG.</RimChat_TemplateVar_rpg_target_profile_Desc>
+  <RimChat_TemplateVar_rpg_initiator_profile_Desc>Зведення профілю персонажа — ініціатора RPG.</RimChat_TemplateVar_rpg_initiator_profile_Desc>
   <RimChat_TemplateVar_player_pawn_profile_Desc>Знімок профілю перемовника гравця (явно призначений перемовник, а якщо його немає — колоніст із найвищим показником соціальності).</RimChat_TemplateVar_player_pawn_profile_Desc>
   <RimChat_TemplateVar_player_royalty_summary_Desc>Зведення честі/титулу/дозволів імперії з м’якими обмеженнями дій для дипломатичних промптів.</RimChat_TemplateVar_player_royalty_summary_Desc>
   <RimChat_TemplateVar_faction_settlement_summary_Desc>Поточна кількість поселень фракції та повний список поселень для оцінки здійсненності дій.</RimChat_TemplateVar_faction_settlement_summary_Desc>
@@ -1899,22 +1899,22 @@ ID: {5}
   <RimChat_TemplateVar_world_social_credibility_label_Desc>Мітка достовірності для поточного запису соціальної розвідки.</RimChat_TemplateVar_world_social_credibility_label_Desc>
   <RimChat_TemplateVar_world_social_credibility_value_Desc>Числове значення достовірності для поточного запису соціальної розвідки.</RimChat_TemplateVar_world_social_credibility_value_Desc>
   <RimChat_TemplateVar_world_social_fact_lines_Desc>Відрендерений блок рядка фактів для поточного запису соціальної розвідки. Містить марковані пункти структурованих метаданих, за якими йде розділ raw_text із повним необрізаним описом події для наративної довідки ШІ.</RimChat_TemplateVar_world_social_fact_lines_Desc>
-  <RimChat_TemplateVar_pawn_initiator_name_Desc>Коротке ім’я пішака-ініціатора в контексті.</RimChat_TemplateVar_pawn_initiator_name_Desc>
-  <RimChat_TemplateVar_pawn_initiator_Desc>Поточне посилання на об’єкт пішака-ініціатора.</RimChat_TemplateVar_pawn_initiator_Desc>
-  <RimChat_TemplateVar_pawn_target_name_Desc>Коротке ім’я пішака-цілі в контексті.</RimChat_TemplateVar_pawn_target_name_Desc>
-  <RimChat_TemplateVar_pawn_target_Desc>Поточне посилання на об’єкт пішака-цілі.</RimChat_TemplateVar_pawn_target_Desc>
-  <RimChat_TemplateVar_pawn_recipient_Desc>Псевдонім об’єкта пішака-одержувача, що посилається на поточного пішака-ціль.</RimChat_TemplateVar_pawn_recipient_Desc>
-  <RimChat_TemplateVar_pawn_recipient_name_Desc>Короткий псевдонім пішака-одержувача, що відповідає поточному цільовому пішаку.</RimChat_TemplateVar_pawn_recipient_name_Desc>
+  <RimChat_TemplateVar_pawn_initiator_name_Desc>Коротке ім’я персонажа-ініціатора в контексті.</RimChat_TemplateVar_pawn_initiator_name_Desc>
+  <RimChat_TemplateVar_pawn_initiator_Desc>Поточне посилання на об’єкт персонажа-ініціатора.</RimChat_TemplateVar_pawn_initiator_Desc>
+  <RimChat_TemplateVar_pawn_target_name_Desc>Коротке ім’я персонажа-цілі в контексті.</RimChat_TemplateVar_pawn_target_name_Desc>
+  <RimChat_TemplateVar_pawn_target_Desc>Поточне посилання на об’єкт персонажа-цілі.</RimChat_TemplateVar_pawn_target_Desc>
+  <RimChat_TemplateVar_pawn_recipient_Desc>Псевдонім об’єкта персонажа-одержувача, що посилається на поточного персонажа-ціль.</RimChat_TemplateVar_pawn_recipient_Desc>
+  <RimChat_TemplateVar_pawn_recipient_name_Desc>Короткий псевдонім персонажа-одержувача, що відповідає поточному цільовому персонажу.</RimChat_TemplateVar_pawn_recipient_name_Desc>
   <RimChat_TemplateVar_pawn_profile_Desc>Об'єднаний блок профілю для поточного основного мовця.</RimChat_TemplateVar_pawn_profile_Desc>
   <RimChat_TemplateVar_pawn_personality_Desc>Блок опису особистості поточного основного мовця.</RimChat_TemplateVar_pawn_personality_Desc>
   <RimChat_TemplateVar_pawn_relation_kinship_Desc>Мітка, що показує, чи перебуває поточна пара в кровному родинному зв'язку.</RimChat_TemplateVar_pawn_relation_kinship_Desc>
   <RimChat_TemplateVar_pawn_relation_romance_state_Desc>Мітка романтичного статусу поточної діалогової пари.</RimChat_TemplateVar_pawn_relation_romance_state_Desc>
-  <RimChat_TemplateVar_pawn_relation_social_summary_Desc>Структурований двосторонній соціальний підсумок для активної пари пішаків, що містить думки, прямі стосунки, родинні та романтичні зв'язки, а також відомості про прихильність фракції.</RimChat_TemplateVar_pawn_relation_social_summary_Desc>
+  <RimChat_TemplateVar_pawn_relation_social_summary_Desc>Структурований двосторонній соціальний підсумок для активної пари персонажів, що містить думки, прямі стосунки, родинні та романтичні зв'язки, а також відомості про прихильність фракції.</RimChat_TemplateVar_pawn_relation_social_summary_Desc>
   <RimChat_TemplateVar_pawn_speaker_kind_Desc>Мітка типу мовця, наприклад «Людина», «Тварина» або «Механоїд».</RimChat_TemplateVar_pawn_speaker_kind_Desc>
-  <RimChat_TemplateVar_pawn_speaker_default_sound_Desc>Мітка звуку за замовчуванням для поточного пішака.</RimChat_TemplateVar_pawn_speaker_default_sound_Desc>
-  <RimChat_TemplateVar_pawn_speaker_animal_sound_Desc>Мітка звуку тварини, визначена для поточного пішака.</RimChat_TemplateVar_pawn_speaker_animal_sound_Desc>
-  <RimChat_TemplateVar_pawn_speaker_baby_sound_Desc>Мітка звуку немовляти, визначена для поточного пішака.</RimChat_TemplateVar_pawn_speaker_baby_sound_Desc>
-  <RimChat_TemplateVar_pawn_speaker_mechanoid_sound_Desc>Мітка звуку механоїда, визначена для поточного пішака.</RimChat_TemplateVar_pawn_speaker_mechanoid_sound_Desc>
+  <RimChat_TemplateVar_pawn_speaker_default_sound_Desc>Мітка звуку за замовчуванням для поточного персонажа.</RimChat_TemplateVar_pawn_speaker_default_sound_Desc>
+  <RimChat_TemplateVar_pawn_speaker_animal_sound_Desc>Мітка звуку тварини, визначена для поточного персонажа.</RimChat_TemplateVar_pawn_speaker_animal_sound_Desc>
+  <RimChat_TemplateVar_pawn_speaker_baby_sound_Desc>Мітка звуку немовляти, визначена для поточного персонажа.</RimChat_TemplateVar_pawn_speaker_baby_sound_Desc>
+  <RimChat_TemplateVar_pawn_speaker_mechanoid_sound_Desc>Мітка звуку механоїда, визначена для поточного персонажа.</RimChat_TemplateVar_pawn_speaker_mechanoid_sound_Desc>
   <RimChat_TemplateVar_pawn_pronouns_subject_Desc>Текст займенника підмета для поточного мовця.</RimChat_TemplateVar_pawn_pronouns_subject_Desc>
   <RimChat_TemplateVar_pawn_pronouns_object_Desc>Текст займенника додатка для поточного мовця.</RimChat_TemplateVar_pawn_pronouns_object_Desc>
   <RimChat_TemplateVar_pawn_pronouns_possessive_Desc>Текст присвійного займенника для поточного мовця.</RimChat_TemplateVar_pawn_pronouns_possessive_Desc>
@@ -1939,14 +1939,14 @@ ID: {5}
   <RimChat_TemplateVar_dialogue_strategy_player_negotiator_context_body_Desc>Текст основного розділу контексту перемовника стратегії після рендерингу.</RimChat_TemplateVar_dialogue_strategy_player_negotiator_context_body_Desc>
   <RimChat_TemplateVar_dialogue_strategy_fact_pack_body_Desc>Текст основного розділу пакета фактів стратегії після рендерингу.</RimChat_TemplateVar_dialogue_strategy_fact_pack_body_Desc>
   <RimChat_TemplateVar_dialogue_strategy_scenario_dossier_body_Desc>Текст основного розділу досьє сценарію стратегії після рендерингу.</RimChat_TemplateVar_dialogue_strategy_scenario_dossier_body_Desc>
-  <RimChat_TemplateVar_rimtalk_context_Desc>Блок контексту пішака у стилі RimTalk, інтегрований у простори імен RimChat.</RimChat_TemplateVar_rimtalk_context_Desc>
+  <RimChat_TemplateVar_rimtalk_context_Desc>Блок контексту персонажа у стилі RimTalk, інтегрований у простори імен RimChat.</RimChat_TemplateVar_rimtalk_context_Desc>
   <RimChat_TemplateVar_rimtalk_prompt_Desc>Декорований блок посилання на промпт у стилі RimTalk.</RimChat_TemplateVar_rimtalk_prompt_Desc>
   <RimChat_TemplateVar_rimtalk_history_Desc>Текст мосту пам’яті та історії розмови, сумісного з RimTalk.</RimChat_TemplateVar_rimtalk_history_Desc>
   <RimChat_TemplateVar_rimtalk_history_simplified_Desc>Спрощений текст мосту історії, сумісного з RimTalk.</RimChat_TemplateVar_rimtalk_history_simplified_Desc>
   <RimChat_TemplateVar_rimtalk_json_format_Desc>Інструкцію RimTalk у форматі JSON застарілого зразка інтегровано як змінну з простором імен.</RimChat_TemplateVar_rimtalk_json_format_Desc>
   <RimChat_RimTalkCompatSection>Сумісність промптів RimTalk</RimChat_RimTalkCompatSection>
   <RimChat_RimTalkCompatToolsSection>Вставити змінні з RimTalk</RimChat_RimTalkCompatToolsSection>
-  <RimChat_RPGSection_RimTalkCompatTools_Tooltip>Функція: налаштувати шаблон сумісності змінних RimTalk. Область: рівень вставки для сумісності діалогів пішака.</RimChat_RPGSection_RimTalkCompatTools_Tooltip>
+  <RimChat_RPGSection_RimTalkCompatTools_Tooltip>Функція: налаштувати шаблон сумісності змінних RimTalk. Область: рівень вставки для сумісності діалогів персонажа.</RimChat_RPGSection_RimTalkCompatTools_Tooltip>
   <RimChat_RimTalkCompatAffectsBoth>Цей розділ впливає на формування промптів і для дипломатії, і для RPG.</RimChat_RimTalkCompatAffectsBoth>
   <RimChat_RimTalkCompatEntryHint>Інструменти вставки змінних RimTalk доступні у спеціальному розділі інструментів RimTalk.</RimChat_RimTalkCompatEntryHint>
   <RimChat_RimTalkCompatOpenTools>Відкрити інструменти вставки змінних</RimChat_RimTalkCompatOpenTools>
@@ -1967,8 +1967,8 @@ ID: {5}
   <RimChat_RimTalkCompatTemplate>Шаблон сумісності RimTalk Scriban</RimChat_RimTalkCompatTemplate>
   <RimChat_RimTalkCompatTemplateHint>Підтримує змінні Scriban із просторами імен. Помилка рендерингу спричиняє PromptRenderException і блокує запит.</RimChat_RimTalkCompatTemplateHint>
   <RimChat_RimTalkIsolationHint>Для суворої ізоляції залиште обидва параметри автоматичного додавання вимкненими; використовуйте лише явні посилання {{variable}}.</RimChat_RimTalkIsolationHint>
-  <RimChat_RimTalkPersonaCopyTemplate>Шаблон копії персони пішака RimTalk (RPG)</RimChat_RimTalkPersonaCopyTemplate>
-  <RimChat_RimTalkPersonaCopyTemplateHint>Лише строгий синтаксис Scriban: `{{ pawn.personality }}`. Застосовується лише до людиноподібних пішаків колонії з порожніми промптами персони RimChat.</RimChat_RimTalkPersonaCopyTemplateHint>
+  <RimChat_RimTalkPersonaCopyTemplate>Шаблон копії персони персонажа RimTalk (RPG)</RimChat_RimTalkPersonaCopyTemplate>
+  <RimChat_RimTalkPersonaCopyTemplateHint>Лише строгий синтаксис Scriban: `{{ pawn.personality }}`. Застосовується лише до людиноподібних персонажів колонії з порожніми промптами персони RimChat.</RimChat_RimTalkPersonaCopyTemplateHint>
   <RimChat_RimTalkPersonaManualCopyButton>Скопіювати всі персони RimTalk зараз</RimChat_RimTalkPersonaManualCopyButton>
   <RimChat_RimTalkPersonaManualCopySummary>Синхронізацію персон RimTalk завершено. Оновлено: {0}, очищено: {1}, без змін: {2}, пропущено: {3}.</RimChat_RimTalkPersonaManualCopySummary>
   <RimChat_RimTalkPersonaCopyTemplateEmpty>Копіювання персони RimTalk пропущено: шаблон порожній.</RimChat_RimTalkPersonaCopyTemplateEmpty>
@@ -2014,11 +2014,11 @@ ID: {5}
   <RimChat_CustomVariableCreateBlank>Створити порожню змінну</RimChat_CustomVariableCreateBlank>
   <RimChat_CustomVariableRuleList>Набір правил</RimChat_CustomVariableRuleList>
   <RimChat_CustomVariableFactionRules>Правила фракції</RimChat_CustomVariableFactionRules>
-  <RimChat_CustomVariablePawnRules>Правила пішака</RimChat_CustomVariablePawnRules>
+  <RimChat_CustomVariablePawnRules>Правила персонажа</RimChat_CustomVariablePawnRules>
   <RimChat_CustomVariableAddFactionRule>Додати правило фракції</RimChat_CustomVariableAddFactionRule>
-  <RimChat_CustomVariableAddPawnRule>Додати правило для пішака</RimChat_CustomVariableAddPawnRule>
+  <RimChat_CustomVariableAddPawnRule>Додати правило для персонажа</RimChat_CustomVariableAddPawnRule>
   <RimChat_CustomVariableNoFactionRules>Правила для фракцій не налаштовано.</RimChat_CustomVariableNoFactionRules>
-  <RimChat_CustomVariableNoPawnRules>Правила для пішаків не налаштовано.</RimChat_CustomVariableNoPawnRules>
+  <RimChat_CustomVariableNoPawnRules>Правила для персонажів не налаштовано.</RimChat_CustomVariableNoPawnRules>
   <RimChat_CustomVariableRuleTemplate>Підсумок шаблону: {0}</RimChat_CustomVariableRuleTemplate>
   <RimChat_CustomVariableRuleHeader>Правило {0} · {1}</RimChat_CustomVariableRuleHeader>
   <RimChat_CustomVariableRemoveRule>Вилучити</RimChat_CustomVariableRemoveRule>
@@ -2033,21 +2033,21 @@ ID: {5}
   <RimChat_CustomVariableField_PlayerControlled>PlayerControlled</RimChat_CustomVariableField_PlayerControlled>
   <RimChat_CustomVariableField_TraitsAll>TraitsAll</RimChat_CustomVariableField_TraitsAll>
   <RimChat_CustomVariableField_TraitsAny>TraitsAny</RimChat_CustomVariableField_TraitsAny>
-  <RimChat_CustomVariableRuleLayer_PawnExact>Точна відповідність пішака</RimChat_CustomVariableRuleLayer_PawnExact>
-  <RimChat_CustomVariableRuleLayer_PawnConditional>Умовна відповідність пішака</RimChat_CustomVariableRuleLayer_PawnConditional>
+  <RimChat_CustomVariableRuleLayer_PawnExact>Точна відповідність персонажа</RimChat_CustomVariableRuleLayer_PawnExact>
+  <RimChat_CustomVariableRuleLayer_PawnConditional>Умовна відповідність персонажа</RimChat_CustomVariableRuleLayer_PawnConditional>
   <RimChat_CustomVariableRuleLayer_Faction>Відповідність фракції</RimChat_CustomVariableRuleLayer_Faction>
   <RimChat_CustomVariableRuleLayer_Default>Шаблон за замовчуванням</RimChat_CustomVariableRuleLayer_Default>
   <RimChat_CustomVariableRuleLayer_Unknown>Невідомий рівень</RimChat_CustomVariableRuleLayer_Unknown>
   <RimChat_CustomVariableRuleSummary_None>Без умов.</RimChat_CustomVariableRuleSummary_None>
   <RimChat_CustomVariableRuleSummary_AnyFaction>Будь-яка фракція</RimChat_CustomVariableRuleSummary_AnyFaction>
   <RimChat_CustomVariableRuleSummary_Faction>Фракція = {0}</RimChat_CustomVariableRuleSummary_Faction>
-  <RimChat_CustomVariableRuleSummary_AnyPawn>Будь-яка цільова пішака для RPG</RimChat_CustomVariableRuleSummary_AnyPawn>
+  <RimChat_CustomVariableRuleSummary_AnyPawn>Будь-яка цільова персонажа для RPG</RimChat_CustomVariableRuleSummary_AnyPawn>
   <RimChat_CustomVariableRuleSummary_EmptyTemplate>Порожній шаблон</RimChat_CustomVariableRuleSummary_EmptyTemplate>
-  <RimChat_CustomVariableSuggestedDescription_PawnPersonalityOverride>Безпечно замінює текст особистості пішака, експортований із промпту.</RimChat_CustomVariableSuggestedDescription_PawnPersonalityOverride>
-  <RimChat_CustomVariableSuggestedDescription_PawnPersonalityAppend>Додає додатковий особистісний колорит після ефективної особистості пішака.</RimChat_CustomVariableSuggestedDescription_PawnPersonalityAppend>
+  <RimChat_CustomVariableSuggestedDescription_PawnPersonalityOverride>Безпечно замінює текст особистості персонажа, експортований із промпту.</RimChat_CustomVariableSuggestedDescription_PawnPersonalityOverride>
+  <RimChat_CustomVariableSuggestedDescription_PawnPersonalityAppend>Додає додатковий особистісний колорит після ефективної особистості персонажа.</RimChat_CustomVariableSuggestedDescription_PawnPersonalityAppend>
   <RimChat_CustomVariableSuggestedDescription_FactionTone>Описує тон, специфічний для фракції, який слід додати до промптів.</RimChat_CustomVariableSuggestedDescription_FactionTone>
   <RimChat_CustomVariableSuggestedDescription_FactionAttitude>Описує поточне ставлення фракції до гравця.</RimChat_CustomVariableSuggestedDescription_FactionAttitude>
-  <RimChat_CustomVariableSuggestedDescription_PawnSpeakingStyle>Описує, як поточний пішак має формулювати відповіді.</RimChat_CustomVariableSuggestedDescription_PawnSpeakingStyle>
+  <RimChat_CustomVariableSuggestedDescription_PawnSpeakingStyle>Описує, як поточний персонаж має формулювати відповіді.</RimChat_CustomVariableSuggestedDescription_PawnSpeakingStyle>
   <RimChat_CustomVariableSuggestedDescription_RelationshipFlavor>Описує характер стосунків або емоційну дистанцію для тону діалогу.</RimChat_CustomVariableSuggestedDescription_RelationshipFlavor>
   <RimChat_CustomVariableValidation_InvalidRace>Недійсне ім’я def раси: {0}</RimChat_CustomVariableValidation_InvalidRace>
   <RimChat_CustomVariableValidation_InvalidXenotype>Недійсне ім’я def ксенотипу: {0}</RimChat_CustomVariableValidation_InvalidXenotype>
@@ -2198,7 +2198,7 @@ ID: {5}
   <RimChat_RPGFallbackTemplatesSection>Резервні шаблони RPG</RimChat_RPGFallbackTemplatesSection>
   <RimChat_RPGSection_FallbackTemplates_Tooltip>Функція: редагувати резервні шаблони RPG. Область застосування: шляхи промптів для форматів зі зниженими вимогами та відновлення.</RimChat_RPGSection_FallbackTemplates_Tooltip>
   <RimChat_RPGApiPromptTemplatesSection>Шаблони промптів RPG API</RimChat_RPGApiPromptTemplatesSection>
-  <RimChat_RPGSection_ApiPromptTemplates_Tooltip>Функція: редагувати шаблони дій RPG API. Область застосування: сегмент інструкцій щодо дій у промптах діалогів пішака.</RimChat_RPGSection_ApiPromptTemplates_Tooltip>
+  <RimChat_RPGSection_ApiPromptTemplates_Tooltip>Функція: редагувати шаблони дій RPG API. Область застосування: сегмент інструкцій щодо дій у промптах діалогів персонажа.</RimChat_RPGSection_ApiPromptTemplates_Tooltip>
   <RimChat_RPGRoleFallbackTemplateLabel>Резервний шаблон ролі</RimChat_RPGRoleFallbackTemplateLabel>
   <RimChat_RPGFormatConstraintHeaderLabel>Заголовок обмеження формату</RimChat_RPGFormatConstraintHeaderLabel>
   <RimChat_RPGCompactFormatFallbackLabel>Резервний варіант компактного формату</RimChat_RPGCompactFormatFallbackLabel>
@@ -2219,30 +2219,30 @@ ID: {5}
   <RimChat_RPGApiCompactClosureGuidanceLabel>Стислі вказівки щодо завершення</RimChat_RPGApiCompactClosureGuidanceLabel>
   <RimChat_RPGApiCompactActionNamesLabel>Стислі назви дій (по одній у рядку)</RimChat_RPGApiCompactActionNamesLabel>
   <RimChat_RPGRoleSettingLabel>Налаштування ролі (базова персона ШІ)</RimChat_RPGRoleSettingLabel>
-  <RimChat_RPGRoleSettingTooltip>Функція: визначити базову персону та поведінковий фундамент. Область застосування: сегмент налаштування ролі в системному промпті діалогів пішака.</RimChat_RPGRoleSettingTooltip>
+  <RimChat_RPGRoleSettingTooltip>Функція: визначити базову персону та поведінковий фундамент. Область застосування: сегмент налаштування ролі в системному промпті діалогів персонажа.</RimChat_RPGRoleSettingTooltip>
   <RimChat_RPGDialogueStyleLabel>Стиль діалогу</RimChat_RPGDialogueStyleLabel>
-  <RimChat_RPGDialogueStyleTooltip>Функція: визначити тон видимого діалогу та стиль написання. Область застосування: сегмент генерування видимого тексту в діалозі пішака.</RimChat_RPGDialogueStyleTooltip>
+  <RimChat_RPGDialogueStyleTooltip>Функція: визначити тон видимого діалогу та стиль написання. Область застосування: сегмент генерування видимого тексту в діалозі персонажа.</RimChat_RPGDialogueStyleTooltip>
   <RimChat_RPGFormatConstraintLabel>Обмеження формату</RimChat_RPGFormatConstraintLabel>
-  <RimChat_RPGFormatConstraintTooltip>Функція: визначити формат виводу та контракт JSON. Область застосування: етап аналізу дій у діалозі пішака.</RimChat_RPGFormatConstraintTooltip>
+  <RimChat_RPGFormatConstraintTooltip>Функція: визначити формат виводу та контракт JSON. Область застосування: етап аналізу дій у діалозі персонажа.</RimChat_RPGFormatConstraintTooltip>
   <RimChat_RPGDynamicInjection>Динамічне введення даних RPG</RimChat_RPGDynamicInjection>
   <RimChat_RPGInjectSelfStatus>Власний статус (ТИ): здоров’я, настрій, риси</RimChat_RPGInjectSelfStatus>
-  <RimChat_RPGInjectSelfStatusTooltip>Функція: вводить поточний статус NPC. Область застосування: блок динамічного введення в системному промпті діалогів пішака.</RimChat_RPGInjectSelfStatusTooltip>
-  <RimChat_RPGInjectInterlocutorStatus>Статус співрозмовника (СПІВРОЗМОВНИК): дані пішака гравця</RimChat_RPGInjectInterlocutorStatus>
-  <RimChat_RPGInjectInterlocutorStatusTooltip>Функція: вводить стан співрозмовника (сторони гравця). Область застосування: блок динамічного введення в системному промпті діалогів пішака.</RimChat_RPGInjectInterlocutorStatusTooltip>
+  <RimChat_RPGInjectSelfStatusTooltip>Функція: вводить поточний статус NPC. Область застосування: блок динамічного введення в системному промпті діалогів персонажа.</RimChat_RPGInjectSelfStatusTooltip>
+  <RimChat_RPGInjectInterlocutorStatus>Статус співрозмовника (СПІВРОЗМОВНИК): дані персонажа гравця</RimChat_RPGInjectInterlocutorStatus>
+  <RimChat_RPGInjectInterlocutorStatusTooltip>Функція: вводить стан співрозмовника (сторони гравця). Область застосування: блок динамічного введення в системному промпті діалогів персонажа.</RimChat_RPGInjectInterlocutorStatusTooltip>
   <RimChat_RPGInjectFactionBackground>Передісторія фракції: контекст взаємин та ідеології</RimChat_RPGInjectFactionBackground>
-  <RimChat_RPGInjectFactionBackgroundTooltip>Функція: вводить контекст взаємин та ідеології фракції. Область застосування: блок динамічного введення в системному промпті діалогів пішака.</RimChat_RPGInjectFactionBackgroundTooltip>
-  <RimChat_EnableRPGNonVerbalPawnSpeech>Увімкнути режим невербального мовлення пішака (тварина/немовля/механоїд)</RimChat_EnableRPGNonVerbalPawnSpeech>
+  <RimChat_RPGInjectFactionBackgroundTooltip>Функція: вводить контекст взаємин та ідеології фракції. Область застосування: блок динамічного введення в системному промпті діалогів персонажа.</RimChat_RPGInjectFactionBackgroundTooltip>
+  <RimChat_EnableRPGNonVerbalPawnSpeech>Увімкнути режим невербального мовлення персонажа (тварина/немовля/механоїд)</RimChat_EnableRPGNonVerbalPawnSpeech>
   <RimChat_EnableRPGNonVerbalPawnSpeechTooltip>Функція: примусово переводити невербальні відповіді цілі у формат «звук + внутрішня думка». Область дії: форматування видимих відповідей NPC і впровадження обмежень під час запиту RPG.</RimChat_EnableRPGNonVerbalPawnSpeechTooltip>
   <RimChat_RPGNonVerbalSound_Animal>Гррр</RimChat_RPGNonVerbalSound_Animal>
   <RimChat_RPGNonVerbalSound_Baby>Агу-агу</RimChat_RPGNonVerbalSound_Baby>
   <RimChat_RPGNonVerbalSound_Mechanoid>Бззт-клац</RimChat_RPGNonVerbalSound_Mechanoid>
   <RimChat_RPGNonVerbalFallbackThought>його інстинкти пульсують уривчастими сигналами</RimChat_RPGNonVerbalFallbackThought>
   <RimChat_RPGDynamicInjectionSection>Динамічне впровадження даних RPG</RimChat_RPGDynamicInjectionSection>
-  <RimChat_RPGSection_RoleSetting_Tooltip>Функція: редагувати шаблон налаштування ролі RPG. Область дії: сегмент налаштування ролі в системних промптах діалогів пішаків.</RimChat_RPGSection_RoleSetting_Tooltip>
-  <RimChat_RPGSection_DialogueStyle_Tooltip>Функція: редагувати шаблон стилю діалогів RPG. Область дії: сегмент стилю видимих діалогів у промптах діалогів пішаків.</RimChat_RPGSection_DialogueStyle_Tooltip>
-  <RimChat_RPGSection_DynamicInjection_Tooltip>Функція: налаштування перемикачів динамічної ін’єкції RPG. Область застосування: шар ін’єкції контексту під час виконання для промптів діалогів пішаків.</RimChat_RPGSection_DynamicInjection_Tooltip>
-  <RimChat_RPGSection_PawnPersonaPrompts_Tooltip>Функція: редагування перевизначень образу кожного пішака. Область застосування: додатковий блок системного промпту, коли цей пішак є ціллю RPG.</RimChat_RPGSection_PawnPersonaPrompts_Tooltip>
-  <RimChat_RPGSection_FormatConstraint_Tooltip>Функція: редагування обмежень виводу RPG. Область застосування: обмеження протоколу JSON дій у діалозі пішака.</RimChat_RPGSection_FormatConstraint_Tooltip>
+  <RimChat_RPGSection_RoleSetting_Tooltip>Функція: редагувати шаблон налаштування ролі RPG. Область дії: сегмент налаштування ролі в системних промптах діалогів персонажів.</RimChat_RPGSection_RoleSetting_Tooltip>
+  <RimChat_RPGSection_DialogueStyle_Tooltip>Функція: редагувати шаблон стилю діалогів RPG. Область дії: сегмент стилю видимих діалогів у промптах діалогів персонажів.</RimChat_RPGSection_DialogueStyle_Tooltip>
+  <RimChat_RPGSection_DynamicInjection_Tooltip>Функція: налаштування перемикачів динамічної ін’єкції RPG. Область застосування: шар ін’єкції контексту під час виконання для промптів діалогів персонажів.</RimChat_RPGSection_DynamicInjection_Tooltip>
+  <RimChat_RPGSection_PawnPersonaPrompts_Tooltip>Функція: редагування перевизначень образу кожного персонажа. Область застосування: додатковий блок системного промпту, коли цей персонаж є ціллю RPG.</RimChat_RPGSection_PawnPersonaPrompts_Tooltip>
+  <RimChat_RPGSection_FormatConstraint_Tooltip>Функція: редагування обмежень виводу RPG. Область застосування: обмеження протоколу JSON дій у діалозі персонажа.</RimChat_RPGSection_FormatConstraint_Tooltip>
   <RimChat_OpenApiDebugWindowButton>Спостережуваність журналу</RimChat_OpenApiDebugWindowButton>
   <RimChat_OpenApiDebugWindowButtonTooltip>Відкрити вікно спостережуваності журналу токенів/повного журналу (останні 30 хвилин у реальному світі).</RimChat_OpenApiDebugWindowButtonTooltip>
   <RimChat_ApiDebugOpenSettingsButton>Налаштування</RimChat_ApiDebugOpenSettingsButton>
@@ -2297,7 +2297,7 @@ ID: {5}
   <RimChat_ApiDebugSourceDiplomacyDialogue>Діалог дипломатії</RimChat_ApiDebugSourceDiplomacyDialogue>
   <RimChat_ApiDebugSourceRpgDialogue>Діалог рольової гри</RimChat_ApiDebugSourceRpgDialogue>
   <RimChat_ApiDebugSourceNpcPush>Взаємодія з NPC</RimChat_ApiDebugSourceNpcPush>
-  <RimChat_ApiDebugSourcePawnRpgPush>Взаємодія з пішаками RPG</RimChat_ApiDebugSourcePawnRpgPush>
+  <RimChat_ApiDebugSourcePawnRpgPush>Взаємодія з персонажами RPG</RimChat_ApiDebugSourcePawnRpgPush>
   <RimChat_ApiDebugSourceSocialNews>Соціальні новини</RimChat_ApiDebugSourceSocialNews>
   <RimChat_ApiDebugSourceStrategySuggestion>Стратегічна пропозиція</RimChat_ApiDebugSourceStrategySuggestion>
   <RimChat_ApiDebugSourcePersonaBootstrap>Початкове налаштування персони</RimChat_ApiDebugSourcePersonaBootstrap>
@@ -2360,13 +2360,13 @@ ID: {5}
   <RimChat_PromptWorkbench_QuickPawn>Промпт персонажа</RimChat_PromptWorkbench_QuickPawn>
   <RimChat_PromptWorkbench_QuickNeedGame>Ця швидка дія доступна лише в завантаженому збереженні, оскільки їй потрібно зчитувати поточні екземпляри фракцій і пішаκів.</RimChat_PromptWorkbench_QuickNeedGame>
   <RimChat_PromptWorkbench_QuickFactionTooltip>Функція: відкривати записи редактора шаблонів фракцій і редагувати шаблони промптів фракцій та власні промпти. Джерело: `FactionPrompts_Default.json` плюс власні перевизначення.</RimChat_PromptWorkbench_QuickFactionTooltip>
-  <RimChat_PromptWorkbench_QuickPawnTooltip>Функція: створити або оновити правило промпту, специфічне для пішака, на основі колоністів гравця, приручених тварин і мехів у поточному збереженні. Область дії: фіксована змінна `system.custom.quick_pawn_persona`.</RimChat_PromptWorkbench_QuickPawnTooltip>
+  <RimChat_PromptWorkbench_QuickPawnTooltip>Функція: створити або оновити правило промпту, специфічне для персонажа, на основі колоністів гравця, приручених тварин і мехів у поточному збереженні. Область дії: фіксована змінна `system.custom.quick_pawn_persona`.</RimChat_PromptWorkbench_QuickPawnTooltip>
   <RimChat_PromptWorkbench_QuickFactionEmpty>Редаговані конфігурації шаблонів промптів фракцій недоступні.</RimChat_PromptWorkbench_QuickFactionEmpty>
   <RimChat_PromptWorkbench_QuickPawnEmpty>У поточному збереженні не знайдено придатних екземплярів колоністів гравця, приручених тварин або мехів.</RimChat_PromptWorkbench_QuickPawnEmpty>
   <RimChat_PromptWorkbench_QuickConflictReuse>{0} уже зайнята наявною користувацькою змінною. Повторно використайте цю змінну й продовжуйте записувати правило для {1}.</RimChat_PromptWorkbench_QuickConflictReuse>
   <RimChat_PromptWorkbench_QuickConflictTakeOver>{0} уже зайнята наявною користувацькою змінною. Дозвольте швидкій дії перехопити фіксований слот і продовжуйте записувати правило для {1}.</RimChat_PromptWorkbench_QuickConflictTakeOver>
   <RimChat_PromptWorkbench_QuickFactionDescription>Змінна персони, специфічна для фракції, якою керує швидка дія фракції в редакторі промптів.</RimChat_PromptWorkbench_QuickFactionDescription>
-  <RimChat_PromptWorkbench_QuickPawnDescription>Змінна персони, специфічна для пішака, якою керує швидка дія пішака в редакторі промптів.</RimChat_PromptWorkbench_QuickPawnDescription>
+  <RimChat_PromptWorkbench_QuickPawnDescription>Змінна персони, специфічна для персонажа, якою керує швидка дія персонажа в редакторі промптів.</RimChat_PromptWorkbench_QuickPawnDescription>
   <RimChat_PromptWorkbench_QuickFactionEditorTitle>Швидкий редактор промптів фракції</RimChat_PromptWorkbench_QuickFactionEditorTitle>
   <RimChat_PromptWorkbench_QuickPawnEditorTitle>Редактор швидкого промпту персонажі</RimChat_PromptWorkbench_QuickPawnEditorTitle>
   <RimChat_PromptWorkbench_QuickTargetLabel>Ціль: {0}</RimChat_PromptWorkbench_QuickTargetLabel>
@@ -2390,9 +2390,9 @@ ID: {5}
   <RimChat_ExpandMemoryCompatAuto>Автоматично (виявити встановлений мод)</RimChat_ExpandMemoryCompatAuto>
   <RimChat_ExpandMemoryCompatOn>Увімкнено (примусово ввімкнути)</RimChat_ExpandMemoryCompatOn>
   <RimChat_ExpandMemoryCompatOff>Вимкнено (примусово вимкнути)</RimChat_ExpandMemoryCompatOff>
-  <RimChat_ExpandMemoryInjectPawnMemory>Додавати спогади пішака з ExpandMemory до промптів RPG</RimChat_ExpandMemoryInjectPawnMemory>
-  <RimChat_ExpandMemoryPawnMemoryMaxChars>Максимальна кількість символів у блоці спогадів пішака: {0}</RimChat_ExpandMemoryPawnMemoryMaxChars>
-  <RimChat_ExpandMemoryPawnMemoryMaxEntries>Максимальна кількість записів пам’яті на пішака: {0}</RimChat_ExpandMemoryPawnMemoryMaxEntries>
+  <RimChat_ExpandMemoryInjectPawnMemory>Додавати спогади персонажа з ExpandMemory до промптів RPG</RimChat_ExpandMemoryInjectPawnMemory>
+  <RimChat_ExpandMemoryPawnMemoryMaxChars>Максимальна кількість символів у блоці спогадів персонажа: {0}</RimChat_ExpandMemoryPawnMemoryMaxChars>
+  <RimChat_ExpandMemoryPawnMemoryMaxEntries>Максимальна кількість записів пам’яті на персонажа: {0}</RimChat_ExpandMemoryPawnMemoryMaxEntries>
   <RimChat_RimTalkOpenDiplomacySections>Відкрити розділи дипломатії</RimChat_RimTalkOpenDiplomacySections>
   <RimChat_RimTalkOpenRpgSections>Відкрити розділи RPG</RimChat_RimTalkOpenRpgSections>
   <RimChat_RimTalkSummaryPersonaTitle>Підсумок і персона</RimChat_RimTalkSummaryPersonaTitle>

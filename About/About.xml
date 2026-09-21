@@ -3,7 +3,7 @@
     <name>RimAI.Communication.Relations</name>
     <author>yancy</author>
     <packageId>ustas.rimai.communication.relations</packageId>
-    <description>RimAI.Communication.Relations додає ШІ-дипломатію фракцій і розмови пішаків.
+    <description>RimAI.Communication.Relations додає ШІ-дипломатію фракцій і розмови персонажів.
 
 Основні можливості:
 • дипломатія та розумні діалоги з фракціями
