@@ -358,13 +358,10 @@ internal sealed class RelationsApiHeaderUx
                 // named after the language alone. Asking only for the folder
                 // name is what left the Ukrainian log unfound.
                 // The bare name goes first because it is the one this mod
-                // actually ships: VersionLog_Ukrainian.txt sits in the root
-                // beside VersionLog_en.txt. With the endonym spelling asked for
-                // first, every session logged "version log file missing for
-                // language folder 'Ukrainian (Ukrainska)'" and then found the
-                // file on the next candidate - a warning about a file nobody
-                // ever intended to create, raised every time the settings
-                // header was drawn.
+                // actually ships: Docs/VersionLog_Ukrainian.txt, named after the
+                // language alone. Every candidate is then looked for in the mod
+                // root before Docs, which is where they have always lived, so the
+                // root miss is the expected first step and not a fault.
                 string folder = matchedFolder.Trim();
                 string bare = LanguageNameWithoutEndonym(folder);
 
@@ -438,11 +435,26 @@ internal sealed class RelationsApiHeaderUx
                 string path = candidates[i];
                 if (LocalStorage.Current.FileExists(path))
                 {
-                    if (i > 0)
+                    // Only a different *language* is worth saying, not a different
+                    // directory. Every candidate is added twice - mod root, then
+                    // Docs - and this mod has always shipped its logs in Docs, so
+                    // the condition "i > 0" called the normal layout a failure and
+                    // warned about a file nobody ever intended to create, every
+                    // time the settings header was drawn.
+                    //
+                    // Comparing file names rather than indices separates the two:
+                    // the same name in another folder is the layout, a different
+                    // name is English standing in for a translation that is missing,
+                    // and that one a reader wants to know about.
+                    bool languageFellBack = !string.Equals(
+                        System.IO.Path.GetFileName(path),
+                        System.IO.Path.GetFileName(candidates[0]),
+                        StringComparison.OrdinalIgnoreCase);
+                    if (languageFellBack)
                     {
                         Log.Warning(
-                            $"[RimAI.Relations] {logLabel} file missing for language folder '{matchedFolder}'. " +
-                            $"Tried '{candidates[0]}'. Fail-fast fallback to '{path}'.");
+                            $"[RimAI.Relations] no {logLabel} for language folder '{matchedFolder}'. " +
+                            $"Wanted '{System.IO.Path.GetFileName(candidates[0])}'. Using '{path}'.");
                     }
 
                     return path;
