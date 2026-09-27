@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -357,19 +357,28 @@ internal sealed class RelationsApiHeaderUx
                 // endonym - "Ukrainian (Ukrainska)" - while the shipped file is
                 // named after the language alone. Asking only for the folder
                 // name is what left the Ukrainian log unfound.
+                // The bare name goes first because it is the one this mod
+                // actually ships: VersionLog_Ukrainian.txt sits in the root
+                // beside VersionLog_en.txt. With the endonym spelling asked for
+                // first, every session logged "version log file missing for
+                // language folder 'Ukrainian (Ukrainska)'" and then found the
+                // file on the next candidate - a warning about a file nobody
+                // ever intended to create, raised every time the settings
+                // header was drawn.
                 string folder = matchedFolder.Trim();
+                string bare = LanguageNameWithoutEndonym(folder);
+
                 AddRootedCandidates(
                     candidates,
                     rootDir,
-                    string.Format(VersionLogFileByLanguagePattern, folder));
+                    string.Format(VersionLogFileByLanguagePattern, bare));
 
-                string bare = LanguageNameWithoutEndonym(folder);
                 if (!string.Equals(bare, folder, StringComparison.Ordinal))
                 {
                     AddRootedCandidates(
                         candidates,
                         rootDir,
-                        string.Format(VersionLogFileByLanguagePattern, bare));
+                        string.Format(VersionLogFileByLanguagePattern, folder));
                 }
 
                 AddRootedCandidates(candidates, rootDir, VersionLogFileLocalizedDefault);
