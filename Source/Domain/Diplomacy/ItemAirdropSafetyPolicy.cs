@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -205,7 +206,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         private static void LogResourceDecision(ThingDef def, string decision)
         {
-            if (def == null || !Prefs.DevMode || !ShouldLogResourceDecision())
+            if (def == null || !RimAiLog.Detailed || !ShouldLogResourceDecision())
             {
                 return;
             }

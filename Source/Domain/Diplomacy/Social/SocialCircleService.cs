@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Module;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
@@ -491,7 +492,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 
         private static void LogSelfRelationGuardOnce(string key, string message)
         {
-            if (!Prefs.DevMode || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(message))
+            if (!RimAiLog.Detailed || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(message))
             {
                 return;
             }

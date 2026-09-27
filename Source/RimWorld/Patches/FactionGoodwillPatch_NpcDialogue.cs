@@ -1,9 +1,10 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.NpcDialogue;
 using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using Verse;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
@@ -138,7 +139,7 @@ namespace Ustas.RimAI.Communication.Relations.Patches
 
         private static void LogSelfRelationGuardOnce(string key, string message)
         {
-            if (!Prefs.DevMode || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(message))
+            if (!RimAiLog.Detailed || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(message))
             {
                 return;
             }

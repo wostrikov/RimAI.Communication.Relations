@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using RimWorld;
@@ -7,6 +7,7 @@ using Ustas.RimAI.Communication.Relations.AI;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Config;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Core.Diagnostics;
 
 namespace Ustas.RimAI.Communication.Relations.Diagnostics
 {
@@ -29,12 +30,12 @@ namespace Ustas.RimAI.Communication.Relations.Diagnostics
         /// LogInternals. Diagnostics you have to predict a need for are not
         /// diagnostics.
         /// </summary>
-        public static bool IsDebugEnabled => Prefs.DevMode;
-        public static bool LogRequests => Prefs.DevMode;
-        public static bool LogResponses => Prefs.DevMode;
-        public static bool LogInternals => Prefs.DevMode;
-        public static bool LogFullMessagesEnabled => Prefs.DevMode;
-        public static bool LogWarningsEnabled => Prefs.DevMode;
+        public static bool IsDebugEnabled => RimAiLog.Detailed;
+        public static bool LogRequests => RimAiLog.Detailed;
+        public static bool LogResponses => RimAiLog.Detailed;
+        public static bool LogInternals => RimAiLog.Detailed;
+        public static bool LogFullMessagesEnabled => RimAiLog.Detailed;
+        public static bool LogWarningsEnabled => RimAiLog.Detailed;
 
         public static void Info(string message)
         {
