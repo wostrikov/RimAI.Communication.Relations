@@ -178,7 +178,7 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             }
 
             // First-tick fallback: auto-select protagonist if list is still empty
-            if (proactiveProtagonists == null || proactiveProtagonists.Count == 0)
+            if (!HasConfiguredProtagonists())
             {
                 AutoSelectDefaultProtagonist();
             }

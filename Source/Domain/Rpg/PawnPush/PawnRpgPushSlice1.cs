@@ -224,7 +224,11 @@ public int GetRpgProactiveProtagonistCap()
 
 internal void AutoSelectDefaultProtagonist()
         {
-            if (proactiveProtagonists == null || proactiveProtagonists.Count > 0) return;
+            proactiveProtagonists ??= new List<PawnRpgProtagonistEntry>();
+            // "Nobody configured" is not the same as "the list is empty": an entry that lost its
+            // pawn keeps the list non-empty and still names no one.
+            if (Owner.HasConfiguredProtagonists()) return;
+            proactiveProtagonists.RemoveAll(entry => entry == null || !entry.HasConfiguredIdentifier);
 
             Pawn best = GameComponent_PawnRpgDialoguePushManager.FindBestSkillColonist();
             if (best != null)

@@ -469,6 +469,15 @@ internal void LogMissingProtagonists(int currentTick)
             }
 
             lastMissingProtagonistLogTick = currentTick;
+
+            // The protagonist is chosen automatically every tick there is none. If there is still
+            // none, there is no free colonist on any map to choose - the pawn is being replaced in
+            // Pawn Editor, or is away - and there is nothing for the player to configure.
+            if (GameComponent_PawnRpgDialoguePushManager.FindBestSkillColonist() == null)
+            {
+                return;
+            }
+
             Log.Warning("[RimAI.Relations] PawnRPG proactive skipped: protagonist list is empty. Configure protagonists in NPC proactive dialogue settings.");
         }
 
