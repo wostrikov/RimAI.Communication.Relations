@@ -366,7 +366,9 @@ namespace Ustas.RimAI.Communication.Relations.Prompting.Diplomacy
                     entry.NeedsRefreshSinceTick = currentTick;
                 }
 
-                Log.Warning($"[RimChatPerf] Snapshot.ValidateStale:{faction.Name} l2={l2Changed} l3={l3Changed} goodwill={snapshot.PlayerGoodwill}!={faction.PlayerGoodwill} memRev={snapshot.MemoryRevision}!={LeaderMemoryManager.Instance.GetFactionMemoryRevision(faction)} questRev={snapshot.QuestTrackingRevision}!={GameAIInterface.Instance.QuestTrackingRevision} stamp={snapshot.PromptFilesStampUtcTicks}!={_fileStampCache.GetStamp(currentTick)} sig={snapshot.SettingsSignature}!={ComputeSettingsSignature()}");
+                // Normal path, not a problem: goodwill, memory, quests or prompt files moved, so
+                // the snapshot is marked for refresh and keeps serving through the grace period.
+                ModuleLog.Message($"[RimChatPerf] Snapshot.ValidateStale:{faction.Name} l2={l2Changed} l3={l3Changed} goodwill={snapshot.PlayerGoodwill}!={faction.PlayerGoodwill} memRev={snapshot.MemoryRevision}!={LeaderMemoryManager.Instance.GetFactionMemoryRevision(faction)} questRev={snapshot.QuestTrackingRevision}!={GameAIInterface.Instance.QuestTrackingRevision} stamp={snapshot.PromptFilesStampUtcTicks}!={_fileStampCache.GetStamp(currentTick)} sig={snapshot.SettingsSignature}!={ComputeSettingsSignature()}");
 
                 if (currentTick - entry.NeedsRefreshSinceTick > RefreshGracePeriodTicks)
                 {
