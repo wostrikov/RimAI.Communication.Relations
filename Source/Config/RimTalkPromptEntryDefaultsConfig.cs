@@ -7,11 +7,12 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
-    /// Dependencies: Unity JsonUtility, Verse Scribe, RimWorld mod path APIs, file system.
+    /// Dependencies: RelationsJson, Verse Scribe, RimWorld mod path APIs, file system.
     /// Responsibility: define and persist native prompt section content mapped by prompt-channel and section-id.
     /// </summary>
     [Serializable]
@@ -566,7 +567,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string json = LocalStorage.Current.ReadAllText(path);
-                return JsonUtility.FromJson<RimTalkPromptEntryDefaultsConfig>(json);
+                return RelationsJson.FromJson<RimTalkPromptEntryDefaultsConfig>(json);
             }
             catch (Exception ex)
             {

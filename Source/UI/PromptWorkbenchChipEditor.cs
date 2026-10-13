@@ -435,8 +435,8 @@ namespace Ustas.RimAI.Communication.Relations.UI
                 return false;
             }
 
-            Vector2 startPos = style.GetCursorPixelPosition(textRect, content, start);
-            Vector2 endPos = style.GetCursorPixelPosition(textRect, content, end);
+            Vector2 startPos = TextCursorGeometry.PixelPosition(style, textRect, content.text, start);
+            Vector2 endPos = TextCursorGeometry.PixelPosition(style, textRect, content.text, end);
             if (Mathf.Abs(startPos.y - endPos.y) <= lineTolerance && endPos.x >= startPos.x)
             {
                 AddTokenFragment(fragments, startPos.x, endPos.x, startPos.y, lineHeight, start, end, maxLength);
@@ -467,8 +467,8 @@ namespace Ustas.RimAI.Communication.Relations.UI
             float lineHeight,
             List<TokenFragment> fragments)
         {
-            Vector2 startPos = style.GetCursorPixelPosition(textRect, content, start);
-            Vector2 endPos = style.GetCursorPixelPosition(textRect, content, end);
+            Vector2 startPos = TextCursorGeometry.PixelPosition(style, textRect, content.text, start);
+            Vector2 endPos = TextCursorGeometry.PixelPosition(style, textRect, content.text, end);
             float segmentStartX = startPos.x;
             float currentY = startPos.y;
             float lineMaxX = textRect.xMax - 1f;
@@ -476,7 +476,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
 
             for (int cursor = start + 1; cursor <= end; cursor++)
             {
-                Vector2 cursorPos = style.GetCursorPixelPosition(textRect, content, cursor);
+                Vector2 cursorPos = TextCursorGeometry.PixelPosition(style, textRect, content.text, cursor);
                 if (Mathf.Abs(cursorPos.y - currentY) <= lineTolerance)
                 {
                     continue;

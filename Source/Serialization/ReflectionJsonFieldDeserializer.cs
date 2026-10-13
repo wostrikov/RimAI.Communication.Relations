@@ -9,7 +9,8 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 {
     /// <summary>
     /// Dependencies: reflection metadata and in-file JSON token parser.
-    /// Responsibility: deserialize public-field object graphs from stable JSON emitted by ReflectionJsonFieldSerializer.
+    /// Responsibility: deserialize public-field object graphs from JSON - what ReflectionJsonFieldSerializer
+    /// emits, what a provider answers, what a player edited by hand.
     /// </summary>
     internal static class ReflectionJsonFieldDeserializer
     {
@@ -29,6 +30,16 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
             object converted = ConvertValue(root, typeof(T));
             value = converted as T;
             return value != null;
+        }
+
+        /// <summary>
+        /// The same conversion for a caller that tells malformed JSON from an
+        /// empty answer: a text that does not parse is a FormatException here.
+        /// </summary>
+        public static T Deserialize<T>(string json) where T : class
+        {
+            object root = new ReflectionJsonParser(json).Parse();
+            return ConvertValue(root, typeof(T)) as T;
         }
 
         private static bool TryParseRoot(string json, out object root)
@@ -284,11 +295,61 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
                     continue;
                 }
 
-                object fieldValue = ConvertValue(rawField, field.FieldType);
+                // A field is only ever replaced by something read. A null, a
+                // map, a collection that cannot be rebuilt: each leaves the
+                // field as the constructor made it, so nothing here can put a
+                // null where the class's own code never does.
+                Type fieldType = field.FieldType;
+                if (IsMap(fieldType) || (rawField == null && !fieldType.IsValueType))
+                {
+                    continue;
+                }
+
+                if (rawField is List<object> items && !fieldType.IsArray && !typeof(IList).IsAssignableFrom(fieldType))
+                {
+                    FillSet(field.GetValue(instance), items);
+                    continue;
+                }
+
+                object fieldValue = ConvertValue(rawField, fieldType);
                 field.SetValue(instance, fieldValue);
             }
 
             return instance;
+        }
+
+        private static bool IsMap(Type type)
+        {
+            return typeof(IDictionary).IsAssignableFrom(type);
+        }
+
+        /// <summary>
+        /// A set is written as an array and read back into the set the
+        /// constructor made, which keeps the comparer that set was given.
+        /// </summary>
+        private static void FillSet(object existing, List<object> items)
+        {
+            if (existing == null)
+            {
+                return;
+            }
+
+            Type collection = existing.GetType()
+                .GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
+            if (collection == null)
+            {
+                return;
+            }
+
+            Type itemType = collection.GetGenericArguments()[0];
+            MethodInfo clear = collection.GetMethod("Clear");
+            MethodInfo add = collection.GetMethod("Add");
+            clear.Invoke(existing, null);
+            for (int i = 0; i < items.Count; i++)
+            {
+                add.Invoke(existing, new[] { ConvertValue(items[i], itemType) });
+            }
         }
 
         private static bool TryGetValue(Dictionary<string, object> source, string key, out object value)

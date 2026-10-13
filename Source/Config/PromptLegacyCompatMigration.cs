@@ -6,6 +6,7 @@ using Ustas.RimAI.Communication.Relations.Prompting;
 using UnityEngine;
 using Verse;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -251,7 +252,7 @@ public static RimTalkPromptEntryDefaultsConfig ApplyLegacyPayloadToPromptSection
 
             try
             {
-                LegacyPromptCompatPayload payload = JsonUtility.FromJson<LegacyPromptCompatPayload>(rawJson);
+                LegacyPromptCompatPayload payload = RelationsJson.FromJson<LegacyPromptCompatPayload>(rawJson);
                 if (payload == null)
                 {
                     PromptLegacyCompatMigration.PublishReport(report);

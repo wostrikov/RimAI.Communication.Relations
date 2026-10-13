@@ -165,7 +165,7 @@ internal static PromptPresetStoreConfig TryReadStoreFile(string path, out bool c
             try
             {
                 string json = LocalStorage.Current.ReadAllText(path);
-                PromptPresetStoreConfig store = JsonUtility.FromJson<PromptPresetStoreConfig>(json);
+                PromptPresetStoreConfig store = RelationsJson.FromJson<PromptPresetStoreConfig>(json);
                 if (store == null)
                 {
                     corrupted = true;
@@ -181,14 +181,12 @@ internal static PromptPresetStoreConfig TryReadStoreFile(string path, out bool c
                     Log.Warning($"[RimAI.Relations] Prompt preset store file has IDs but missing preset list. path={path}");
                 }
 
-                // JsonUtility returns the store with an empty preset list for
-                // this file while the raw JSON plainly contains presets - two of
-                // them, well-formed, matching the field names exactly. Why it
-                // does that is not established: the file nests ten levels deep,
-                // which is past Unity's serialization depth limit, but Unity
-                // logs nothing about depth here and an unproven cause is not a
-                // cause. What is established is that the recovery below reads
-                // them correctly and has been the load-bearing path all along.
+                // The file nests ten levels deep. RelationsJson has no depth
+                // limit and reads every preset; a serializer that has one hands
+                // back the store with an empty list and says nothing. So the
+                // raw text is counted as well, and a store that came back with
+                // fewer presets than its own file plainly holds is recovered
+                // from the text rather than saved back short.
                 int rawPresetCountHint = PromptPresetService.CountPresetObjectsHint(json);
                 int parsedPresetCount = store.Presets?.Count ?? 0;
                 if (rawPresetCountHint > parsedPresetCount)

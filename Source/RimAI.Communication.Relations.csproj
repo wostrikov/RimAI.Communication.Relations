@@ -1,7 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    RimWorld 1.7 and nothing older. 1.7 is not a Unity player: it runs on
+    .NET 10, its assemblies sit in the game folder itself, and one assembly -
+    UnityStubs - stands in for everything that was UnityEngine.*Module.dll.
+    So this is net10.0 and compiles against that stand-in, which turns a
+    Unity member 1.7 does not have into a compile error here instead of a
+    type that fails to load there. The 1.6 build is the tag
+    rimworld-1.6-final.
+  -->
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- The game loads a mod assembly from the mod's own folder: no deps
+         file beside it. A package this mod ships has to reach the output. -->
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <AssemblyName>RimAI.Communication.Relations</AssemblyName>
@@ -18,61 +32,19 @@
   <ItemGroup>
     <!-- RimWorld Core Assembly References -->
     <Reference Include="0Harmony">
-      <HintPath>$(RimWorldDir)\Mods\Harmony\Current\Assemblies\0Harmony.dll</HintPath>
+      <HintPath>$(RimWorldDir)\Mods\Harmony\1.7\Assemblies\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(RimWorldDir)\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.JSONSerializeModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.UIModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\Unity.TextMeshPro.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <Reference Include="UnityStubs"><HintPath>$(RimWorldDir)\UnityStubs.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Waylith"><HintPath>$(RimWorldDir)\Waylith.dll</HintPath><Private>false</Private></Reference>
     
     <!-- Harmony -->
     
     <!-- DLC Assemblies (Optional) -->
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

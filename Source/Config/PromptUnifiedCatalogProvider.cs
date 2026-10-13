@@ -11,7 +11,7 @@ using Ustas.RimAI.Core.Storage;
 namespace Ustas.RimAI.Communication.Relations.Config
 {
     /// <summary>
-    /// Dependencies: prompt domain file catalog and Unity JsonUtility.
+    /// Dependencies: prompt domain file catalog and RelationsJson.
     /// Responsibility: load/save unified prompt catalog from Prompt/Default and Prompt/Custom.
     /// </summary>
     internal static class PromptUnifiedCatalogProvider
@@ -102,7 +102,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
 
             try
             {
-                return JsonUtility.FromJson<PromptUnifiedCatalog>(LocalStorage.Current.ReadAllText(path));
+                return RelationsJson.FromJson<PromptUnifiedCatalog>(LocalStorage.Current.ReadAllText(path));
             }
             catch (Exception ex)
             {

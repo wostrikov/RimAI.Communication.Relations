@@ -10,7 +10,8 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 {
     /// <summary>
     /// Dependencies: reflection metadata and StringBuilder.
-    /// Responsibility: serialize public-field object graphs into stable JSON for prompt persistence models that Unity JsonUtility truncates.
+    /// Responsibility: serialize public-field object graphs into stable JSON. A map is not written:
+    /// nothing reads one back, and an array of empty objects in its place says nothing.
     /// </summary>
     internal static class ReflectionJsonFieldSerializer
     {
@@ -109,7 +110,7 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
         {
             FieldInfo[] fields = value.GetType()
                 .GetFields(BindingFlags.Instance | BindingFlags.Public)
-                .Where(field => !field.IsStatic)
+                .Where(field => !field.IsStatic && !typeof(IDictionary).IsAssignableFrom(field.FieldType))
                 .OrderBy(field => field.MetadataToken)
                 .ToArray();
 

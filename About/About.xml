@@ -13,7 +13,7 @@
 Потрібен Harmony. Текстовий ШІ — зі спільних налаштувань RimAI.</description>
     <modVersion>1.5.9</modVersion>
     <supportedVersions>
-        <li>1.6</li>
+        <li>1.7</li>
     </supportedVersions>
     <modDependencies>
         <li>

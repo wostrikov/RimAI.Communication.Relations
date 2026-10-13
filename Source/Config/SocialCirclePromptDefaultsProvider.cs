@@ -3,6 +3,7 @@ using System.IO;
 using Ustas.RimAI.Communication.Relations.Persistence;
 using UnityEngine;
 using Ustas.RimAI.Core.Storage;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -43,7 +44,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 }
 
                 string json = LocalStorage.Current.ReadAllText(path);
-                SocialCirclePromptDomainConfig loaded = JsonUtility.FromJson<SocialCirclePromptDomainConfig>(json);
+                SocialCirclePromptDomainConfig loaded = RelationsJson.FromJson<SocialCirclePromptDomainConfig>(json);
                 return Normalize(loaded);
             }
             catch

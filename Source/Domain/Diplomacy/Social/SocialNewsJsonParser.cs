@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
 {
-    /// <summary>/// Dependencies: UnityEngine.JsonUtility.
+    /// <summary>/// Dependencies: RelationsJson.
  /// Responsibility: validate and parse strict JSON payloads for social-circle world news.
  ///</summary>
     internal static class SocialNewsJsonParser
@@ -59,7 +60,7 @@ namespace Ustas.RimAI.Communication.Relations.DiplomacySystem
             error = string.Empty;
             try
             {
-                SocialNewsPayload payload = JsonUtility.FromJson<SocialNewsPayload>(json);
+                SocialNewsPayload payload = RelationsJson.FromJson<SocialNewsPayload>(json);
                 if (payload != null)
                 {
                     return payload;

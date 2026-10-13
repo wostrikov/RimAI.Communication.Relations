@@ -381,7 +381,7 @@ internal static PromptUnifiedCatalog LoadCanonicalDefaultUnifiedCatalog()
                 try
                 {
                     string rawJson = LocalStorage.Current.ReadAllText(defaultPath);
-                    loaded = JsonUtility.FromJson<PromptUnifiedCatalog>(rawJson);
+                    loaded = RelationsJson.FromJson<PromptUnifiedCatalog>(rawJson);
                 }
                 catch (Exception ex)
                 {

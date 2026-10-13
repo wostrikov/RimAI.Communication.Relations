@@ -7,10 +7,11 @@ using UnityEngine;
 using Verse;
 using Ustas.RimAI.Core.Storage;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
-    /// <summary>/// Dependencies: UnityEngine.JsonUtility, RimWorld mod path APIs, file system.
+    /// <summary>/// Dependencies: RelationsJson, RimWorld mod path APIs, file system.
  /// Responsibility: represent default RPG prompt text loaded from Prompt/Default/PawnDialoguePrompt_Default.json.
  ///</summary>
     [Serializable]
@@ -337,7 +338,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         }
     }
 
-    /// <summary>/// Dependencies: RimWorld mod path APIs, Unity JsonUtility, file I/O.
+    /// <summary>/// Dependencies: RimWorld mod path APIs, RelationsJson, file I/O.
  /// Responsibility: load cached RPG default prompts from Prompt/Default/PawnDialoguePrompt_Default.json.
  ///</summary>
     internal static class RpgPromptDefaultsProvider
@@ -383,7 +384,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string json = LocalStorage.Current.ReadAllText(path);
-                config = JsonUtility.FromJson<RpgPromptDefaultsConfig>(json);
+                config = RelationsJson.FromJson<RpgPromptDefaultsConfig>(json);
                 if (config == null)
                 {
                     Log.Warning($"[RimAI.Relations] RPG prompt defaults deserialized to null from {path}; using fallback.");

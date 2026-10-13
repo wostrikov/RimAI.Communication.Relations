@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Ustas.RimAI.Communication.Relations.Serialization
 {
-    /// <summary>/// Dependencies: UnityEngine.JsonUtility, SystemPromptConfig model.
+    /// <summary>/// Dependencies: RelationsJson, SystemPromptConfig model.
  /// Responsibility: provide robust typed JSON encode/decode for prompt config with normalization.
  ///</summary>
     internal sealed class PromptConfigJsonCodec
@@ -21,7 +21,7 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 
             try
             {
-                json = JsonUtility.ToJson(config, prettyPrint);
+                json = RelationsJson.ToJson(config, prettyPrint);
                 return !string.IsNullOrWhiteSpace(json);
             }
             catch
@@ -43,7 +43,7 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 
             try
             {
-                config = JsonUtility.FromJson<SystemPromptConfig>(json);
+                config = RelationsJson.FromJson<SystemPromptConfig>(json);
                 Normalize(config);
                 return config != null;
             }

@@ -145,7 +145,7 @@ namespace Ustas.RimAI.Communication.Relations.UI
         {
             if (hasFocus)
             {
-                GUI.UnfocusWindow();
+                GUI.FocusControl(null);
             }
         }
 

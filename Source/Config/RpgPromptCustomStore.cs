@@ -47,7 +47,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public bool RimTalkAutoInjectCompatPreset;
     }
 
-    /// <summary>/// Dependencies: RpgPromptDefaultsProvider, Unity JsonUtility.
+    /// <summary>/// Dependencies: RpgPromptDefaultsProvider, RelationsJson.
  /// Responsibility: load/save pawn dialogue prompt custom overrides from Prompt/Custom/PawnDialoguePrompt_Custom.json.
  ///</summary>
     internal static class RpgPromptCustomStore
@@ -89,7 +89,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                     try
                     {
                         string json = LocalStorage.Current.ReadAllText(path);
-                        RpgPromptCustomConfig custom = JsonUtility.FromJson<RpgPromptCustomConfig>(json);
+                        RpgPromptCustomConfig custom = RelationsJson.FromJson<RpgPromptCustomConfig>(json);
                         MergeCustomIntoBase(config, custom);
                     }
                     catch (Exception ex)
@@ -168,8 +168,8 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 return null;
             }
 
-            string json = JsonUtility.ToJson(source);
-            return JsonUtility.FromJson<RpgPromptCustomConfig>(json);
+            string json = RelationsJson.ToJson(source);
+            return RelationsJson.FromJson<RpgPromptCustomConfig>(json);
         }
 
         private static RpgPromptCustomConfig BuildDefaultConfig(RpgPromptDefaultsConfig defaults)
@@ -358,7 +358,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
             try
             {
                 string json = LocalStorage.Current.ReadAllText(path);
-                LegacyRpgPromptSectionMirror legacy = JsonUtility.FromJson<LegacyRpgPromptSectionMirror>(json);
+                LegacyRpgPromptSectionMirror legacy = RelationsJson.FromJson<LegacyRpgPromptSectionMirror>(json);
                 sections = PromptLegacyCompatMigration.NormalizePromptSections(legacy?.PromptSectionCatalog);
                 return PromptLegacyCompatMigration.ApplyLegacyPayloadToPromptSections(
                     sections,

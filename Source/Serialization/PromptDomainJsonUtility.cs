@@ -1,14 +1,13 @@
 using System;
 using System.IO;
 using System.Text;
-using UnityEngine;
 using Verse;
 using Ustas.RimAI.Core.Storage;
 
 namespace Ustas.RimAI.Communication.Relations.Serialization
 {
     /// <summary>
-    /// Dependencies: System.IO, UTF-8 encoding, and Unity JsonUtility.
+    /// Dependencies: System.IO, UTF-8 encoding, and RelationsJson.
     /// Responsibility: load, overlay, clone, and persist prompt-domain JSON payloads.
     /// </summary>
     internal static class PromptDomainJsonUtility
@@ -40,43 +39,12 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
             try
             {
                 string json = LocalStorage.Current.ReadAllText(path, Encoding.UTF8);
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    return new T();
-                }
-
-                if (ReflectionJsonFieldDeserializer.TryDeserialize(json, out T reflectionValue) && reflectionValue != null)
-                {
-                    return reflectionValue;
-                }
-
-                return JsonUtility.FromJson<T>(json) ?? new T();
+                return RelationsJson.FromJson<T>(json) ?? new T();
             }
             catch (Exception ex)
             {
                 Log.Warning($"[RimAI.Relations] Failed to load prompt-domain JSON from {path}: {ex.Message}");
                 return new T();
-            }
-        }
-
-        public static void OverwriteFromFile<T>(string path, T target) where T : class
-        {
-            if (target == null || string.IsNullOrWhiteSpace(path) || !LocalStorage.Current.FileExists(path))
-            {
-                return;
-            }
-
-            try
-            {
-                string json = LocalStorage.Current.ReadAllText(path, Encoding.UTF8);
-                if (!string.IsNullOrWhiteSpace(json))
-                {
-                    JsonUtility.FromJsonOverwrite(json, target);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"[RimAI.Relations] Failed to load prompt-domain JSON from {path}: {ex.Message}");
             }
         }
 
@@ -90,15 +58,10 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 
             try
             {
-                if (ReflectionJsonFieldDeserializer.TryDeserialize(json, out payload) && payload != null)
-                {
-                    return true;
-                }
-
-                payload = JsonUtility.FromJson<T>(json) ?? new T();
-                return payload != null;
+                payload = RelationsJson.FromJson<T>(json) ?? new T();
+                return true;
             }
-            catch
+            catch (FormatException)
             {
                 payload = null;
                 return false;
@@ -107,7 +70,7 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
 
         public static string Serialize<T>(T payload, bool prettyPrint = true) where T : class
         {
-            return JsonUtility.ToJson(payload, prettyPrint);
+            return RelationsJson.ToJson(payload, prettyPrint);
         }
 
         public static void WriteToFile<T>(string path, T payload, bool prettyPrint = true) where T : class
@@ -133,8 +96,7 @@ namespace Ustas.RimAI.Communication.Relations.Serialization
                 return new T();
             }
 
-            string json = JsonUtility.ToJson(payload);
-            return JsonUtility.FromJson<T>(json) ?? new T();
+            return RelationsJson.FromJson<T>(RelationsJson.ToJson(payload)) ?? new T();
         }
     }
 }

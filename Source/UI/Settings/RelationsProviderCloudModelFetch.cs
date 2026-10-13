@@ -23,6 +23,7 @@ using Ustas.RimAI.Core.Player2;
 using Ustas.RimAI.Core.UI;
 using RimAI.Core.Runtime;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.UI;
 
@@ -258,7 +259,7 @@ internal sealed class RelationsProviderCloudModelFetch
 
         internal List<string> ParseOpenAIModelsFromResponse(string json)
         {
-            var response = JsonUtility.FromJson<OpenAIModelListResponse>(json);
+            var response = RelationsJson.FromJson<OpenAIModelListResponse>(json);
             List<string> models = response?.data
                 ?.Select(model => model?.id)
                 .Where(modelId => !string.IsNullOrWhiteSpace(modelId))
@@ -277,7 +278,7 @@ internal sealed class RelationsProviderCloudModelFetch
 
         internal List<string> ParseGoogleModelsFromResponse(string json)
         {
-            var response = JsonUtility.FromJson<GoogleModelListResponse>(json);
+            var response = RelationsJson.FromJson<GoogleModelListResponse>(json);
             List<string> models = response?.models?
                 .Where(SupportsGenerateContent)
                 .Select(model => NormalizeGoogleModelName(model.name))

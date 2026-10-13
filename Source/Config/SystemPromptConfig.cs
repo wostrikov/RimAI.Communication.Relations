@@ -8,6 +8,7 @@ using UnityEngine;
 using Ustas.RimAI.Core.Storage;
 using Ustas.RimAI.Communication.Relations.Diagnostics;
 using Ustas.RimAI.Core.Diagnostics;
+using Ustas.RimAI.Communication.Relations.Serialization;
 
 namespace Ustas.RimAI.Communication.Relations.Config
 {
@@ -922,7 +923,7 @@ namespace Ustas.RimAI.Communication.Relations.Config
                 }
 
                 string json = LocalStorage.Current.ReadAllText(defaultConfigPath);
-                var payload = JsonUtility.FromJson<DefaultPromptHeaderPayload>(json);
+                var payload = RelationsJson.FromJson<DefaultPromptHeaderPayload>(json);
                 if (!string.IsNullOrWhiteSpace(payload?.GlobalSystemPrompt))
                 {
                     prompt = payload.GlobalSystemPrompt;

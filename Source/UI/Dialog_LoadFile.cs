@@ -145,6 +145,13 @@ namespace Ustas.RimAI.Communication.Relations.UI
             string threadError = string.Empty;
             bool handled = false;
 
+            // The picker is Windows' own and wants a single-threaded apartment.
+            // Anywhere else there is none to open, and the caller says so.
+            if (!OperatingSystem.IsWindows())
+            {
+                return false;
+            }
+
             var thread = new Thread(() =>
             {
                 handled = TryOpenNativeJsonFileDialogCore(currentPath, out threadSelectedPath, out threadError);

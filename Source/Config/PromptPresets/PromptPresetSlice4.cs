@@ -177,7 +177,7 @@ internal static RpgPromptCustomConfig ParseRpgPromptCustomConfig(string json)
 
             try
             {
-                return JsonUtility.FromJson<RpgPromptCustomConfig>(trimmed);
+                return RelationsJson.FromJson<RpgPromptCustomConfig>(trimmed);
             }
             catch (Exception ex)
             {
@@ -210,7 +210,7 @@ internal static void ApplyLegacyPayloadsFromStoreJson(PromptPresetStoreConfig st
                 return;
             }
 
-            LegacyPromptPresetStoreConfig legacy = JsonUtility.FromJson<LegacyPromptPresetStoreConfig>(rawJson);
+            LegacyPromptPresetStoreConfig legacy = RelationsJson.FromJson<LegacyPromptPresetStoreConfig>(rawJson);
             if (legacy?.Presets == null)
             {
                 return;
@@ -232,7 +232,7 @@ internal static void ApplyLegacyPayloadFromJson(PromptPresetConfig preset, strin
                 return;
             }
 
-            LegacyPromptPresetConfig legacy = JsonUtility.FromJson<LegacyPromptPresetConfig>(rawJson);
+            LegacyPromptPresetConfig legacy = RelationsJson.FromJson<LegacyPromptPresetConfig>(rawJson);
             PromptPresetService.ApplyLegacyPayload(preset, legacy?.ChannelPayloads, sourceId);
         }
 
