@@ -112,7 +112,9 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                 return map;
             }
 
-            string xmlPath = Path.Combine(rootDir, "1.6", "Languages", "English", "Keyed", "RimChat_Keys.xml");
+            // The keyed file sits in the version folder of the game that is
+            // running; a version written here went stale the day the mod moved.
+            string xmlPath = Path.Combine(rootDir, VersionControl.CurrentVersionStringWithoutBuild, "Languages", "English", "Keyed", "RimChat_Keys.xml");
             if (!LocalStorage.Current.FileExists(xmlPath))
             {
                 Log.Warning($"[RimAI.Relations] English keyed fallback initialization skipped: file not found at '{xmlPath}'.");
