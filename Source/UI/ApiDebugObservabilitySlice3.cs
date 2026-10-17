@@ -31,8 +31,6 @@ internal static string GetSourceLabel(AIRequestDebugSource source)
                     return "RimChat_ApiDebugSourceRpgDialogue".Translate();
                 case AIRequestDebugSource.NpcPush:
                     return "RimChat_ApiDebugSourceNpcPush".Translate();
-                case AIRequestDebugSource.PawnRpgPush:
-                    return "RimChat_ApiDebugSourcePawnRpgPush".Translate();
                 case AIRequestDebugSource.SocialNews:
                     return "RimChat_ApiDebugSourceSocialNews".Translate();
                 case AIRequestDebugSource.StrategySuggestion:

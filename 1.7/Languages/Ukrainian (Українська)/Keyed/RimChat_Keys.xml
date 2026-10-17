@@ -132,9 +132,8 @@
   <RimChat_PresenceProfileStartHour>Година початку онлайн-режиму: {0}</RimChat_PresenceProfileStartHour>
   <RimChat_PresenceProfileDurationHours>Тривалість онлайн-режиму (годин): {0}</RimChat_PresenceProfileDurationHours>
   <RimChat_NpcPushSettings>Проактивні діалоги NPC</RimChat_NpcPushSettings>
-  <RimChat_NpcPushSettingsTooltip>Функція: налаштувати поведінку проактивних повідомлень NPC. Область застосування: планування проактивних діалогів дипломатії та PawnRPG з окремими перемикачами каналів.</RimChat_NpcPushSettingsTooltip>
+  <RimChat_NpcPushSettingsTooltip>Функція: налаштувати проактивні повідомлення лідерів фракцій. Область застосування: планування проактивних діалогів дипломатії та вибір переговірника.</RimChat_NpcPushSettingsTooltip>
   <RimChat_EnableDiplomacyInitiatedDialogue>Увімкнути проактивні діалоги дипломатії</RimChat_EnableDiplomacyInitiatedDialogue>
-  <RimChat_EnablePawnRpgInitiatedDialogue>Увімкнути проактивні діалоги PawnRPG</RimChat_EnablePawnRpgInitiatedDialogue>
   <RimChat_NpcPushFrequency>Частота проактивних повідомлень</RimChat_NpcPushFrequency>
   <RimChat_NpcPushFrequencyLow>Низька</RimChat_NpcPushFrequencyLow>
   <RimChat_NpcPushFrequencyMedium>Середня</RimChat_NpcPushFrequencyMedium>
@@ -153,18 +152,15 @@
   <RimChat_NpcPush_DebugForceTrigger>Налагодження: примусово запустити випадковий проактивний діалог</RimChat_NpcPush_DebugForceTrigger>
   <RimChat_NpcPush_DebugTriggerSuccess>Випадковий проактивний діалог запущено.</RimChat_NpcPush_DebugTriggerSuccess>
   <RimChat_NpcPush_DebugTriggerFailed>Не вдалося запустити: завантажте активне збереження та переконайтеся, що існують дійсні фракції з конфігурацією ШІ.</RimChat_NpcPush_DebugTriggerFailed>
-  <RimChat_PawnRpgPush_DebugForceTrigger>Налагодження: примусово запустити проактивний діалог PawnRPG</RimChat_PawnRpgPush_DebugForceTrigger>
-  <RimChat_PawnRpgPush_DebugTriggerSuccess>Проактивний діалог PawnRPG запущено.</RimChat_PawnRpgPush_DebugTriggerSuccess>
-  <RimChat_PawnRpgPush_DebugTriggerFailed>Не вдалося запустити: переконайтеся, що доступні відповідний персонаж-ініціатор і відповідний зв’язок із отримувачем.</RimChat_PawnRpgPush_DebugTriggerFailed>
-  <RimChat_PawnRpgProtagonistSettings>Протагоністи проактивних діалогів PawnRPG</RimChat_PawnRpgProtagonistSettings>
+  <RimChat_PawnRpgProtagonistSettings>Протагоністи-переговірники</RimChat_PawnRpgProtagonistSettings>
   <RimChat_PawnRpgProtagonistCap>Максимальна кількість протагоністів: {0}</RimChat_PawnRpgProtagonistCap>
-  <RimChat_PawnRpgProtagonistNeedGame>Завантажте збереження, щоб редагувати протагоністів проактивних діалогів PawnRPG.</RimChat_PawnRpgProtagonistNeedGame>
+  <RimChat_PawnRpgProtagonistNeedGame>Завантажте збереження, щоб редагувати протагоністів-переговірників.</RimChat_PawnRpgProtagonistNeedGame>
   <RimChat_PawnRpgProtagonistCurrentCount>Налаштовані протагоністи: {0}/{1}</RimChat_PawnRpgProtagonistCurrentCount>
   <RimChat_PawnRpgProtagonistAdd>Додати</RimChat_PawnRpgProtagonistAdd>
   <RimChat_PawnRpgProtagonistRemove>Видалити</RimChat_PawnRpgProtagonistRemove>
   <RimChat_PawnRpgProtagonistClear>Очистити</RimChat_PawnRpgProtagonistClear>
-  <RimChat_PawnRpgProtagonistCleared>Активних протагоністів PawnRPG очищено.</RimChat_PawnRpgProtagonistCleared>
-  <RimChat_PawnRpgProtagonistEmpty>Протагоністів не налаштовано. Проактивні діалоги PawnRPG вимкнено.</RimChat_PawnRpgProtagonistEmpty>
+  <RimChat_PawnRpgProtagonistCleared>Протагоністів-переговірників очищено.</RimChat_PawnRpgProtagonistCleared>
+  <RimChat_PawnRpgProtagonistEmpty>Протагоністів не налаштовано. Переговори веде колоніст із найвищим умінням спілкування.</RimChat_PawnRpgProtagonistEmpty>
   <RimChat_PawnRpgProtagonistMembers>Учасники: {0}</RimChat_PawnRpgProtagonistMembers>
   <RimChat_PawnRpgProtagonistNoCandidates>Немає доступних персонажів із фракції гравця для додавання.</RimChat_PawnRpgProtagonistNoCandidates>
   <RimChat_PawnRpgProtagonistAddSuccess>Додано протагоніста: {0}</RimChat_PawnRpgProtagonistAddSuccess>
@@ -1495,16 +1491,6 @@ ID: {5}
   <RimChat_NpcPush_TitleSocial>Нове повідомлення від {0}</RimChat_NpcPush_TitleSocial>
   <RimChat_NpcPush_TitleTask>Дипломатична пропозиція від {0}</RimChat_NpcPush_TitleTask>
   <RimChat_NpcPush_TitleWarning>Попередження від {0}</RimChat_NpcPush_TitleWarning>
-  <RimChat_PawnRpgPush_OpenDialogue>Відкрити діалог PawnRPG</RimChat_PawnRpgPush_OpenDialogue>
-  <RimChat_PawnRpgPush_TitleSocial>{0} хоче поговорити з {1}</RimChat_PawnRpgPush_TitleSocial>
-  <RimChat_PawnRpgPush_TitleTask>{0} хоче обговорити завдання з {1}</RimChat_PawnRpgPush_TitleTask>
-  <RimChat_PawnRpgPush_TitleWarning>{0} хоче попередити {1}</RimChat_PawnRpgPush_TitleWarning>
-  <RimChat_EnableColonistToColonistDialogue>Увімкнути діалоги між колоністами</RimChat_EnableColonistToColonistDialogue>
-  <RimChat_ColonistPairMinOpinion>Мінімальна думка про пару колоністів: {0}</RimChat_ColonistPairMinOpinion>
-  <RimChat_ColonistPairFrequency>Частота спілкування між колоністами</RimChat_ColonistPairFrequency>
-  <RimChat_ColonistPairFrequencyLow>Колоністи: низька</RimChat_ColonistPairFrequencyLow>
-  <RimChat_ColonistPairFrequencyMedium>Колоністи: середня</RimChat_ColonistPairFrequencyMedium>
-  <RimChat_ColonistPairFrequencyHigh>Колоністи: висока</RimChat_ColonistPairFrequencyHigh>
   <RimChat_NegotiatorMode>Вибір перемовника</RimChat_NegotiatorMode>
   <RimChat_NegotiatorMode_HighestSocial>Найвищий показник спілкування</RimChat_NegotiatorMode_HighestSocial>
   <RimChat_NegotiatorMode_ProtagonistList>Протагоніст</RimChat_NegotiatorMode_ProtagonistList>
@@ -2297,7 +2283,6 @@ ID: {5}
   <RimChat_ApiDebugSourceDiplomacyDialogue>Діалог дипломатії</RimChat_ApiDebugSourceDiplomacyDialogue>
   <RimChat_ApiDebugSourceRpgDialogue>Діалог рольової гри</RimChat_ApiDebugSourceRpgDialogue>
   <RimChat_ApiDebugSourceNpcPush>Взаємодія з NPC</RimChat_ApiDebugSourceNpcPush>
-  <RimChat_ApiDebugSourcePawnRpgPush>Взаємодія з персонажами RPG</RimChat_ApiDebugSourcePawnRpgPush>
   <RimChat_ApiDebugSourceSocialNews>Соціальні новини</RimChat_ApiDebugSourceSocialNews>
   <RimChat_ApiDebugSourceStrategySuggestion>Стратегічна пропозиція</RimChat_ApiDebugSourceStrategySuggestion>
   <RimChat_ApiDebugSourcePersonaBootstrap>Початкове налаштування персони</RimChat_ApiDebugSourcePersonaBootstrap>

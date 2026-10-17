@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
 using Ustas.RimAI.Communication.Relations.NpcDialogue;
-using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using Verse;
 using Ustas.RimAI.Core.Diagnostics;
@@ -86,12 +85,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     reasonTag,
                     likelyHostile);
             }
-
-            GameComponent_PawnRpgDialoguePushManager.Instance?.RegisterGoodwillShiftTrigger(
-                __instance,
-                goodwillChange,
-                reasonTag,
-                likelyHostile);
 
             int tick = Find.TickManager?.TicksGame ?? 0;
             GameComponent_DiplomacyManager.Instance?.RecordScheduledSocialEvent(

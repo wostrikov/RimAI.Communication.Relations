@@ -119,7 +119,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public int DesignatedNegotiatorThingId = -1;
 
         public bool EnableNpcInitiatedDialogue = true;
-        public bool EnablePawnRpgInitiatedDialogue = true;
         public NpcPushFrequencyMode NpcPushFrequencyMode = NpcPushFrequencyMode.Low;
         public int NpcQueueMaxPerFaction = 3;
         public float NpcQueueExpireHours = 12f;
@@ -134,9 +133,6 @@ namespace Ustas.RimAI.Communication.Relations.Config
         public bool EnableNpcPushThrottleDebugLog = false;
         public int NpcPushThrottleProfileVersion = 1;
         public int PawnRpgProtagonistCap = 20;
-        public bool EnableColonistToColonistDialogue = true;
-        public int ColonistPairMinOpinion = 10;
-        public NpcPushFrequencyMode ColonistPairFrequencyMode = NpcPushFrequencyMode.Low;
         public bool EnableAIGoodwillAdjustment = true;
         public bool EnableAIGiftSending = true;
         public bool EnableAIWarDeclaration = true;

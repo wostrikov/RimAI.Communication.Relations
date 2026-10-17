@@ -262,8 +262,7 @@ namespace Ustas.RimAI.Communication.Relations.AI
 
             return debugSource == AIRequestDebugSource.DiplomacyDialogue ||
                 debugSource == AIRequestDebugSource.RpgDialogue ||
-                debugSource == AIRequestDebugSource.NpcPush ||
-                debugSource == AIRequestDebugSource.PawnRpgPush;
+                debugSource == AIRequestDebugSource.NpcPush;
         }
     }
 }

@@ -12,7 +12,6 @@ namespace Ustas.RimAI.Communication.Relations.AI
         DiplomacyDialogue = 0,
         RpgDialogue = 1,
         NpcPush = 2,
-        PawnRpgPush = 3,
         SocialNews = 4,
         StrategySuggestion = 5,
         PersonaBootstrap = 6,

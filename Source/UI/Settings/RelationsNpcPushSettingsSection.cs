@@ -26,12 +26,20 @@ internal sealed class RelationsNpcPushSettingsSection
         internal void DrawNpcInitiatedDialogueSettings(Listing_Standard listing)
         {
             listing.CheckboxLabeled("RimChat_EnableDiplomacyInitiatedDialogue".Translate(), ref Settings.EnableNpcInitiatedDialogue);
-            listing.CheckboxLabeled("RimChat_EnablePawnRpgInitiatedDialogue".Translate(), ref Settings.EnablePawnRpgInitiatedDialogue);
-            if (!Settings.EnableNpcInitiatedDialogue && !Settings.EnablePawnRpgInitiatedDialogue)
+            if (Settings.EnableNpcInitiatedDialogue)
             {
-                return;
+                DrawNpcPushThrottleSettings(listing);
             }
 
+            DrawNegotiatorModeSettings(listing);
+            if (Settings.EnableNpcInitiatedDialogue)
+            {
+                DrawDebugForceTriggerButton(listing);
+            }
+        }
+
+        internal void DrawNpcPushThrottleSettings(Listing_Standard listing)
+        {
             DrawNpcPushFrequencySelector(listing);
             listing.Label("RimChat_NpcQueueMaxPerFaction".Translate(Settings.NpcQueueMaxPerFaction));
             Settings.NpcQueueMaxPerFaction = Mathf.RoundToInt(listing.Slider(Settings.NpcQueueMaxPerFaction, 1f, 10f));
@@ -55,24 +63,17 @@ internal sealed class RelationsNpcPushSettingsSection
             listing.CheckboxLabeled("RimChat_EnableBusyByHostiles".Translate(), ref Settings.EnableBusyByHostiles);
             listing.CheckboxLabeled("RimChat_EnableBusyByClickRate".Translate(), ref Settings.EnableBusyByClickRate);
             listing.CheckboxLabeled("RimChat_EnableNpcPushThrottleDebugLog".Translate(), ref Settings.EnableNpcPushThrottleDebugLog);
-            DrawPawnRpgProtagonistSettings(listing);
-            if (Settings.EnablePawnRpgInitiatedDialogue)
-            {
-                DrawColonistPairSettings(listing);
-            }
-            DrawNegotiatorModeSettings(listing);
-            DrawDebugForceTriggerButton(listing);
         }
 
         internal void DrawPawnRpgProtagonistSettings(Listing_Standard listing)
         {
             var manager = Current.Game?.GetComponent<GameComponent_PawnRpgDialoguePushManager>();
-            listing.Gap(6f);
+            listing.Gap(4f);
             listing.Label("RimChat_PawnRpgProtagonistSettings".Translate());
             listing.Label("RimChat_PawnRpgProtagonistCap".Translate(Settings.PawnRpgProtagonistCap));
             int capValue = Mathf.RoundToInt(listing.Slider(Settings.PawnRpgProtagonistCap, 1f, 100f));
             Settings.PawnRpgProtagonistCap = capValue;
-            manager?.SetRpgProactiveProtagonistCap(capValue);
+            manager?.SetProtagonistCap(capValue);
 
             if (manager == null)
             {
@@ -80,7 +81,7 @@ internal sealed class RelationsNpcPushSettingsSection
                 return;
             }
 
-            listing.Label("RimChat_PawnRpgProtagonistCurrentCount".Translate(manager.GetConfiguredProtagonistCount(), manager.GetRpgProactiveProtagonistCap()));
+            listing.Label("RimChat_PawnRpgProtagonistCurrentCount".Translate(manager.GetConfiguredProtagonistCount(), manager.GetProtagonistCap()));
             DrawPawnRpgProtagonistActionButtons(listing, manager);
             DrawPawnRpgProtagonistSummary(listing, manager);
         }
@@ -105,14 +106,14 @@ internal sealed class RelationsNpcPushSettingsSection
 
             if (Widgets.ButtonText(clearRect, "RimChat_PawnRpgProtagonistClear".Translate()))
             {
-                manager.ClearRpgProactiveProtagonists();
+                manager.ClearProtagonists();
                 Messages.Message("RimChat_PawnRpgProtagonistCleared".Translate(), MessageTypeDefOf.NeutralEvent, false);
             }
         }
 
         internal void DrawPawnRpgProtagonistSummary(Listing_Standard listing, GameComponent_PawnRpgDialoguePushManager manager)
         {
-            List<Pawn> protagonists = manager.GetRpgProactiveProtagonists();
+            List<Pawn> protagonists = manager.GetProtagonists();
             if (protagonists.Count == 0)
             {
                 listing.Label("RimChat_PawnRpgProtagonistEmpty".Translate());
@@ -152,18 +153,18 @@ internal sealed class RelationsNpcPushSettingsSection
 
         internal void TryAddPawnRpgProtagonist(GameComponent_PawnRpgDialoguePushManager manager, Pawn pawn)
         {
-            if (manager.TryAddRpgProactiveProtagonist(pawn))
+            if (manager.TryAddProtagonist(pawn))
             {
                 Messages.Message("RimChat_PawnRpgProtagonistAddSuccess".Translate(GetNpcPushPawnDisplayName(pawn)), MessageTypeDefOf.TaskCompletion, false);
                 return;
             }
 
-            Messages.Message("RimChat_PawnRpgProtagonistAddFailedCap".Translate(manager.GetRpgProactiveProtagonistCap()), MessageTypeDefOf.RejectInput, false);
+            Messages.Message("RimChat_PawnRpgProtagonistAddFailedCap".Translate(manager.GetProtagonistCap()), MessageTypeDefOf.RejectInput, false);
         }
 
         internal void OpenRemovePawnRpgProtagonistMenu(GameComponent_PawnRpgDialoguePushManager manager)
         {
-            List<Pawn> configured = manager.GetRpgProactiveProtagonists();
+            List<Pawn> configured = manager.GetProtagonists();
             if (configured.Count == 0)
             {
                 Messages.Message("RimChat_PawnRpgProtagonistEmpty".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -174,28 +175,13 @@ internal sealed class RelationsNpcPushSettingsSection
                 .OrderBy(GetNpcPushPawnDisplayName)
                 .Select(pawn => new FloatMenuOption(GetNpcPushPawnDisplayName(pawn), () =>
                 {
-                    if (manager.RemoveRpgProactiveProtagonist(pawn))
+                    if (manager.RemoveProtagonist(pawn))
                     {
                         Messages.Message("RimChat_PawnRpgProtagonistRemoved".Translate(GetNpcPushPawnDisplayName(pawn)), MessageTypeDefOf.NeutralEvent, false);
                     }
                 }))
                 .ToList();
             Find.WindowStack.Add(new FloatMenu(options));
-        }
-
-        internal void DrawColonistPairSettings(Listing_Standard listing)
-        {
-            listing.Gap(6f);
-            listing.Label("RimChat_ColonistPairFrequency".Translate());
-            listing.CheckboxLabeled("RimChat_EnableColonistToColonistDialogue".Translate(), ref Settings.EnableColonistToColonistDialogue);
-            if (!Settings.EnableColonistToColonistDialogue)
-            {
-                return;
-            }
-
-            DrawColonistPairFrequencySelector(listing);
-            listing.Label("RimChat_ColonistPairMinOpinion".Translate(Settings.ColonistPairMinOpinion));
-            Settings.ColonistPairMinOpinion = Mathf.RoundToInt(listing.Slider(Settings.ColonistPairMinOpinion, 0f, 60f));
         }
 
         internal void DrawNegotiatorModeSettings(Listing_Standard listing)
@@ -221,6 +207,10 @@ internal sealed class RelationsNpcPushSettingsSection
             {
                 listing.Gap(4f);
                 DrawDesignatedNegotiatorSelector(listing);
+            }
+            else if (Settings.DiplomacyNegotiatorMode == NegotiatorSelectionMode.ProtagonistList)
+            {
+                DrawPawnRpgProtagonistSettings(listing);
             }
 
             if (openMenu) OpenDesignatedNegotiatorMenu();
@@ -282,65 +272,17 @@ internal sealed class RelationsNpcPushSettingsSection
             Find.WindowStack.Add(new FloatMenu(options));
         }
 
-        internal void DrawColonistPairFrequencySelector(Listing_Standard listing)
-        {
-            Rect rowRect = listing.GetRect(30f);
-            float buttonWidth = (rowRect.width - 20f) / 3f;
-            DrawColonistPairFrequencyButton(
-                new Rect(rowRect.x, rowRect.y, buttonWidth, 30f),
-                NpcPushFrequencyMode.Low,
-                "RimChat_ColonistPairFrequencyLow".Translate());
-            DrawColonistPairFrequencyButton(
-                new Rect(rowRect.x + buttonWidth + 10f, rowRect.y, buttonWidth, 30f),
-                NpcPushFrequencyMode.Medium,
-                "RimChat_ColonistPairFrequencyMedium".Translate());
-            DrawColonistPairFrequencyButton(
-                new Rect(rowRect.x + (buttonWidth + 10f) * 2f, rowRect.y, buttonWidth, 30f),
-                NpcPushFrequencyMode.High,
-                "RimChat_ColonistPairFrequencyHigh".Translate());
-        }
-
-        internal void DrawColonistPairFrequencyButton(Rect rect, NpcPushFrequencyMode mode, string label)
-        {
-            Color oldColor = GUI.color;
-            if (Settings.ColonistPairFrequencyMode == mode)
-            {
-                GUI.color = new Color(0.35f, 0.55f, 0.85f, 0.9f);
-            }
-
-            if (Widgets.ButtonText(rect, label))
-            {
-                Settings.ColonistPairFrequencyMode = mode;
-            }
-
-            GUI.color = oldColor;
-        }
-
         internal void DrawDebugForceTriggerButton(Listing_Standard listing)
         {
             listing.Gap(4f);
             Rect buttonRect = listing.GetRect(30f);
-            float leftWidth = (buttonRect.width - 8f) * 0.5f;
-            Rect oldButtonRect = new Rect(buttonRect.x, buttonRect.y, leftWidth, buttonRect.height);
-            Rect newButtonRect = new Rect(buttonRect.x + leftWidth + 8f, buttonRect.y, leftWidth, buttonRect.height);
-
-            if (Widgets.ButtonText(oldButtonRect, "RimChat_NpcPush_DebugForceTrigger".Translate()))
+            if (Widgets.ButtonText(buttonRect, "RimChat_NpcPush_DebugForceTrigger".Translate()))
             {
                 bool ok = GameComponent_NpcDialoguePushManager.Instance?.DebugForceRandomProactiveDialogue() == true;
                 MessageTypeDef messageType = ok ? MessageTypeDefOf.TaskCompletion : MessageTypeDefOf.RejectInput;
                 string key = ok
                     ? "RimChat_NpcPush_DebugTriggerSuccess"
                     : "RimChat_NpcPush_DebugTriggerFailed";
-                Messages.Message(key.Translate(), messageType, false);
-            }
-
-            if (Widgets.ButtonText(newButtonRect, "RimChat_PawnRpgPush_DebugForceTrigger".Translate()))
-            {
-                bool ok = GameComponent_PawnRpgDialoguePushManager.Instance?.DebugForcePawnRpgProactiveDialogue() == true;
-                MessageTypeDef messageType = ok ? MessageTypeDefOf.TaskCompletion : MessageTypeDefOf.RejectInput;
-                string key = ok
-                    ? "RimChat_PawnRpgPush_DebugTriggerSuccess"
-                    : "RimChat_PawnRpgPush_DebugTriggerFailed";
                 Messages.Message(key.Translate(), messageType, false);
             }
         }
@@ -383,7 +325,6 @@ internal sealed class RelationsNpcPushSettingsSection
         internal void ResetNpcInitiatedDialogueSettings()
         {
             Settings.EnableNpcInitiatedDialogue = true;
-            Settings.EnablePawnRpgInitiatedDialogue = true;
             Settings.NpcPushFrequencyMode = global::Ustas.RimAI.Communication.Relations.Config.NpcPushFrequencyMode.Low;
             Settings.ProactiveMessageHardLimit = 0;
             Settings.NpcQueueMaxPerFaction = 3;
@@ -399,9 +340,6 @@ internal sealed class RelationsNpcPushSettingsSection
             Settings.EnableNpcPushThrottleDebugLog = false;
             Settings.NpcPushThrottleProfileVersion = 1;
             Settings.PawnRpgProtagonistCap = 20;
-            Settings.EnableColonistToColonistDialogue = true;
-            Settings.ColonistPairMinOpinion = 10;
-            Settings.ColonistPairFrequencyMode = NpcPushFrequencyMode.Low;
         }
     
 }

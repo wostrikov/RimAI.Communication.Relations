@@ -1,7 +1,6 @@
 using System.Linq;
 using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
-using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -9,7 +8,7 @@ using Verse;
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: RimWorld.TradeDeal, RimWorld.TradeSession.
- /// Responsibility: Report trade outcomes to proactive channels.
+ /// Responsibility: Report trade outcomes to the scheduled social events.
  ///</summary>
     [HarmonyPatch(typeof(TradeDeal), nameof(TradeDeal.TryExecute))]
     public static class TradeDealPatch_NpcDialogue
@@ -51,11 +50,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
                     totalTradeAmount += count;
                 }
             }
-
-            GameComponent_PawnRpgDialoguePushManager.Instance?.RegisterTradeCompletedTrigger(
-                faction,
-                soldCount,
-                boughtCount);
 
             GameComponent_DiplomacyManager.Instance?.RecordScheduledSocialEvent(
                 ScheduledSocialEventType.TradeDeal,

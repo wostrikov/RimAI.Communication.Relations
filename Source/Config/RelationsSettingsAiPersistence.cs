@@ -136,7 +136,6 @@ internal static class RelationsSettingsAiPersistence
             Scribe_Values.Look(ref Settings.EnableSocialCircleAutoActions, "EnableSocialCircleAutoActions", false);
 
             Scribe_Values.Look(ref Settings.EnableNpcInitiatedDialogue, "EnableNpcInitiatedDialogue", true);
-            Scribe_Values.Look(ref Settings.EnablePawnRpgInitiatedDialogue, "EnablePawnRpgInitiatedDialogue", true);
             Scribe_Values.Look(
                 ref Settings.NpcPushFrequencyMode,
                 "NpcPushFrequencyMode",
@@ -154,17 +153,9 @@ internal static class RelationsSettingsAiPersistence
             Scribe_Values.Look(ref Settings.EnableNpcPushThrottleDebugLog, "EnableNpcPushThrottleDebugLog", false);
             Scribe_Values.Look(ref Settings.NpcPushThrottleProfileVersion, "NpcPushThrottleProfileVersion", 1);
             Scribe_Values.Look(ref Settings.PawnRpgProtagonistCap, "PawnRpgProtagonistCap", 20);
-            Scribe_Values.Look(ref Settings.EnableColonistToColonistDialogue, "EnableColonistToColonistDialogue", true);
-            Scribe_Values.Look(ref Settings.ColonistPairMinOpinion, "ColonistPairMinOpinion", 10);
-            Scribe_Values.Look(ref Settings.ColonistPairFrequencyMode, "ColonistPairFrequencyMode", NpcPushFrequencyMode.Low);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 XmlNode currentNode = Scribe.loader?.curXmlParent;
-                if (currentNode != null && currentNode["EnablePawnRpgInitiatedDialogue"] == null)
-                {
-                    Settings.EnablePawnRpgInitiatedDialogue = Settings.EnableNpcInitiatedDialogue;
-                }
-
                 if (currentNode != null && currentNode["ScheduledNewsFrequencyLevel"] == null)
                 {
                     Settings.ScheduledNewsFrequencyLevel = InferFrequencyLevelFromLegacyRange(

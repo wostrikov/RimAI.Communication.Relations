@@ -88,7 +88,7 @@ internal static Pawn ResolveNegotiatorFromProtagonistList()
     var manager = GameComponent_PawnRpgDialoguePushManager.Instance;
     if (manager == null) return ResolveHighestSocialNegotiator();
 
-    List<Pawn> protagonists = manager.GetRpgProactiveProtagonists();
+    List<Pawn> protagonists = manager.GetProtagonists();
     if (protagonists == null || protagonists.Count == 0) return ResolveHighestSocialNegotiator();
 
     Pawn best = protagonists

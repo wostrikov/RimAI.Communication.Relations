@@ -144,9 +144,8 @@
     <RimChat_PresenceProfileStartHour>Online start hour: {0}</RimChat_PresenceProfileStartHour>
     <RimChat_PresenceProfileDurationHours>Online duration (hours): {0}</RimChat_PresenceProfileDurationHours>
     <RimChat_NpcPushSettings>NPC Proactive Dialogue</RimChat_NpcPushSettings>
-    <RimChat_NpcPushSettingsTooltip>Function: configure NPC proactive message behavior. Scope: diplomacy and PawnRPG proactive dialogue scheduling, with separate channel toggles.</RimChat_NpcPushSettingsTooltip>
+    <RimChat_NpcPushSettingsTooltip>Function: configure faction leaders' proactive messages. Scope: diplomacy proactive dialogue scheduling and the diplomacy negotiator.</RimChat_NpcPushSettingsTooltip>
     <RimChat_EnableDiplomacyInitiatedDialogue>Enable diplomacy proactive dialogue</RimChat_EnableDiplomacyInitiatedDialogue>
-    <RimChat_EnablePawnRpgInitiatedDialogue>Enable PawnRPG proactive dialogue</RimChat_EnablePawnRpgInitiatedDialogue>
     <RimChat_NpcPushFrequency>Proactive message frequency</RimChat_NpcPushFrequency>
     <RimChat_NpcPushFrequencyLow>Low</RimChat_NpcPushFrequencyLow>
     <RimChat_NpcPushFrequencyMedium>Medium</RimChat_NpcPushFrequencyMedium>
@@ -165,18 +164,15 @@
     <RimChat_NpcPush_DebugForceTrigger>Debug: Force random proactive dialogue</RimChat_NpcPush_DebugForceTrigger>
     <RimChat_NpcPush_DebugTriggerSuccess>Random proactive dialogue triggered.</RimChat_NpcPush_DebugTriggerSuccess>
     <RimChat_NpcPush_DebugTriggerFailed>Trigger failed: load a running save and ensure valid factions with AI configuration exist.</RimChat_NpcPush_DebugTriggerFailed>
-    <RimChat_PawnRpgPush_DebugForceTrigger>Debug: Force PawnRPG proactive dialogue</RimChat_PawnRpgPush_DebugForceTrigger>
-    <RimChat_PawnRpgPush_DebugTriggerSuccess>PawnRPG proactive dialogue triggered.</RimChat_PawnRpgPush_DebugTriggerSuccess>
-    <RimChat_PawnRpgPush_DebugTriggerFailed>Trigger failed: ensure an eligible initiator pawn and a qualified receiver relation are available.</RimChat_PawnRpgPush_DebugTriggerFailed>
-    <RimChat_PawnRpgProtagonistSettings>PawnRPG proactive protagonists</RimChat_PawnRpgProtagonistSettings>
+    <RimChat_PawnRpgProtagonistSettings>Negotiator protagonists</RimChat_PawnRpgProtagonistSettings>
     <RimChat_PawnRpgProtagonistCap>Protagonist cap: {0}</RimChat_PawnRpgProtagonistCap>
-    <RimChat_PawnRpgProtagonistNeedGame>Load a save to edit PawnRPG proactive protagonists.</RimChat_PawnRpgProtagonistNeedGame>
+    <RimChat_PawnRpgProtagonistNeedGame>Load a save to edit the negotiator protagonists.</RimChat_PawnRpgProtagonistNeedGame>
     <RimChat_PawnRpgProtagonistCurrentCount>Configured protagonists: {0}/{1}</RimChat_PawnRpgProtagonistCurrentCount>
     <RimChat_PawnRpgProtagonistAdd>Add</RimChat_PawnRpgProtagonistAdd>
     <RimChat_PawnRpgProtagonistRemove>Remove</RimChat_PawnRpgProtagonistRemove>
     <RimChat_PawnRpgProtagonistClear>Clear</RimChat_PawnRpgProtagonistClear>
-    <RimChat_PawnRpgProtagonistCleared>PawnRPG proactive protagonists cleared.</RimChat_PawnRpgProtagonistCleared>
-    <RimChat_PawnRpgProtagonistEmpty>No protagonists configured. PawnRPG proactive dialogue is disabled.</RimChat_PawnRpgProtagonistEmpty>
+    <RimChat_PawnRpgProtagonistCleared>Negotiator protagonists cleared.</RimChat_PawnRpgProtagonistCleared>
+    <RimChat_PawnRpgProtagonistEmpty>No protagonists configured. The colonist with the highest Social skill negotiates.</RimChat_PawnRpgProtagonistEmpty>
     <RimChat_PawnRpgProtagonistMembers>Members: {0}</RimChat_PawnRpgProtagonistMembers>
     <RimChat_PawnRpgProtagonistNoCandidates>No player-faction pawns are available to add.</RimChat_PawnRpgProtagonistNoCandidates>
     <RimChat_PawnRpgProtagonistAddSuccess>Added protagonist: {0}</RimChat_PawnRpgProtagonistAddSuccess>
@@ -1564,16 +1560,6 @@ Selected prisoners: {1}
     <RimChat_NpcPush_TitleSocial>New message from {0}</RimChat_NpcPush_TitleSocial>
     <RimChat_NpcPush_TitleTask>Diplomatic offer from {0}</RimChat_NpcPush_TitleTask>
     <RimChat_NpcPush_TitleWarning>Warning from {0}</RimChat_NpcPush_TitleWarning>
-    <RimChat_PawnRpgPush_OpenDialogue>Open PawnRPG dialogue</RimChat_PawnRpgPush_OpenDialogue>
-    <RimChat_PawnRpgPush_TitleSocial>{0} wants to talk with {1}</RimChat_PawnRpgPush_TitleSocial>
-    <RimChat_PawnRpgPush_TitleTask>{0} wants to discuss tasks with {1}</RimChat_PawnRpgPush_TitleTask>
-    <RimChat_PawnRpgPush_TitleWarning>{0} wants to warn {1}</RimChat_PawnRpgPush_TitleWarning>
-    <RimChat_EnableColonistToColonistDialogue>Enable colonist-to-colonist dialogue</RimChat_EnableColonistToColonistDialogue>
-    <RimChat_ColonistPairMinOpinion>Colonist pair minimum opinion: {0}</RimChat_ColonistPairMinOpinion>
-    <RimChat_ColonistPairFrequency>Colonist pair frequency</RimChat_ColonistPairFrequency>
-    <RimChat_ColonistPairFrequencyLow>Colonist: Low</RimChat_ColonistPairFrequencyLow>
-    <RimChat_ColonistPairFrequencyMedium>Colonist: Medium</RimChat_ColonistPairFrequencyMedium>
-    <RimChat_ColonistPairFrequencyHigh>Colonist: High</RimChat_ColonistPairFrequencyHigh>
     <RimChat_NegotiatorMode>Negotiator Selection</RimChat_NegotiatorMode>
     <RimChat_NegotiatorMode_HighestSocial>Top Social</RimChat_NegotiatorMode_HighestSocial>
     <RimChat_NegotiatorMode_ProtagonistList>Protagonist</RimChat_NegotiatorMode_ProtagonistList>
@@ -2381,7 +2367,6 @@ Selected prisoners: {1}
     <RimChat_ApiDebugSourceDiplomacyDialogue>Diplomacy Dialogue</RimChat_ApiDebugSourceDiplomacyDialogue>
     <RimChat_ApiDebugSourceRpgDialogue>RPG Dialogue</RimChat_ApiDebugSourceRpgDialogue>
     <RimChat_ApiDebugSourceNpcPush>NPC Push</RimChat_ApiDebugSourceNpcPush>
-    <RimChat_ApiDebugSourcePawnRpgPush>Pawn RPG Push</RimChat_ApiDebugSourcePawnRpgPush>
     <RimChat_ApiDebugSourceSocialNews>Social News</RimChat_ApiDebugSourceSocialNews>
     <RimChat_ApiDebugSourceStrategySuggestion>Strategy Suggestion</RimChat_ApiDebugSourceStrategySuggestion>
     <RimChat_ApiDebugSourcePersonaBootstrap>Persona Bootstrap</RimChat_ApiDebugSourcePersonaBootstrap>

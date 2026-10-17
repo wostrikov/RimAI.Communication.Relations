@@ -250,9 +250,8 @@
     <RimChat_PresenceProfileStartHour>在线起始小时: {0}</RimChat_PresenceProfileStartHour>
     <RimChat_PresenceProfileDurationHours>在线总时长（小时）: {0}</RimChat_PresenceProfileDurationHours>
     <RimChat_NpcPushSettings>NPC 主动对话设置</RimChat_NpcPushSettings>
-    <RimChat_NpcPushSettingsTooltip>功能：配置 NPC 主动发起对话策略。作用域：外交与 PawnRPG 主动消息调度，支持分离开关。</RimChat_NpcPushSettingsTooltip>
+    <RimChat_NpcPushSettingsTooltip>功能：配置派系领袖主动发起对话的策略。作用域：外交主动消息调度与谈判者选择。</RimChat_NpcPushSettingsTooltip>
     <RimChat_EnableDiplomacyInitiatedDialogue>启用外交主动对话</RimChat_EnableDiplomacyInitiatedDialogue>
-    <RimChat_EnablePawnRpgInitiatedDialogue>启用 PawnRPG 主动对话</RimChat_EnablePawnRpgInitiatedDialogue>
     <RimChat_NpcPushFrequency>主动消息频率</RimChat_NpcPushFrequency>
     <RimChat_NpcPushFrequencyLow>低频</RimChat_NpcPushFrequencyLow>
     <RimChat_NpcPushFrequencyMedium>中频</RimChat_NpcPushFrequencyMedium>
@@ -271,18 +270,15 @@
     <RimChat_NpcPush_DebugForceTrigger>调试：强制触发随机外交主动对话</RimChat_NpcPush_DebugForceTrigger>
     <RimChat_NpcPush_DebugTriggerSuccess>已触发随机主动对话。</RimChat_NpcPush_DebugTriggerSuccess>
     <RimChat_NpcPush_DebugTriggerFailed>触发失败：请在进行中的存档内并确保存在可用派系与 AI 配置。</RimChat_NpcPush_DebugTriggerFailed>
-    <RimChat_PawnRpgPush_DebugForceTrigger>调试：强制触发 PawnRPG 主动对话</RimChat_PawnRpgPush_DebugForceTrigger>
-    <RimChat_PawnRpgPush_DebugTriggerSuccess>已触发 PawnRPG 主动对话。</RimChat_PawnRpgPush_DebugTriggerSuccess>
-    <RimChat_PawnRpgPush_DebugTriggerFailed>触发失败：请确保存在可用的发起 Pawn 与满足关系条件的目标 Pawn。</RimChat_PawnRpgPush_DebugTriggerFailed>
-    <RimChat_PawnRpgProtagonistSettings>PawnRPG 主动主角名单</RimChat_PawnRpgProtagonistSettings>
+    <RimChat_PawnRpgProtagonistSettings>谈判主角名单</RimChat_PawnRpgProtagonistSettings>
     <RimChat_PawnRpgProtagonistCap>主角人数上限：{0}</RimChat_PawnRpgProtagonistCap>
-    <RimChat_PawnRpgProtagonistNeedGame>请先载入存档再编辑 PawnRPG 主角名单。</RimChat_PawnRpgProtagonistNeedGame>
+    <RimChat_PawnRpgProtagonistNeedGame>请先载入存档再编辑谈判主角名单。</RimChat_PawnRpgProtagonistNeedGame>
     <RimChat_PawnRpgProtagonistCurrentCount>已配置主角：{0}/{1}</RimChat_PawnRpgProtagonistCurrentCount>
     <RimChat_PawnRpgProtagonistAdd>添加</RimChat_PawnRpgProtagonistAdd>
     <RimChat_PawnRpgProtagonistRemove>移除</RimChat_PawnRpgProtagonistRemove>
     <RimChat_PawnRpgProtagonistClear>清空</RimChat_PawnRpgProtagonistClear>
-    <RimChat_PawnRpgProtagonistCleared>已清空 PawnRPG 主动主角名单。</RimChat_PawnRpgProtagonistCleared>
-    <RimChat_PawnRpgProtagonistEmpty>当前未配置主角，PawnRPG 主动对话已禁用。</RimChat_PawnRpgProtagonistEmpty>
+    <RimChat_PawnRpgProtagonistCleared>已清空谈判主角名单。</RimChat_PawnRpgProtagonistCleared>
+    <RimChat_PawnRpgProtagonistEmpty>当前未配置主角，将由社交技能最高的殖民者进行谈判。</RimChat_PawnRpgProtagonistEmpty>
     <RimChat_PawnRpgProtagonistMembers>成员：{0}</RimChat_PawnRpgProtagonistMembers>
     <RimChat_PawnRpgProtagonistNoCandidates>当前没有可添加的玩家阵营 Pawn。</RimChat_PawnRpgProtagonistNoCandidates>
     <RimChat_PawnRpgProtagonistAddSuccess>已添加主角：{0}</RimChat_PawnRpgProtagonistAddSuccess>
@@ -1189,16 +1185,6 @@ ID：{5}
     <RimChat_NpcPush_TitleSocial>{0} 发来新消息</RimChat_NpcPush_TitleSocial>
     <RimChat_NpcPush_TitleTask>{0} 的外交提议</RimChat_NpcPush_TitleTask>
     <RimChat_NpcPush_TitleWarning>{0} 的警告</RimChat_NpcPush_TitleWarning>
-    <RimChat_PawnRpgPush_OpenDialogue>打开 PawnRPG 对话</RimChat_PawnRpgPush_OpenDialogue>
-    <RimChat_PawnRpgPush_TitleSocial>{0} 想和 {1} 聊聊</RimChat_PawnRpgPush_TitleSocial>
-    <RimChat_PawnRpgPush_TitleTask>{0} 想和 {1} 聊聊（任务）</RimChat_PawnRpgPush_TitleTask>
-    <RimChat_PawnRpgPush_TitleWarning>{0} 想和 {1} 聊聊（警告）</RimChat_PawnRpgPush_TitleWarning>
-    <RimChat_EnableColonistToColonistDialogue>启用殖民者间主动对话</RimChat_EnableColonistToColonistDialogue>
-    <RimChat_ColonistPairMinOpinion>殖民者对话最低好感：{0}</RimChat_ColonistPairMinOpinion>
-    <RimChat_ColonistPairFrequency>殖民者对话频率</RimChat_ColonistPairFrequency>
-    <RimChat_ColonistPairFrequencyLow>殖民者：低</RimChat_ColonistPairFrequencyLow>
-    <RimChat_ColonistPairFrequencyMedium>殖民者：中</RimChat_ColonistPairFrequencyMedium>
-    <RimChat_ColonistPairFrequencyHigh>殖民者：高</RimChat_ColonistPairFrequencyHigh>
     <RimChat_NegotiatorMode>谈判代表选择</RimChat_NegotiatorMode>
     <RimChat_NegotiatorMode_HighestSocial>社交最高</RimChat_NegotiatorMode_HighestSocial>
     <RimChat_NegotiatorMode_ProtagonistList>主角列表</RimChat_NegotiatorMode_ProtagonistList>
@@ -2473,7 +2459,6 @@ ID：{5}
     <RimChat_ApiDebugSourceDiplomacyDialogue>外交对话</RimChat_ApiDebugSourceDiplomacyDialogue>
     <RimChat_ApiDebugSourceRpgDialogue>RPG 对话</RimChat_ApiDebugSourceRpgDialogue>
     <RimChat_ApiDebugSourceNpcPush>NPC 主动推送</RimChat_ApiDebugSourceNpcPush>
-    <RimChat_ApiDebugSourcePawnRpgPush>PawnRPG 主动推送</RimChat_ApiDebugSourcePawnRpgPush>
     <RimChat_ApiDebugSourceSocialNews>社交圈新闻</RimChat_ApiDebugSourceSocialNews>
     <RimChat_ApiDebugSourceStrategySuggestion>策略建议</RimChat_ApiDebugSourceStrategySuggestion>
     <RimChat_ApiDebugSourcePersonaBootstrap>人格引导</RimChat_ApiDebugSourcePersonaBootstrap>

@@ -8,7 +8,6 @@ using Verse;
 using Ustas.RimAI.Communication.Relations.UI;
 using Ustas.RimAI.Communication.Relations.Dialogue;
 using Ustas.RimAI.Communication.Relations.DiplomacySystem;
-using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using Ustas.RimAI.Communication.Relations.Prompting;
 using Ustas.RimAI.Communication.Relations.Module;
 using Ustas.RimAI.Communication.Relations.Persistence;
@@ -446,19 +445,6 @@ internal sealed class RelationsRpgPromptEditorsPage
                 rpgManager.SetPawnPersonaPrompt(_selectedRpgPawnForPersonaPrompt, string.Empty);
                 _rpgPreviewUpdateCooldown = 0;
             }
-
-            Rect debugButtonRect = new Rect(clearButtonRect.xMax + 8f, rowRect.y, rowRect.width - clearButtonRect.width - 8f, rowRect.height);
-            if (!Widgets.ButtonText(debugButtonRect, "RimChat_PawnRpgPush_DebugForceTrigger".Translate()))
-            {
-                return;
-            }
-
-            bool ok = GameComponent_PawnRpgDialoguePushManager.Instance?.DebugForcePawnRpgProactiveDialogue() == true;
-            MessageTypeDef messageType = ok ? MessageTypeDefOf.TaskCompletion : MessageTypeDefOf.RejectInput;
-            string key = ok
-                ? "RimChat_PawnRpgPush_DebugTriggerSuccess"
-                : "RimChat_PawnRpgPush_DebugTriggerFailed";
-            Messages.Message(key.Translate(), messageType, false);
         }
 
         internal string GetPawnDisplayName(Pawn pawn)

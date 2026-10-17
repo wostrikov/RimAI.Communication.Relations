@@ -1,6 +1,5 @@
 using HarmonyLib;
 using Ustas.RimAI.Communication.Relations.NpcDialogue;
-using Ustas.RimAI.Communication.Relations.PawnRpgPush;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -8,7 +7,7 @@ using Verse;
 namespace Ustas.RimAI.Communication.Relations.Patches
 {
     /// <summary>/// Dependencies: Verse.UIRoot_Play, Verse.Event.
- /// Responsibility: Capture left-click cadence for both proactive channels busy detection.
+ /// Responsibility: Capture left-click cadence for the faction push's busy detection.
  ///</summary>
     [HarmonyPatch(typeof(UIRoot_Play), "UIRootOnGUI")]
     public static class UIRootPlayPatch_NpcDialogue
@@ -22,7 +21,6 @@ namespace Ustas.RimAI.Communication.Relations.Patches
             }
 
             GameComponent_NpcDialoguePushManager.Instance?.RegisterPlayerLeftClick();
-            GameComponent_PawnRpgDialoguePushManager.Instance?.RegisterPlayerLeftClick();
         }
     }
 }

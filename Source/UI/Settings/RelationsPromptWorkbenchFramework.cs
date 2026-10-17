@@ -570,7 +570,7 @@ internal sealed class RelationsPromptWorkbenchFramework
                 return new[] { "DiplomacyDialogue", "SocialNews", "SendImage", "StrategySuggestion" };
             }
 
-            return new[] { "RpgDialogue", "NpcPush", "PawnRpgPush", "PersonaBootstrap", "MemorySummary", "ArchiveCompression" };
+            return new[] { "RpgDialogue", "NpcPush", "PersonaBootstrap", "MemorySummary", "ArchiveCompression" };
         }
 
 
