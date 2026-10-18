@@ -211,6 +211,12 @@ namespace Ustas.RimAI.Communication.Relations.PawnRpgPush
             {
                 stack.RemoveLetter(letter);
             }
+
+            // Says which mechanism took them off, for a load that shows them gone.
+            if (leftovers.Count > 0)
+            {
+                ModuleLog.Message($"[RimAI.Relations] Removed {leftovers.Count} leftover pawn-push letter(s) from the letter stack on load.");
+            }
         }
     }
 }
